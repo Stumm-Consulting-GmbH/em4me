@@ -30,6 +30,12 @@
 // speichert der Anwender den Stand später, ist das seine Handlung und löst
 // `file-changed` aus wie jedes Speichern.
 //
+// **Ein Schreibweg für eine fertige Bearbeitung** (4T-002546): `runContentEdit`
+// nimmt Ziel und fertige Bearbeitung und geht denselben Weg wie jeder
+// Inhalts-Befehl (Ziel-Prüfung, Weiche zum Editor-Puffer, Platte mit Historie
+// und Lauf-Marke); `db-query` schreibt darüber das Ergebnis einer Abfrage in
+// einen Abschnitt (`replaceSection` in `workflow-edit.js`).
+//
 // Eigener Zustand: keiner.
 'use strict';
 
@@ -135,7 +141,7 @@ async function bearbeitungFuer(ctx, step) {
  * @param {Function} deps.readPreviousTextFor Datei-Stand vor dem Überschreiben.
  * @param {Function} deps.recordMddOnSave Historien-Paket beim Speichern schreiben.
  * @param {{request: Function}} deps.bufferRequests Aufträge an ein fremdes Fenster.
- * @returns {{runContentStep: Function}}
+ * @returns {{runContentStep: Function, runContentEdit: Function}}
  */
 function createWorkflowContentSteps(deps) {
   const { windows, backlinks, resolveHistoryFor, readPreviousTextFor, recordMddOnSave } = deps;
@@ -176,18 +182,44 @@ function createWorkflowContentSteps(deps) {
    *   `{ ok: false, code, detail }`.
    */
   async function runContentStep(ctx, step) {
-    const ziel = await resolveAreaPath(ctx.root, step.args[0]);
+    const ziel = await zielDatei(ctx, step.args[0]);
+    if (!ziel.ok) return ziel;
+    const gebildet = await bearbeitungFuer({ ...ctx, backlinks }, step);
+    if (!gebildet.ok) return gebildet;
+    return wendeAn(ctx, ziel, gebildet.edit);
+  }
+
+  // Das Ziel eines Schritts: im Bereich und eine vorhandene Datei.
+  async function zielDatei(ctx, relPfad) {
+    const ziel = await resolveAreaPath(ctx.root, relPfad);
     if (!ziel.ok) return ziel;
     let stat;
     try {
       stat = await fs.stat(ziel.abs);
     } catch (err) {
-      return fehlschlag('targetMissing', { path: step.args[0], fsCode: fsCode(err) });
+      return fehlschlag('targetMissing', { path: relPfad, fsCode: fsCode(err) });
     }
-    if (!stat.isFile()) return fehlschlag('notAFile', { path: step.args[0] });
-    const gebildet = await bearbeitungFuer({ ...ctx, backlinks }, step);
-    if (!gebildet.ok) return gebildet;
-    const { edit } = gebildet;
+    if (!stat.isFile()) return fehlschlag('notAFile', { path: relPfad });
+    return ziel;
+  }
+
+  /**
+   * 4T-002546: Wendet eine fertige Bearbeitung auf eine Datei des Bereichs an,
+   * über denselben Weg wie ein Inhalts-Befehl.
+   *
+   * @param {object} ctx Lauf-Kontext wie bei `runContentStep`.
+   * @param {string} relPfad Ziel relativ zur Bereichs-Wurzel.
+   * @param {object} edit Bearbeitung für `applyContentEdit`.
+   * @returns {Promise<object>} wie `runContentStep`.
+   */
+  async function runContentEdit(ctx, relPfad, edit) {
+    const ziel = await zielDatei(ctx, relPfad);
+    if (!ziel.ok) return ziel;
+    return wendeAn(ctx, ziel, edit);
+  }
+
+  // Die Weiche zum Editor-Puffer, sonst die Platte.
+  async function wendeAn(ctx, ziel, edit) {
     const besitzer = pufferBesitzer({ windows, backlinks }, ctx.event, ziel.abs);
     if (besitzer.art === 'absender') {
       return { ok: true, window: { action: 'editOwnBuffer', path: ziel.abs, edit } };
@@ -201,7 +233,7 @@ function createWorkflowContentSteps(deps) {
     return schreibePlatte(ctx, ziel.abs, edit);
   }
 
-  return { runContentStep };
+  return { runContentStep, runContentEdit };
 }
 
 module.exports = { CONTENT_KEYWORDS, createWorkflowContentSteps, readCurrentText, readStepSource };

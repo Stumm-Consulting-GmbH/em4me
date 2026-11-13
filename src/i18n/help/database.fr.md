@@ -352,7 +352,7 @@ Le second chemin vérifie lui aussi toutes les règles de la table ; aucune règ
 
 ### Supprimer
 
-**« Supprimer »** pose d'abord la question : **« Supprimer cet enregistrement ? »** Avec **« Oui, supprimer »**, l'enregistrement est supprimé et le formulaire se ferme ; **« Non »** laisse tout en l'état. Un enregistrement vers lequel une colonne de lien pointe encore ne peut pas non plus être supprimé ici. Quels enregistrements renvoient à lui, l'utilisation décrite plus bas le montre à l'avance.
+**« Supprimer »** pose d'abord la question : **« Supprimer cet enregistrement ? »** Avec **« Oui, supprimer »**, l'enregistrement est supprimé et le formulaire se ferme ; **« Non »** laisse tout en l'état. Un enregistrement vers lequel une colonne de lien pointe encore ne peut pas non plus être supprimé ici. Quels enregistrements renvoient à lui, l'utilisation décrite plus bas le montre à l'avance. Un workflow supprime un enregistrement avec `db-delete`, uniquement lors d’un lancement à la main et après une confirmation (page [Workflows](workflows.md), section « Commandes de base de données »).
 
 ### Le formulaire comme fichier
 
@@ -623,7 +623,7 @@ Le rôle qui s'applique à vous est indiqué par la vue d'ensemble dans la ligne
 
 ### Contrôle à l'écriture
 
-Toute modification d'enregistrements passe par la voie que décrit la section « Sauvegarde par l'application », et l'application y contrôle d'abord le rôle, pour chaque enregistrement avec la table et l'opération. Si l'autorisation manque, toute l'opération est refusée, et le message nomme le rôle, la table et l'action. Le début d'un nouvel enregistrement exige lui aussi `create` : sans cette autorisation, l'application refuse la création, par exemple avec la commande « Nouvel enregistrement dans la table active », et la barre d'état en indique la raison. Si les autorisations ne peuvent pas être déterminées, parce que les tables de la zone ne sont pas encore entièrement lues ou que la fiche d'identité n'est pas lisible, rien n'est écrit non plus, et le message invite à réessayer dans un instant.
+Toute modification d'enregistrements passe par la voie que décrit la section « Sauvegarde par l'application », et l'application y contrôle d'abord le rôle, pour chaque enregistrement avec la table et l'opération. Si l'autorisation manque, toute l'opération est refusée, et le message nomme le rôle, la table et l'action. Le début d'un nouvel enregistrement exige lui aussi `create` : sans cette autorisation, l'application refuse la création, par exemple avec la commande « Nouvel enregistrement dans la table active », et la barre d'état en indique la raison. Si les autorisations ne peuvent pas être déterminées, parce que les tables de la zone ne sont pas encore entièrement lues ou que la fiche d'identité n'est pas lisible, rien n'est écrit non plus, et le message invite à réessayer dans un instant. Le même contrôle vaut pour les commandes de base de données d’un workflow, qui écrivent avec vos autorisations (page [Workflows](workflows.md), section « Commandes de base de données »).
 
 ### Contrôle à la sauvegarde de la définition
 
@@ -654,7 +654,7 @@ Les rôles font partie de la définition et voyagent avec la fiche d'identité. 
 
 Lors de la sauvegarde par l'application, chaque modification est vérifiée. Ce qui parvient aux fichiers par un autre chemin, par exemple à la main dans un éditeur, personne ne le vérifie au passage, et certaines règles n'agissent pas du tout à la lecture. Le **contrôle de cohérence** parcourt donc l'ensemble des données et indique où elles contredisent les règles de la base de données. Une fiche est contrôlée par l'application aussi lors de l'enregistrement dans l'éditeur, mais rien n'y est refusé ; les constats sont seulement signalés (section « Forme en fichier de fiches »).
 
-Il se trouve dans la vue d'ensemble de la base de données : **« Contrôler la cohérence »** dans l'en-tête contrôle toutes les tables, **« Contrôler »** dans la ligne d'une table seulement celle-ci. La commande **« Contrôler la cohérence de la base de données »** de la palette de commandes contrôle elle aussi toutes les tables ; elle ouvre pour cela la vue d'ensemble.
+Il se trouve dans la vue d'ensemble de la base de données : **« Contrôler la cohérence »** dans l'en-tête contrôle toutes les tables, **« Contrôler »** dans la ligne d'une table seulement celle-ci. La commande **« Contrôler la cohérence de la base de données »** de la palette de commandes contrôle elle aussi toutes les tables ; elle ouvre pour cela la vue d'ensemble. Un workflow contrôle de la même manière avec `db-check` et signale le résultat sous forme d’avis (page [Workflows](workflows.md), section « Commandes de base de données »).
 
 Le résultat figure dans la section **« Contrôle de cohérence »** de la vue d'ensemble : la durée, par table le nombre de ses enregistrements et de ses constats, et en dessous les constats avec la table, l'enregistrement, le champ et une phrase en clair. Un clic sur l'enregistrement ouvre son formulaire. La liste montre au plus les 500 premiers constats et indique alors combien il y en a au total.
 

@@ -269,6 +269,19 @@ function leseAnweisung(roh, position) {
       ok: false,
       befund: befund(LAGEN.form, { ...stelle, tabelle, id, feld: 'erzwingen' }),
     };
+  // 4T-002545 (Epic 3E-000368, Entscheidung des Product Owners vom 2026-11-12):
+  // Die Ausnahme von der Pflicht-Prüfung beim Anlegen einer neuen Karteikarte
+  // (`pruefeAnweisung` unten) gilt nur noch auf ausdrückliche Anforderung des
+  // Aufrufers; ohne die Angabe wird geprüft. Ein Wahrheitswert wie `erzwingen`.
+  const pflichtAussetzenRoh =
+    roh.pflichtAussetzen === undefined || roh.pflichtAussetzen === null
+      ? false
+      : roh.pflichtAussetzen;
+  if (typeof pflichtAussetzenRoh !== 'boolean')
+    return {
+      ok: false,
+      befund: befund(LAGEN.form, { ...stelle, tabelle, id, feld: 'pflichtAussetzen' }),
+    };
 
   return {
     ok: true,
@@ -280,6 +293,7 @@ function leseAnweisung(roh, position) {
       werte,
       erwartet: erwartung.erwartet,
       erzwingen: erzwingenRoh,
+      pflichtAussetzen: pflichtAussetzenRoh,
       karteikarte: karteikarte.karteikarte,
     },
   };
@@ -498,7 +512,14 @@ function pruefeAnweisung(anweisung, felder, karte, lagen) {
   // Ausgesetzt ist allein diese Prüfung beim Anlegen einer neuen Karteikarte; ein
   // ausdrücklich geleertes Pflicht-Feld (oben) weist weiter ab, beim Ändern gilt
   // die Pflicht am Ergebnis, und die Konsistenz-Prüfung meldet die fehlende Angabe.
-  if (anweisung.karteikarte && anweisung.karteikarte.name !== undefined) return;
+  // 4T-002545: nur, wenn der Aufrufer es mit `pflichtAussetzen` anfordert; ein
+  // Workflow-Schritt `db-create` tut das nicht und hält mit dieser Lage an.
+  if (
+    anweisung.pflichtAussetzen === true &&
+    anweisung.karteikarte &&
+    anweisung.karteikarte.name !== undefined
+  )
+    return;
   const genannt = new Set(Object.keys(anweisung.werte).map((name) => name.toLowerCase()));
   for (const feld of felder) {
     if (feld.required !== true) continue;

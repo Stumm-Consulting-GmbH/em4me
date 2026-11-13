@@ -29,6 +29,8 @@ import { registerExtensionTranslations } from '../../i18n.js';
 import { renderCommandButtons } from '../command-placement.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { getWorkflowFolderList, onWorkflowFolderListChanged } from './workflow-folder-list.js';
+// 4T-002544: Rückfragen des Prüfers nach Tabellen und Feldern.
+import { initWorkflowDbRueckfrage } from './workflow-db-rueckfrage.js';
 import {
   fremdeBezeichnung,
   fremdeWorkflows,
@@ -162,6 +164,7 @@ export function initWorkflowCommands(w) {
   initFremdeWorkflows();
   initWorkflowStart({ executeCommand: w.executeCommand, runMacro: w.runMacro });
   registriereRueckfragen({ isKnownWorkflow: zaehleWorkflows });
+  initWorkflowDbRueckfrage();
   registriereStartKnopf();
   // 4T-002422: «Scharf» rechts neben «Starten», nur bei `trigger: schedule`.
   registriereScharfKnopf();

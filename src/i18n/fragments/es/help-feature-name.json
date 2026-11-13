@@ -323,5 +323,9 @@
   "help.featureName.workflowEvents": "Workflows ante eventos",
   "help.featureName.workflowConditions": "Condiciones en workflows",
   "help.featureName.workflowLoop": "Bucles en workflows",
-  "help.featureName.workflowScript": "Paso de script en workflows"
+  "help.featureName.workflowScript": "Paso de script en workflows",
+  "help.featureName.workflowDbRecords": "Comandos de registros en workflows",
+  "help.featureName.workflowDbQuery": "Consulta a un archivo",
+  "help.featureName.workflowDbLoop": "Bucles sobre registros en workflows",
+  "help.featureName.workflowDbForms": "Formularios y coherencia en workflows"
 }

@@ -352,7 +352,7 @@ Auch der zweite Weg prüft alle Regeln der Tabelle; eine Regel lässt sich mit i
 
 ### Löschen
 
-**«Löschen»** fragt zuerst zurück: **«Soll dieser Datensatz gelöscht werden?»** Mit **«Ja, löschen»** wird er gelöscht, und die Maske schließt sich; **«Nein»** lässt alles stehen. Ein Datensatz, auf den noch eine Verweis-Spalte zeigt, lässt sich auch hier nicht löschen. Welche Datensätze auf ihn verweisen, zeigt vorab der Verwendungsnachweis weiter unten.
+**«Löschen»** fragt zuerst zurück: **«Soll dieser Datensatz gelöscht werden?»** Mit **«Ja, löschen»** wird er gelöscht, und die Maske schließt sich; **«Nein»** lässt alles stehen. Ein Datensatz, auf den noch eine Verweis-Spalte zeigt, lässt sich auch hier nicht löschen. Welche Datensätze auf ihn verweisen, zeigt vorab der Verwendungsnachweis weiter unten. Ein Workflow löscht einen Datensatz mit `db-delete`, nur bei einem Start von Hand und nach einer Bestätigung (Seite [Workflows](workflows.md), Abschnitt «Datenbank-Befehle»).
 
 ### Die Maske als Datei
 
@@ -623,7 +623,7 @@ Welche Rolle für Sie gilt, zeigt die Übersicht in der Zeile **«Eigene Rolle»
 
 ### Geprüft beim Schreiben
 
-Jede Änderung an Datensätzen läuft durch den Weg, den der Abschnitt «Speichern durch die Anwendung» beschreibt, und dort prüft die Anwendung zuerst die Rolle, je Datensatz mit Tabelle und Operation. Fehlt die Erlaubnis, wird der ganze Vorgang abgewiesen, und die Meldung nennt Rolle, Tabelle und Handgriff. Auch das Beginnen eines neuen Datensatzes verlangt `create`: Ohne diese Erlaubnis weist die Anwendung die Neuanlage ab, etwa beim Kommando «Neuer Datensatz in der aktiven Tabelle», und die Statuszeile nennt den Grund. Lassen sich die Berechtigungen nicht feststellen, weil die Tabellen des Bereichs noch nicht vollständig eingelesen sind oder der Steckbrief nicht lesbar ist, wird ebenfalls nichts geschrieben, und die Meldung bittet, es gleich noch einmal zu versuchen.
+Jede Änderung an Datensätzen läuft durch den Weg, den der Abschnitt «Speichern durch die Anwendung» beschreibt, und dort prüft die Anwendung zuerst die Rolle, je Datensatz mit Tabelle und Operation. Fehlt die Erlaubnis, wird der ganze Vorgang abgewiesen, und die Meldung nennt Rolle, Tabelle und Handgriff. Auch das Beginnen eines neuen Datensatzes verlangt `create`: Ohne diese Erlaubnis weist die Anwendung die Neuanlage ab, etwa beim Kommando «Neuer Datensatz in der aktiven Tabelle», und die Statuszeile nennt den Grund. Lassen sich die Berechtigungen nicht feststellen, weil die Tabellen des Bereichs noch nicht vollständig eingelesen sind oder der Steckbrief nicht lesbar ist, wird ebenfalls nichts geschrieben, und die Meldung bittet, es gleich noch einmal zu versuchen. Dieselbe Prüfung gilt für die Datenbank-Befehle eines Workflows, die mit Ihren Rechten schreiben (Seite [Workflows](workflows.md), Abschnitt «Datenbank-Befehle»).
 
 ### Geprüft beim Speichern der Definition
 
@@ -654,7 +654,7 @@ Die Rollen sind Teil der Definition und reisen mit dem Steckbrief. Die Zuordnung
 
 Beim Speichern durch die Anwendung wird jede Änderung geprüft. Was auf anderem Weg in die Dateien kommt, etwa von Hand im Editor, prüft dabei niemand, und manche Regeln wirken beim Lesen gar nicht. Die **Konsistenz-Prüfung** sieht deshalb den ganzen Bestand durch und sagt, wo er den Regeln der Datenbank widerspricht. Eine Karteikarte prüft die Anwendung auch beim Speichern im Editor, weist dort aber nichts ab, sondern meldet nur (Abschnitt «Kartei-Form»).
 
-Sie steht in der Übersicht der Datenbank: **«Konsistenz prüfen»** im Kopf prüft alle Tabellen, **«Prüfen»** in der Zeile einer Tabelle nur diese. Alle Tabellen prüft auch das Kommando **«Konsistenz der Datenbank prüfen»** in der Kommando-Palette; es öffnet dazu die Übersicht.
+Sie steht in der Übersicht der Datenbank: **«Konsistenz prüfen»** im Kopf prüft alle Tabellen, **«Prüfen»** in der Zeile einer Tabelle nur diese. Alle Tabellen prüft auch das Kommando **«Konsistenz der Datenbank prüfen»** in der Kommando-Palette; es öffnet dazu die Übersicht. Ein Workflow prüft mit `db-check` auf demselben Weg und meldet das Ergebnis als Hinweis (Seite [Workflows](workflows.md), Abschnitt «Datenbank-Befehle»).
 
 Das Ergebnis steht im Abschnitt **«Konsistenz-Prüfung»** der Übersicht: die Dauer, je Tabelle die Zahl ihrer Datensätze und Befunde und darunter die Befunde mit Tabelle, Datensatz, Feld und einem Satz im Klartext. Ein Klick auf den Datensatz öffnet seine Maske. Die Liste zeigt höchstens die ersten 500 Befunde und sagt dann, wie viele es insgesamt sind.
 

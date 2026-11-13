@@ -61,13 +61,15 @@ const PALETTE_QUELLE = fs.readFileSync(
 );
 
 // 4T-002024 (Epic 3E-000192): Die beiden Lagen des aktiven Editors bleiben aus
-// der Voll-Aufzählung. Jedes boolsche Feld verdoppelt sie, mit beiden stiege
-// sie von 65 536 auf 262 144 Kontexte, und ihre Zeit trüge jeder Lauf für
-// genau zwei Bedingungen. Stattdessen stehen zwei eigene Fälle weiter unten:
-// Alle Bedingungen, die die Felder nicht nennen, sind gegen sie unempfindlich
-// (Felder alle falsch gegen alle wahr über die Basis-Kontexte), und die beiden
-// Bedingungen, die sie nennen, werden über Basis mal vier Belegungen
-// aufgezählt. In der Grundgesamtheit KONTEXTE stehen beide auf false.
+// der Voll-Aufzählung. Jedes boolsche Feld verdoppelt sie, mit beiden würde sie
+// vervierfacht (die Zahl steht aus demselben Grund wie bei alleKontexte nicht
+// im Text), und ihre Zeit trüge jeder Lauf für genau zwei Bedingungen.
+// Stattdessen stehen zwei eigene Fälle weiter unten: Alle Bedingungen, die die
+// Felder nicht nennen, sind gegen sie unempfindlich (jede der drei übrigen
+// Belegungen gegen die Grund-Belegung, über alle Basis-Kontexte; Stand
+// 4T-002562), und die beiden Bedingungen, die sie nennen, werden über Basis
+// mal vier Belegungen aufgezählt. In der Grundgesamtheit KONTEXTE stehen beide
+// auf false.
 const LAGE_FELDER = ['inDatentabelle', 'diagrammGewaehlt'];
 // Die vier Belegungen der beiden Lage-Felder.
 const LAGE_BELEGUNGEN = [
@@ -116,6 +118,54 @@ function alleKontexte() {
 }
 
 const KONTEXTE = alleKontexte();
+
+// 4T-002562: Schlüssel einer Belegung über die genannten Felder als Zahl statt
+// als verketteter Text. Je Feld eine Dezimalstelle: ein boolsches Feld als 0
+// oder 1, viewMode als seine Stelle in VIEW_MODES (0 bis 8). Weil jede Stelle
+// unter zehn bleibt, bekommen genau die gleichen Belegungen denselben
+// Schlüssel; die Kontexte zerfallen also in dieselben Gruppen wie mit dem
+// Text-Schlüssel, nur ohne je Auswertung eine Zeichenkette zu bauen. Gemessen
+// am 2026-11-12 in einem Wegwerf-Skript über den ganzen Katalog: 430 statt
+// 1580 ms. Grenzen: Bis 15 Felder bleibt die Zahl unter
+// Number.MAX_SAFE_INTEGER (eine Bedingung nennt heute höchstens sieben), und
+// jeder viewMode der Belegungen steht in VIEW_MODES, weil KONTEXTE aus genau
+// dieser Liste gebaut ist.
+const schluesselStelle = (ctx, f) =>
+  f === 'viewMode' ? VIEW_MODES.indexOf(ctx.viewMode) : +!!ctx[f];
+const belegungsSchluessel = (ctx, felder) =>
+  felder.reduce((s, f) => s * 10 + schluesselStelle(ctx, f), 0);
+
+// 4T-002562: Liest eine Bedingung ein Feld, das sie nicht nennt? Gleiche
+// Belegung der genannten Felder muss über die ganze Grundgesamtheit dieselbe
+// Antwort geben. Eine Funktion für den Fall und seine Gegenprobe, damit die
+// Gegenprobe genau den Mechanismus prüft, auf dem der Fall steht.
+function liestUngenanntesFeld(bedingung) {
+  const gesehen = new Map();
+  for (const ctx of KONTEXTE) {
+    const schluessel = belegungsSchluessel(ctx, bedingung.felder);
+    const wert = bedingung.pruefe(ctx);
+    if (!gesehen.has(schluessel)) gesehen.set(schluessel, wert);
+    else if (gesehen.get(schluessel) !== wert) return true;
+  }
+  return false;
+}
+
+// 4T-002562: Eine Lage-Belegung wird für eine Auswertung am Kontext selbst
+// gesetzt und danach wieder auf false gestellt, statt je Belegung eine Kopie
+// des Kontexts zu bauen. Die Kopien waren die Kosten der beiden Lage-Fälle:
+// rund 44 Millionen neue Objekte je Lauf. Die Fälle einer Datei laufen
+// nacheinander, und das finally stellt den Kontext auch nach einer Ausnahme
+// zurück; KONTEXTE trägt nach jeder Auswertung wieder seine Grund-Belegung.
+function inLageBelegung(ctx, inDatentabelle, diagrammGewaehlt, auswertung) {
+  ctx.inDatentabelle = inDatentabelle;
+  ctx.diagrammGewaehlt = diagrammGewaehlt;
+  try {
+    return auswertung(ctx);
+  } finally {
+    ctx.inDatentabelle = false;
+    ctx.diagrammGewaehlt = false;
+  }
+}
 
 function kontext(teil) {
   return availabilityContext(teil);
@@ -293,47 +343,28 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
   // angehobenes Zeitlimit waere der schlechtere Weg gewesen: Es haette den
   // naechsten neuen Feld-Zuwachs erneut gerissen (test/zeitlimits.js, «Eine
   // Grenze, die ein zweites Mal steigt, verdeckt einen Befund»).
+  // 4T-002562: Der Vergleich steht seither in liestUngenanntesFeld oben und
+  // bildet den Schlüssel der Belegung als Zahl (belegungsSchluessel);
+  // Grundgesamtheit, Vergleich und Wortlaut des Befunds sind unverändert.
   it('keine Bedingung liest ein Feld, das sie nicht nennt', () => {
-    const befunde = [];
-    for (const bedingung of AVAILABILITY_CATALOG) {
-      const gesehen = new Map();
-      for (const ctx of KONTEXTE) {
-        const schluessel = bedingung.felder.map((f) => String(ctx[f])).join('|');
-        const wert = bedingung.pruefe(ctx);
-        if (!gesehen.has(schluessel)) gesehen.set(schluessel, wert);
-        else if (gesehen.get(schluessel) !== wert) {
-          befunde.push(
-            `Bedingung ${bedingung.name} haengt an einem Feld ausserhalb von [${bedingung.felder.join(', ')}]`,
-          );
-          break;
-        }
-      }
-    }
-    expect([...new Set(befunde)]).toEqual([]);
+    const befunde = AVAILABILITY_CATALOG.filter(liestUngenanntesFeld).map(
+      (b) => `Bedingung ${b.name} haengt an einem Feld ausserhalb von [${b.felder.join(', ')}]`,
+    );
+    expect(befunde).toEqual([]);
   });
 
   // Gegenprobe der Erkennung: Eine Bedingung, die ein nicht genanntes Feld
   // liest, muss der Durchlauf oben wirklich finden — sonst waere sein Schweigen
   // wertlos (L11). Gemessen an derselben Grundgesamtheit, aber an einer
-  // eigens gebauten, absichtlich falschen Bedingung.
+  // eigens gebauten, absichtlich falschen Bedingung. Seit 4T-002562 über
+  // dieselbe Funktion wie der Fall, statt über eine Abschrift seiner Schleife.
   it('findet eine Bedingung, die ein nicht genanntes Feld liest (Gegenprobe)', () => {
     const luegner = {
       name: 'luegner',
       felder: ['hasTab'],
       pruefe: (c) => !!c.hasTab && !c.editMode,
     };
-    const gesehen = new Map();
-    let ertappt = false;
-    for (const ctx of KONTEXTE) {
-      const schluessel = luegner.felder.map((f) => String(ctx[f])).join('|');
-      const wert = luegner.pruefe(ctx);
-      if (!gesehen.has(schluessel)) gesehen.set(schluessel, wert);
-      else if (gesehen.get(schluessel) !== wert) {
-        ertappt = true;
-        break;
-      }
-    }
-    expect(ertappt).toBe(true);
+    expect(liestUngenanntesFeld(luegner)).toBe(true);
   });
 
   // 4T-002024 (Epic 3E-000192): Die beiden Lage-Felder stehen in KONTEXTE fest
@@ -346,22 +377,37 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
   // Alle vier Belegungen der beiden Felder gegen die Grund-Belegung (V4b der
   // Nachbesserung vom 2026-09-30): Ein Vergleich nur von «beide an» gegen
   // «beide aus» übersähe eine Bedingung wie `inDatentabelle && !diagrammGewaehlt`.
+  //
+  // 4T-002562: Dieselbe Frage an dieselbe Grundgesamtheit, aber billiger. Bis
+  // hierher baute der Fall je Bedingung, Kontext und Belegung eine Kopie des
+  // Kontexts und riss am 2026-11-12 in der vollen Suite der Merge-Queue die
+  // 5000 ms; einzeln und ohne Last brauchte er 4768 ms. Jetzt ist die
+  // Grund-Belegung der Kontext selbst (in KONTEXTE stehen beide Lage-Felder auf
+  // false, der Fall stellt das fest), und die drei übrigen Belegungen setzt
+  // inLageBelegung am Kontext und stellt sie danach zurück. Der Vergleich der
+  // Grund-Belegung mit sich selbst entfällt: Er verglich zwei inhaltsgleiche
+  // Eingaben und konnte bei keiner Bedingung anschlagen, die bei gleicher
+  // Eingabe gleich antwortet, auch bei einer nicht, die fremde Felder liest.
+  // Dass die Grund-Belegung nach jedem verändernden Fall wieder steht, stellen
+  // die drei Fälle an ihrem Ende fest.
+  const LAGE_WECHSEL = LAGE_BELEGUNGEN.filter(([a, d]) => a || d);
   function lageEmpfindlich(pruefe) {
     return KONTEXTE.some((ctx) => {
-      const grund = pruefe({ ...ctx, inDatentabelle: false, diagrammGewaehlt: false });
-      return LAGE_BELEGUNGEN.some(
-        ([a, d]) => pruefe({ ...ctx, inDatentabelle: a, diagrammGewaehlt: d }) !== grund,
-      );
+      const grund = pruefe(ctx);
+      return LAGE_WECHSEL.some(([a, d]) => inLageBelegung(ctx, a, d, pruefe) !== grund);
     });
   }
 
   it('Bedingungen ohne Lage-Feld sind gegen beide Lage-Felder unempfindlich', () => {
+    // Voraussetzung der Grund-Belegung: in KONTEXTE stehen beide Lage-Felder auf false.
+    expect(KONTEXTE.some((c) => c.inDatentabelle || c.diagrammGewaehlt)).toBe(false);
     const ohneLage = AVAILABILITY_CATALOG.filter(
       (b) => !b.felder.some((f) => LAGE_FELDER.includes(f)),
     );
     expect(ohneLage.length).toBe(AVAILABILITY_CATALOG.length - 2);
     const befunde = ohneLage.filter((b) => lageEmpfindlich(b.pruefe)).map((b) => b.name);
     expect(befunde, 'Bedingungen, die still ein Lage-Feld lesen').toEqual([]);
+    expect(KONTEXTE.some((c) => c.inDatentabelle || c.diagrammGewaehlt)).toBe(false);
   });
 
   // Gegenprobe zum Fall darüber: Eine Bedingung, die still ein Lage-Feld liest,
@@ -374,11 +420,16 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
       (c) => !!c.hasTab && c.inDatentabelle !== c.diagrammGewaehlt,
     ];
     expect(luegner.map(lageEmpfindlich)).toEqual([true, true, true, true]);
+    expect(KONTEXTE.some((c) => c.inDatentabelle || c.diagrammGewaehlt)).toBe(false);
   });
 
   // Zweitens: Die beiden Bedingungen, die ein Lage-Feld nennen, werden über
   // Basis mal vier Belegungen der Lage-Felder aufgezählt. Geprüft wird wie oben,
   // dass keine ein Feld außerhalb ihrer Liste liest, und dazu ihr Ausdruck.
+  //
+  // 4T-002562: Die Belegung setzt inLageBelegung am Kontext, statt eine Kopie zu
+  // bauen, und der Schlüssel ist die Zahl aus belegungsSchluessel; alle vier
+  // Belegungen bleiben, weil der Fall auch freie und gesperrte Lagen zählt.
   it('die beiden Lage-Bedingungen, aufgezählt über Basis mal vier Belegungen', () => {
     const mitLage = AVAILABILITY_CATALOG.filter((b) =>
       b.felder.some((f) => LAGE_FELDER.includes(f)),
@@ -406,30 +457,26 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
       let frei = 0;
       let gesperrt = 0;
       let falsch = 0;
-      for (const ctx of KONTEXTE) {
-        for (const [a, d] of [
-          [false, false],
-          [true, false],
-          [false, true],
-          [true, true],
-        ]) {
-          const c = { ...ctx, inDatentabelle: a, diagrammGewaehlt: d };
-          const wert = b.pruefe(c);
-          if (wert) frei += 1;
-          else gesperrt += 1;
-          if (wert !== soll[b.name](c)) falsch += 1;
-          const schluessel = b.felder.map((f) => String(c[f])).join('|');
-          if (!gesehen.has(schluessel)) gesehen.set(schluessel, wert);
-          else if (gesehen.get(schluessel) !== wert) {
-            befunde.push(`${b.name} liest ein Feld außerhalb von [${b.felder.join(', ')}]`);
-          }
+      const auswerten = (c) => {
+        const wert = b.pruefe(c);
+        if (wert) frei += 1;
+        else gesperrt += 1;
+        if (wert !== soll[b.name](c)) falsch += 1;
+        const schluessel = belegungsSchluessel(c, b.felder);
+        if (!gesehen.has(schluessel)) gesehen.set(schluessel, wert);
+        else if (gesehen.get(schluessel) !== wert) {
+          befunde.push(`${b.name} liest ein Feld außerhalb von [${b.felder.join(', ')}]`);
         }
+      };
+      for (const ctx of KONTEXTE) {
+        for (const [a, d] of LAGE_BELEGUNGEN) inLageBelegung(ctx, a, d, auswerten);
       }
       expect(falsch, `${b.name}: Ausdruck weicht ab`).toBe(0);
       expect(frei, `${b.name}: gibt nie frei`).toBeGreaterThan(0);
       expect(gesperrt, `${b.name}: sperrt nie`).toBeGreaterThan(0);
     }
     expect([...new Set(befunde)]).toEqual([]);
+    expect(KONTEXTE.some((c) => c.inDatentabelle || c.diagrammGewaehlt)).toBe(false);
   });
 
   it('wertet jede Bedingung an ihrer freigebenden und ihrer sperrenden Lage aus', () => {

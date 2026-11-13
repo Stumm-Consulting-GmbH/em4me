@@ -137,9 +137,13 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   on missed runs once, or when something happens in its area, such as a new
   file arriving in a folder or a task being completed, as long as the area is
   open. Conditions, loops over the files of a folder and a read-only script
-  step decide which steps run. A workflow acts only within your open area,
-  overwrites nothing, deletes only to the trash and only after you confirm,
-  and never goes online.
+  step decide which steps run. With the database switched on, a workflow also
+  creates, changes and deletes records the same way the form does, with your
+  permissions and all the rules of the table, writes the result of a query as
+  a table into a note and repeats steps for every record of a query; it
+  deletes records only when you start it by hand and after you confirm. A
+  workflow acts only within your open area, overwrites nothing, deletes files
+  only to the trash and only after you confirm, and never goes online.
 - **Areas keep projects apart, and can still talk** — bind a window to a
   folder and it becomes a closed workspace: file dialogs, recent files and
   search stay inside it. An area can designate one of its files as a start

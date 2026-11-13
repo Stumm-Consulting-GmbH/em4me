@@ -11,6 +11,10 @@
 // Ein Code ohne Text meldet sich in der Konsole und erscheint als Code
 // (lauter Nachschlage-Vorgang, Entwicklungsrichtlinien, Kapitel 1).
 //
+// 4T-002545 (Df): Eine Abweisung der Schreib-Schnittstelle der Datenbank
+// (`dbRejected`) bekommt den Satz, den auch die Maske zeigt, gebildet aus ihren
+// Lagen über `auftrag-text.js`; ohne Lagen den allgemeinen Text des Codes.
+//
 // 4T-002463 (Epic 3E-000367, Story 4S-001146, Entscheidung 3c): dazu das
 // Ereignis eines Workflows in Worten (`ereignisInWorten`, für die Spalte
 // «Nächster Lauf», den Hinweis beim Scharf-Schalten und den Tooltip des
@@ -20,8 +24,27 @@
 // die Reihenfolge selbst wählt.
 'use strict';
 
-import { t } from '../../i18n.js';
+import { currentDictionary, t } from '../../i18n.js';
 import { befundText } from './workflow-pruefung.js';
+import { loeseErgebnisAuf } from '../../../shared/database/auftrag-text.js';
+
+// 4T-002545 (Df): Code einer Abweisung der Schreib-Schnittstelle der Datenbank;
+// `detail.lagen` trägt ihre Lagen, der Satz ist der der Maske.
+const DB_ABWEISUNG = 'dbRejected';
+
+// Kennt die Sprachdatei den Schlüssel? Ohne Meldung eines fehlenden Schlüssels
+// (Muster der Maske, `karteikarte-anlegen.js`).
+function hatSchluessel(key) {
+  const dict = currentDictionary();
+  return !!dict && Object.prototype.hasOwnProperty.call(dict, key);
+}
+
+// Die Sätze der Maske zu den Lagen einer Abweisung, oder null ohne Lage.
+function abweisungsText(detail) {
+  if (!Array.isArray(detail.lagen) || detail.lagen.length === 0) return null;
+  const saetze = loeseErgebnisAuf({ ok: false, lagen: detail.lagen }, { t, hat: hatSchluessel });
+  return saetze.length > 0 ? saetze.map((lage) => lage.text).join(' ') : null;
+}
 
 // Der Text zu einem Schlüssel oder null, wenn die Sprachdatei ihn nicht kennt.
 function text(key) {
@@ -118,6 +141,10 @@ export function grundText(ergebnis) {
       'workflow.fehlschlag.workflowFailed',
       'workflow.fehlschlag.workflowFailedOhneZeile',
     );
+  }
+  if (ergebnis.code === DB_ABWEISUNG) {
+    const saetze = abweisungsText(detail);
+    if (saetze !== null) return saetze;
   }
   const vorlage = text(fehlschlagSchluessel(ergebnis.code));
   if (vorlage === null) {

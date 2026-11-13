@@ -147,3 +147,31 @@ describe('readBlock', () => {
     expect(readBlock([], 3)).toEqual({ statements: [], findings: [] });
   });
 });
+
+// 4T-002544 (AK1): die Formen der Datenbank-Befehle aus Da und Db.
+describe('readLine — Datenbank-Befehle (Stufe D)', () => {
+  it('liest Tabelle, Datensatz und Paare der Datensatz-Befehle', () => {
+    const { statement } = readLine(
+      'db-create "Rechnungen" nummer="R-2026-117" betrag="420.00" status="offen" as "neu"',
+    );
+    expect(statement.keyword).toBe('db-create');
+    expect(statement.tokens.map((t) => [t.type, t.key || null, t.value])).toEqual([
+      ['string', null, 'Rechnungen'],
+      ['pair', 'nummer', 'R-2026-117'],
+      ['pair', 'betrag', '420.00'],
+      ['pair', 'status', 'offen'],
+      ['word', null, 'as'],
+      ['string', null, 'neu'],
+    ]);
+    expect(
+      readLine('db-update "Rechnungen" "R-2026-117" status="bezahlt"').statement.tokens.map(
+        (t) => t.type,
+      ),
+    ).toEqual(['string', 'string', 'pair']);
+    expect(
+      readLine(
+        'db-query "Abfragen/Offene Posten.md" into "Wochen.md" under "Offen"',
+      ).statement.tokens.map((t) => t.type),
+    ).toEqual(['string', 'word', 'string', 'word', 'string']);
+  });
+});

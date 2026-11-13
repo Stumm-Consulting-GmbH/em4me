@@ -331,6 +331,33 @@ describe('normalizeRun', () => {
     });
   });
 
+  // 4T-002545 (Df, AK5): Ein Datenbank-Schritt nennt Tabelle, Datensatz und Vorgangs-Kennung.
+  it('nimmt bei einem Datenbank-Schritt Tabelle, Datensatz und Vorgangs-Kennung an', () => {
+    const journal = [
+      {
+        line: 3,
+        command: 'db-create',
+        path: '/b/Library.md',
+        table: 'Library',
+        record: 'r-00003',
+        transaction: 17,
+      },
+      { line: 4, command: 'mkdir', path: '/b/Projekt' },
+    ];
+    expect(normalizeRun({ status: 'ok', journal }).journal).toEqual(journal);
+  });
+
+  it.each([
+    ['ohne Vorgangs-Kennung', { table: 'Library', record: 'r-00003' }],
+    ['Vorgangs-Kennung kein Zähler', { table: 'Library', record: 'r-00003', transaction: '17' }],
+    ['Vorgangs-Kennung null', { table: 'Library', record: 'r-00003', transaction: 0 }],
+    ['Datensatz leer', { table: 'Library', record: '', transaction: 17 }],
+    ['Tabelle keine Angabe', { table: 5, record: 'r-00003', transaction: 17 }],
+  ])('weist eine Datenbank-Zeile ab: %s', (_name, angaben) => {
+    const journal = [{ line: 3, command: 'db-update', path: '/b/Library.md', ...angaben }];
+    expect(normalizeRun({ status: 'ok', journal })).toBe(null);
+  });
+
   it('schneidet ein überlanges Journal ab und vermerkt es', () => {
     const journal = Array.from({ length: MAX_JOURNAL + 3 }, (_, i) => ({
       line: 4,
@@ -493,6 +520,24 @@ describe('Lauf-Stand der Stufe 2 am Schreibweg (AK1, AK5)', () => {
     expect(w.gelesen().lastRun.journal).toEqual([]);
     await w.stand.recordRun({}, w.workflow, normalizeRun({ status: 'ok' }));
     expect(w.gelesen().lastRun.journal).toBeUndefined();
+  });
+
+  it('4T-002545: hält Tabelle, Datensatz und Vorgangs-Kennung eines Datenbank-Schritts in der Begleitdatei', async () => {
+    const w = welt2();
+    const zeile = { line: 3, command: 'db-update', path: 'Daten/Library.md' };
+    const db = { table: 'Library', record: 'r-00001', transaction: 42 };
+    const run = normalizeRun({
+      status: 'ok',
+      journal: [
+        { ...zeile, ...db },
+        { ...zeile, line: 4 },
+      ],
+    });
+    await w.stand.recordRun({}, w.workflow, run);
+    expect(w.gelesen().lastRun.journal).toEqual([
+      { ...zeile, ...db },
+      { ...zeile, line: 4 },
+    ]);
   });
 
   it('nimmt Scharf-Zustand und Termin zurück; das Feld fällt weg', async () => {

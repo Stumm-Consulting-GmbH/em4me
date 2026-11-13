@@ -33,6 +33,17 @@
 // Löschen wieder schreiben; «Abbrechen» der Speicher-Rückfrage beendet den
 // Lauf mit `closeCanceled`, bevor gelöscht ist.
 //
+// **Masken der Datenbank** (4T-002548, Story 4S-001201, Dg): `dbOpen` öffnet
+// den vom Hauptprozess aufgelösten Datensatz über `oeffneMaske` der
+// Masken-Seite in seiner Standard-Maske; eine Neuanlage hat der Hauptprozess
+// schon eröffnet (Recht `create` und Kennung), das Fenster zeigt sie nur.
+// Die Rückfrage bei ungespeicherter Bearbeitung bleibt die der Masken-Seite;
+// seit dem Nachzug nach der Entscheidung des Product Owners vom 2026-11-12
+// wartet der Schritt auf ihre Antwort (`oeffneMaskeImLauf`): «Verwerfen» öffnet
+// das Ziel und der Lauf geht weiter, «Weiter bearbeiten» beendet ihn mit
+// `dbOpenEditContinued`, eine Rückfrage, die ohne Antwort endet (Reiter der
+// Maske geschlossen, Ziel ersetzt), mit `dbOpenFormClosed`.
+//
 // Die Lauf-Steuerung, die diese Funktionen aufruft, entsteht mit 4T-002349.
 'use strict';
 
@@ -44,6 +55,8 @@ import { flushIndexOverlay, paneEditors } from '../editor/editor.js';
 import { closeTab, openInPane } from '../tabs/tabs.js';
 import { findOpenTab, toggleTaskFromQuery, uebernimmInPuffer } from '../task-query-actions.js';
 import { applyContentEdit } from '../../../shared/workflows/workflow-edit.js';
+import { oeffneMaskeImLauf } from '../database/masken-seite.js';
+import { WARTEN_GEOEFFNET, WARTEN_ZURUECK } from '../database/masken-warten.js';
 import { einsetzen } from './workflow-lauf-texte.js';
 
 // Der kleinste Bereich, in dem sich zwei Texte unterscheiden.
@@ -118,8 +131,8 @@ async function schliesseDokument(path) {
  * aus und bildet das Ergebnis des Schritts.
  *
  * @param {{ok: true, line: number, keyword: string,
- *   window: {action: 'open'|'close'|'editOwnBuffer'|'completeTask', path: string,
- *   edit?: object, line?: number, taskText?: string}}} ergebnis
+ *   window: {action: 'open'|'close'|'editOwnBuffer'|'completeTask'|'dbOpen', path: string,
+ *   edit?: object, line?: number, taskText?: string, record?: string, neu?: boolean}}} ergebnis
  * @returns {Promise<object>} Ergebnis in der Form des Hauptprozesses
  *   (`{ ok: true, line, keyword, effect }` oder `{ ok: false, line, keyword, code, detail }`).
  */
@@ -137,6 +150,19 @@ export async function runWindowAction(ergebnis) {
     await openInPane(state.activePaneIndex, [pfad]);
     return erfolg('opened', 'window');
   }
+  if (handgriff.action === 'dbOpen') {
+    if (typeof handgriff.record !== 'string' || handgriff.record === '') {
+      return fehlschlag('invalidStep');
+    }
+    // 4T-002548: Steht die Rückfrage bei ungespeicherter Bearbeitung, wartet
+    // der Schritt auf ihre Antwort.
+    const antwort = await oeffneMaskeImLauf(pfad, handgriff.record, {
+      neu: handgriff.neu === true,
+    });
+    if (antwort === WARTEN_ZURUECK) return fehlschlag('dbOpenEditContinued');
+    if (antwort !== WARTEN_GEOEFFNET) return fehlschlag('dbOpenFormClosed');
+    return erfolg('opened', 'window');
+  }
   if (handgriff.action === 'completeTask') {
     const ziel = { path: pfad, line: handgriff.line, taskText: handgriff.taskText };
     if (!(await toggleTaskFromQuery(ziel))) return fehlschlag('taskConflict');
@@ -150,19 +176,52 @@ export async function runWindowAction(ergebnis) {
   return fehlschlag('invalidStep');
 }
 
+// 4T-002547 (Nachzug nach der Entscheidung des Product Owners vom 2026-11-12):
+// Die Zeile eines Datensatz-Ziels in Worten. Ein festes Ziel bleibt wortgleich;
+// steht es erst im Lauf fest, sagt die Zeile, was gelöscht wird, und zeigt nie
+// einen rohen Platzhalter ohne Erklärung. Schlüssel je Art von `dbDeleteTargets`.
+const DATENSATZ_ZEILE = Object.freeze({
+  schleife: 'workflow.loeschen.datensatzSchleife',
+  schleifenFeld: 'workflow.loeschen.datensatzAusSchleifenFeld',
+  erstellt: 'workflow.loeschen.datensatzErstellt',
+  feld: 'workflow.loeschen.datensatzAusFeld',
+  offen: 'workflow.loeschen.datensatzOffen',
+});
+
+function datensatzZeile(d) {
+  const schluessel = DATENSATZ_ZEILE[d.art] || 'workflow.loeschen.datensatz';
+  const zeile = einsetzen(t(schluessel), d);
+  // Ein Feldwert in einer Schleife: Die Kennung wird in jedem Durchgang neu
+  // gelesen; die Quelle selbst ist fest.
+  if (d.art !== 'feld' || typeof d.query !== 'string') return zeile;
+  return einsetzen(t('workflow.loeschen.jeDatensatzDerSchleife'), { ...d, ziel: zeile });
+}
+
 /**
  * Die eine Bestätigung vor dem ersten Schritt eines Laufs mit `delete`
- * (Regel P1): nennt alle Ziele mit Pfad, «Ja» oder «Nein».
+ * (Regel P1): nennt alle Ziele mit Pfad, «Ja» oder «Nein». Seit 4T-002545 (D3)
+ * dazu die Ziele der `db-delete` mit Tabelle und Datensatz; dann nennen Titel
+ * und Satz das Löschen statt allein den Papierkorb.
  *
  * @param {string} name Name des Workflows.
  * @param {string[]} ziele Pfade relativ zur Bereichs-Wurzel.
+ * @param {{table: string, record: string}[]} [datensaetze] aus `dbDeleteTargets`.
  * @returns {Promise<boolean>} true für «Ja».
  */
-export function bestaetigeLoeschZiele(name, ziele) {
+export function bestaetigeLoeschZiele(name, ziele, datensaetze = []) {
+  const mitDatensaetzen = datensaetze.length > 0;
+  const zeilen = [
+    ...ziele.map((ziel) => ({ text: ziel })),
+    ...datensaetze.map((d) => ({ text: datensatzZeile(d) })),
+  ];
+  const titel = mitDatensaetzen
+    ? 'workflow.loeschen.titelMitDatensaetzen'
+    : 'workflow.loeschen.titel';
+  const satz = mitDatensaetzen ? 'workflow.loeschen.textMitDatensaetzen' : 'workflow.loeschen.text';
   return showLinkPreviewDialog({
-    title: einsetzen(t('workflow.loeschen.titel'), { name }),
-    summary: einsetzen(t('workflow.loeschen.text'), { n: ziele.length }),
-    sections: [{ rows: ziele.map((ziel) => ({ text: ziel })) }],
+    title: einsetzen(t(titel), { name }),
+    summary: einsetzen(t(satz), { n: zeilen.length }),
+    sections: [{ rows: zeilen }],
     continueLabel: t('workflow.dialog.ja'),
     cancelLabel: t('workflow.dialog.nein'),
   });

@@ -1448,6 +1448,11 @@ const INTERNAL_EXTENSIONS = [
       'help.feature.workflowConditions',
       'help.feature.workflowLoop',
       'help.feature.workflowScript',
+      // 4T-002549 (Epic 3E-000368): die Katalog-Zeilen der Stufe D.
+      'help.feature.workflowDbRecords',
+      'help.feature.workflowDbQuery',
+      'help.feature.workflowDbLoop',
+      'help.feature.workflowDbForms',
     ],
     commands: ['ext.workflows.openRuns', 'ext.workflows.newWorkflow'],
     settingsSections: ['workflows', 'workflowsArea'],

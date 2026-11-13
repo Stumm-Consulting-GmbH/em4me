@@ -26,7 +26,7 @@ Multiple input and selection placeholders appear **one after the other** in the 
 
 ## Placeholder reference
 
-Placeholders are written in double curly braces. `\{{` writes a literal `{{` into the template. Templates and [workflows](workflows.md) share the same set of placeholders; which of them apply in a command line is described on the workflows page. `{{from}}`, `{{task}}`, `{{item}}` and `{{script:name}}` only get a value in a workflow run; when a template is applied, they stay empty.
+Placeholders are written in double curly braces. `\{{` writes a literal `{{` into the template. Templates and [workflows](workflows.md) share the same set of placeholders; which of them apply in a command line is described on the workflows page. `{{from}}`, `{{task}}`, `{{item}}` and `{{script:name}}` only get a value in a workflow run; when a template is applied, they stay empty. `{{record:…}}`, `{{created:…}}` and `{{db:…}}` apply only in the command lines of a workflow; in a template they stay as text.
 
 | Placeholder | Effect |
 | --- | --- |

@@ -57,6 +57,11 @@ const KATALOG = [
   'help.feature.workflowConditions',
   'help.feature.workflowLoop',
   'help.feature.workflowScript',
+  // 4T-002549 (Epic 3E-000368): die Katalog-Zeilen der Stufe D.
+  'help.feature.workflowDbRecords',
+  'help.feature.workflowDbQuery',
+  'help.feature.workflowDbLoop',
+  'help.feature.workflowDbForms',
 ];
 const KOMMANDOS = ['ext.workflows.openRuns', 'ext.workflows.newWorkflow'];
 const ABSCHNITTE = ['workflows', 'workflowsArea'];

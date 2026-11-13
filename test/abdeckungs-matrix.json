@@ -3671,6 +3671,52 @@
       "hinweis": "4T-002465 (Epic 3E-000367, Story 4S-001149): Skript-Schritt script mit as, if-script und Platzhalter script. Unit: Befunde zu Abschnitt, Name, Ergebnis und Einstellung (workflow-check-skript), Lauf mit Ergebnis, Bedingung, Fehler und Zeitgrenze (workflow-skript-schritt), ein gemeinsamer Baustein der Sandbox (script-sandbox-lauf), lesende Laufzeit ohne Schreibweg (script-sandbox-runtime), Scharf-Schaltung nur bei eingeschalteter Einstellung (workflow-armed-skript)."
     },
     {
+      "key": "help.feature.workflowDbRecords",
+      "id": "F-416",
+      "testart": "unit",
+      "tests": [
+        "test/unit/workflow-db-steps.test.js",
+        "test/unit/workflow-check-db.test.js",
+        "test/unit/db-record-auftrag-lauf-marke.test.js",
+        "test/unit/db-index-eigene-schreibvorgaenge.test.js",
+        "test/unit/workflow-db-schleife.test.js"
+      ],
+      "sichtbarkeit": "entfällt: kein eigenes Bedienelement; die Befehle stehen im Code-Block workflow, deren Prüf-Anzeige und Hervorhebung die Einträge der Workflow-Blöcke im Editor belegen",
+      "hinweis": "4T-002544, 4T-002545, 4T-002547 (Epic 3E-000368, Stories 4S-001196 und 4S-001200): db-create, db-update und db-delete über die Schreib-Schnittstelle, Name hinter as und Platzhalter created. Unit: Schritte mit Tabelle nach Name oder Pfad, Datensatz als Kennung oder Anzeige-Form, Erwartung und Sperre (workflow-db-steps), Befunde zu Tabelle, Feld, Paaren und neuer Kennung (workflow-check-db), Lauf-Marke an der Schnittstelle (db-record-auftrag-lauf-marke), Index auf dem Stand der eigenen Schreibvorgänge (db-index-eigene-schreibvorgaenge), created an der realen Konstellation (workflow-db-schleife). Ablauf-Prüfung WF-DB-01 und WF-DB-03 in workflow-datenbank.spec.js."
+    },
+    {
+      "key": "help.feature.workflowDbQuery",
+      "id": "F-417",
+      "testart": "unit",
+      "tests": ["test/unit/workflow-db-query.test.js", "test/unit/result-set-markdown.test.js"],
+      "sichtbarkeit": "entfällt: kein eigenes Bedienelement; die Befehle stehen im Code-Block workflow, deren Prüf-Anzeige und Hervorhebung die Einträge der Workflow-Blöcke im Editor belegen",
+      "hinweis": "4T-002546 (Epic 3E-000368, Story 4S-001197): db-query mit into und under. Unit: Ausführung wie die Lese-Ansicht, Ersetzen des Abschnitts und Anlegen der Datei (workflow-db-query), Ergebnismenge als Markdown-Tabelle in der Form der Abfrage-Ansicht (result-set-markdown). Ablauf-Prüfung WF-DB-02 in workflow-datenbank.spec.js."
+    },
+    {
+      "key": "help.feature.workflowDbLoop",
+      "id": "F-418",
+      "testart": "unit",
+      "tests": [
+        "test/unit/workflow-db-schleife.test.js",
+        "test/unit/workflow-runner.test.js",
+        "test/unit/workflow-placeholders.test.js",
+        "test/unit/template-engine.test.js"
+      ],
+      "sichtbarkeit": "entfällt: kein eigenes Bedienelement; die Befehle stehen im Code-Block workflow, deren Prüf-Anzeige und Hervorhebung die Einträge der Workflow-Blöcke im Editor belegen",
+      "hinweis": "4T-002547 (Epic 3E-000368, Stories 4S-001198 und 4S-001199): Schleife db-for-each mit den Platzhaltern record und der Platzhalter db. Unit: Reihenfolge, feste Liste, frisches Lesen, Grenze 500 und Fehlschläge an der realen Konstellation (workflow-db-schleife), Wiederholungen und Lese-Kanal im Ablauf-Kern (workflow-runner), Zurückstellen und Füllen (workflow-placeholders), Text in Vorlagen (template-engine). Ablauf-Prüfung WF-DB-03 in workflow-datenbank.spec.js."
+    },
+    {
+      "key": "help.feature.workflowDbForms",
+      "id": "F-419",
+      "testart": "unit",
+      "tests": [
+        "test/unit/workflow-db-masken.test.js",
+        "test/unit/renderer/workflow-window.test.js"
+      ],
+      "sichtbarkeit": "entfällt: kein eigenes Bedienelement; die Befehle stehen im Code-Block workflow, deren Prüf-Anzeige und Hervorhebung die Einträge der Workflow-Blöcke im Editor belegen",
+      "hinweis": "4T-002548 (Epic 3E-000368, Stories 4S-001201 und 4S-001202): db-open, db-open-list und db-check. Unit: Auflösung, Neuanlage mit Recht create, Abfrage-Datei und Konsistenz-Prüfung an der realen Konstellation (workflow-db-masken), Fenster-Handgriff der Maske (workflow-window). Ablauf-Prüfung WF-DB-04 in workflow-datenbank.spec.js."
+    },
+    {
       "key": "help.shortcut.saveSidebarVariant",
       "id": "S-097",
       "testart": "e2e",

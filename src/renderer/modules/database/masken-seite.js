@@ -70,6 +70,12 @@
 // `masken-fehlt.js` aus dem Seiten-Zustand. Den Zustand «Datensatz fehlt» samt
 // «Tabelle öffnen» zeichnet ebenfalls `masken-fehlt.js`; die Seite ruft ihn in
 // der Lage und in der Aktions-Leiste.
+//
+// **Das Warten eines Workflows** (4T-002548, Story 4S-001201, AK5): Öffnet der
+// Workflow-Schritt `db-open` die Maske über `oeffneMaskeImLauf` und steht die
+// Rückfrage bei ungespeicherter Bearbeitung, wartet der Schritt auf ihre
+// Antwort. Die Rückfrage selbst samt Warte-Stelle steht seither in
+// `masken-warten.js`; die Seite meldet ihr jedes andere Ende der Rückfrage.
 'use strict';
 
 import { currentDictionary, intlLocale, t } from '../../i18n.js';
@@ -107,6 +113,7 @@ import { activateLink } from '../views/link-navigation.js';
 import { scrollToAnchorAfterOpen } from '../views/anchor-navigation.js';
 import { erzeugeDokumentHandgriff, maskenSitzung } from './masken-fehlt.js';
 import { registriereSystemSeite } from '../app/sitzungs-maske.js';
+import { erzeugeRueckfrage, WARTEN_VERSCHWUNDEN } from './masken-warten.js';
 
 export const MASKEN_PAGE_ID = 'database-form';
 
@@ -173,6 +180,8 @@ const navigation = erzeugeNavigation({
 });
 // 4T-002333 (F2 A): «Im Tabellen-Dokument zeigen», der Weg zur Zeile der Ablage.
 const dokument = erzeugeDokumentHandgriff({ openInPane, scrollToAnchorAfterOpen, state });
+// 4T-002548: die Rückfrage bei ungespeicherter Bearbeitung samt Warten eines Laufs.
+const rueckfrage = erzeugeRueckfrage({ seite, binde, zeichne, el, knopf, t, lesen: MODUS_LESEN });
 
 // --- Zugang ------------------------------------------------------------------
 
@@ -207,6 +216,8 @@ export function oeffneMaske(tabellenPfad, kennung, optionen = {}) {
     seite.neu !== neu ||
     seite.maske !== maske;
   if (anderer && hatUngespeicherteBearbeitung()) {
+    // 4T-002548: Ein neues Ziel ersetzt das, auf dessen Antwort ein Lauf wartet.
+    rueckfrage.beende(WARTEN_VERSCHWUNDEN);
     seite.ausstehend = { tabellenPfad, kennung, neu, maske, verlauf };
     openSystemPage(MASKEN_PAGE_ID, { nextToPath: seite.tabellenPfad });
     zeichne();
@@ -215,7 +226,27 @@ export function oeffneMaske(tabellenPfad, kennung, optionen = {}) {
   binde({ tabellenPfad, kennung, neu, maske, verlauf }, anderer);
 }
 
+/**
+ * Öffnet die Maske für einen Workflow-Schritt `db-open` und wartet, wenn die
+ * Rückfrage bei ungespeicherter Bearbeitung steht, auf ihre Antwort
+ * (4T-002548, Story 4S-001201, AK5). Ohne Rückfrage wie `oeffneMaske`.
+ *
+ * @param {string} tabellenPfad Pfad der Tabellen-Datei.
+ * @param {string} kennung Interne Kennung.
+ * @param {{neu?: boolean}} [optionen] wie bei `oeffneMaske`.
+ * @returns {Promise<string>} `WARTEN_GEOEFFNET` (ohne Rückfrage oder nach
+ *   «Verwerfen»), `WARTEN_ZURUECK` («Weiter bearbeiten») oder
+ *   `WARTEN_VERSCHWUNDEN` (die Rückfrage endete ohne Antwort).
+ */
+export function oeffneMaskeImLauf(tabellenPfad, kennung, optionen = {}) {
+  oeffneMaske(tabellenPfad, kennung, optionen);
+  return rueckfrage.warteAufZiel(tabellenPfad, kennung);
+}
+
 function binde({ tabellenPfad, kennung, neu, maske = null, verlauf = null }, anderer) {
+  // 4T-002548: Eine stehende Rückfrage endet hier; wartet ein Lauf noch auf sie,
+  // ist sein Ziel ersetzt («Verwerfen» hat ihm die Antwort schon gegeben).
+  if (seite.ausstehend) rueckfrage.beende(WARTEN_VERSCHWUNDEN);
   // 4T-002185: Der Verlauf sieht den alten Gegenstand, bevor er ersetzt wird.
   navigation.beimBinden(verlauf, anderer);
   seite.tabellenPfad = tabellenPfad;
@@ -628,30 +659,6 @@ function zeichneAktionen(kopf, daten) {
   kopf.appendChild(leiste);
 }
 
-function zeichneBestaetigung(wurzel) {
-  if (!seite.ausstehend) return;
-  const block = el('div', 'db-form-confirm');
-  block.setAttribute('role', 'alert');
-  block.appendChild(el('p', 'db-form-confirm-text', t('database.form.confirm.text')));
-  const leiste = el('div', 'db-form-confirm-actions');
-  leiste.appendChild(
-    knopf('db-form-confirm-discard', 'database.form.confirm.discard', () => {
-      const ziel = seite.ausstehend;
-      seite.entwurf = null;
-      seite.modus = MODUS_LESEN;
-      if (ziel) binde(ziel, true);
-    }),
-  );
-  leiste.appendChild(
-    knopf('db-form-confirm-back', 'database.form.confirm.back', () => {
-      seite.ausstehend = null;
-      zeichne();
-    }),
-  );
-  block.appendChild(leiste);
-  wurzel.appendChild(block);
-}
-
 // Die Lagen aus Bauplan B3, jede mit eigenem Text und keine als Ausfall der
 // Seite: kein Zugriff, Fehler mit Code; bereit ergibt null.
 function lageText(daten) {
@@ -686,7 +693,7 @@ function zeichne() {
   verwendung.zeichne(kopf, wurzel, seite);
   navigation.zeichneMeldung(wurzel);
 
-  zeichneBestaetigung(wurzel);
+  rueckfrage.zeichne(wurzel);
   sperrAblauf.zeichneKonflikt(wurzel);
   ablauf.zeichneLage(wurzel);
   if (seite.laden) wurzel.appendChild(el('p', 'db-form-note', t('database.form.loading')));
@@ -727,6 +734,8 @@ registerSystemPage({
     seite.modus = MODUS_LESEN;
     seite.entwurf = null;
     seite.ausstehend = null;
+    // 4T-002548: Eine stehende Rückfrage ist damit ohne Antwort beendet.
+    rueckfrage.beende(WARTEN_VERSCHWUNDEN);
     ablauf.vergiss();
     sperrAblauf.vergiss();
     seite.sendet = false;
@@ -739,12 +748,18 @@ registerSystemPage({
   },
   onClose() {
     seite.container = null;
+    // 4T-002548: Wer den Reiter schließt, beendet auch das Warten eines Laufs.
+    rueckfrage.beende(WARTEN_VERSCHWUNDEN);
     // 4T-002185: Der Verlauf endet mit dem Schließen der Seite.
     navigation.beimSchliessen();
     // 4T-001941 (B2): Wer den Reiter schließt, beendet die Bearbeitung.
     void sperrAblauf.freigeben();
     sperrAblauf.vergiss();
     verwirfPositionen();
+    // 4T-002548: Auch ihr Entwurf endet, sonst fragte ein späteres Öffnen nach
+    // einer Bearbeitung, die niemand mehr sieht, und zeigte das Ziel nicht.
+    seite.modus = MODUS_LESEN;
+    seite.entwurf = null;
   },
 });
 

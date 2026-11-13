@@ -26,7 +26,7 @@ Plusieurs espaces réservés de saisie et de sélection apparaissent **l'un apr�
 
 ## Référence des espaces réservés
 
-Les espaces réservés s'écrivent entre doubles accolades. `\{{` écrit un `{{` littéral dans le modèle. Les modèles et les [workflows](workflows.md) partagent le même jeu d'espaces réservés ; ceux qui valent dans une ligne de commande sont décrits sur la page des workflows. `{{from}}`, `{{task}}`, `{{item}}` et `{{script:name}}` ne reçoivent une valeur que lors de l'exécution d'un workflow ; lors de l'application d'un modèle, ils restent vides.
+Les espaces réservés s'écrivent entre doubles accolades. `\{{` écrit un `{{` littéral dans le modèle. Les modèles et les [workflows](workflows.md) partagent le même jeu d'espaces réservés ; ceux qui valent dans une ligne de commande sont décrits sur la page des workflows. `{{from}}`, `{{task}}`, `{{item}}` et `{{script:name}}` ne reçoivent une valeur que lors de l'exécution d'un workflow ; lors de l'application d'un modèle, ils restent vides. `{{record:…}}`, `{{created:…}}` et `{{db:…}}` ne valent que dans les lignes de commande d'un workflow ; dans un modèle, ils restent sous forme de texte.
 
 | Espace réservé | Effet |
 | --- | --- |

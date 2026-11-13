@@ -129,4 +129,43 @@ describe('workflowHighlightRanges', () => {
       'string:"x"',
     ]);
   });
+
+  // 4T-002544 (AK5): die acht Datenbank-Befehle als Schlüsselwort, die Schleife
+  // über Datensätze als Block-Wort; die Option into bleibt wie jede Option ein
+  // ungefärbtes Wort, ihr Text wird gefärbt.
+  it('färbt die Datenbank-Befehle und kennzeichnet db-for-each als Block-Wort', () => {
+    for (const wort of [
+      'db-create',
+      'db-update',
+      'db-delete',
+      'db-query',
+      'db-for-each',
+      'db-open',
+      'db-open-list',
+      'db-check',
+    ]) {
+      const [erste] = workflowHighlightRanges(`${wort} "Rechnungen"`);
+      expect(erste, wort).toMatchObject({ from: 0, to: wort.length, kind: 'keyword' });
+      expect(erste.block === true, wort).toBe(wort === 'db-for-each');
+    }
+  });
+
+  it('färbt Ziel, Abschnitt und Paare von db-query und db-update', () => {
+    expect(zeige('db-query "Abfragen/Offen.md" into "Berichte/{{date}}.md" under "Offen"')).toEqual(
+      [
+        'keyword:db-query',
+        'string:"Abfragen/Offen.md"',
+        'string:"Berichte/{{date}}.md"',
+        'placeholder:{{date}}',
+        'string:"Offen"',
+      ],
+    );
+    expect(zeige('db-update "Rechnungen" "{{record:id}}" status="bezahlt"')).toEqual([
+      'keyword:db-update',
+      'string:"Rechnungen"',
+      'string:"{{record:id}}"',
+      'placeholder:{{record:id}}',
+      'string:"bezahlt"',
+    ]);
+  });
 });

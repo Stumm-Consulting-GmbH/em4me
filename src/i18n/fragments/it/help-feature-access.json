@@ -323,5 +323,9 @@
   "help.featureAccess.workflowEvents": "Campi d’intestazione `trigger: event` ed `event` con `file-created`, `file-changed`, `file-moved`, `task-done`, `area-opened` o `reminder-due`, a scelta `in` e `matching`; indicazione del controllo sopra il blocco nella modalità live, nella vista renderizzata e nella vista divisa; Visualizza → Mostra esecuzioni dei workflow → colonna «Attivato»",
   "help.featureAccess.workflowConditions": "Comandi `if-exists`, `if-missing`, `if-property`, `if-script`, `else` ed `end` nel blocco di codice `workflow`",
   "help.featureAccess.workflowLoop": "Comando `for-each` con `end` nel blocco di codice `workflow`; segnaposto `{{item}}` e `{{item:name}}`",
-  "help.featureAccess.workflowScript": "Comandi `script` con `as` e `if-script` nel blocco di codice `workflow`; segnaposto `{{script:name}}`; File → Impostazioni… → Comportamento → Esegui blocchi di script"
+  "help.featureAccess.workflowScript": "Comandi `script` con `as` e `if-script` nel blocco di codice `workflow`; segnaposto `{{script:name}}`; File → Impostazioni… → Comportamento → Esegui blocchi di script",
+  "help.featureAccess.workflowDbRecords": "Comandi `db-create` con `as`, `db-update` e `db-delete` nel blocco di codice `workflow`; segnaposto `{{created:nome}}`; Visualizza → Mostra esecuzioni dei workflow → Registro",
+  "help.featureAccess.workflowDbQuery": "Comando `db-query` con `into` e a scelta `under` nel blocco di codice `workflow`",
+  "help.featureAccess.workflowDbLoop": "Comando `db-for-each` con `end` nel blocco di codice `workflow`; segnaposto `{{record:campo}}`, `{{record:id}}`, `{{record:table}}`, `{{record:file}}` e `{{db:Tabella:Record:Campo}}`",
+  "help.featureAccess.workflowDbForms": "Comandi `db-open`, `db-open-list` e `db-check` nel blocco di codice `workflow`"
 }

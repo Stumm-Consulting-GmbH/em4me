@@ -25,6 +25,8 @@ const store = require('./index/store.js');
 const scan = require('./index/scan.js');
 const blockData = require('./index/block-data.js');
 const lifecycle = require('./index/lifecycle.js');
+// 4T-002545: das Nachtragen eigener Schreibvorgänge.
+const build = require('./index/build.js');
 const overlay = require('./index/overlay.js');
 const resolve = require('./index/resolve.js');
 const query = require('./index/query.js');
@@ -56,6 +58,9 @@ module.exports = {
   // B-13 (4T-000175): Index-Fallback fuer den Klick-Pfad.
   resolveWikiTargetInIndex: resolve.resolveWikiTargetInIndex,
   rootForActiveFile: store.rootForActiveFile,
+  // 4T-002545 (Epic 3E-000368): Dateien, die dieser Prozess selbst geschrieben
+  // hat, sofort in den Index nachtragen (index/build.js).
+  trageDateienNach: build.trageDateienNach,
   // B-18 (4T-000187): Bedarfs-Aufbau fuer Tag-Sidebar/Autocomplete/Linter.
   ensureIndexForDemand: lifecycle.ensureIndexForDemand,
   // 4T-000348 (Epic 3E-000062): proaktiver Bereichs-Index beim Bereichs-Oeffnen.

@@ -26,7 +26,7 @@ Più segnaposto di input e selezione appaiono **uno dopo l'altro** nell'ordine d
 
 ## Riferimento dei segnaposto
 
-I segnaposto si scrivono tra doppie parentesi graffe. `\{{` scrive un `{{` letterale nel modello. Modelli e [workflow](workflows.md) condividono lo stesso insieme di segnaposto; quali valgono in una riga di comando è descritto nella pagina dei workflow. `{{from}}`, `{{task}}`, `{{item}}` e `{{script:name}}` ricevono un valore solo nell'esecuzione di un workflow; quando si applica un modello restano vuoti.
+I segnaposto si scrivono tra doppie parentesi graffe. `\{{` scrive un `{{` letterale nel modello. Modelli e [workflow](workflows.md) condividono lo stesso insieme di segnaposto; quali valgono in una riga di comando è descritto nella pagina dei workflow. `{{from}}`, `{{task}}`, `{{item}}` e `{{script:name}}` ricevono un valore solo nell'esecuzione di un workflow; quando si applica un modello restano vuoti. `{{record:…}}`, `{{created:…}}` e `{{db:…}}` valgono solo nelle righe di comando di un workflow; in un modello restano come testo.
 
 | Segnaposto | Effetto |
 | --- | --- |

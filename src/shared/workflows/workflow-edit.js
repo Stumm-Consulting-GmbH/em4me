@@ -32,6 +32,12 @@
 //     Kleinschreibung; geschrieben wird das Schlagwort ohne `#`. Ein einzelner
 //     Text als `tags` gilt als Liste mit einem Eintrag (Lesart des Index).
 //     Schlagwörter im Text (`#tag`) bleiben unberührt; dafür gibt es `replace`.
+//   - `replaceSection` (4T-002545 folgend, 4T-002546, Db der Konzept-Runde
+//     4T-002543): ersetzt den Inhalt des Abschnitts unter einer Überschrift (bis
+//     zur nächsten Überschrift gleichen oder höheren Rangs, gesucht wie bei
+//     `insert … under`); die Überschrift und der übrige Text bleiben Zeichen für
+//     Zeichen. Der neue Inhalt steht zwischen je einer Leerzeile; ein zweites
+//     Ersetzen mit demselben Inhalt ändert nichts.
 //
 // Ergebnis ohne Sprache: `{ ok: true, text, changed }` oder `{ ok: false, code }`.
 //
@@ -54,6 +60,7 @@ const EDIT_OPS = Object.freeze([
   'removeProperty',
   'addTag',
   'removeTag',
+  'replaceSection',
 ]);
 // Ein Schlagwort: ohne `#` am Anfang, nicht leer, ohne Leerraum.
 const SCHLAGWORT_RE = /^[^\s#][^\s]*$/;
@@ -99,6 +106,28 @@ function einfuegenUnter(text, heading, block, eol) {
   const naechste = treffer[0].start + 1;
   const offset = naechste < anfaenge.length ? anfaenge[naechste] : text.length;
   return { ok: true, text: setzeEin(text, offset, block, eol) };
+}
+
+// 4T-002546: Der Abschnitt unter einer Überschrift wird durch `block` ersetzt.
+function abschnittErsetzen(text, edit, eol) {
+  const block = einfuegeBlock(edit.text, eol);
+  const zeilen = text.split(/\r?\n/);
+  const kopf = extractFrontmatter(text);
+  const gesucht = githubLikeSlug(String(edit.heading == null ? '' : edit.heading));
+  const treffer = headingSections(zeilen, frontmatterLineCount(kopf.raw)).filter(
+    (s) => s.slug === gesucht,
+  );
+  if (treffer.length === 0) return fehlschlag('headingUnknown');
+  if (treffer.length > 1) return fehlschlag('headingAmbiguous');
+  const anfaenge = zeilenAnfaenge(text);
+  const { start, end } = treffer[0];
+  const von = start + 1 < anfaenge.length ? anfaenge[start + 1] : text.length;
+  const folgt = end < zeilen.length && end < anfaenge.length;
+  const bis = folgt ? anfaenge[end] : text.length;
+  const inhalt = eol + block + (folgt ? eol : '');
+  const davor = text.slice(0, von);
+  const trenner = davor.endsWith('\n') ? '' : eol;
+  return { ok: true, text: davor + trenner + inhalt + text.slice(bis) };
 }
 
 function einfuegen(text, edit, eol) {
@@ -207,7 +236,8 @@ function schlagwortAendern(text, edit) {
  *   search?: string, replacement?: string, key?: string, value?: (string|number)}} edit
  *   `append` und `insert` mit fertigem `text`; `replace` mit `search` und
  *   `replacement`; `setProperty` mit `key` und `value`; `removeProperty` mit `key`;
- *   `addTag` und `removeTag` mit `tag`.
+ *   `addTag` und `removeTag` mit `tag`; `replaceSection` mit `heading` und
+ *   fertigem `text` (4T-002546).
  * @returns {{ok: true, text: string, changed: boolean}|{ok: false, code: string}}
  *   Codes: `invalidStep`, `headingUnknown`, `headingAmbiguous`, `textNotFound`,
  *   `frontmatterInvalid`, `tagInvalid`.
@@ -226,6 +256,7 @@ function applyContentEdit(text, edit) {
   else if (edit.op === 'replace') ergebnis = ersetzen(rumpf, edit);
   else if (edit.op === 'setProperty') ergebnis = eigenschaftSetzen(rumpf, edit);
   else if (edit.op === 'removeProperty') ergebnis = eigenschaftEntfernen(rumpf, edit);
+  else if (edit.op === 'replaceSection') ergebnis = abschnittErsetzen(rumpf, edit, eol);
   else ergebnis = schlagwortAendern(rumpf, edit);
   if (!ergebnis.ok) return ergebnis;
   const neu = (mitBom ? BOM : '') + ergebnis.text;

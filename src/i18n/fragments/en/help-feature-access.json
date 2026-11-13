@@ -323,5 +323,9 @@
   "help.featureAccess.workflowEvents": "Front matter fields `trigger: event` and `event` with `file-created`, `file-changed`, `file-moved`, `task-done`, `area-opened` or `reminder-due`, optionally `in` and `matching`; check display above the block in the live, the rendered and the split view; View → Show workflow runs → column ‘Armed’",
   "help.featureAccess.workflowConditions": "Commands `if-exists`, `if-missing`, `if-property`, `if-script`, `else` and `end` in the code block `workflow`",
   "help.featureAccess.workflowLoop": "Command `for-each` with `end` in the code block `workflow`; placeholders `{{item}}` and `{{item:name}}`",
-  "help.featureAccess.workflowScript": "Commands `script` with `as` and `if-script` in the code block `workflow`; placeholder `{{script:name}}`; File → Settings… → Behavior → Run script blocks"
+  "help.featureAccess.workflowScript": "Commands `script` with `as` and `if-script` in the code block `workflow`; placeholder `{{script:name}}`; File → Settings… → Behavior → Run script blocks",
+  "help.featureAccess.workflowDbRecords": "Commands `db-create` with `as`, `db-update` and `db-delete` in the code block `workflow`; placeholder `{{created:name}}`; View → Show workflow runs → Journal",
+  "help.featureAccess.workflowDbQuery": "Command `db-query` with `into` and optionally `under` in the code block `workflow`",
+  "help.featureAccess.workflowDbLoop": "Command `db-for-each` with `end` in the code block `workflow`; placeholders `{{record:field}}`, `{{record:id}}`, `{{record:table}}`, `{{record:file}}` and `{{db:table:record:field}}`",
+  "help.featureAccess.workflowDbForms": "Commands `db-open`, `db-open-list` and `db-check` in the code block `workflow`"
 }

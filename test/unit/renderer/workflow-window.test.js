@@ -10,7 +10,7 @@
 // damit gezählt werden kann, was die Fenster-Handgriffe auslösen; die
 // Speicher-Rückfrage selbst ist Bestand von `closeTab` (Entscheidung E6 vom
 // 2026-10-23: «Abbrechen» beendet den Lauf mit `closeCanceled`).
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EditorState } from '@codemirror/state';
 import './api-stub.js';
 
@@ -55,13 +55,40 @@ vi.mock('../../../src/renderer/modules/editor/editor.js', async (importOriginal)
   ...(await importOriginal()),
   updateWindowTitle: () => {},
 }));
+// 4T-002545: der Bestätigungs-Dialog als mitschreibende Attrappe.
+const dialoge = [];
+vi.mock('../../../src/renderer/modules/dialogs/dialogs.js', async (importOriginal) => ({
+  ...(await importOriginal()),
+  showLinkPreviewDialog: async (opts) => {
+    dialoge.push(opts);
+    return true;
+  },
+}));
+// 4T-002548: die Masken-Seite als mitschreibende Attrappe; ihr Öffnen samt
+// Rückfrage bei ungespeicherter Bearbeitung prüft ihre eigene Prüfdatei.
+// Seit 4T-002548 öffnet der Schritt über `oeffneMaskeImLauf` und wartet auf die
+// Antwort der Rückfrage; die Attrappe gibt sie vor (`maskenAntwort`).
+const masken = [];
+let maskenAntwort = 'geoeffnet';
+vi.mock('../../../src/renderer/modules/database/masken-seite.js', async (importOriginal) => ({
+  ...(await importOriginal()),
+  oeffneMaskeImLauf: async (tabellenPfad, kennung, optionen) => {
+    masken.push({ tabellenPfad, kennung, optionen });
+    return maskenAntwort;
+  },
+}));
 vi.mock('../../../src/renderer/modules/views/tabbar.js', async (importOriginal) => ({
   ...(await importOriginal()),
   renderTabbar: () => {},
 }));
 
-const { applyBufferEdit, runWindowAction, flushPendingBuffers, schliesseVorDemLoeschen } =
-  await import('../../../src/renderer/modules/workflows/workflow-window.js');
+const {
+  applyBufferEdit,
+  bestaetigeLoeschZiele,
+  runWindowAction,
+  flushPendingBuffers,
+  schliesseVorDemLoeschen,
+} = await import('../../../src/renderer/modules/workflows/workflow-window.js');
 const { state } = await import('../../../src/renderer/modules/app/app-state.js');
 const { paneEditors, scheduleIndexOverlay } =
   await import('../../../src/renderer/modules/editor/editor.js');
@@ -188,6 +215,12 @@ describe('Empfänger für Aufträge des Hauptprozesses', () => {
 });
 
 describe('open und close', () => {
+  // Die vorgegebene Antwort der Masken-Attrappe gilt je Fall; zurückgesetzt wird
+  // auch nach einem gescheiterten Fall, damit er die folgenden nicht mitreißt.
+  afterEach(() => {
+    maskenAntwort = 'geoeffnet';
+  });
+
   it('open über den gewöhnlichen Öffnen-Weg in der aktiven Spalte', async () => {
     fenster({ aktiv: false, content: PLATTE });
     const res = await runWindowAction({
@@ -198,6 +231,75 @@ describe('open und close', () => {
     });
     expect(geoeffnet).toEqual([{ paneIdx: 0, paths: [PFAD] }]);
     expect(res.effect.kind).toBe('opened');
+  });
+
+  // 4T-002548 (AK1): db-open öffnet den vom Hauptprozess aufgelösten Datensatz.
+  it('dbOpen öffnet die Standard-Maske eines Datensatzes und einer Neuanlage', async () => {
+    masken.length = 0;
+    const TABELLE = '/b/Daten/Library.md';
+    const handgriff = (window) =>
+      runWindowAction({ ok: true, line: 4, keyword: 'db-open', window });
+    const offen = await handgriff({
+      action: 'dbOpen',
+      path: TABELLE,
+      record: 'r-00001',
+      neu: false,
+    });
+    expect(offen).toEqual({
+      ok: true,
+      line: 4,
+      keyword: 'db-open',
+      effect: { kind: 'opened', paths: [TABELLE], via: 'window' },
+    });
+    await handgriff({ action: 'dbOpen', path: TABELLE, record: 'r-00004', neu: true });
+    expect(masken).toEqual([
+      { tabellenPfad: TABELLE, kennung: 'r-00001', optionen: { neu: false } },
+      { tabellenPfad: TABELLE, kennung: 'r-00004', optionen: { neu: true } },
+    ]);
+  });
+
+  // 4T-002548 (AK5, Nachzug nach der Entscheidung vom 2026-11-12): Der Schritt
+  // wartet auf die Antwort der Rückfrage bei ungespeicherter Bearbeitung.
+  it('dbOpen: «Weiter bearbeiten» beendet den Schritt mit eigenem Grund', async () => {
+    masken.length = 0;
+    maskenAntwort = 'zurueck';
+    const res = await runWindowAction({
+      ok: true,
+      line: 6,
+      keyword: 'db-open',
+      window: { action: 'dbOpen', path: '/b/Daten/Library.md', record: 'r-00002', neu: false },
+    });
+    expect(res).toEqual({
+      ok: false,
+      line: 6,
+      keyword: 'db-open',
+      code: 'dbOpenEditContinued',
+      detail: { path: '/b/Daten/Library.md' },
+    });
+    expect(masken).toHaveLength(1);
+  });
+
+  it('dbOpen: eine Rückfrage, die ohne Antwort endet, beendet den Schritt mit Grund', async () => {
+    maskenAntwort = 'verschwunden';
+    const res = await runWindowAction({
+      ok: true,
+      line: 6,
+      keyword: 'db-open',
+      window: { action: 'dbOpen', path: '/b/Daten/Library.md', record: 'r-00002', neu: false },
+    });
+    expect(res).toMatchObject({ ok: false, code: 'dbOpenFormClosed' });
+  });
+
+  it('dbOpen ohne Kennung öffnet nichts und ist ein ungültiger Schritt', async () => {
+    masken.length = 0;
+    const res = await runWindowAction({
+      ok: true,
+      line: 4,
+      keyword: 'db-open',
+      window: { action: 'dbOpen', path: '/b/Daten/Library.md', record: '', neu: true },
+    });
+    expect(res).toMatchObject({ ok: false, code: 'invalidStep' });
+    expect(masken).toEqual([]);
   });
 
   it('close schließt das Dokument; ein nicht geöffnetes gelingt ohne Änderung (E3)', async () => {
@@ -332,5 +434,50 @@ describe('schliesseVorDemLoeschen', () => {
     schliessenErlaubt = false;
     expect(await schliesseVorDemLoeschen('x.md')).toBe(false);
     expect(geschlossen).toEqual([{ paneIdx: 0, tabIdx: 0 }]);
+  });
+});
+
+// 4T-002545 (D3, AK6): dieselbe eine Bestätigung nennt die Datensätze der
+// `db-delete`; dann sprechen Titel und Satz vom Löschen statt allein vom Papierkorb.
+describe('Bestätigung der Lösch-Ziele (4T-002545)', () => {
+  beforeEach(() => {
+    dialoge.length = 0;
+  });
+
+  it('ohne Datensätze unverändert: Dateien, Papierkorb-Titel und -Satz', async () => {
+    expect(await bestaetigeLoeschZiele('A', ['Alt.md'])).toBe(true);
+    expect(dialoge[0]).toMatchObject({
+      title: 'workflow.loeschen.titel',
+      summary: 'workflow.loeschen.text',
+      sections: [{ rows: [{ text: 'Alt.md' }] }],
+    });
+  });
+
+  it('mit Datensätzen: je Datensatz eine Zeile, Titel und Satz des Löschens', async () => {
+    await bestaetigeLoeschZiele('A', ['Alt.md'], [{ table: 'Library', record: 'Solaris' }]);
+    expect(dialoge[0]).toMatchObject({
+      title: 'workflow.loeschen.titelMitDatensaetzen',
+      summary: 'workflow.loeschen.textMitDatensaetzen',
+      sections: [{ rows: [{ text: 'Alt.md' }, { text: 'workflow.loeschen.datensatz' }] }],
+    });
+  });
+
+  // 4T-002547: je Art des Ziels ein eigener Satz; den Wortlaut prüft
+  // `workflow-loeschen-worte.test.js` mit der deutschen Sprachdatei.
+  it('ein erst im Lauf feststehendes Ziel bekommt den Satz seiner Art', async () => {
+    await bestaetigeLoeschZiele(
+      'A',
+      [],
+      [
+        { table: 'L', record: '{{record:id}}', art: 'schleife', query: 'Q.md', max: 500 },
+        { table: 'L', record: '{{created:neu}}', art: 'erstellt' },
+        { table: 'L', record: 'x{{record:id}}', art: 'offen' },
+      ],
+    );
+    expect(dialoge[0].sections[0].rows).toEqual([
+      { text: 'workflow.loeschen.datensatzSchleife' },
+      { text: 'workflow.loeschen.datensatzErstellt' },
+      { text: 'workflow.loeschen.datensatzOffen' },
+    ]);
   });
 });

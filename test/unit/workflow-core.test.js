@@ -49,10 +49,13 @@ describe('Prozess-Neutralität des Kerns (AK6)', () => {
       // 4T-002364: der Umschreib-Kern der Belegungen beim Umbenennen eines Workflows.
       'workflow-binding-rewrite.js',
       'workflow-catalog.js',
+      'workflow-check-db.js',
       'workflow-check.js',
       // 4T-002349: die Kennung des Kommandos eines Workflows.
       'workflow-command-id.js',
       'workflow-core.js',
+      // 4T-002544: die Rückfragen nach Tabellen und Feldern.
+      'workflow-db-lookup.js',
       'workflow-document.js',
       // 4T-002348: die eine Bearbeitungs-Regel für Datei und Puffer.
       'workflow-edit.js',

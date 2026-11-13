@@ -3,7 +3,8 @@
 // Puffer-Auftrag und der Lauf-Stand; seit 4T-002355 dazu die Liste des
 // Workflow-Ordners und die Konfiguration seiner Einstellungs-Abschnitte; seit
 // 4T-002421 die Kanäle des Laufs nach Zeitplan; seit 4T-002422 die
-// Scharf-Schaltung.
+// Scharf-Schaltung; seit 4T-002544 die Auskunft über den Datenbank-Bestand;
+// seit 4T-002547 das Lesen von Datenbank-Werten eines Laufs.
 //
 // Eigenes Modul nach dem Muster `datenbankBruecke`, weil `preload.js` auf
 // seinem eingefrorenen Größen-Budget steht. Den Lese-Kanal für den Lauf-Stand
@@ -74,6 +75,13 @@ function workflowsBridge(ipcRenderer) {
       ipcRenderer.invoke('workflow:setArmed', { workflowPath, armed }),
     workflowArmedState: (workflowPath) =>
       ipcRenderer.invoke('workflow:armedState', { workflowPath }),
+    // 4T-002544: Tabellen, Felder und Abfrage-Dateien des Bereichs für die
+    // Prüfung der Datenbank-Befehle (Kanal in src/main/ipc/workflows.js).
+    workflowDbCatalog: () => ipcRenderer.invoke('workflow:dbCatalog'),
+    // 4T-002547: ein Datensatz einer Schleife db-for-each oder ein Feldwert für
+    // {{db:…}}; Nutzlast { workflowPath, anfrage }.
+    workflowDbRead: (workflowPath, anfrage) =>
+      ipcRenderer.invoke('workflow:dbRead', { workflowPath, anfrage }),
   };
 }
 

@@ -65,18 +65,12 @@ const KATALOG_STUFE_3 = [
   'for-each "Eingang/*.md"',
 ];
 
+// 4T-002544: Seit der Stufe D tragen acht Datenbank-Befehle ihr Schema
+// (workflow-check-db.test.js); spätere Ausbaustufe bleiben `db-export` und
+// `db-import` (Dh der Konzept-Runde 4T-002543).
 const KATALOG_SPAETER = [
-  ['db-create "Personen" name="{{prompt:Name?}}" status="aktiv"', 'D'],
-  ['db-update "Personen" key="Müller" status="inaktiv"', 'D'],
-  ['db-delete "Personen" r-00042', 'D'],
-  [
-    'db-query "TABLE RECORDS name FROM \\"Personen\\" WHERE status = aktiv" into "{{file}}" under "Aktive"',
-    'D',
-  ],
-  ['db-for-each "TABLE RECORDS name, mail FROM \\"Personen\\""', 'D'],
-  ['db-open "Personen" key="Müller"', 'D'],
-  ['db-open-list "Listen/Aktive Personen.md"', 'D'],
-  ['db-check "Personen"', 'D'],
+  ['db-export "Personen"', 'D'],
+  ['db-import "Import/Personen.csv"', 'D'],
 ];
 
 describe('Katalog-Beispiele der Konzept-Stufe', () => {

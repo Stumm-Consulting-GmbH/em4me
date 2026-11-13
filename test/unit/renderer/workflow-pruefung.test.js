@@ -39,6 +39,7 @@ const {
 } = await import('../../../src/renderer/modules/workflows/workflow-pruefung.js');
 const { analyzeWorkflow, templateInputs, templateRefs } =
   await import('../../../src/shared/workflows/workflow-core.js');
+const { createDbLookup } = await import('../../../src/shared/workflows/workflow-db-lookup.js');
 
 const KOPF = ['---', 'workflow: true', 'name: Probe', '---', ''];
 const datei = (...zeilen) => [...KOPF, '```workflow', ...zeilen, '```', ''].join('\n');
@@ -95,6 +96,27 @@ describe('Texte der Prüf-Anzeige', () => {
   it('nennt einen Befund der ganzen Datei ohne Zeile', () => {
     expect(befundZeile({ code: 'noBlock', line: null, detail: {} })).toBe(
       'Kein workflow-Block in der Datei',
+    );
+  });
+
+  // 4T-002544 (AK4): der Schalter der Erweiterung «Datenbank» geht in die Prüfung.
+  it('meldet Datenbank-Befehle bei ausgeschalteter Datenbank', () => {
+    expect(pruefeWorkflow(datei('db-check')).findings).toEqual([]);
+    aus.add('database');
+    expect(befundZeile(pruefeWorkflow(datei('db-check')).findings[0])).toBe(
+      'Zeile 7: Datenbank ist ausgeschaltet',
+    );
+  });
+
+  it('übersetzt Tabelle, Feld und Ziel der Datenbank-Befehle', () => {
+    expect(
+      befundText({ code: 'fieldUnknown', detail: { field: 'seiten', table: 'Library' } }),
+    ).toBe("Feld unbekannt: Die Tabelle 'Library' hat kein Feld 'seiten'");
+    expect(befundText({ code: 'missingOption', detail: { group: 'target' } })).toBe(
+      'Pflicht-Option fehlt: Ziel-Datei (into)',
+    );
+    expect(befundText({ code: 'argumentType', detail: { expected: 'table' } })).toBe(
+      'Falsche Art der Angabe; erwartet: Tabelle',
     );
   });
 
@@ -209,6 +231,53 @@ function korpusCodes() {
   const { refs } = templateRefs(steps, {}, {});
   sammle(templateInputs(refs, { 'v.md': null }, {}).findings);
   sammle(templateInputs(refs, { 'v.md': '{{offen' }, {}).findings);
+  // 4T-002544: die Befunde der Datenbank-Befehle mit der Attrappe der Rückfrage.
+  registriereRueckfragen(
+    createDbLookup({
+      tables: [
+        { name: 'T', path: 'T.md', fields: ['a'] },
+        { name: 'D', path: 'x/D.md', fields: [] },
+        { name: 'D', path: 'y/D.md', fields: [] },
+      ],
+      queries: [
+        { path: 'Q.md', state: 'ok', records: false, grouped: false, table: null },
+        { path: 'K.md', state: 'invalid' },
+      ],
+    }),
+  );
+  sammle(
+    pruefeWorkflow(
+      datei(
+        'db-create "T"',
+        'db-update "T" "r" a="1" a="2" b="3"',
+        'db-check "X"',
+        'db-check "D"',
+        'db-open-list "N.md"',
+        'db-open-list "K.md"',
+        'db-for-each "Q.md"',
+        'end',
+        'notify "{{record:a}}"',
+        'notify "{{db:T:x}}"',
+        'db-query "Q.md"',
+        'db-delete "T" ""',
+      ),
+    ).findings,
+  );
+  // 4T-002547: Name und Platzhalter der neuen Kennung, Datenbank-Werte vor dem Lauf.
+  sammle(
+    pruefeWorkflow(
+      datei(
+        'notify "{{created:neu}}"',
+        'db-create "T" a="1" as "neu"',
+        'db-create "T" a="2" as "neu"',
+        'db-create "T" a="3" as "x y"',
+        'workflow "{{created:neu}}"',
+      ),
+    ).findings,
+  );
+  aus.add('database');
+  sammle(pruefeWorkflow(datei('db-check')).findings);
+  aus.clear();
   return codes;
 }
 
@@ -218,6 +287,30 @@ describe('Durchlauf-Wächter: jeder Befund-Code hat einen Text (AK6)', () => {
 
   it('erzeugt mindestens 35 verschiedene Schlüssel', () => {
     expect(schluessel.length).toBeGreaterThanOrEqual(35);
+  });
+
+  // 4T-002544: die elf Befunde der Datenbank-Befehle stehen im Korpus.
+  it('erzeugt die Befunde der Datenbank-Befehle', () => {
+    for (const code of [
+      'pairsMissing',
+      'fieldDuplicate',
+      'fieldUnknown',
+      'tableUnknown',
+      'tableAmbiguous',
+      'queryFileMissing',
+      'queryInvalid',
+      'queryNoRecords',
+      'recordOutsideLoop',
+      'dbPlaceholderInvalid',
+      'databaseDisabled',
+      // 4T-002547
+      'createdNameInvalid',
+      'createdNameDuplicate',
+      'createdBeforeStep',
+      'dbValueNotAllowed',
+    ]) {
+      expect(schluessel, code).toContain(`workflow.befund.${code}`);
+    }
   });
 
   it.each([

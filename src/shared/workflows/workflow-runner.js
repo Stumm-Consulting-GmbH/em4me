@@ -63,21 +63,59 @@
 // der Fehlschlag `scriptResultMissing`. `if-script` trifft zu, wenn das Skript
 // `true`, einen nicht leeren Text oder eine Zahl ungleich null liefert
 // (`scriptResultTrue`).
+//
+// **Datenbank-Schritte** (4T-002545, Stories 4S-001196 und 4S-001200): `db-create`,
+// `db-update` und `db-delete` laufen wie jeder Datei-Schritt im Hauptprozess.
+// Die Antwort von `db-create` trägt die vergebene Kennung (`record`); trägt
+// der Schritt einen Namen hinter `as` (`result`), legt der Kern sie unter
+// diesem Namen in `lauf.erstellt` ab, für `{{created:name}}` (Da; gefüllt
+// seit 4T-002547). `dbDeleteTargets` nennt die Ziele aller
+// `db-delete` eines Laufs für die eine Bestätigung vor dem ersten Schritt (D3),
+// seit 4T-002547 mit der Art eines erst im Lauf feststehenden Ziels.
+//
+// **Schleife über Datensätze und Datenbank-Werte** (4T-002547, Stories
+// 4S-001198 und 4S-001199, Entscheidungen Dc, Dd und Da): `db-for-each` holt
+// die Liste der Datensätze beim Eintritt über `deps.step` (der Hauptprozess
+// führt die Abfrage-Datei aus und antwortet `{ ok: true, records }` mit Tabelle,
+// Pfad der Tabellen-Datei und Kennung, in der Reihenfolge der Abfrage); mehr als
+// `MAX_LOOP_FILES` sind der Fehlschlag `tooManyRecords` vor der ersten
+// Wiederholung, eine leere Liste ist keiner. Zu Beginn jeder Wiederholung liest
+// `deps.dbRead` den Datensatz frisch; seine Felder, `id`, `table` und `file`
+// füllen `{{record:…}}`. Ein Schritt mit einem Feld in `{{record:…}}` liest den
+// Datensatz vor sich erneut, damit er sieht, was ein früherer Schritt derselben
+// Wiederholung geschrieben hat (Story 4S-001198, AK2); der erste Schritt nach
+// dem Lesen zu Beginn liest nicht doppelt (`lauf.datensatzFrisch`). Ein Datensatz, der bis
+// dahin verschwunden ist, beendet den Lauf mit dem Grund des Hauptprozesses.
+// `{{db:Tabelle:Datensatz:Feld}}` liest `deps.dbRead` beim Schritt selbst,
+// `{{created:name}}` kommt aus `lauf.erstellt`; ein fehlender Wert ist ein
+// Fehlschlag, nie ein leerer Text.
+//
+// **Masken und Konsistenz** (4T-002548, Stories 4S-001201 und 4S-001202, Dg):
+// `db-open` und `db-open-list` laufen im Hauptprozess und kommen als
+// Fenster-Handgriff zurück wie `open`. `db-check` antwortet mit dem fertigen
+// Text einer Benachrichtigung (`notify` der Antwort, in der Sprache des
+// Fensters); der Kern meldet ihn über `deps.notify` wie den Befehl `notify`,
+// und der Lauf geht weiter.
 'use strict';
 
 const { MACRO_MAX_CALL_DEPTH } = require('../commands/command-placement.js');
-const { analyzeTemplate } = require('../template-engine.js');
 const {
   CONDITION_KEYWORDS,
   ELSE_KEYWORD,
   END_KEYWORD,
+  DB_LOOP_KEYWORD,
   LOOP_KEYWORD,
   MAX_LOOP_FILES,
   SCRIPT_CONDITION_KEYWORD,
   SCRIPT_KEYWORD,
 } = require('./workflow-catalog.js');
 const { blockStructure } = require('./workflow-check.js');
-const { fillLoopStep } = require('./workflow-placeholders.js');
+const { fillLoopStep, runValueNodes } = require('./workflow-placeholders.js');
+const { analyzeTemplate } = require('../template-engine.js');
+
+// 4T-002545: die Datenbank-Befehle mit eigener Behandlung im Kern.
+const DB_CREATE_KEYWORD = 'db-create';
+const DB_DELETE_KEYWORD = 'db-delete';
 
 const MAX_CALL_DEPTH = MACRO_MAX_CALL_DEPTH;
 // Die Fehlschlag-Codes dieses Moduls; ihre Texte liegen unter
@@ -94,6 +132,10 @@ const RUNNER_CODES = Object.freeze([
   'scriptTimeout',
   'scriptsDisabled',
   'scriptResultMissing',
+  // 4T-002547: Schleife über Datensätze und Datenbank-Werte.
+  'tooManyRecords',
+  'createdMissing',
+  'dbFieldUnknown',
   'unexpected',
 ]);
 
@@ -176,10 +218,18 @@ async function workflowSchritt(plan, step, deps, ebene) {
   return fehlschlag(plan, step, 'workflowFailed', { name: kind.name, inner: ergebnis });
 }
 
+/** Der Befehl, dessen Ergebnis eine Benachrichtigung ist (4T-002548). */
+const DB_CHECK_KEYWORD = 'db-check';
+
 async function hauptprozessSchritt(plan, step, deps) {
   if (typeof deps.flushBuffers === 'function') await deps.flushBuffers();
   let antwort = await deps.step(plan.path, step);
   if (antwort && antwort.ok && antwort.window) antwort = await deps.runWindowAction(antwort);
+  // 4T-002548 (Dg): das Ergebnis von `db-check` als Benachrichtigung.
+  if (antwort && antwort.ok && step.keyword === DB_CHECK_KEYWORD) {
+    if (typeof antwort.notify !== 'string') return fehlschlag(plan, step, 'unexpected', {});
+    deps.notify(antwort.notify);
+  }
   if (antwort && antwort.ok) return null;
   const code = antwort && typeof antwort.code === 'string' ? antwort.code : 'unexpected';
   return fehlschlag(plan, step, code, (antwort && antwort.detail) || {});
@@ -195,38 +245,89 @@ async function abfrage(plan, step, deps) {
   return { ende: fehlschlag(plan, step, code, (antwort && antwort.detail) || {}) };
 }
 
-// Die Namen der Skript-Ergebnisse, die ein zurückgestellter Schritt braucht.
-function gebrauchteErgebnisse(step) {
-  const texte = [];
-  const roh = step.deferred.step;
-  for (const a of roh.args || []) if (typeof a.raw === 'string') texte.push(a.raw);
-  if (roh.source && typeof roh.source.raw === 'string') texte.push(roh.source.raw);
-  if (roh.position && typeof roh.position.raw === 'string') texte.push(roh.position.raw);
-  const namen = [];
-  for (const text of texte) {
-    const analysis = analyzeTemplate(text);
-    if (!analysis.ok) continue;
-    for (const seg of analysis.segments) {
-      if (seg.type === 'context' && seg.name.startsWith('script:')) namen.push(seg.name.slice(7));
+const hat = (o, k) => o != null && Object.prototype.hasOwnProperty.call(o, k);
+
+// 4T-002547 (Dc): Der Wert eines `{{record:…}}` aus dem frisch gelesenen
+// Datensatz: `id`, `table` und `file` als eigene Angaben, sonst das Feld ohne
+// Rücksicht auf die Schreibung; undefined, wenn die Tabelle es nicht kennt.
+function datensatzWert(datensatz, angabe) {
+  const klein = angabe.toLowerCase();
+  if (klein === 'id' || klein === 'table' || klein === 'file') return datensatz[klein];
+  const felder = datensatz.fields || {};
+  const name = Object.keys(felder).find((f) => f.toLowerCase() === klein);
+  return name === undefined ? undefined : felder[name];
+}
+
+// Ein `{{record:<feld>}}` mit einem Feld, nicht `id`, `table` oder `file`.
+function traegtFeld(knoten) {
+  const [art, ...rest] = knoten.name.split(':');
+  return art === 'record' && !['id', 'table', 'file'].includes(rest.join(':').toLowerCase());
+}
+
+// Die Werte eines Laufs, die ein zurückgestellter Schritt braucht: `{ werte }`
+// mit Knoten-Name → Wert oder `{ ende }` mit dem Fehlschlag (V5: nie leer).
+async function laufWerte(lauf, step, frisch) {
+  const { plan, deps } = lauf;
+  const werte = {};
+  const knotenListe = runValueNodes(step.deferred.step);
+  if (lauf.datensatzRef && !frisch && knotenListe.some(traegtFeld)) {
+    const gelesen = await liesDatenbank(plan, step, deps, lauf.datensatzRef);
+    if (gelesen.ende) return gelesen;
+    lauf.datensatz = gelesen.antwort.record;
+  }
+  for (const knoten of knotenListe) {
+    const [art, ...rest] = knoten.name.split(':');
+    const angabe = rest.join(':');
+    if (art === 'script') {
+      if (!hat(lauf.skripte, angabe)) {
+        return { ende: fehlschlag(plan, step, 'scriptResultMissing', { name: angabe }) };
+      }
+    } else if (art === 'created') {
+      if (!hat(lauf.erstellt, angabe)) {
+        return { ende: fehlschlag(plan, step, 'createdMissing', { name: angabe }) };
+      }
+      werte[knoten.name] = lauf.erstellt[angabe];
+    } else if (art === 'record') {
+      if (!lauf.datensatz) return { ende: fehlschlag(plan, step, 'unexpected', {}) };
+      const wert = datensatzWert(lauf.datensatz, angabe);
+      if (wert === undefined) {
+        const detail = { table: lauf.datensatz.table, field: angabe };
+        return { ende: fehlschlag(plan, step, 'dbFieldUnknown', detail) };
+      }
+      werte[knoten.name] = wert;
+    } else if (art === 'db') {
+      const gelesen = await liesDatenbank(plan, step, deps, { art: 'db', ...knoten.db });
+      if (gelesen.ende) return gelesen;
+      werte[knoten.name] = gelesen.antwort.value;
     }
   }
-  return namen;
+  return { werte };
+}
+
+// Eine Frage an `deps.dbRead`: `{ antwort }` oder `{ ende }` mit dem Fehlschlag.
+async function liesDatenbank(plan, step, deps, anfrage) {
+  if (typeof deps.dbRead !== 'function') return { ende: fehlschlag(plan, step, 'unexpected', {}) };
+  const antwort = await deps.dbRead(plan.path, anfrage);
+  if (antwort && antwort.ok) return { antwort };
+  const code = antwort && typeof antwort.code === 'string' ? antwort.code : 'unexpected';
+  return { ende: fehlschlag(plan, step, code, (antwort && antwort.detail) || {}) };
 }
 
 // Ein zurückgestellter Schritt, für die Datei der Schleife und mit den
-// gelieferten Skript-Ergebnissen gefüllt.
-function gefuellt(lauf, step, item) {
+// gelieferten Skript-Ergebnissen und Datenbank-Werten gefüllt.
+async function gefuellt(lauf, step, item) {
   const { plan } = lauf;
+  // Nur der erste Schritt nach dem Lesen zu Beginn einer Wiederholung sieht
+  // den Datensatz ohne erneutes Lesen; jeder spätere kann ihn geändert haben.
+  const frisch = lauf.datensatzFrisch === true;
+  lauf.datensatzFrisch = false;
   if (!step.deferred) return { step };
   if (step.deferred.item !== false && item === null) {
     return { ende: fehlschlag(plan, step, 'unexpected', {}) };
   }
-  const fehlt = gebrauchteErgebnisse(step).find(
-    (name) => !Object.prototype.hasOwnProperty.call(lauf.skripte, name),
-  );
-  if (fehlt !== undefined)
-    return { ende: fehlschlag(plan, step, 'scriptResultMissing', { name: fehlt }) };
-  const ergebnis = fillLoopStep(step, item, lauf.skripte);
+  const geliefert = await laufWerte(lauf, step, frisch);
+  if (geliefert.ende) return geliefert;
+  const ergebnis = fillLoopStep(step, item, lauf.skripte, geliefert.werte);
   if (ergebnis.ok) return { step: ergebnis.step };
   // Ein Befund der Füllung; sein Text steht unter den Befunden der Prüfung.
   const erster = ergebnis.findings[0] || { code: 'unexpected', detail: {} };
@@ -276,6 +377,21 @@ async function schritt(plan, step, deps, ebene) {
   }
 }
 
+// 4T-002545 (Da): `db-create`; die vergebene Kennung unter dem Namen hinter `as`.
+async function anlageSchritt(lauf, step) {
+  const { plan, deps } = lauf;
+  if (typeof deps.flushBuffers === 'function') await deps.flushBuffers();
+  const antwort = await deps.step(plan.path, step);
+  if (!antwort || !antwort.ok) {
+    const code = antwort && typeof antwort.code === 'string' ? antwort.code : 'unexpected';
+    return fehlschlag(plan, step, code, (antwort && antwort.detail) || {});
+  }
+  if (typeof step.result === 'string' && typeof antwort.record === 'string') {
+    lauf.erstellt[step.result] = antwort.record;
+  }
+  return null;
+}
+
 // Ein Schritt samt Ausnahme-Schutz; null heißt «weiter».
 async function sicherSchritt(plan, step, deps, ebene) {
   try {
@@ -321,7 +437,9 @@ async function bereich(lauf, von, bis, item) {
   while (i < bis) {
     const roh = steps[i];
     const block = blocks[i];
-    const vorbereitet = gefuellt(lauf, roh, item);
+    const vorbereitet = await gefuellt(lauf, roh, item).catch((err) => ({
+      ende: fehlschlag(plan, roh, 'unexpected', { message: err && err.message }),
+    }));
     if (vorbereitet.ende) return vorbereitet.ende;
     const step = vorbereitet.step;
     if (block && CONDITION_KEYWORDS.includes(step.keyword)) {
@@ -339,8 +457,11 @@ async function bereich(lauf, von, bis, item) {
       i = ende + 1;
       continue;
     }
-    if (block && step.keyword === LOOP_KEYWORD) {
-      const ergebnis = await schleife(lauf, i, step, block);
+    if (block && (step.keyword === LOOP_KEYWORD || step.keyword === DB_LOOP_KEYWORD)) {
+      const lauf2 = step.keyword === LOOP_KEYWORD ? schleife : datensatzSchleife;
+      const ergebnis = await lauf2(lauf, i, step, block).catch((err) =>
+        fehlschlag(plan, step, 'unexpected', { message: err && err.message }),
+      );
       if (ergebnis) return ergebnis;
       i = block.end + 1;
       continue;
@@ -349,12 +470,13 @@ async function bereich(lauf, von, bis, item) {
       i++;
       continue;
     }
-    const ende =
-      step.keyword === SCRIPT_KEYWORD
-        ? await skriptSchritt(lauf, step).catch((err) =>
-            fehlschlag(plan, step, 'unexpected', { message: err && err.message }),
-          )
-        : await sicherSchritt(plan, step, deps, ebene);
+    const unerwartet = (err) =>
+      fehlschlag(plan, step, 'unexpected', { message: err && err.message });
+    let ende;
+    if (step.keyword === SCRIPT_KEYWORD) ende = await skriptSchritt(lauf, step).catch(unerwartet);
+    else if (step.keyword === DB_CREATE_KEYWORD) {
+      ende = await anlageSchritt(lauf, step).catch(unerwartet);
+    } else ende = await sicherSchritt(plan, step, deps, ebene);
     if (ende) return ende;
     i++;
   }
@@ -380,6 +502,36 @@ async function schleife(lauf, i, step, block) {
   return null;
 }
 
+// 4T-002547 (Dc): Die Schleife über die Datensätze einer Abfrage-Datei: Liste
+// beim Eintritt, Grenze vor der ersten Wiederholung, je Wiederholung der
+// Datensatz frisch gelesen. Keine Schleife in einer Schleife (`loopNested`),
+// deshalb genügt ein Datensatz je Lauf.
+async function datensatzSchleife(lauf, i, step, block) {
+  const { plan, deps } = lauf;
+  const frage = await abfrage(plan, step, deps);
+  if (frage.ende) return frage.ende;
+  const records = Array.isArray(frage.antwort.records) ? frage.antwort.records : [];
+  if (records.length > MAX_LOOP_FILES) {
+    return fehlschlag(plan, step, 'tooManyRecords', { max: MAX_LOOP_FILES, count: records.length });
+  }
+  for (const ref of records) {
+    const anfrage = { art: 'record', tabelle: ref.path, kennung: ref.id };
+    const gelesen = await liesDatenbank(plan, step, deps, anfrage);
+    if (gelesen.ende) return gelesen.ende;
+    lauf.datensatz = gelesen.antwort.record;
+    lauf.datensatzRef = anfrage;
+    lauf.datensatzFrisch = true;
+    try {
+      const ergebnis = await bereich(lauf, i + 1, block.end, null);
+      if (ergebnis) return ergebnis;
+    } finally {
+      lauf.datensatz = null;
+      lauf.datensatzRef = null;
+    }
+  }
+  return null;
+}
+
 /**
  * Führt einen vorbereiteten Workflow aus.
  *
@@ -401,7 +553,18 @@ async function schleife(lauf, i, step, block) {
 async function runWorkflow(plan, deps, ebene = 0) {
   const steps = plan.steps || [];
   const { blocks } = blockStructure(steps);
-  const lauf = { plan, steps, blocks, deps, ebene, skripte: {} };
+  const lauf = {
+    plan,
+    steps,
+    blocks,
+    deps,
+    ebene,
+    skripte: {},
+    erstellt: {},
+    datensatz: null,
+    datensatzRef: null,
+    datensatzFrisch: false,
+  };
   const ende = await bereich(lauf, 0, steps.length, null);
   const ergebnis = ende || { status: 'ok' };
   // Der Lauf-Stand ist Spur: `finish` fängt seine Fehler selbst ab.
@@ -418,11 +581,26 @@ async function runWorkflow(plan, deps, ebene = 0) {
  * @returns {string[]} Pfade relativ zur Bereichs-Wurzel.
  */
 function deleteTargets(plan) {
+  return sammleZiele(plan, 'delete', (step) => String(step.args && step.args[0]));
+}
+
+// Die Ziele aller Schritte `keyword` samt der aufgerufenen Workflows, in
+// Lauf-Reihenfolge und ohne Doppel. `zielVon` bekommt dazu den Schritt der
+// umgebenden Schleife `db-for-each` oder null (4T-002547).
+function sammleZiele(plan, keyword, zielVon) {
   const ziele = [];
+  const gesehen = new Set();
   const besuche = (p) => {
-    for (const step of (p && p.steps) || []) {
-      const ziel = String(step.args && step.args[0]);
-      if (step.keyword === 'delete' && !ziele.includes(ziel)) ziele.push(ziel);
+    const steps = (p && p.steps) || [];
+    const { loopKind, loopOf } = blockStructure(steps);
+    for (const [index, step] of steps.entries()) {
+      if (step.keyword === keyword) {
+        const schleife = loopKind[index] === DB_LOOP_KEYWORD ? steps[loopOf[index]] : null;
+        const ziel = zielVon(step, schleife);
+        const schluessel = JSON.stringify(ziel);
+        if (!gesehen.has(schluessel)) ziele.push(ziel);
+        gesehen.add(schluessel);
+      }
       if (step.keyword === 'workflow' && p.children) besuche(p.children[step.line]);
     }
   };
@@ -430,10 +608,75 @@ function deleteTargets(plan) {
   return ziele;
 }
 
+// Ein Argument eines Schritts als Text; ein zurückgestellter Schritt nennt es
+// noch ungefüllt, wie es in der Zeile steht.
+function argumentText(step, i) {
+  if (!step.deferred) return String(step.args && step.args[i]);
+  const roh = step.deferred.step && step.deferred.step.args && step.deferred.step.args[i];
+  return roh && typeof roh.raw === 'string' ? roh.raw : '';
+}
+
+// 4T-002547 (Nachzug nach der Entscheidung des Product Owners vom 2026-11-12,
+// Empfehlung pauschal übernommen): Steht der Datensatz eines `db-delete` erst
+// im Lauf fest, sagt die eine Bestätigung in Worten, was gelöscht wird. Dafür
+// die Art des Ziels: genau ein Datenbank-Wert als ganze Angabe (Leerraum darum
+// zählt nicht) ergibt `schleife`, `schleifenFeld`, `erstellt` oder `feld`,
+// jede übrige Form mit Platzhalter `offen`.
+function einzigerLaufWert(roh) {
+  const analysis = analyzeTemplate(roh);
+  if (!analysis.ok) return null;
+  const teile = analysis.segments.filter((seg) => !(seg.type === 'lit' && seg.text.trim() === ''));
+  if (teile.length !== 1 || teile[0].type !== 'context' || !teile[0].befehlsZeile) return null;
+  return teile[0];
+}
+
+// Das Ziel eines `db-delete` für die Bestätigung; ein festes Ziel unverändert
+// als Tabelle und Datensatz, wie die Zeile sie nennt.
+function datensatzZiel(step, schleife) {
+  const table = argumentText(step, 0);
+  const record = argumentText(step, 1);
+  if (!step.deferred) return { table, record };
+  const lauf = schleife ? { query: argumentText(schleife, 0), max: MAX_LOOP_FILES } : null;
+  const knoten = einzigerLaufWert(record);
+  const [art, ...rest] = knoten ? knoten.name.split(':') : [];
+  const angabe = rest.join(':');
+  if (art === 'record' && lauf && angabe.toLowerCase() === 'id') {
+    return { table, record, art: 'schleife', ...lauf };
+  }
+  if (art === 'record' && lauf && traegtFeld(knoten)) {
+    return { table, record, art: 'schleifenFeld', field: angabe, ...lauf };
+  }
+  if (art === 'created') return { table, record, art: 'erstellt' };
+  if (art === 'db' && knoten.db) {
+    const { table: sourceTable, record: source, field } = knoten.db;
+    return { table, record, art: 'feld', field, source, sourceTable, ...(lauf || {}) };
+  }
+  return { table, record, art: 'offen' };
+}
+
+/**
+ * Die Ziele aller `db-delete`-Schritte eines vorbereiteten Laufs samt der
+ * aufgerufenen Workflows, in Lauf-Reihenfolge und ohne Doppel (4T-002545, D3:
+ * eine Bestätigung nennt alle Ziele des Laufs).
+ *
+ * @param {{steps?: object[], children?: object}} plan wie bei `runWorkflow`.
+ * @returns {{table: string, record: string, art?: string, query?: string,
+ *   max?: number, field?: string, source?: string, sourceTable?: string}[]}
+ *   Tabelle und Datensatz, wie die Zeile sie nennt; ein Platzhalter, der erst
+ *   im Lauf feststeht, ungefüllt. Seit 4T-002547 trägt ein solches Ziel `art`
+ *   (`schleife`, `schleifenFeld`, `erstellt`, `feld` oder `offen`), in einer
+ *   Schleife `db-for-each` dazu ihre Abfrage-Datei (`query`) und Grenze
+ *   (`max`), bei einem Feldwert Feld, Datensatz und Tabelle der Quelle.
+ */
+function dbDeleteTargets(plan) {
+  return sammleZiele(plan, DB_DELETE_KEYWORD, datensatzZiel);
+}
+
 module.exports = {
   MAX_CALL_DEPTH,
   RUNNER_CODES,
   compareLoopPaths,
+  dbDeleteTargets,
   deleteTargets,
   runWorkflow,
   scriptResultText,

@@ -458,6 +458,28 @@ describe('Kopieren einer Karteikarte im Bereichs-Panel (4T-002405, F5 A)', () =>
     expect(lies(k.autoren)).toBe(AUTOREN);
   });
 
+  // 4T-002545 (Epic 3E-000368): Die Kopie fordert die Ausnahme von der
+  // Pflicht-Prüfung ausdrücklich an und verhält sich damit wie zuvor.
+  it('kopiert auch eine Vorlage, der ein Pflicht-Feld fehlt', async () => {
+    const k = kartei();
+    fs.writeFileSync(
+      k.autoren,
+      AUTOREN.replace('- name: ort\n', '- name: ort\n      required: true\n'),
+    );
+    const ohne = lege(
+      k.wurzel,
+      'Autoren/Ohne.md',
+      ['---', 'db-record: r-00007', 'name: Ohne', '---', ''].join('\n'),
+    );
+    const p = prozess(k);
+
+    const ergebnis = await p.kopiere(ohne);
+
+    expect(ergebnis).toMatchObject({ ok: true, name: 'Ohne-1.md' });
+    expect(p.auftraege[0].anweisungen[0].pflichtAussetzen).toBe(true);
+    expect(lies(path.join(path.dirname(ohne), 'Ohne-1.md'))).toContain('name: Ohne-1\n');
+  });
+
   it('kopiert ein Dokument ohne Kennung wie jede Datei (AK5)', async () => {
     const k = kartei();
     const p = prozess(k);

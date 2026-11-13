@@ -12,9 +12,17 @@
 const path = require('node:path');
 const fs = require('node:fs');
 const chokidar = require('chokidar');
+const { pathCompareKey } = require('../../shared/platform.js');
 const { MD_EXT_RE, normalizeNameKey } = require('../../shared/markdown/link-scan.js');
 const { MDDA_CACHE_FILENAME } = require('../documents/mdd-store.js');
-const { indexes, broadcast, scheduleInvalidate, merkeGeaenderteDatei } = require('./store.js');
+const {
+  indexes,
+  broadcast,
+  scheduleInvalidate,
+  merkeGeaenderteDatei,
+  invalidiereSofort,
+  resolveRootInfo,
+} = require('./store.js');
 const {
   SCAN_DEPTH,
   MAX_FILES,
@@ -534,6 +542,45 @@ function onWatcherChange(entry, filePath, kind) {
   scheduleInvalidate(entry);
 }
 
+// 4T-002545 (Epic 3E-000368): Der Schlüssel, unter dem der Index eine Datei
+// führt; auf einem Dateisystem ohne Unterscheidung der Schreibung darf der
+// Pfad eines Schreibers anders geschrieben sein. Eine neue Datei behält ihren Pfad.
+function indexSchluessel(entry, absPfad) {
+  if (entry.files.has(absPfad)) return absPfad;
+  const gesucht = pathCompareKey(absPfad);
+  for (const bekannt of entry.files.keys()) if (pathCompareKey(bekannt) === gesucht) return bekannt;
+  return absPfad;
+}
+
+/**
+ * 4T-002545 (Epic 3E-000368): Trägt Dateien, die dieser Prozess selbst
+ * geschrieben hat, sofort in den Index einer Wurzel nach — über denselben Weg
+ * wie eine Meldung des Beobachters (`onWatcherChange`) und mit der sofortigen
+ * Invalidierungs-Meldung, damit auch die Zwischenspeicher gegen den
+ * Änderungs-Stand neu rechnen. Synchron: Bei der Rückkehr ist der Index auf dem
+ * Stand der Platte für genau diese Dateien. Die spätere Meldung des
+ * Beobachters für dieselbe Datei trägt denselben Stand erneut ein und ändert
+ * nichts; Ereignisse der Workflows löst dieser Weg nicht aus, weil er nicht
+ * über `beobachtet` läuft.
+ *
+ * @param {string} rootPath Bereichs-Wurzel.
+ * @param {string[]} pfade Absolute Pfade; eine fehlende Datei wird ausgetragen.
+ * @returns {boolean} false, wenn der Index der Wurzel nicht bereit ist.
+ */
+function trageDateienNach(rootPath, pfade) {
+  const { root } = resolveRootInfo(null, rootPath);
+  const entry = root ? indexes.get(root) : null;
+  if (!entry || entry.status !== 'ready') return false;
+  for (const roh of pfade) {
+    const pfad = indexSchluessel(entry, path.resolve(roh));
+    if (fs.existsSync(pfad)) onWatcherChange(entry, pfad, entry.files.has(pfad) ? 'change' : 'add');
+    else if (entry.files.has(pfad)) onWatcherChange(entry, pfad, 'unlink');
+    if (entry.status !== 'ready') return false;
+  }
+  invalidiereSofort(entry);
+  return true;
+}
+
 // B-19 (4T-000181): Wurzel nachtraeglich als oversized markieren.
 function markOversized(entry) {
   entry.status = 'oversized';
@@ -641,4 +688,6 @@ module.exports = {
   // 4T-002023: nur für Prüfungen — die Meldung des Beobachters ohne echten
   // Datei-Beobachter nachstellen (test/unit/index-rundruf.test.js).
   onWatcherChange,
+  // 4T-002545: eigene Schreibvorgänge sofort nachtragen.
+  trageDateienNach,
 };

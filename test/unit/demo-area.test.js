@@ -346,9 +346,13 @@ const EXPECTED_FILES = [
   // 4T-002466 (Epic 3E-000367): der fuenfte Beispiel-Workflow «Inbox Rule» mit
   // Ereignis und Bedingung, ausgeliefert nicht scharf; ohne Schlagworte und
   // ohne Aufgaben-Zeile in der Datei selbst.
+  // 4T-002549 (Epic 3E-000368): der sechste Beispiel-Workflow «Library Report»
+  // mit db-query und db-check, von Hand zu starten; er liest nur und schreibt
+  // allein den Abschnitt «Long books report» der Workflow-Station.
   'Workflows/Add Log Entry.md',
   'Workflows/Daily Note.md',
   'Workflows/Inbox Rule.md',
+  'Workflows/Library Report.md',
   'Workflows/New Meeting Note.md',
   'Workflows/Side by Side.md',
   'attachments/demo-document.pdf',

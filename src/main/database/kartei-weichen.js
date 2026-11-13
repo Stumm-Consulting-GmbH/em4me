@@ -201,6 +201,9 @@ function erzeugeKarteiWeichen({ schreibSchnittstelle, erweiterungAktiv, fsp }) {
               tabelle: karte.tabelle,
               art: ART_ANLEGEN,
               karteikarte: { name: path.parse(ziel).name, vorlage: karte.pfad },
+              // 4T-002545 (Epic 3E-000368): Die Kopie behält die Ausnahme von
+              // der Pflicht-Prüfung, die sie vor dieser Änderung stillschweigend hatte.
+              pflichtAussetzen: true,
             },
           ],
         });

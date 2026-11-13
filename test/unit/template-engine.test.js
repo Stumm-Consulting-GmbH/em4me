@@ -269,3 +269,33 @@ describe('Lage der Platzhalter-Segmente (4T-002347)', () => {
     ]);
   });
 });
+
+// 4T-002547 (Dd: nur in Befehls-Zeilen): `record`, `db` und `created` lesen in
+// einer Vorlage nichts und werden nicht still leer.
+describe('Datenbank-Platzhalter in Vorlagen (4T-002547)', () => {
+  it('bleiben ohne Wert im Kontext als ihr eigener Text stehen', () => {
+    const r = renderTemplate(
+      'A {{record:pages}} B {{db:Library:Solaris:pages}} C {{created:Neu}} {{title}}',
+      {
+        title: 'T',
+      },
+    );
+    expect(r).toEqual({
+      ok: true,
+      text: 'A {{record:pages}} B {{db:Library:Solaris:pages}} C {{created:Neu}} T',
+      cursorOffsets: [],
+    });
+  });
+
+  it('tragen den Wert, den ein Workflow-Lauf liefert; der Name von created wie bei script', () => {
+    const r = renderTemplate('{{created:Neu}} {{record:pages}}', {
+      'created:neu': 'r-00004',
+      'record:pages': '224',
+    });
+    expect(r.text).toBe('r-00004 224');
+    expect(renderTemplate('{{created:x y}}', {})).toMatchObject({
+      ok: false,
+      error: { code: 'invalidParams', name: 'created' },
+    });
+  });
+});

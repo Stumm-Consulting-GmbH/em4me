@@ -34,11 +34,27 @@
 // und 3n): `script "Abschnitt" as "name"` führt den Skript-Block unter der
 // Überschrift «Abschnitt» der Workflow-Datei in der Sandbox der Skript-Blöcke
 // aus; das Wortpaar `as "name"` ist eine benannte Option der Gruppe
-// `result` und für `script` Pflicht, bei jedem anderen Befehl ein Befund
-// «unbekannte Option». Das Ergebnis steht danach als `{{script:name}}` in
+// `result` und für `script` Pflicht, bei `db-create` wahlfrei (Stufe D),
+// bei jedem anderen Befehl ein Befund «unbekannte Option». Das Ergebnis steht danach als `{{script:name}}` in
 // jedem folgenden Argument. `if-script "Abschnitt"` ist die vierte Bedingung
 // der Block-Form; sie trifft zu, wenn das Skript `true` oder einen nicht
 // leeren Text liefert. Beide laufen im Fenster, nie im Hauptprozess.
+//
+// **Stufe D, Datenbank-Befehle** (4T-002544, Stories 4S-001196 bis
+// 4S-001202, Entscheidungen Da, Db, Dc, Dg und Dh der Konzept-Runde
+// 4T-002543): Acht der zehn Befehle tragen ihr Schema, `db-export` und
+// `db-import` bleiben spätere Ausbaustufe (Dh). Zwei neue Argument-Arten:
+// `table` nennt eine Tabelle beim Namen oder als Pfad (Ausführungs-
+// Entscheidung 2), `record` einen Datensatz als Kennung oder Anzeige-Form
+// (Da). Die Abfrage-Datei ist ein Pfad. `db-create` und `db-update` tragen
+// **Paare** `feld="Wert"` (G4) als Pflicht (`pairs: 'required'`); jeder
+// andere Befehl kennt keine Paare. `db-query` schreibt mit der neuen Option
+// `into "Datei"` (Gruppe `target`, Pflicht) und wahlfrei `under
+// "Überschrift"`; `at-start` derselben Gruppe gilt dort nicht, deshalb nennt
+// ein Schema mit `options` die zulässigen Options-Wörter ausdrücklich.
+// `db-for-each` öffnet wie `for-each` einen Block bis `end` (Dc). Mit der
+// Stufe D in `ENABLED_STAGES` ist die Prüfung frei; die Ausführung bauen die
+// Folge-Tasks des Epics.
 //
 // **Nachschlagen nur über eigene Eigenschaften.** Ein Schlüsselwort kommt aus
 // dem Dokument; ein blanker Zugriff fände `constructor` und `toString` als
@@ -52,7 +68,7 @@
 const { MACRO_MAX_DELAY_SECONDS } = require('../commands/command-placement.js');
 
 /** Die Stufen, deren Befehle die ausgelieferte Fassung ausführt. */
-const ENABLED_STAGES = Object.freeze([1, 2, 3]);
+const ENABLED_STAGES = Object.freeze([1, 2, 3, 'D']);
 
 /** Die Bedingungen, die einen Block öffnen (3f). */
 const CONDITION_KEYWORDS = Object.freeze(['if-exists', 'if-missing', 'if-property', 'if-script']);
@@ -62,13 +78,28 @@ const SCRIPT_CONDITION_KEYWORD = 'if-script';
 const SCRIPT_KEYWORDS = Object.freeze([SCRIPT_KEYWORD, SCRIPT_CONDITION_KEYWORD]);
 /** Die Schleife, die einen Block öffnet (3g). */
 const LOOP_KEYWORD = 'for-each';
+/** Die Schleife über die Datensätze einer Abfrage (Dc, 4T-002544). */
+const DB_LOOP_KEYWORD = 'db-for-each';
+/** Beide Schleifen; keine darf in einer Schleife stehen (Dc). */
+const LOOP_KEYWORDS = Object.freeze([LOOP_KEYWORD, DB_LOOP_KEYWORD]);
+/** Die Datenbank-Befehle der Stufe D mit Schema, in der Reihenfolge des Katalogs. */
+const DB_KEYWORDS = Object.freeze([
+  'db-create',
+  'db-update',
+  'db-delete',
+  'db-query',
+  DB_LOOP_KEYWORD,
+  'db-open',
+  'db-open-list',
+  'db-check',
+]);
 /** Die Wörter, die einen Block teilen oder schließen. */
 const ELSE_KEYWORD = 'else';
 const END_KEYWORD = 'end';
 /** Alle Block-Wörter, in der Reihenfolge des Katalogs (Hervorhebung, 4T-002464). */
 const BLOCK_KEYWORDS = Object.freeze([
   ...CONDITION_KEYWORDS,
-  LOOP_KEYWORD,
+  ...LOOP_KEYWORDS,
   ELSE_KEYWORD,
   END_KEYWORD,
 ]);
@@ -88,6 +119,10 @@ const MAX_LOOP_FILES = 500;
  * commandId: Kommando-Kennung ohne Anführungszeichen.
  * pattern: Ordner und Datei-Muster in Anführungszeichen, relativ zur
  *   Bereichs-Wurzel (`for-each`, 4T-002464).
+ * table: Tabelle in Anführungszeichen, als Name oder Pfad relativ zur
+ *   Bereichs-Wurzel (Stufe D, 4T-002544).
+ * record: Datensatz in Anführungszeichen, als Kennung oder Anzeige-Form
+ *   (Stufe D, 4T-002544).
  */
 const ARG_TYPES = Object.freeze([
   'path',
@@ -98,6 +133,8 @@ const ARG_TYPES = Object.freeze([
   'number',
   'commandId',
   'pattern',
+  'table',
+  'record',
 ]);
 
 // Benannte Optionen (G4): Wortpaar `option "Wert"` oder ein einzelnes Wort.
@@ -111,6 +148,8 @@ const OPTIONS = Object.freeze({
   'at-start': Object.freeze({ group: 'position', kind: 'atStart', value: null }),
   // 4T-002465: Name des Ergebnisses eines Skript-Schritts (3h).
   as: Object.freeze({ group: 'result', kind: 'result', value: 'text' }),
+  // 4T-002544: Ziel-Datei von `db-query` (Db).
+  into: Object.freeze({ group: 'target', kind: 'into', value: 'path' }),
 });
 
 // Positions-Argument; `nonEmpty` verlangt einen nicht leeren Text, `optional`
@@ -135,11 +174,25 @@ function stufeDrei(args, groups = {}) {
   return stufe(3, args, groups);
 }
 
+// Stufe D (4T-002544): `pairs` ist 'required' oder null, `options` die
+// zulässigen Options-Wörter oder null für «alle der Gruppen».
+function stufeD(args, { groups = {}, pairs = null, options = null } = {}) {
+  return Object.freeze({
+    stage: 'D',
+    args: Object.freeze(args),
+    groups: Object.freeze(groups),
+    pairs,
+    options: options ? Object.freeze(options) : null,
+  });
+}
+
 function spaeter(stage) {
   return Object.freeze({ stage, args: null, groups: null });
 }
 
 const PATH = arg('path');
+const TABLE = arg('table', true);
+const RECORD = arg('record', true);
 
 const WORKFLOW_COMMANDS = Object.freeze({
   // Dateien und Ordner
@@ -179,14 +232,17 @@ const WORKFLOW_COMMANDS = Object.freeze({
   end: stufeDrei([]),
   script: stufeDrei([arg('text', true)], { result: 'required' }),
   // Datenbank (Stufe D)
-  'db-create': spaeter('D'),
-  'db-update': spaeter('D'),
-  'db-delete': spaeter('D'),
-  'db-query': spaeter('D'),
-  'db-for-each': spaeter('D'),
-  'db-open': spaeter('D'),
-  'db-open-list': spaeter('D'),
-  'db-check': spaeter('D'),
+  'db-create': stufeD([TABLE], { groups: { result: 'optional' }, pairs: 'required' }),
+  'db-update': stufeD([TABLE, RECORD], { pairs: 'required' }),
+  'db-delete': stufeD([TABLE, RECORD]),
+  'db-query': stufeD([PATH], {
+    groups: { target: 'required', position: 'optional' },
+    options: ['into', 'under'],
+  }),
+  'db-for-each': stufeD([PATH]),
+  'db-open': stufeD([TABLE, arg('record', true, true)]),
+  'db-open-list': stufeD([PATH]),
+  'db-check': stufeD([arg('table', true, true)]),
   'db-export': spaeter('D'),
   'db-import': spaeter('D'),
 });
@@ -275,10 +331,13 @@ module.exports = {
   ARG_TYPES,
   BLOCK_KEYWORDS,
   CONDITION_KEYWORDS,
+  DB_KEYWORDS,
+  DB_LOOP_KEYWORD,
   ELSE_KEYWORD,
   ENABLED_STAGES,
   END_KEYWORD,
   LOOP_KEYWORD,
+  LOOP_KEYWORDS,
   MAX_BLOCK_DEPTH,
   MAX_LOOP_FILES,
   FORBIDDEN_PLACEHOLDER_TYPES,

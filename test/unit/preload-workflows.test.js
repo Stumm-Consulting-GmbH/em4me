@@ -73,6 +73,10 @@ describe('workflowsBridge', () => {
       'workflowEventOpen',
       'workflowSetArmed',
       'workflowArmedState',
+      // 4T-002544: Auskunft über den Datenbank-Bestand.
+      'workflowDbCatalog',
+      // 4T-002547: Datenbank-Werte eines Laufs.
+      'workflowDbRead',
     ]);
     await bruecke.workflowStep('/w.md', { line: 1 });
     await bruecke.workflowBufferEditDone({ requestId: 'k', ok: true });
@@ -94,6 +98,8 @@ describe('workflowsBridge', () => {
     // 4T-002422: Scharf-Schaltung und Scharf-Zustand einer Datei.
     await bruecke.workflowSetArmed('/w.md', true);
     await bruecke.workflowArmedState('/w.md');
+    await bruecke.workflowDbCatalog();
+    await bruecke.workflowDbRead('/w.md', { art: 'db', table: 'T', record: 'r', field: 'f' });
     expect(aufrufe).toEqual([
       ['workflow:step', { workflowPath: '/w.md', step: { line: 1 } }],
       ['workflow:bufferEditDone', { requestId: 'k', ok: true }],
@@ -114,6 +120,11 @@ describe('workflowsBridge', () => {
       ['workflow:eventOpen'],
       ['workflow:setArmed', { workflowPath: '/w.md', armed: true }],
       ['workflow:armedState', { workflowPath: '/w.md' }],
+      ['workflow:dbCatalog'],
+      [
+        'workflow:dbRead',
+        { workflowPath: '/w.md', anfrage: { art: 'db', table: 'T', record: 'r', field: 'f' } },
+      ],
     ]);
     // 4T-002421: Die Zustellung kommt ohne das Ereignis an.
     const faellig = [];

@@ -776,7 +776,11 @@ describe('Kartei-Schreibweg: Pflicht-Felder beim Anlegen (Steuer-Sitzung zu Schn
       'utf8',
     );
     const { schnittstelle } = prozess();
-    const ergebnis = await auftrag(schnittstelle, k.wurzel, neueKarte('Grace Hopper'));
+    // 4T-002545: «Neue Karteikarte» fordert die Ausnahme ausdrücklich an.
+    const ergebnis = await auftrag(schnittstelle, k.wurzel, {
+      ...neueKarte('Grace Hopper'),
+      pflichtAussetzen: true,
+    });
     expect(ergebnis.ok).toBe(true);
     const neu = path.join(path.dirname(k.autoren), 'Grace Hopper.md');
     expect(lies(neu)).toContain('ort:\n');
@@ -797,5 +801,32 @@ describe('Kartei-Schreibweg: Pflicht-Felder beim Anlegen (Steuer-Sitzung zu Schn
       erwartet: { name: 'Grace Hopper', ort: '' },
     });
     expect(aendern.code).toBe(LAGEN.pflichtFehlt);
+  });
+
+  // 4T-002545 (Epic 3E-000368, Entscheidung des Product Owners vom 2026-11-12):
+  // Ohne ausdrückliche Anforderung gilt die Pflicht-Prüfung auch hier.
+  it('ohne `pflichtAussetzen` weist das Anlegen ab und schreibt nichts', async () => {
+    const k = kartei();
+    const kopf = AUTOREN.replace('    - name: ort\n', '    - name: ort\n      required: true\n');
+    fs.writeFileSync(k.autoren, kopf, 'utf8');
+    const ordner = path.dirname(k.autoren);
+    const vorher = fs.readdirSync(ordner).sort();
+    const { schnittstelle } = prozess();
+    const ergebnis = await auftrag(schnittstelle, k.wurzel, neueKarte('Grace Hopper'));
+    expect(ergebnis).toMatchObject({ ok: false, code: LAGEN.pflichtFehlt });
+    expect(ergebnis.lagen.map((l) => l.feld)).toEqual(['ort']);
+    expect(fs.readdirSync(ordner).sort()).toEqual(vorher);
+    expect(lies(k.autoren)).toBe(kopf);
+  });
+
+  it('`pflichtAussetzen` ist ein Wahrheitswert; alles andere ist ein Form-Befund', async () => {
+    const k = kartei();
+    const { schnittstelle } = prozess();
+    const ergebnis = await auftrag(schnittstelle, k.wurzel, {
+      ...neueKarte('Grace Hopper'),
+      pflichtAussetzen: 'ja',
+    });
+    expect(ergebnis).toMatchObject({ ok: false, code: LAGEN.form });
+    expect(ergebnis.lagen[0]).toMatchObject({ feld: 'pflichtAussetzen' });
   });
 });

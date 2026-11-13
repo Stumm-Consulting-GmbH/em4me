@@ -78,12 +78,27 @@ const CODE_RE = /^[A-Za-z][A-Za-z0-9-]{0,63}$/;
 
 const istObjekt = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
-// Eine Journal-Zeile aus dem Fenster: Zeile, Befehl des Katalogs, Pfad.
+// 4T-002545 (Df): Tabelle, Datensatz und Vorgangs-Kennung eines
+// Datenbank-Schritts; alle drei oder keine, sonst ungültig (null).
+function datenbankAngaben(e) {
+  const genannt = ['table', 'record', 'transaction'].filter((f) => e[f] !== undefined);
+  if (genannt.length === 0) return {};
+  if (genannt.length !== 3) return null;
+  const text = (v) => typeof v === 'string' && v !== '' && v.length <= MAX_PFAD;
+  if (!text(e.table) || !text(e.record)) return null;
+  if (!Number.isSafeInteger(e.transaction) || e.transaction < 1) return null;
+  return { table: e.table, record: e.record, transaction: e.transaction };
+}
+
+// Eine Journal-Zeile aus dem Fenster: Zeile, Befehl des Katalogs, Pfad; bei
+// einem Datenbank-Schritt dazu Tabelle, Datensatz und Vorgangs-Kennung.
 function journalZeile(e) {
   if (!istObjekt(e) || !Number.isInteger(e.line) || e.line < 1) return null;
   if (!lookupCommand(e.command)) return null;
   if (typeof e.path !== 'string' || e.path === '' || e.path.length > MAX_PFAD) return null;
-  return { line: e.line, command: e.command, path: e.path };
+  const datenbank = datenbankAngaben(e);
+  if (datenbank === null) return null;
+  return { line: e.line, command: e.command, path: e.path, ...datenbank };
 }
 
 // Ein Pfad des Ereignisses: fehlt (null/undefined) oder ist ein Text in der
@@ -122,7 +137,8 @@ function ereignisAus(e) {
  * **Ereignis** (Stufe 3): Pflicht bei der Herkunft `event` und nur dort
  * erlaubt; `{ type, file?, from?, task? }` mit einem Ereignis des Katalogs.
  * **Journal** (Stufe 2): optional; jede Zeile `{ line, command, path }` mit
- * einem Befehl des Katalogs, sonst wird der Lauf abgewiesen. Über `MAX_JOURNAL`
+ * einem Befehl des Katalogs, sonst wird der Lauf abgewiesen; seit 4T-002545 bei
+ * einem Datenbank-Schritt dazu `table`, `record` und `transaction` (Df). Über `MAX_JOURNAL`
  * Zeilen wird abgeschnitten und `journalTruncated` gesetzt.
  *
  * @param {*} run Nutzlast `{ status, line?, code?, startedAt?, origin?, journal?, event? }`.

@@ -10,6 +10,23 @@
 // Seit 4T-002424 dazu die Pflege-Befehle `delete`, `add-tag`, `remove-tag` und
 // `complete-task` der Stufe 2 (workflow-maintenance-steps.js, workflow-content-steps.js).
 //
+// Seit 4T-002544 dazu workflow:dbCatalog, die Auskunft über Tabellen, Felder
+// und Abfrage-Dateien des Bereichs für die Prüfung der Datenbank-Befehle
+// (workflow-db-auskunft.js); er liest nur. Bei ausgeschalteter Erweiterung
+// «Datenbank» antwortet er mit `enabled: false` und leeren Listen.
+//
+// Seit 4T-002545 dazu die Schreib-Schritte `db-create`, `db-update` und
+// `db-delete` über die Schreib-Schnittstelle der Datenbank
+// (workflow-db-steps.js); `isValidStep` prüft dafür Tabelle und Datensatz,
+// die Paare `feld="Wert"` und den Namen hinter `as` (E7). Seit 4T-002546 dazu
+// `db-query` (workflow-db-query.js) mit dem Ziel `into` und `under`. Seit
+// 4T-002547 dazu die Liste von `db-for-each` über denselben Kanal und
+// `workflow:dbRead`, das Lesen eines Datensatzes je Wiederholung und eines
+// Feldwerts für `{{db:…}}`; die Bereichs-Wurzel ist die des Absenders (V6).
+// Seit 4T-002548 dazu `db-open`, `db-open-list` und `db-check`
+// (workflow-db-masken.js): die beiden ersten antworten mit einem
+// Fenster-Handgriff, `db-check` mit dem Text einer Benachrichtigung.
+//
 // Kanal-Gruppe: workflow:step, workflow:bufferEditDone, workflow:recordRun;
 // dazu der ausgehende Auftrag workflow:bufferEdit (workflow-buffer-requests.js)
 // und seit 4T-002421 die Kanäle des Laufs nach Zeitplan (workflow-schedule.js),
@@ -30,14 +47,20 @@
 //                                            Bearbeitung des eigenen Puffers);
 //   { ok: true, line, keyword, value }     — Antwort einer Bedingung (4T-002464);
 //   { ok: true, line, keyword, files }     — Liste einer Schleife (4T-002464);
+//   { ok: true, line, keyword, effect, record } — Datenbank-Schritt (4T-002545);
+//   { ok: true, line, keyword, notify, effect } — `db-check` (4T-002548);
 //   { ok: false, line, keyword, code, detail }.
 // Texte zu den Codes entstehen in der Anzeige (4T-002350); hier gibt es keine.
 //
 // Eigener Zustand: die offenen Puffer-Aufträge (workflow-buffer-requests.js).
 'use strict';
 
+const fsp = require('node:fs/promises');
 const path = require('node:path');
 const { isInsideArea } = require('../area/area-path');
+const { createDatabaseCatalogCache } = require('../database/table-catalog.js');
+// 4T-002544: Auskunft über den Datenbank-Bestand für die Prüfung.
+const { workflowDbAuskunft } = require('../workflows/workflow-db-auskunft.js');
 const { lookupCommand } = require('../../shared/workflows/workflow-catalog.js');
 const { createRenameCascade } = require('../documents/rename-cascade');
 const { imWorkflowLauf } = require('../documents/self-write');
@@ -52,6 +75,13 @@ const {
   QUERY_KEYWORDS,
   createWorkflowBlockQueries,
 } = require('../workflows/workflow-block-queries.js');
+// 4T-002545: die Schreib-Schritte der Datenbank (Stufe D).
+const { DB_WRITE_KEYWORDS, createWorkflowDbSteps } = require('../workflows/workflow-db-steps.js');
+const { createDbSchreibStand } = require('../workflows/workflow-db-schreibstand.js');
+// 4T-002546: die Abfrage in eine Datei (Stufe D).
+const { DB_QUERY_KEYWORDS, createWorkflowDbQuery } = require('../workflows/workflow-db-query.js');
+// 4T-002548: die Masken- und Konsistenz-Befehle (Stufe D).
+const { DB_FORM_KEYWORDS, createWorkflowDbMasken } = require('../workflows/workflow-db-masken.js');
 // 4T-002424: die Pflege-Befehle `delete` und `complete-task` (Stufe 2).
 const {
   MAINTENANCE_KEYWORDS,
@@ -90,6 +120,57 @@ const MAX_TEXT = 4 * 1024 * 1024;
 
 const istText = (v, max) => typeof v === 'string' && v.length <= max;
 const istObjekt = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+// 4T-002545: Höchstzahl der Paare einer Zeile; eine Tabelle mit mehr Feldern
+// gibt es in der Praxis nicht, und die Grenze hält die Nutzlast klein.
+const MAX_PAARE = 500;
+
+// 4T-002545 (E7): Die Paare `feld="Wert"` eines Datenbank-Schritts: Pflicht,
+// wo das Schema sie verlangt, sonst verboten; je Paar ein Feld-Name ohne
+// Gleichheitszeichen und ein Text, kein Feld doppelt (ohne Rücksicht auf die
+// Schreibung, wie der Prüfer).
+function paareGueltig(eintrag, pairs) {
+  if (!eintrag.pairs) return pairs === undefined;
+  if (!Array.isArray(pairs) || pairs.length === 0 || pairs.length > MAX_PAARE) return false;
+  const gesehen = new Set();
+  return pairs.every((paar) => {
+    if (!istObjekt(paar) || !istText(paar.key, MAX_PFAD) || !istText(paar.value, MAX_TEXT)) {
+      return false;
+    }
+    const name = paar.key.trim().toLowerCase();
+    if (name === '' || paar.key.includes('=') || gesehen.has(name)) return false;
+    gesehen.add(name);
+    return true;
+  });
+}
+
+// 4T-002546 (V6): Das Ziel `into` von `db-query`: Pflicht, wo das Schema es
+// verlangt, sonst verboten; ein nicht leerer Pfad. Ob er im Bereich liegt,
+// prüft der Schritt wie jeder Datei-Schritt (`resolveAreaPath`).
+function zielGueltig(eintrag, target) {
+  if (!eintrag.groups.target) return target === undefined || target === null;
+  return istText(target, MAX_PFAD) && target.trim() !== '';
+}
+
+// 4T-002547 (V6): Eine Lese-Anfrage aus dem Fenster: ein Datensatz einer
+// Schleife (`record`) oder ein Feldwert (`db`), jede Angabe ein nicht leerer Text.
+function leseAnfrageGueltig(anfrage) {
+  if (!istObjekt(anfrage)) return false;
+  const angabe = (v) => istText(v, MAX_PFAD) && v.trim() !== '';
+  if (anfrage.art === 'record') return angabe(anfrage.tabelle) && angabe(anfrage.kennung);
+  if (anfrage.art === 'db') {
+    return angabe(anfrage.table) && angabe(anfrage.record) && angabe(anfrage.field);
+  }
+  return false;
+}
+
+// Das Options-Wort einer Position (`positionGueltig` kennt beide Arten).
+const POSITION_WORT = Object.freeze({ under: 'under', atStart: 'at-start' });
+
+// 4T-002545 (E7): Der Name hinter `as` nur, wo das Schema ihn kennt.
+function ergebnisGueltig(eintrag, result) {
+  if (result === undefined) return true;
+  return !!eintrag.groups.result && istText(result, MAX_PFAD) && result.trim() !== '';
+}
 
 function quelleGueltig(source) {
   if (source === null) return true;
@@ -122,6 +203,9 @@ function isValidStep(step) {
     ...CONTENT_KEYWORDS,
     ...MAINTENANCE_KEYWORDS,
     ...QUERY_KEYWORDS,
+    ...DB_WRITE_KEYWORDS,
+    ...DB_QUERY_KEYWORDS,
+    ...DB_FORM_KEYWORDS,
   ];
   if (!bekannt.includes(step.keyword)) return false;
   const eintrag = lookupCommand(step.keyword);
@@ -132,18 +216,28 @@ function isValidStep(step) {
   const argsGueltig = step.args.every((wert, i) => {
     const spec = eintrag.args[i];
     if (spec.type === 'value') return istText(wert, MAX_TEXT) || Number.isFinite(wert);
-    const pfadArtig = ['path', 'name', 'pattern'].includes(spec.type);
+    // 4T-002545: Tabelle und Datensatz sind Angaben in Pfad-Länge.
+    const pfadArtig = ['path', 'name', 'pattern', 'table', 'record'].includes(spec.type);
     const max = pfadArtig ? MAX_PFAD : MAX_TEXT;
     return istText(wert, max) && !(spec.nonEmpty && wert.trim() === '');
   });
   if (!argsGueltig) return false;
+  if (!paareGueltig(eintrag, step.pairs) || !ergebnisGueltig(eintrag, step.result)) return false;
+  if (!zielGueltig(eintrag, step.target)) return false;
   const source = step.source === undefined ? null : step.source;
   const position = step.position === undefined ? null : step.position;
   if (!quelleGueltig(source) || !positionGueltig(position)) return false;
   if (eintrag.groups.source === 'required' && source === null) return false;
   if (!eintrag.groups.source && source !== null) return false;
   if (eintrag.groups.position === 'required' && position === null) return false;
-  return !(!eintrag.groups.position && position !== null);
+  if (!eintrag.groups.position && position !== null) return false;
+  // 4T-002546: Wo das Schema die Options-Wörter nennt, nur deren Positionen
+  // (`db-query` kennt `under`, nicht `at-start`).
+  return !(
+    position !== null &&
+    eintrag.options &&
+    !eintrag.options.includes(POSITION_WORT[position.kind])
+  );
 }
 
 /**
@@ -186,6 +280,17 @@ function registerWorkflowsIpc(handle, deps) {
   const inhaltsSchritte = createWorkflowContentSteps({ ...deps, bufferRequests });
   const pflegeSchritte = createWorkflowMaintenanceSteps(deps);
   const blockFragen = createWorkflowBlockQueries(deps);
+  // 4T-002545: ein Schreib-Stand für alle Datenbank-Befehle, damit jede Index-Frage
+  // die eigenen Schreibvorgänge sieht (db-query, db-for-each, {{db:…}} rufen ihn mit).
+  const schreibStand = createDbSchreibStand({ backlinks });
+  const datenbankSchritte = createWorkflowDbSteps({ ...deps, schreibStand });
+  const datenbankAbfrage = createWorkflowDbQuery({
+    ...deps,
+    schreibStand,
+    dateiSchritte,
+    inhaltsSchritte,
+  });
+  const datenbankMasken = createWorkflowDbMasken({ ...deps, schreibStand, datenbankSchritte });
   const laufStand = createWorkflowRunState(deps);
   // 4T-002426 (Entscheidungen 2h und 1f): Fremd zugelassen ist allein die
   // DEFINITION eines Workflows aus einer zugestimmten Quelle, und nur im
@@ -244,9 +349,68 @@ function registerWorkflowsIpc(handle, deps) {
       }
       // 4T-002464: Fragen der Bedingungen und der Schleife, nur lesend.
       if (QUERY_KEYWORDS.includes(step.keyword)) return blockFragen.runQueryStep(lage.ctx, step);
+      // 4T-002545: die Schreib-Schritte der Datenbank, im selben Lauf-Zusammenhang.
+      if (DB_WRITE_KEYWORDS.includes(step.keyword)) {
+        return datenbankSchritte.runDbStep(lage.ctx, step);
+      }
+      // 4T-002546: die Abfrage in eine Datei.
+      if (DB_QUERY_KEYWORDS.includes(step.keyword)) {
+        return datenbankAbfrage.runDbQueryStep(lage.ctx, step);
+      }
+      // 4T-002548: Masken öffnen und Konsistenz prüfen.
+      if (DB_FORM_KEYWORDS.includes(step.keyword)) {
+        return datenbankMasken.runDbFormStep(lage.ctx, step);
+      }
       return inhaltsSchritte.runContentStep(lage.ctx, step);
     });
     return { ...kopf, ...ergebnis };
+  });
+
+  // 4T-002544 (Ausführungs-Entscheidung 4): Tabellen und Felder für die
+  // Rückfrage des Prüfers. Eigener Kanal statt `database:overview`, weil
+  // jener je Tabelle einen zweiten Aufruf verlangte und die Abfrage-Dateien
+  // nicht auslegt. Das Tor der Datenbank fragt er je Aufruf frisch, wie die
+  // Kanäle der Datenbank; ohne Tor gilt «aus».
+  const katalogSpeicher = createDatabaseCatalogCache();
+  handle('workflow:dbCatalog', async (event) => {
+    const owner = senderWindow(event);
+    const area = owner ? areaOfWindow(owner) : null;
+    if (!area || !area.rootPath) return { ok: false, code: 'noArea' };
+    const datenbankAn = typeof deps.datenbankAktiv === 'function' && deps.datenbankAktiv() === true;
+    if (!datenbankAn) return { ok: true, enabled: false, tables: [], queries: [] };
+    if (typeof backlinks.ensureIndexForDemand === 'function') {
+      backlinks.ensureIndexForDemand(null, `${event.sender.id}:database`, area.rootPath);
+    }
+    const lage =
+      typeof backlinks.datenbankSicht === 'function'
+        ? backlinks.datenbankSicht(null, area.rootPath)
+        : null;
+    if (!lage || !lage.sicht) return { ok: false, code: 'notReady' };
+    const auskunft = await workflowDbAuskunft({
+      wurzel: area.rootPath,
+      sicht: lage.sicht,
+      fsp,
+      cache: katalogSpeicher,
+      bufferTextFor: backlinks.bufferTextFor,
+    });
+    return { ok: true, enabled: true, ...auskunft };
+  });
+
+  // 4T-002547 (Dc, Dd, V6): Datenbank-Werte eines Laufs, nur lesend. Der Kanal
+  // prüft die Form selbst; Tabelle, Datensatz und Feld löst der Hauptprozess
+  // gegen die Wurzel des sendenden Fensters auf.
+  handle('workflow:dbRead', async (event, nutzlast) => {
+    if (!erweiterungAn()) return { ok: false, code: 'extensionOff', detail: {} };
+    const anfrage = istObjekt(nutzlast) ? nutzlast.anfrage : null;
+    if (!leseAnfrageGueltig(anfrage)) return { ok: false, code: 'invalidStep', detail: {} };
+    const lage = await kontext(event, nutzlast.workflowPath, { fremdeDefinition: true });
+    if (!lage.ok) return { ok: false, code: lage.code, detail: {} };
+    if (anfrage.art === 'record') {
+      const { tabelle, kennung } = anfrage;
+      return datenbankSchritte.readRecord(lage.ctx, { tabelle, kennung });
+    }
+    const { table, record, field } = anfrage;
+    return datenbankSchritte.readValue(lage.ctx, { table, record, field });
   });
 
   handle('workflow:bufferEditDone', async (event, antwort) =>

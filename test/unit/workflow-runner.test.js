@@ -11,6 +11,7 @@ import {
   MAX_CALL_DEPTH,
   RUNNER_CODES,
   compareLoopPaths,
+  dbDeleteTargets,
   deleteTargets,
   runWorkflow,
 } from '../../src/shared/workflows/workflow-runner.js';
@@ -338,6 +339,95 @@ describe('confirm und Lösch-Ziele (4T-002424)', () => {
     expect(deleteTargets(plan('C', [s(5, 'notify', 'x')]))).toEqual([]);
     expect(deleteTargets(null)).toEqual([]);
   });
+
+  // 4T-002545 (D3, AK6): die Ziele der `db-delete` für dieselbe eine Bestätigung.
+  it('dbDeleteTargets nennt Tabelle und Datensatz über den Aufruf-Baum, ohne Doppel', () => {
+    const b = plan('B', [
+      s(8, 'db-delete', 'Library', 'r-00002'),
+      s(9, 'db-delete', 'Library', 'Solaris'),
+    ]);
+    const a = plan(
+      'A',
+      [s(5, 'db-delete', 'Library', 'Solaris'), s(6, 'workflow', 'B'), s(7, 'delete', 'a.md')],
+      { 6: b },
+    );
+    expect(dbDeleteTargets(a)).toEqual([
+      { table: 'Library', record: 'Solaris' },
+      { table: 'Library', record: 'r-00002' },
+    ]);
+    expect(deleteTargets(a)).toEqual(['a.md']);
+    expect(dbDeleteTargets(null)).toEqual([]);
+  });
+
+  it('dbDeleteTargets nennt einen erst im Lauf gefüllten Datensatz, wie er in der Zeile steht', () => {
+    const zurueckgestellt = {
+      ...s(5, 'db-delete'),
+      deferred: { step: { args: [{ raw: 'Library' }, { raw: '{{script:neu}}' }] } },
+    };
+    expect(dbDeleteTargets(plan('A', [zurueckgestellt]))).toEqual([
+      { table: 'Library', record: '{{script:neu}}', art: 'offen' },
+    ]);
+  });
+});
+
+// 4T-002545 (Da, AK5): `db-create` liefert die neue Kennung; der Kern läuft weiter
+// oder endet mit dem Fehlschlag des Schritts (A1).
+describe('db-create im Ablauf-Kern (4T-002545)', () => {
+  const anlegen = (line, result) => ({ ...s(line, 'db-create', 'Library'), result });
+
+  it('läuft nach der Kennung weiter und reicht den Schritt samt Namen an den Hauptprozess', async () => {
+    const gesehen = [];
+    const { deps, calls } = makeDeps({
+      step: async (_pfad, step) => {
+        gesehen.push(step);
+        return {
+          ok: true,
+          line: step.line,
+          keyword: step.keyword,
+          record: 'r-00003',
+          effect: { kind: 'db' },
+        };
+      },
+    });
+    const r = await runWorkflow(plan('A', [anlegen(5, 'neu'), s(6, 'notify', 'fertig')]), deps);
+    expect(r).toEqual({ status: 'ok' });
+    expect(gesehen[0]).toMatchObject({ keyword: 'db-create', result: 'neu' });
+    expect(calls).toContain('notify:fertig');
+  });
+
+  it('endet mit dem Fehlschlag des Schritts und lässt den Rest aus', async () => {
+    const { deps, calls } = makeDeps({
+      step: async (_pfad, step) => ({
+        ok: false,
+        line: step.line,
+        keyword: step.keyword,
+        code: 'dbRejected',
+        detail: { table: 'Library', lagen: [{ code: 'auftragPflichtAngabeFehlt' }] },
+      }),
+    });
+    const r = await runWorkflow(plan('A', [anlegen(5, 'neu'), s(6, 'notify', 'fertig')]), deps);
+    expect(r).toMatchObject({
+      status: 'failed',
+      line: 5,
+      code: 'dbRejected',
+      detail: { table: 'Library', lagen: [{ code: 'auftragPflichtAngabeFehlt' }] },
+    });
+    expect(calls).not.toContain('notify:fertig');
+  });
+
+  it('macht aus einer Ausnahme den Fehlschlag unexpected', async () => {
+    const { deps } = makeDeps({
+      step: async () => {
+        throw new Error('kaputt');
+      },
+    });
+    const r = await runWorkflow(plan('A', [anlegen(5)]), deps);
+    expect(r).toMatchObject({
+      status: 'failed',
+      code: 'unexpected',
+      detail: { message: 'kaputt' },
+    });
+  });
 });
 
 // 4T-002464: Bedingungen und Schleife (3f, 3g).
@@ -593,5 +683,168 @@ describe('Block-Form im Ablauf-Kern (4T-002464)', () => {
 
   it('nennt den Fehlschlag tooManyFiles unter den Codes des Kerns', () => {
     expect(RUNNER_CODES).toContain('tooManyFiles');
+  });
+});
+
+// 4T-002547 (Dc, Dd, Da): die Schleife über Datensätze und die Datenbank-Werte im
+// Ablauf-Kern, mit Attrappe des Hauptprozesses (Liste und Lesen). Die reale
+// Konstellation prüft `workflow-db-schleife.test.js`.
+describe('db-for-each und Datenbank-Werte im Ablauf-Kern (4T-002547)', () => {
+  const ZAUN = '```';
+  function plan2(zeilen) {
+    const doc = readWorkflowDocument(
+      `---\nworkflow: true\n---\n${ZAUN}workflow\n${zeilen.join('\n')}\n${ZAUN}\n`,
+    );
+    const geprueft = checkWorkflow(doc);
+    expect(geprueft.findings).toEqual([]);
+    const gefuellt = prepareRun(geprueft.steps, { file: 'A.md', area: 'B', nowMs: 0 }, {}, {});
+    expect(gefuellt.findings).toEqual([]);
+    return plan('W', gefuellt.steps);
+  }
+  // Der Hauptprozess als Attrappe: Datensätze je Kennung, die Liste der Abfrage.
+  function hauptprozess(anzahl) {
+    const saetze = new Map();
+    for (let i = 1; i <= anzahl; i++) {
+      saetze.set(`r-${i}`, { id: `r-${i}`, table: 'T', file: 'T.md', fields: { Titel: `B${i}` } });
+    }
+    const gelesen = [];
+    const { deps, calls } = makeDeps({
+      step: async (_pfad, step) => {
+        calls.push(`step:${step.keyword}:${step.args.join('|')}`);
+        if (step.keyword === 'db-for-each') {
+          return {
+            ok: true,
+            records: [...saetze.keys()].reverse().map((id) => ({ table: 'T', path: 'T.md', id })),
+          };
+        }
+        return { ok: true, line: step.line, keyword: step.keyword, effect: { kind: 'db' } };
+      },
+      dbRead: async (_pfad, anfrage) => {
+        gelesen.push(anfrage);
+        if (anfrage.art === 'db') return { ok: true, value: `${anfrage.record}.${anfrage.field}` };
+        const satz = saetze.get(anfrage.kennung);
+        return satz
+          ? { ok: true, record: satz }
+          : { ok: false, code: 'dbRecordUnknown', detail: { record: anfrage.kennung } };
+      },
+    });
+    return { deps, calls, gelesen, saetze };
+  }
+
+  it('wiederholt in der Reihenfolge der Liste und liest jeden Datensatz zu Beginn seiner Wiederholung', async () => {
+    const h = hauptprozess(3);
+    const p = plan2(['db-for-each "Q.md"', '  notify "{{record:id}} {{record:titel}}"', 'end']);
+    expect(await runWorkflow(p, h.deps)).toEqual({ status: 'ok' });
+    expect(h.calls.filter((c) => c.startsWith('notify:'))).toEqual([
+      'notify:r-3 B3',
+      'notify:r-2 B2',
+      'notify:r-1 B1',
+    ]);
+    expect(h.gelesen.map((a) => a.kennung)).toEqual(['r-3', 'r-2', 'r-1']);
+    expect(h.calls.filter((c) => c.startsWith('step:db-for-each'))).toHaveLength(1);
+  });
+
+  it('liest vor jedem weiteren Schritt mit einem Feld erneut, nicht doppelt nach dem Beginn', async () => {
+    const h = hauptprozess(2);
+    const p = plan2([
+      'db-for-each "Q.md"',
+      '  notify "{{record:titel}}"',
+      '  notify "{{record:id}}"',
+      '  notify "{{record:titel}}"',
+      'end',
+    ]);
+    expect(await runWorkflow(p, h.deps)).toEqual({ status: 'ok' });
+    // Je Wiederholung: zu Beginn und vor dem dritten Schritt, nicht vor id.
+    expect(h.gelesen.map((a) => a.kennung)).toEqual(['r-2', 'r-2', 'r-1', 'r-1']);
+  });
+
+  it('500 Datensätze laufen alle, 501 schlagen vor der ersten Wiederholung fehl', async () => {
+    const p = plan2(['db-for-each "Q.md"', '  notify "{{record:id}}"', 'end']);
+    const fuenfhundert = hauptprozess(500);
+    expect(await runWorkflow(p, fuenfhundert.deps)).toEqual({ status: 'ok' });
+    expect(fuenfhundert.calls.filter((c) => c.startsWith('notify:'))).toHaveLength(500);
+    const zuViele = hauptprozess(501);
+    expect(await runWorkflow(p, zuViele.deps)).toMatchObject({
+      status: 'failed',
+      line: 5,
+      code: 'tooManyRecords',
+      detail: { max: 500, count: 501 },
+    });
+    expect(zuViele.gelesen).toEqual([]);
+    expect(zuViele.calls.filter((c) => c.startsWith('notify:'))).toEqual([]);
+  });
+
+  it('eine leere Liste ist kein Fehlschlag', async () => {
+    const h = hauptprozess(0);
+    const p = plan2(['db-for-each "Q.md"', '  notify "{{record:id}}"', 'end', 'notify "danach"']);
+    expect(await runWorkflow(p, h.deps)).toEqual({ status: 'ok' });
+    expect(h.calls.filter((c) => c.startsWith('notify:'))).toEqual(['notify:danach']);
+  });
+
+  it('ein unbekanntes Feld und ein verschwundener Datensatz sind ein Fehlschlag, nie ein leerer Text', async () => {
+    const feld = hauptprozess(1);
+    const p = plan2(['db-for-each "Q.md"', '  notify "{{record:gibtsnicht}}"', 'end']);
+    expect(await runWorkflow(p, feld.deps)).toMatchObject({
+      status: 'failed',
+      line: 6,
+      code: 'dbFieldUnknown',
+      detail: { table: 'T', field: 'gibtsnicht' },
+    });
+    expect(feld.calls.filter((c) => c.startsWith('notify:'))).toEqual([]);
+    const weg = hauptprozess(2);
+    weg.saetze.delete('r-1');
+    weg.deps.step = async (_pfad, step) =>
+      step.keyword === 'db-for-each'
+        ? { ok: true, records: [{ table: 'T', path: 'T.md', id: 'r-1' }] }
+        : { ok: true, line: step.line, keyword: step.keyword };
+    expect(await runWorkflow(p, weg.deps)).toMatchObject({
+      status: 'failed',
+      line: 5,
+      code: 'dbRecordUnknown',
+    });
+  });
+
+  it('{{db:…}} wird beim Schritt gelesen; {{created:…}} ohne gelaufenes db-create ist ein Fehlschlag', async () => {
+    const h = hauptprozess(0);
+    h.deps.step = async (_pfad, step) => ({
+      ok: true,
+      line: step.line,
+      keyword: step.keyword,
+      record: 'r-00009',
+    });
+    const p = plan2([
+      'notify "{{db:T:Solaris:pages}}"',
+      'db-create "T" a="1" as "neu"',
+      'notify "{{created:neu}}"',
+    ]);
+    expect(await runWorkflow(p, h.deps)).toEqual({ status: 'ok' });
+    expect(h.calls.filter((c) => c.startsWith('notify:'))).toEqual([
+      'notify:Solaris.pages',
+      'notify:r-00009',
+    ]);
+    const zweig = plan2([
+      'if-exists "nie.md"',
+      '  db-create "T" a="1" as "neu"',
+      'end',
+      'notify "{{created:neu}}"',
+    ]);
+    const g = hauptprozess(0);
+    g.deps.step = async (_pfad, step) =>
+      step.keyword === 'if-exists'
+        ? { ok: true, value: false }
+        : { ok: true, line: step.line, keyword: step.keyword, record: 'r-1' };
+    expect(await runWorkflow(zweig, g.deps)).toMatchObject({
+      status: 'failed',
+      line: 8,
+      code: 'createdMissing',
+      detail: { name: 'neu' },
+    });
+  });
+
+  it('ohne Lese-Weg des Hauptprozesses ist ein Datenbank-Wert unexpected', async () => {
+    const h = hauptprozess(0);
+    delete h.deps.dbRead;
+    const p = plan2(['notify "{{db:T:S:f}}"']);
+    expect(await runWorkflow(p, h.deps)).toMatchObject({ status: 'failed', code: 'unexpected' });
   });
 });

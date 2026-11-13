@@ -154,10 +154,18 @@ function journalZeile(w, spalten) {
   } else {
     const liste = el('ul', 'wf-runs-journal-list');
     for (const e of eintraege) {
-      const text = einsetzen(t('workflow.seite.journal.zeile'), {
+      // 4T-002545 (Df): ein Datenbank-Schritt mit Tabelle, Datensatz und Vorgangs-Kennung.
+      const key =
+        typeof e.table === 'string'
+          ? 'workflow.seite.journal.zeileDatenbank'
+          : 'workflow.seite.journal.zeile';
+      const text = einsetzen(t(key), {
         line: e.line,
         command: e.command,
         path: e.path,
+        table: e.table,
+        record: e.record,
+        transaction: e.transaction,
       });
       liste.appendChild(el('li', null, text));
     }

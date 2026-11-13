@@ -352,7 +352,7 @@ Anche la seconda via verifica tutte le regole della tabella; con essa non si pu�
 
 ### Eliminare
 
-**«Elimina»** chiede prima conferma: **«Eliminare questo record?»** Con **«Sì, elimina»** il record viene eliminato e la maschera si chiude; **«No»** lascia tutto com'è. Un record a cui punta ancora una colonna di collegamento non si può eliminare nemmeno qui. Quali record rimandano a esso lo mostra in anticipo l'utilizzo descritto più avanti.
+**«Elimina»** chiede prima conferma: **«Eliminare questo record?»** Con **«Sì, elimina»** il record viene eliminato e la maschera si chiude; **«No»** lascia tutto com'è. Un record a cui punta ancora una colonna di collegamento non si può eliminare nemmeno qui. Quali record rimandano a esso lo mostra in anticipo l'utilizzo descritto più avanti. Un workflow elimina un record con `db-delete`, solo in un avvio a mano e dopo una conferma (pagina [Workflow](workflows.md), sezione «Comandi della banca dati»).
 
 ### La maschera come file
 
@@ -623,7 +623,7 @@ Quale ruolo vale per sé lo mostra la panoramica nella riga **«Ruolo proprio»*
 
 ### Controllo alla scrittura
 
-Ogni modifica ai record passa per la via descritta nella sezione «Salvataggio da parte dell'applicazione», e lì l'applicazione controlla per primo il ruolo, per ogni record con tabella e operazione. Se il permesso manca, l'intera operazione viene respinta, e l'avviso nomina ruolo, tabella e azione. Anche l'inizio di un nuovo record richiede `create`: senza questo permesso l'applicazione respinge la creazione, per esempio con il comando «Nuovo record nella tabella attiva», e la barra di stato ne indica il motivo. Se i permessi non si possono determinare, perché le tabelle dell'area non sono ancora state lette per intero o la scheda non è leggibile, non si scrive nulla neanche in quel caso, e l'avviso invita a riprovare tra un momento.
+Ogni modifica ai record passa per la via descritta nella sezione «Salvataggio da parte dell'applicazione», e lì l'applicazione controlla per primo il ruolo, per ogni record con tabella e operazione. Se il permesso manca, l'intera operazione viene respinta, e l'avviso nomina ruolo, tabella e azione. Anche l'inizio di un nuovo record richiede `create`: senza questo permesso l'applicazione respinge la creazione, per esempio con il comando «Nuovo record nella tabella attiva», e la barra di stato ne indica il motivo. Se i permessi non si possono determinare, perché le tabelle dell'area non sono ancora state lette per intero o la scheda non è leggibile, non si scrive nulla neanche in quel caso, e l'avviso invita a riprovare tra un momento. La stessa verifica vale per i comandi della banca dati di un workflow, che scrivono con i vostri permessi (pagina [Workflow](workflows.md), sezione «Comandi della banca dati»).
 
 ### Controllo al salvataggio della definizione
 
@@ -654,7 +654,7 @@ I ruoli fanno parte della definizione e viaggiano con la scheda. L'assegnazione 
 
 Nel salvataggio da parte dell'applicazione ogni modifica viene verificata. Ciò che arriva nei file per un'altra via, per esempio a mano in un editor, nessuno lo verifica strada facendo, e alcune regole in lettura non agiscono affatto. La **verifica di coerenza** percorre quindi l'intero insieme dei dati e indica dove esso contraddice le regole della banca dati. Una scheda viene verificata dall'applicazione anche al salvataggio nell'editor, ma lì non viene respinto nulla; i rilievi vengono solo segnalati (sezione «Forma a schedario»).
 
-Si trova nella panoramica della banca dati: **«Verifica coerenza»** nell'intestazione verifica tutte le tabelle, **«Verifica»** nella riga di una tabella solo quella. Anche il comando **«Verifica la coerenza del database»** nella palette dei comandi verifica tutte le tabelle; per farlo apre la panoramica.
+Si trova nella panoramica della banca dati: **«Verifica coerenza»** nell'intestazione verifica tutte le tabelle, **«Verifica»** nella riga di una tabella solo quella. Anche il comando **«Verifica la coerenza del database»** nella palette dei comandi verifica tutte le tabelle; per farlo apre la panoramica. Un workflow verifica allo stesso modo con `db-check` e comunica il risultato come avviso (pagina [Workflow](workflows.md), sezione «Comandi della banca dati»).
 
 Il risultato compare nella sezione **«Verifica di coerenza»** della panoramica: la durata, per ogni tabella il numero dei suoi record e dei rilievi, e sotto i rilievi con tabella, record, campo e una frase in chiaro. Un clic sul record apre la sua maschera. L'elenco mostra al massimo i primi 500 rilievi e indica allora quanti sono in totale.
 

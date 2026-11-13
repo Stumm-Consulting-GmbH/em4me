@@ -656,10 +656,14 @@ function erzeugeSchreibSchnittstelle(deps) {
    *   werte?: object, erwartet?: object, erzwingen?: boolean}>}} auftrag Flache
    *   Liste von Anweisungen (B1); `erwartet` ist beim Ändern und Löschen Pflicht
    *   (4T-001822).
+   * @param {{vorSchreiben?: (dateien: Array<{pfad: string, neu: string}>) => void}} [optionen]
+   *   4T-002545: Naht der Lauf-Marke der Workflows. `vorSchreiben` bekommt nach
+   *   gelungener Vorbereitung und vor dem ersten Schreiben die Dateien des Plans
+   *   mit Pfad und neuem Inhalt; ohne die Option ist das Verhalten unverändert.
    * @returns {Promise<object>} Bei Erfolg `{ok: true, vorgang, ergebnisse,
    *   dateien, belege, verdichtung}`, sonst `{ok: false, code, error, lagen}`.
    */
-  async function fuehreAuftragAus(bereichsWurzel, auftrag) {
+  async function fuehreAuftragAus(bereichsWurzel, auftrag, optionen = {}) {
     if (torZu()) return abgewiesenMit(LAGEN.erweiterungAus);
     if (typeof bereichsWurzel !== 'string' || bereichsWurzel === '')
       return abgewiesenMit(LAGEN.wurzelFehlt);
@@ -690,7 +694,12 @@ function erzeugeSchreibSchnittstelle(deps) {
 
     const vorbereiten = async () => {
       try {
-        return await bereiteVor(bereichsWurzel, anweisungen);
+        const vorbereitet = await bereiteVor(bereichsWurzel, anweisungen);
+        // 4T-002545: die Lauf-Marke vor dem ersten Schreiben, unter den Sperren.
+        const vorSchreiben = optionen && optionen.vorSchreiben;
+        if (vorbereitet.ok && typeof vorSchreiben === 'function')
+          vorSchreiben(vorbereitet.plan.dateien);
+        return vorbereitet;
       } catch (err) {
         return abgewiesenMit(LAGEN.unerwartet, { grund: alsText(err) });
       }

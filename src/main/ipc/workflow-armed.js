@@ -130,6 +130,9 @@ function registerWorkflowArmedIpc(handle, deps) {
         typeof deps.getStore === 'function' && deps.getStore()
           ? deps.getStore().get('scripts.run') === true
           : false,
+      // 4T-002544: Schalter der Erweiterung «Datenbank»; die Rückfragen nach
+      // Tabellen und Feldern stellt allein das Fenster (siehe Kopf).
+      databaseEnabled: isExtensionEnabled('database', ausListe()),
     });
     if (!analyse.isWorkflow) return { ok: false, code: 'notWorkflow' };
     return { ok: true, text, analyse };

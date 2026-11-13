@@ -323,5 +323,9 @@
   "help.featureAccess.workflowEvents": "Dateikopf-Felder `trigger: event` und `event` mit `file-created`, `file-changed`, `file-moved`, `task-done`, `area-opened` oder `reminder-due`, wahlweise `in` und `matching`; Prüf-Anzeige über dem Block in der Live-, der gerenderten und der geteilten Ansicht; Ansicht → Workflow-Läufe anzeigen → Spalte «Scharf»",
   "help.featureAccess.workflowConditions": "Befehle `if-exists`, `if-missing`, `if-property`, `if-script`, `else` und `end` im Code-Block `workflow`",
   "help.featureAccess.workflowLoop": "Befehl `for-each` mit `end` im Code-Block `workflow`; Platzhalter `{{item}}` und `{{item:name}}`",
-  "help.featureAccess.workflowScript": "Befehle `script` mit `as` und `if-script` im Code-Block `workflow`; Platzhalter `{{script:name}}`; Datei → Einstellungen… → Verhalten → Skript-Blöcke ausführen"
+  "help.featureAccess.workflowScript": "Befehle `script` mit `as` und `if-script` im Code-Block `workflow`; Platzhalter `{{script:name}}`; Datei → Einstellungen… → Verhalten → Skript-Blöcke ausführen",
+  "help.featureAccess.workflowDbRecords": "Befehle `db-create` mit `as`, `db-update` und `db-delete` im Code-Block `workflow`; Platzhalter `{{created:name}}`; Ansicht → Workflow-Läufe anzeigen → Journal",
+  "help.featureAccess.workflowDbQuery": "Befehl `db-query` mit `into` und wahlweise `under` im Code-Block `workflow`",
+  "help.featureAccess.workflowDbLoop": "Befehl `db-for-each` mit `end` im Code-Block `workflow`; Platzhalter `{{record:feld}}`, `{{record:id}}`, `{{record:table}}`, `{{record:file}}` und `{{db:Tabelle:Datensatz:Feld}}`",
+  "help.featureAccess.workflowDbForms": "Befehle `db-open`, `db-open-list` und `db-check` im Code-Block `workflow`"
 }

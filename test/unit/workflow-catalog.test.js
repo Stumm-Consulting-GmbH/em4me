@@ -10,10 +10,14 @@
 // Schleife der Stufe 3.
 import { describe, it, expect } from 'vitest';
 import {
+  ARG_TYPES,
   BLOCK_KEYWORDS,
   CONDITION_KEYWORDS,
+  DB_KEYWORDS,
+  DB_LOOP_KEYWORD,
   ENABLED_STAGES,
   LOOP_KEYWORD,
+  LOOP_KEYWORDS,
   MAX_BLOCK_DEPTH,
   MAX_LOOP_FILES,
   hasSchema,
@@ -80,6 +84,10 @@ describe('Befehls-Katalog der Workflows', () => {
         expect(Array.isArray(eintrag.args), befehl).toBe(true);
         expect(eintrag.args.length, befehl).toBeGreaterThan(0);
         expect(hasSchema(eintrag), befehl).toBe(true);
+      } else if (DB_KEYWORDS.includes(befehl)) {
+        // 4T-002544: die acht Datenbank-Befehle der Stufe D.
+        expect(eintrag.stage, befehl).toBe('D');
+        expect(hasSchema(eintrag), befehl).toBe(true);
       } else if (BLOCK_KEYWORDS.includes(befehl)) {
         expect(eintrag.stage, befehl).toBe(3);
         expect(hasSchema(eintrag), befehl).toBe(true);
@@ -91,8 +99,85 @@ describe('Befehls-Katalog der Workflows', () => {
     }
   });
 
-  it('schaltet die Stufen 1 bis 3 frei, nicht D (4T-002464)', () => {
-    expect(ENABLED_STAGES).toEqual([1, 2, 3]);
+  it('schaltet die Stufen 1 bis 3 und D frei (4T-002544)', () => {
+    expect(ENABLED_STAGES).toEqual([1, 2, 3, 'D']);
+  });
+
+  // 4T-002544 (AK1): die Schemata der Stufe D nach Da, Db, Dc und Dg.
+  it.each([
+    ['db-create', [['table', false]], { result: 'optional' }, 'required', null],
+    [
+      'db-update',
+      [
+        ['table', false],
+        ['record', false],
+      ],
+      {},
+      'required',
+      null,
+    ],
+    [
+      'db-delete',
+      [
+        ['table', false],
+        ['record', false],
+      ],
+      {},
+      null,
+      null,
+    ],
+    [
+      'db-query',
+      [['path', false]],
+      { target: 'required', position: 'optional' },
+      null,
+      ['into', 'under'],
+    ],
+    ['db-for-each', [['path', false]], {}, null, null],
+    [
+      'db-open',
+      [
+        ['table', false],
+        ['record', true],
+      ],
+      {},
+      null,
+      null,
+    ],
+    ['db-open-list', [['path', false]], {}, null, null],
+    ['db-check', [['table', true]], {}, null, null],
+  ])('gibt %s das Schema der Stufe D', (befehl, arten, gruppen, paare, optionen) => {
+    const eintrag = lookupCommand(befehl);
+    expect(eintrag.stage).toBe('D');
+    expect(eintrag.args.map((a) => [a.type, a.optional])).toEqual(arten);
+    expect(eintrag.groups).toEqual(gruppen);
+    expect(eintrag.pairs).toBe(paare);
+    expect(eintrag.options).toEqual(optionen);
+  });
+
+  it('lässt db-export und db-import spätere Ausbaustufe (Dh)', () => {
+    for (const befehl of ['db-export', 'db-import']) {
+      expect(lookupCommand(befehl).stage).toBe('D');
+      expect(hasSchema(lookupCommand(befehl))).toBe(false);
+    }
+  });
+
+  it('kennt die Argument-Arten Tabelle und Datensatz und die Option into (4T-002544)', () => {
+    expect(ARG_TYPES).toContain('table');
+    expect(ARG_TYPES).toContain('record');
+    expect(lookupOption('into')).toEqual({ group: 'target', kind: 'into', value: 'path' });
+    expect(DB_LOOP_KEYWORD).toBe('db-for-each');
+    expect(LOOP_KEYWORDS).toEqual(['for-each', 'db-for-each']);
+    expect(DB_KEYWORDS).toEqual([
+      'db-create',
+      'db-update',
+      'db-delete',
+      'db-query',
+      'db-for-each',
+      'db-open',
+      'db-open-list',
+      'db-check',
+    ]);
   });
 
   // 4T-002464: Bedingungen und Schleife in Block-Form (3f, 3g).
@@ -122,6 +207,8 @@ describe('Befehls-Katalog der Workflows', () => {
       'if-property',
       'if-script',
       'for-each',
+      // 4T-002544: die Schleife über Datensätze öffnet ebenso einen Block.
+      'db-for-each',
       'else',
       'end',
     ]);

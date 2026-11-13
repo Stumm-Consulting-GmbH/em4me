@@ -487,6 +487,30 @@ describe('Zeitsteuerung: Scharf, nächster Lauf, Herkunft, Verfall und Journal (
     expect(journal.hidden).toBe(true);
   });
 
+  // 4T-002545 (Df, AK5): ein Datenbank-Schritt mit Tabelle, Datensatz und Vorgangs-Kennung.
+  it('das Journal nennt je Datenbank-Schritt Tabelle, Datensatz und Vorgangs-Kennung', async () => {
+    const db = { table: 'Library', record: 'r-00003', transaction: 17 };
+    antwort = liste([
+      {
+        ...PLAN,
+        lastRun: {
+          ...PLAN.lastRun,
+          journal: [
+            { line: 3, command: 'db-create', path: 'Daten/Library.md', ...db },
+            { line: 4, command: 'create', path: 'Neu.md' },
+          ],
+        },
+      },
+    ]);
+    await oeffne();
+    zeileVon(PLAN.absPath).querySelector('.wf-runs-journal-toggle').click();
+    const journal = zeileVon(PLAN.absPath).nextElementSibling;
+    expect([...journal.querySelectorAll('li')].map((e) => e.textContent)).toEqual([
+      'Zeile 3: db-create – Tabelle Library, Datensatz r-00003, Vorgang 17',
+      'Zeile 4: create – Neu.md',
+    ]);
+  });
+
   it('ohne Journal kein Knopf, ein leeres Journal sagt «Keine Datei berührt» (AK6 der Story)', async () => {
     antwort = liste([
       { ...PLAN, lastRun: { at: '2026-10-28T06:00:00Z', status: 'ok' } },

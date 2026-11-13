@@ -580,7 +580,9 @@ function renameBlockAnchor(container, fromId, toId, nowMs) {
 // - `journal` des letzten Laufs: Liste von { line, command, path }, `path`
 //   relativ zur Bereichs-Wurzel mit `/`; ein neuer Lauf ersetzt es mit dem
 //   letzten Lauf. Fehlt es, hat der Absender keines gemeldet — das ist etwas
-//   anderes als eine leere Liste (nichts berührt). `journalTruncated: true`,
+//   anderes als eine leere Liste (nichts berührt). Seit 4T-002545 trägt eine
+//   Zeile eines Datenbank-Schritts dazu { table, record, transaction }:
+//   Tabelle, Datensatz und Vorgangs-Kennung des Auftrags. `journalTruncated: true`,
 //   wenn die Liste an ihrer Grenze abgeschnitten wurde.
 // - `armed`: Zeitpunkt der Scharf-Schaltung und Prüfsumme der Definition
 //   (src/main/workflows/workflow-definition-hash.js). Fehlt das Feld, ist der
@@ -624,6 +626,19 @@ function isWorkflowDefinitionHash(value) {
   return typeof value === 'string' && HASH_RE.test(value);
 }
 
+// 4T-002545: eine Journal-Zeile; Tabelle, Datensatz und Vorgangs-Kennung nur
+// zusammen und wohlgeformt, sonst ohne sie.
+function journalEintrag(e) {
+  const zeile = { line: e.line, command: e.command, path: e.path };
+  const datenbank =
+    typeof e.table === 'string' &&
+    typeof e.record === 'string' &&
+    Number.isSafeInteger(e.transaction);
+  return datenbank
+    ? { ...zeile, table: e.table, record: e.record, transaction: e.transaction }
+    : zeile;
+}
+
 function leseJournal(roh) {
   if (!Array.isArray(roh)) return null;
   return roh
@@ -634,7 +649,7 @@ function leseJournal(roh) {
         typeof e.command === 'string' &&
         typeof e.path === 'string',
     )
-    .map((e) => ({ line: e.line, command: e.command, path: e.path }));
+    .map(journalEintrag);
 }
 
 function leseEreignis(roh) {
@@ -711,7 +726,7 @@ function recordWorkflowRun(container, run, nowMs) {
   if (typeof run.code === 'string') lastRun.code = run.code;
   if (typeof run.origin === 'string') lastRun.origin = run.origin;
   if (Array.isArray(run.journal)) {
-    lastRun.journal = run.journal.map((e) => ({ line: e.line, command: e.command, path: e.path }));
+    lastRun.journal = run.journal.map(journalEintrag);
   }
   if (run.journalTruncated === true) lastRun.journalTruncated = true;
   const ereignis = leseEreignis(run.event);

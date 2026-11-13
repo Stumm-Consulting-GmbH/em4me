@@ -352,7 +352,7 @@ También el segundo camino comprueba todas las reglas de la tabla; con él no se
 
 ### Eliminar
 
-**«Eliminar»** pregunta primero: **«¿Eliminar este registro?»** Con **«Sí, eliminar»** el registro se elimina y el formulario se cierra; **«No»** lo deja todo como está. Un registro al que todavía apunta una columna de enlace tampoco se puede eliminar aquí. Qué registros remiten a él lo muestra de antemano el uso descrito más abajo.
+**«Eliminar»** pregunta primero: **«¿Eliminar este registro?»** Con **«Sí, eliminar»** el registro se elimina y el formulario se cierra; **«No»** lo deja todo como está. Un registro al que todavía apunta una columna de enlace tampoco se puede eliminar aquí. Qué registros remiten a él lo muestra de antemano el uso descrito más abajo. Un workflow elimina un registro con `db-delete`, solo en un inicio a mano y tras una confirmación (página [Workflows](workflows.md), sección «Comandos de base de datos»).
 
 ### El formulario como archivo
 
@@ -623,7 +623,7 @@ Qué rol rige para usted lo muestra el resumen en la línea **«Rol propio»**, 
 
 ### Comprobación al escribir
 
-Todo cambio en registros pasa por la vía que describe la sección «Guardado por la aplicación», y allí la aplicación comprueba primero el rol, para cada registro con tabla y operación. Si falta el permiso, se rechaza toda la operación, y el aviso nombra rol, tabla y acción. También empezar un registro nuevo exige `create`: sin ese permiso la aplicación rechaza el alta, por ejemplo con el comando «Nuevo registro en la tabla activa», y la barra de estado indica el motivo. Si los permisos no se pueden determinar, porque las tablas del área aún no se han leído por completo o la ficha no se puede leer, tampoco se escribe nada, y el aviso pide volver a intentarlo en un momento.
+Todo cambio en registros pasa por la vía que describe la sección «Guardado por la aplicación», y allí la aplicación comprueba primero el rol, para cada registro con tabla y operación. Si falta el permiso, se rechaza toda la operación, y el aviso nombra rol, tabla y acción. También empezar un registro nuevo exige `create`: sin ese permiso la aplicación rechaza el alta, por ejemplo con el comando «Nuevo registro en la tabla activa», y la barra de estado indica el motivo. Si los permisos no se pueden determinar, porque las tablas del área aún no se han leído por completo o la ficha no se puede leer, tampoco se escribe nada, y el aviso pide volver a intentarlo en un momento. La misma comprobación vale para los comandos de base de datos de un workflow, que escriben con sus permisos (página [Workflows](workflows.md), sección «Comandos de base de datos»).
 
 ### Comprobación al guardar la definición
 
@@ -654,7 +654,7 @@ Los roles forman parte de la definición y viajan con la ficha. La asignación b
 
 En el guardado por la aplicación se comprueba cada cambio. Lo que llega a los archivos por otro camino, por ejemplo a mano en un editor, nadie lo comprueba por el camino, y algunas reglas no actúan en absoluto al leer. La **comprobación de coherencia** recorre por eso todos los datos e indica dónde contradicen las reglas de la base de datos. Una ficha la comprueba la aplicación también al guardarla en el editor, pero allí no rechaza nada; los hallazgos solo se informan (sección «Forma de fichero»).
 
-Está en el resumen de la base de datos: **«Comprobar coherencia»** en la cabecera comprueba todas las tablas, **«Comprobar»** en la fila de una tabla solo esa. El comando **«Comprobar la coherencia de la base de datos»** de la paleta de comandos también comprueba todas las tablas; para ello abre el resumen.
+Está en el resumen de la base de datos: **«Comprobar coherencia»** en la cabecera comprueba todas las tablas, **«Comprobar»** en la fila de una tabla solo esa. El comando **«Comprobar la coherencia de la base de datos»** de la paleta de comandos también comprueba todas las tablas; para ello abre el resumen. Un workflow comprueba por la misma vía con `db-check` y comunica el resultado como aviso (página [Workflows](workflows.md), sección «Comandos de base de datos»).
 
 El resultado figura en la sección **«Comprobación de coherencia»** del resumen: la duración, por tabla el número de sus registros y hallazgos, y debajo los hallazgos con tabla, registro, campo y una frase en claro. Un clic en el registro abre su formulario. La lista muestra como mucho los primeros 500 hallazgos e indica entonces cuántos hay en total.
 

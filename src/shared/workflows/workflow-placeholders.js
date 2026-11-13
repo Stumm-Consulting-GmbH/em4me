@@ -50,6 +50,13 @@
 // `script` und `if-script` behält beim Füllen den geprüften Quelltext
 // (`script`) und den Namen des Ergebnisses (`result`).
 //
+// **Datenbank-Befehle (4T-002544):** Tabelle und Datensatz sind Texte, die
+// Paare `feld="Wert"` werden gefüllt (`pairs` mit `key` und `value`), das
+// Ziel `into` von `db-query` als Pfad (`target`). Trug das erste Argument
+// Platzhalter, prüft `dbFilledFindings` Tabelle, Felder und Abfrage-Datei
+// nach dem Füllen (Ausführungs-Entscheidung 4 der Konzept-Runde 4T-002543).
+// Die Ausführung der Befehle bauen die Folge-Tasks des Epics.
+//
 // **Wörtliche Quellen** (Entscheidung der Sitzung vom 2026-10-22, O2): Allein
 // `from-template` füllt Platzhalter, das ist der Sinn einer Vorlage.
 // `from-section` und `from-file` übernehmen ihren Inhalt wörtlich und werden
@@ -79,8 +86,9 @@ const {
   hasScriptPlaceholder,
   parseLoopPattern,
 } = require('./workflow-check.js');
+const { dbFilledFindings } = require('./workflow-check-db.js');
 
-const TEXT_ARTEN = new Set(['path', 'name', 'text', 'key', 'value', 'pattern']);
+const TEXT_ARTEN = new Set(['path', 'name', 'text', 'key', 'value', 'pattern', 'table', 'record']);
 /** Ersatz-Pfad für die Probe-Füllung eines Schritts in der Schleife. */
 const PROBE_ITEM = 'x.md';
 
@@ -95,6 +103,9 @@ function texteDes(step) {
     .map((a) => a.raw);
   if (step.source && step.source.raw !== undefined) texte.push(step.source.raw);
   if (step.position && step.position.raw !== undefined) texte.push(step.position.raw);
+  // 4T-002544: Ziel von `db-query` und Werte der Paare.
+  if (step.target && step.target.raw !== undefined) texte.push(step.target.raw);
+  for (const paar of step.pairs || []) texte.push(paar.raw);
   return texte;
 }
 
@@ -227,13 +238,25 @@ function templateInputs(refs, templates, answers) {
   return { inputs, findings };
 }
 
+// Die Knoten-Namen der Datenbank-Werte eines Laufs (`befehlsZeile` in der
+// Vorlagen-Engine): `record:…`, `db:…`, `created:…`.
+const BEFEHLSZEILEN_WERT_RE = /^(?:record|db|created):/;
+
 // Kontext einer Ziel-Datei für das Füllen einer Vorlage (S-b), wie im Bestand
-// der Vorlagen: logischer Titel ohne Endung, Ordner wurzel-relativ.
+// der Vorlagen: logischer Titel ohne Endung, Ordner wurzel-relativ. Review-Runde 1
+// zu 3E-000368: Er trägt keinen Datenbank-Wert des Laufs, auch wenn derselbe
+// Platzhalter in der Befehls-Zeile einen hat; in der Vorlage bleibt er so als
+// sein eigener Text stehen (Zusicherung der Vorlagen-Engine, «Nur in
+// Befehls-Zeilen»). Alle Wege, die eine Vorlage füllen, gehen hier durch.
 function zielKontext(context, zielPfad) {
   const schnitt = zielPfad.lastIndexOf('/');
   const basis = zielPfad.slice(schnitt + 1).replace(MD_EXT_RE, '');
+  const ohneDatenbank = {};
+  for (const [schluessel, wert] of Object.entries(context || {})) {
+    if (!BEFEHLSZEILEN_WERT_RE.test(schluessel)) ohneDatenbank[schluessel] = wert;
+  }
   return {
-    ...context,
+    ...ohneDatenbank,
     title: toLogicalName(basis),
     folder: schnitt >= 0 ? zielPfad.slice(0, schnitt) : '',
   };
@@ -307,6 +330,22 @@ function bezugPruefen(step, args, options, findings) {
   else if (lage === 'ambiguous') findings.push(befund(step, `${keyword}Ambiguous`, { name }));
 }
 
+// 4T-002544: Paare und Ziel eines Datenbank-Schritts, gefüllt.
+function datenbankTeile(step, gefuellt, context, answers, findings) {
+  if (Array.isArray(step.pairs)) {
+    gefuellt.pairs = step.pairs.map((paar) => {
+      const wert = fuelle(paar.raw, context, answers);
+      if (!wert.ok) findings.push(befund(step, 'placeholderInvalid', { engine: wert.engine }));
+      return { key: paar.key, value: wert.ok ? wert.text : null };
+    });
+  }
+  if (step.target !== undefined) {
+    gefuellt.target = step.target
+      ? pfadWert(step, step.target.raw, context, answers, findings)
+      : null;
+  }
+}
+
 // Füllt einen Schritt; Befunde gehen in `findings`.
 function fuelleSchritt(step, context, answers, templates, options, findings) {
   const args = step.args.map((a) => argumentWert(step, a, context, answers, findings));
@@ -329,6 +368,10 @@ function fuelleSchritt(step, context, answers, templates, options, findings) {
   };
   if (typeof step.script === 'string') gefuellt.script = step.script;
   if (typeof step.result === 'string') gefuellt.result = step.result;
+  datenbankTeile(step, gefuellt, context, answers, findings);
+  dbFilledFindings(step, args, options, (code, detail) =>
+    findings.push(befund(step, code, detail)),
+  );
   return gefuellt;
 }
 
@@ -367,18 +410,40 @@ function traegtSkript(step) {
   return texteDes(step).some((raw) => hasScriptPlaceholder(raw));
 }
 
-// Ersatz-Werte der Skript-Platzhalter eines Schritts für die Probe-Füllung: ein
-// harmloser Name wie beim Ersatz im Prüfer, damit ein Pfad aus einem
-// Skript-Ergebnis nicht schon als leer auffällt.
-function skriptProbe(step) {
-  const probe = {};
+/**
+ * 4T-002547: Die Platzhalter eines Schritts, deren Wert erst im Lauf feststeht:
+ * `{{script:…}}` und die Datenbank-Werte `{{record:…}}`, `{{db:…}}` und
+ * `{{created:…}}` (Knoten mit `befehlsZeile`), je Knoten-Name einmal.
+ *
+ * @param {object} step geprüfter Schritt (bei einem zurückgestellten `deferred.step`).
+ * @returns {Array<{name: string, db?: {table: string, record: string, field: string}}>}
+ */
+function runValueNodes(step) {
+  const knoten = new Map();
   for (const raw of texteDes(step)) {
     const analysis = analyzeTemplate(raw);
     if (!analysis.ok) continue;
     for (const seg of analysis.segments) {
-      if (seg.type === 'context' && seg.name.startsWith('script:')) probe[seg.name] = 'x';
+      if (seg.type !== 'context') continue;
+      if (!seg.befehlsZeile && !seg.name.startsWith('script:')) continue;
+      if (!knoten.has(seg.name))
+        knoten.set(seg.name, seg.db ? { name: seg.name, db: seg.db } : { name: seg.name });
     }
   }
+  return [...knoten.values()];
+}
+
+// Trägt ein Schritt einen Datenbank-Wert eines Laufs (4T-002547)?
+function traegtDatenbankWert(step) {
+  return runValueNodes(step).some((k) => !k.name.startsWith('script:'));
+}
+
+// Ersatz-Werte der Lauf-Platzhalter eines Schritts für die Probe-Füllung: ein
+// harmloser Name wie beim Ersatz im Prüfer, damit ein Pfad aus einem
+// Skript-Ergebnis oder einem Datenbank-Wert nicht schon als leer auffällt.
+function skriptProbe(step) {
+  const probe = {};
+  for (const k of runValueNodes(step)) probe[k.name] = 'x';
   return probe;
 }
 
@@ -400,9 +465,11 @@ function vorlagenDes(step, context, answers, templates) {
  * @param {string|null} itemPath Pfad der Datei, wurzel-relativ mit `/`; null
  *   außerhalb einer Schleife.
  * @param {Object<string, string>} [scriptResults] Name (klein) → Ergebnis.
+ * @param {Object<string, string>} [runValues] 4T-002547: Knoten-Name
+ *   (`record:…`, `db:…`, `created:…`) → Wert, vom Ablauf-Kern gelesen.
  * @returns {{ok: boolean, step: object|null, findings: object[]}}
  */
-function fillLoopStep(deferredStep, itemPath, scriptResults) {
+function fillLoopStep(deferredStep, itemPath, scriptResults, runValues = {}) {
   const findings = [];
   const d = deferredStep && deferredStep.deferred;
   if (!d || !d.step) {
@@ -412,6 +479,8 @@ function fillLoopStep(deferredStep, itemPath, scriptResults) {
     ...d.context,
     ...(itemPath == null ? {} : loopItemContext(itemPath)),
     ...scriptResultContext(scriptResults),
+    // 4T-002547: Datenbank-Werte des Laufs unter ihren Knoten-Namen.
+    ...runValues,
   };
   const step = fuelleSchritt(d.step, kontext, d.answers, d.templates || {}, {}, findings);
   return { ok: findings.length === 0, step: findings.length === 0 ? step : null, findings };
@@ -434,12 +503,18 @@ function prepareRun(steps, context, answers, templates, options = {}) {
   const { inLoop } = blockStructure(steps || []);
   (steps || []).forEach((step, index) => {
     const item = inLoop[index] === true && traegtItem(step);
-    if (item || traegtSkript(step)) {
-      // Probe mit Ersatz-Pfad und leeren Skript-Ergebnissen; die Füllung im
-      // Lauf leistet `fillLoopStep`.
+    const datenbank = traegtDatenbankWert(step);
+    if (item || traegtSkript(step) || datenbank) {
+      // Probe mit Ersatz-Pfad und Ersatz-Werten; die Füllung im Lauf leistet
+      // `fillLoopStep`. 4T-002547: Ein Datenbank-Wert steht erst im Lauf fest;
+      // Tabelle und Abfrage-Datei aus ihm prüft dann der Hauptprozess, nicht die
+      // Probe mit Ersatz-Werten.
       const probe = { ...context, ...skriptProbe(step) };
       if (item) Object.assign(probe, loopItemContext(PROBE_ITEM));
-      fuelleSchritt(step, probe, answers, templates, options, findings);
+      const probeOptionen = datenbank
+        ? { ...options, dbTable: undefined, dbQuery: undefined }
+        : options;
+      fuelleSchritt(step, probe, answers, templates, probeOptionen, findings);
       fertig.push({
         line: step.line,
         blockLine: step.blockLine,
@@ -467,6 +542,7 @@ module.exports = {
   fillLoopStep,
   loopItemContext,
   prepareRun,
+  runValueNodes,
   scriptResultContext,
   templateInputs,
   templateRefs,

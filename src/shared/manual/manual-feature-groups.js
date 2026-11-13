@@ -807,11 +807,17 @@ const HELP_FEATURE_GROUPS = [
       // 4T-002466 (Epic 3E-000367): die Zeilen der Stufe 3 — Bedingungen,
       // Schleife und Skript-Schritt hinter den Pflege-Befehlen (Befehle des
       // Blocks), die Ereignisse hinter dem Zeitplan (Start-Art ohne Zuschauer).
+      // 4T-002549 (Epic 3E-000368): die Zeilen der Stufe D hinter dem
+      // Skript-Schritt, als letzte Befehle des Blocks.
       'help.feature.workflows',
       'help.feature.workflowMaintenance',
       'help.feature.workflowConditions',
       'help.feature.workflowLoop',
       'help.feature.workflowScript',
+      'help.feature.workflowDbRecords',
+      'help.feature.workflowDbQuery',
+      'help.feature.workflowDbLoop',
+      'help.feature.workflowDbForms',
       'help.feature.workflowStart',
       'help.feature.workflowSchedule',
       'help.feature.workflowEvents',

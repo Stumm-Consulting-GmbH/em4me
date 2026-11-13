@@ -26,7 +26,7 @@ Mehrere Eingabe- und Auswahl-Platzhalter erscheinen **nacheinander** in der Reih
 
 ## Platzhalter-Referenz
 
-Platzhalter stehen in doppelten geschweiften Klammern. `\{{` schreibt ein literales `{{` in die Vorlage. Vorlagen und [Workflows](workflows.md) teilen denselben Satz von Platzhaltern; welche davon in einer Befehls-Zeile gelten, beschreibt die Seite der Workflows. `{{from}}`, `{{task}}`, `{{item}}` und `{{script:name}}` erhalten ihren Wert nur in einem Workflow-Lauf; beim Anwenden einer Vorlage bleiben sie leer.
+Platzhalter stehen in doppelten geschweiften Klammern. `\{{` schreibt ein literales `{{` in die Vorlage. Vorlagen und [Workflows](workflows.md) teilen denselben Satz von Platzhaltern; welche davon in einer Befehls-Zeile gelten, beschreibt die Seite der Workflows. `{{from}}`, `{{task}}`, `{{item}}` und `{{script:name}}` erhalten ihren Wert nur in einem Workflow-Lauf; beim Anwenden einer Vorlage bleiben sie leer. `{{record:…}}`, `{{created:…}}` und `{{db:…}}` gelten nur in Befehls-Zeilen eines Workflows; in einer Vorlage bleiben sie als Text stehen.
 
 | Platzhalter | Wirkung |
 | --- | --- |

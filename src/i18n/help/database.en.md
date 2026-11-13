@@ -352,7 +352,7 @@ The second way also checks all rules of the table; no rule can be bypassed with 
 
 ### Deleting
 
-**«Delete»** asks first: **«Delete this record?»** With **«Yes, delete»** the record is deleted, and the form closes; **«No»** leaves everything as it is. A record that a reference column still points to cannot be deleted here either. Which records refer to it, the usage further below shows in advance.
+**«Delete»** asks first: **«Delete this record?»** With **«Yes, delete»** the record is deleted, and the form closes; **«No»** leaves everything as it is. A record that a reference column still points to cannot be deleted here either. Which records refer to it, the usage further below shows in advance. A workflow deletes a record with `db-delete`, only for a start by hand and after a confirmation (page [Workflows](workflows.md), section «Database commands»).
 
 ### The form as a file
 
@@ -623,7 +623,7 @@ Which role applies to you is shown by the overview in the line **«Own role»**,
 
 ### Checked when writing
 
-Every change to records runs through the path described in the section «Saving by the application», and there the application checks the role first, per record with table and operation. If the permission is missing, the whole operation is rejected, and the message names role, table and action. Starting a new record also requires `create`: without this permission the application rejects the new record, for instance with the command «New record in the active table», and the status bar names the reason. If the permissions cannot be determined, because the tables of the area have not been fully read yet or the fact sheet cannot be read, nothing is written either, and the message asks you to try again in a moment.
+Every change to records runs through the path described in the section «Saving by the application», and there the application checks the role first, per record with table and operation. If the permission is missing, the whole operation is rejected, and the message names role, table and action. Starting a new record also requires `create`: without this permission the application rejects the new record, for instance with the command «New record in the active table», and the status bar names the reason. If the permissions cannot be determined, because the tables of the area have not been fully read yet or the fact sheet cannot be read, nothing is written either, and the message asks you to try again in a moment. The same check applies to the database commands of a workflow, which write with your permissions (page [Workflows](workflows.md), section «Database commands»).
 
 ### Checked when saving the definition
 
@@ -654,7 +654,7 @@ The roles are part of the definition and travel with the fact sheet. The assignm
 
 When the application saves, every change is checked. Whatever reaches the files by another route, for instance by hand in an editor, nobody checks along the way, and some rules do not act on reading at all. The **consistency check** therefore goes through the whole stock and says where it contradicts the rules of the database. A card is checked by the application also when it is saved in the editor, but there nothing is rejected; the findings are only reported (section «Card form»).
 
-It sits in the database overview: **«Check consistency»** in the header checks all tables, **«Check»** in the row of a table only that one. The command **«Check database consistency»** in the command palette also checks all tables; it opens the overview for that.
+It sits in the database overview: **«Check consistency»** in the header checks all tables, **«Check»** in the row of a table only that one. The command **«Check database consistency»** in the command palette also checks all tables; it opens the overview for that. A workflow checks the same way with `db-check` and reports the result as a notice (page [Workflows](workflows.md), section «Database commands»).
 
 The result stands in the section **«Consistency check»** of the overview: the duration, per table the number of its records and findings, and below them the findings with table, record, field and a sentence in plain words. A click on the record opens its form. The list shows at most the first 500 findings and then says how many there are in total.
 

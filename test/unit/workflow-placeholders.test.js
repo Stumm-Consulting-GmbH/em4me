@@ -407,3 +407,82 @@ describe('{{item}} und {{item:name}} in der Schleife (4S-001148)', () => {
     });
   });
 });
+
+// 4T-002547 (Da, Dc, Dd): Datenbank-Werte stehen erst im Lauf fest. Ein Schritt,
+// der sie trägt, wird zur Probe gefüllt und zurückgestellt; der Ablauf-Kern füllt
+// ihn mit den gelesenen Werten (`fillLoopStep`, vierter Parameter).
+describe('Datenbank-Werte im Platzhalter-Satz (4T-002547, AK4, AK5)', () => {
+  // Eine Rückfrage, die jede Tabelle als unbekannt meldet: Die Probe darf sie
+  // für einen Wert aus dem Lauf nicht fragen.
+  const STRENG = { dbTable: () => ({ state: 'unknown' }), dbQuery: () => ({ state: 'missing' }) };
+
+  it('stellt Schritte mit {{created:…}}, {{db:…}} und {{record:…}} zurück und füllt sie mit den Werten', () => {
+    const s = schritte([
+      'db-create "T" a="1" as "neu"',
+      'notify "{{created:neu}} {{db:T:Solaris:pages}}"',
+      'db-for-each "Q.md"',
+      '  db-update "{{record:table}}" "{{record:id}}" a="{{record:A}}"',
+      'end',
+    ]);
+    const r = prepareRun(s, KONTEXT, {}, {}, STRENG);
+    expect(r.findings).toEqual([]);
+    expect(r.steps.map((x) => !!x.deferred)).toEqual([false, true, false, true, false]);
+    const notify = fillLoopStep(
+      r.steps[1],
+      null,
+      {},
+      {
+        'created:neu': 'r-00004',
+        'db:T:Solaris:pages': '224',
+      },
+    );
+    expect(notify.step.args).toEqual(['r-00004 224']);
+    const update = fillLoopStep(
+      r.steps[3],
+      null,
+      {},
+      {
+        'record:table': 'Library',
+        'record:id': 'r-00002',
+        'record:A': '7',
+      },
+    );
+    expect(update.step).toMatchObject({
+      args: ['Library', 'r-00002'],
+      pairs: [{ key: 'a', value: '7' }],
+    });
+  });
+
+  it('ohne gelieferten Wert bleibt der Platzhalter als Text stehen, nie leer', () => {
+    const s = schritte(['db-create "T" a="1" as "neu"', 'notify "{{created:neu}}"']);
+    const r = prepareRun(s, KONTEXT, {}, {});
+    expect(fillLoopStep(r.steps[1], null, {}).step.args).toEqual(['{{created:neu}}']);
+  });
+
+  // Review-Runde 1 zu 3E-000368: Eine Vorlage liest nie Datenbank-Inhalte, auch
+  // wenn derselbe Platzhalter in der Befehls-Zeile einen Wert des Laufs trägt.
+  it('eine Vorlage hinter from-template bekommt keinen Wert von record, db und created', () => {
+    const vorlage =
+      'Titel {{record:title}}, Kennung {{created:neu}}, Seiten {{db:T:Solaris:pages}}';
+    const s = schritte([
+      'db-create "T" a="1" as "neu"',
+      'db-for-each "Q.md"',
+      '  create "Notizen/{{record:title}}.md" from-template "Vorlage.md"',
+      'end',
+      'create "Neu/{{created:neu}}-{{db:T:Solaris:pages}}.md" from-template "Vorlage.md"',
+    ]);
+    const r = prepareRun(s, KONTEXT, {}, { 'Vorlage.md': vorlage });
+    expect(r.findings).toEqual([]);
+    const werte = {
+      'record:title': 'Solaris',
+      'created:neu': 'r-00004',
+      'db:T:Solaris:pages': '224',
+    };
+    const inSchleife = fillLoopStep(r.steps[2], null, {}, werte);
+    expect(inSchleife.step.args).toEqual(['Notizen/Solaris.md']);
+    expect(inSchleife.step.source).toEqual({ kind: 'template', path: 'Vorlage.md', text: vorlage });
+    const danach = fillLoopStep(r.steps[4], null, {}, werte);
+    expect(danach.step.args).toEqual(['Neu/r-00004-224.md']);
+    expect(danach.step.source.text).toBe(vorlage);
+  });
+});

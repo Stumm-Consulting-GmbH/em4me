@@ -26,7 +26,7 @@ Varios marcadores de entrada y selección aparecen **uno tras otro** en el orden
 
 ## Referencia de marcadores
 
-Los marcadores se escriben entre llaves dobles. `\{{` escribe un `{{` literal en la plantilla. Las plantillas y los [workflows](workflows.md) comparten el mismo conjunto de marcadores; cuáles valen en una línea de comando se describe en la página de los workflows. `{{from}}`, `{{task}}`, `{{item}}` y `{{script:name}}` solo reciben un valor en una ejecución de un workflow; al aplicar una plantilla quedan vacíos.
+Los marcadores se escriben entre llaves dobles. `\{{` escribe un `{{` literal en la plantilla. Las plantillas y los [workflows](workflows.md) comparten el mismo conjunto de marcadores; cuáles valen en una línea de comando se describe en la página de los workflows. `{{from}}`, `{{task}}`, `{{item}}` y `{{script:name}}` solo reciben un valor en una ejecución de un workflow; al aplicar una plantilla quedan vacíos. `{{record:…}}`, `{{created:…}}` y `{{db:…}}` solo valen en las líneas de comando de un workflow; en una plantilla se quedan como texto.
 
 | Marcador | Efecto |
 | --- | --- |

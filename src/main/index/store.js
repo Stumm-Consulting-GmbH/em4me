@@ -109,21 +109,36 @@ const INVALIDATE_DEBOUNCE_MS = 200;
 // und nur dann sucht der Anzeige-Prozess die fehlenden Ziele neu.
 function scheduleInvalidate(entry) {
   if (entry.invalidateTimer) return;
-  entry.invalidateTimer = setTimeout(() => {
-    entry.invalidateTimer = null;
-    const nutzlast = { wurzel: entry.wurzel };
-    const gemeldet = entry.geaenderteDateien;
-    if (gemeldet && gemeldet.size > 0) {
-      nutzlast.dateien = [...gemeldet];
-      gemeldet.clear();
-    }
-    const neu = entry.hinzugekommeneDateien;
-    if (neu && neu.size > 0) {
-      nutzlast.hinzugekommen = [...neu];
-      neu.clear();
-    }
-    broadcast('backlinks:invalidated', nutzlast);
-  }, INVALIDATE_DEBOUNCE_MS);
+  entry.invalidateTimer = setTimeout(() => sendeInvalidierung(entry), INVALIDATE_DEBOUNCE_MS);
+}
+
+// Die Invalidierungs-Meldung selbst, ausgelöst vom Debounce-Zeitgeber oder
+// sofort über `invalidiereSofort`.
+function sendeInvalidierung(entry) {
+  entry.invalidateTimer = null;
+  const nutzlast = { wurzel: entry.wurzel };
+  const gemeldet = entry.geaenderteDateien;
+  if (gemeldet && gemeldet.size > 0) {
+    nutzlast.dateien = [...gemeldet];
+    gemeldet.clear();
+  }
+  const neu = entry.hinzugekommeneDateien;
+  if (neu && neu.size > 0) {
+    nutzlast.hinzugekommen = [...neu];
+    neu.clear();
+  }
+  broadcast('backlinks:invalidated', nutzlast);
+}
+
+// 4T-002545 (Epic 3E-000368): Eine anstehende Invalidierung sofort senden,
+// statt auf den Debounce zu warten. Danach ist der Änderungs-Stand der Wurzel
+// (`indexStand`) fortgeschrieben, und jeder Zwischenspeicher, der gegen ihn
+// gültig bleibt, rechnet bei der nächsten Frage neu. Ohne anstehende Meldung
+// wirkungslos.
+function invalidiereSofort(entry) {
+  if (!entry || !entry.invalidateTimer) return;
+  clearTimeout(entry.invalidateTimer);
+  sendeInvalidierung(entry);
 }
 
 // 4T-002023: Eine vom Beobachter gemeldete Markdown-Datei für die nächste
@@ -195,6 +210,7 @@ module.exports = {
   attachSelfWriter,
   selfWrite,
   scheduleInvalidate,
+  invalidiereSofort,
   merkeGeaenderteDatei,
   // 4T-001158: Änderungs-Stand einer Wurzel für Zwischenspeicher.
   indexStand,

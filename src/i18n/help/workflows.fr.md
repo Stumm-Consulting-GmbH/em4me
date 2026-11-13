@@ -1,6 +1,6 @@
 # Workflows
 
-Un **workflow** consigne des manipulations récurrentes sous forme de suite fixe d'étapes : créer, renommer, déplacer, copier et placer dans la corbeille des fichiers et des dossiers, ajouter ou insérer du texte, définir des propriétés et des étiquettes dans l'en-tête, cocher des tâches, exécuter des commandes, des macros et d'autres workflows. Des conditions et des répétitions décident des étapes qui s'exécutent et pour quels fichiers ; une étape de script calcule une valeur sans rien écrire. Un workflow est un **fichier Markdown ordinaire** ; ce qu'il fait figure dans un bloc de commandes fixes, une ligne par étape. Le fichier reste ainsi lisible sans l'application, se transmet et se modifie comme tout autre document.
+Un **workflow** consigne des manipulations récurrentes sous forme de suite fixe d'étapes : créer, renommer, déplacer, copier et placer dans la corbeille des fichiers et des dossiers, ajouter ou insérer du texte, définir des propriétés et des étiquettes dans l'en-tête, cocher des tâches, exécuter des commandes, des macros et d'autres workflows. Des conditions et des répétitions décident des étapes qui s'exécutent et pour quels fichiers ; une étape de script calcule une valeur sans rien écrire. Les commandes de base de données créent, modifient et suppriment des enregistrements, écrivent le résultat d'une requête dans un fichier, ouvrent des formulaires et contrôlent la cohérence. Un workflow est un **fichier Markdown ordinaire** ; ce qu'il fait figure dans un bloc de commandes fixes, une ligne par étape. Le fichier reste ainsi lisible sans l'application, se transmet et se modifie comme tout autre document.
 
 Un workflow se lance **à la main** : depuis le menu, la palette de commandes, par un raccourci clavier, un bouton au-dessus du bloc ou le menu contextuel du panneau de zone. Un workflow avec une planification s'exécute en outre **selon sa planification**, un workflow avec un événement **lors d'un événement** de la zone, par exemple un nouveau fichier dans un dossier, dans les deux cas dès qu'il est armé. **Avant que la première étape ne s'exécute, l'application vérifie le workflow entier** ; une erreur s'affiche au-dessus du bloc avec la ligne et le motif, et rien ne s'exécute.
 
@@ -171,6 +171,21 @@ Ces commandes ouvrent un **bloc** que ferme une ligne `end` ; les étapes interm
 | `for-each` | pour chaque : bloc une fois par fichier correspondant au motif | dossier avec motif de fichier | `for-each "Entrée/*.md"` |
 | `script` | script : exécuter le bloc de script d'une section et nommer son résultat | titre, `as "nom"` | `script "Comptage" as "nombre"` |
 
+### Base de données
+
+Ces commandes travaillent avec les enregistrements de la [base de données](database.md) de la zone. Détails dans la section « Commandes de base de données ».
+
+| Commande | Signification | Indications | Exemple |
+| --- | --- | --- | --- |
+| `db-create` | créer un enregistrement | table, paires `champ="valeur"`, au choix `as "nom"` | `db-create "Library" title="The Invincible" author="Stanisław Lem" pages="186"` |
+| `db-update` | modifier un enregistrement | table, enregistrement, paires `champ="valeur"` | `db-update "Library" "Solaris" loanNote="prêté"` |
+| `db-delete` | supprimer un enregistrement | table, enregistrement | `db-delete "Library" "r-00024"` |
+| `db-query` | requête dans un fichier : écrire le résultat d'un fichier de requête sous forme de tableau | fichier de requête, `into "cible"`, au choix `under "titre"` | `db-query "Long Books.md" into "Liste de lecture.md" under "Gros livres"` |
+| `db-for-each` | pour chaque enregistrement : le bloc une fois par enregistrement d'un fichier de requête | fichier de requête | `db-for-each "Long Books.md"` |
+| `db-open` | ouvrir un formulaire : montrer un enregistrement dans son formulaire par défaut ou, sans enregistrement, en commencer un nouveau | table, au choix enregistrement | `db-open "Library" "Solaris"` |
+| `db-open-list` | ouvrir un formulaire de liste : ouvrir un fichier de requête | fichier de requête | `db-open-list "Loans List.md"` |
+| `db-check` | contrôler la cohérence : toutes les tables ou une seule | au choix table | `db-check "Library"` |
+
 ### Sources d'un contenu
 
 `create`, `append` et `insert` tirent leur contenu de l'une de trois sources. Un contenu ne figure jamais comme texte libre dans la ligne de commande.
@@ -201,12 +216,16 @@ Les espaces réservés valent dans chaque indication d'une ligne de commande. Mo
 | `{{task}}` | avec `task-done`, le texte de la tâche terminée |
 | `{{item}}`, `{{item:name}}` | dans une boucle `for-each`, le chemin du fichier en cours et son nom sans extension |
 | `{{script:name}}` | le résultat de l'étape de script `script … as "name"` |
+| `{{record:champ}}`, `{{record:id}}`, `{{record:table}}`, `{{record:file}}` | dans une boucle `db-for-each`, un champ de l'enregistrement courant, son identifiant, sa table et son fichier (section « Commandes de base de données ») |
+| `{{created:nom}}` | l'identifiant de l'enregistrement que `db-create … as "nom"` a créé |
+| `{{db:Table:Enregistrement:Champ}}` | la valeur d'un champ de la base de données, lue au moment de l'étape |
 
 - **Tous les dialogues avant la première étape :** les dialogues de saisie et de choix de toute l'exécution apparaissent l'un après l'autre avant que quoi que ce soit ne se produise, y compris ceux des modèles utilisés et des workflows appelés. Une même question n'est posée qu'une fois et vaut partout. Annuler un dialogue annule l'exécution, et aucune étape ne s'exécute.
 - **Un instant par exécution :** `{{date}}` et `{{time}}` ont la même valeur dans toutes les lignes, même au passage de minuit. De même, le presse-papiers est lu une seule fois au lancement, et `{{clipboard}}` a le même contenu dans toutes les lignes.
 - **Dans un modèle utilisé par un workflow**, `{{title}}` et `{{folder}}` désignent comme d'habitude le nouveau fichier, tandis que `{{file}}` et `{{area}}` désignent le document actif et la zone.
 - **Selon la planification et lors d'événements**, personne n'est là pour répondre à un dialogue : dans un workflow avec `trigger: schedule` ou `trigger: event`, les espaces réservés de saisie et de choix constituent l'anomalie « Manuel uniquement ».
-- `{{item}}`, `{{item:name}}` et `{{script:name}}` ne reçoivent leur valeur qu'en cours d'exécution ; dans le nom d'un workflow ou d'une macro, le chemin d'un modèle et la cible de `delete`, ils constituent donc une anomalie.
+- `{{item}}`, `{{item:name}}`, `{{script:name}}`, `{{record:…}}`, `{{created:…}}` et `{{db:…}}` ne reçoivent leur valeur qu'en cours d'exécution ; dans le nom d'un workflow ou d'une macro, le chemin d'un modèle et la cible de `delete`, ils constituent donc une anomalie.
+- `{{record:…}}`, `{{created:…}}` et `{{db:…}}` ne valent que dans les lignes de commande. Dans un modèle, y compris un modèle qu'un workflow insère, ils restent tels quels sous forme de texte.
 - `{{cursor}}` n'est pas autorisé dans une ligne de commande. `\{{` écrit un `{{` littéral.
 - Si `{{folder}}` reste vide dans le dossier racine, `"{{folder}}/Nouveau.md"` donne le chemin `Nouveau.md`. Sans document actif, `{{file}}` est vide, et un chemin qui en découle est une anomalie.
 
@@ -231,7 +250,7 @@ La commande d'un workflow reçoit son identifiant du chemin du fichier dans le d
 ## Déroulement d'une exécution
 
 1. L'application vérifie le workflow ainsi que les workflows qu'il appelle.
-2. Les dialogues de tous les espaces réservés apparaissent l'un après l'autre ; si l'exécution contient `delete`, la confirmation unique des cibles à supprimer suit.
+2. Les dialogues de tous les espaces réservés apparaissent l'un après l'autre ; si l'exécution contient `delete` ou `db-delete`, la confirmation unique des cibles à supprimer suit.
 3. Les étapes s'exécutent strictement l'une après l'autre ; chacune attend la précédente. Les conditions et les boucles décident des étapes qui s'exécutent et du nombre de fois.
 4. Le premier échec met fin à l'exécution. La barre d'état affiche « Workflow ‹Nom› interrompu à la ligne N : motif ».
 
@@ -314,6 +333,105 @@ return pq.pages('Tâches').filter(function (p) { return p.status === 'ouvert'; }
 - **Le même bac à sable que les blocs de script :** le script lit les données de la zone par l'interface pq, avec le fichier de workflow comme document propre (`pq.current()`), et n'a accès ni aux fichiers, ni au réseau, ni à l'application. Il est **en lecture seule**. Il est interrompu après **5 secondes**. Une erreur ou une interruption est un échec de l'étape et termine l'exécution avec « Échec du script » ou « Script interrompu après 5 secondes ».
 - **Paramètre « Exécuter les blocs de script » :** l'étape de script suit le même paramètre que les blocs de script (**Paramètres → Comportement**, désactivé par défaut). S'il est désactivé, la vérification signale « Les blocs de script sont désactivés » avec la ligne ; le workflow ne s'exécute pas et ne peut pas être armé. Juste avant chaque script, l'application interroge de nouveau le paramètre.
 - La vérification cherche la section avant la première étape : si elle manque, existe plusieurs fois ou ne contient aucun bloc de script, c'est une anomalie. Un `{{script:nom}}` placé avant l'étape qui le fournit est aussi une anomalie ; si l'étape qui le fournit ne s'est pas exécutée dans une branche, la ligne échoue.
+
+## Commandes de base de données
+
+Avec les commandes de base de données, un workflow travaille avec les enregistrements de la [base de données](database.md) de la zone : il crée, modifie et supprime des enregistrements, écrit le résultat d'un fichier de requête sous forme de tableau dans un fichier, répète des étapes pour chaque enregistrement d'une requête, lit des valeurs de champ isolées, ouvre des formulaires et contrôle la cohérence. L'exemple inscrit une note de prêt pour chaque gros livre, écrit la liste des gros livres dans une note puis contrôle la table :
+
+````markdown
+```workflow
+db-for-each "Long Books.md"
+  db-update "Library" "{{record:id}}" loanNote="long : {{record:pages}} pages"
+end
+db-query "Long Books.md" into "Liste de lecture.md" under "Gros livres"
+db-check "Library"
+```
+````
+
+Les commandes de base de données exigent l'extension « Base de données ». Si elle est désactivée, la vérification signale « La base de données est désactivée » pour chacune de ces commandes, et le workflow ne s'exécute pas.
+
+### Table, enregistrement et valeurs
+
+- **La table** s'indique par son nom, comme avec `FROM` dans une requête, ou par le chemin de son fichier : `"Library"` ou `"Library.md"`. Si deux tables portent le même nom, la vérification signale « Table ambiguë » ; le chemin aide alors.
+- **L'enregistrement** se trouve comme dans un lien : d'abord comme identifiant, `r-00042` ou `r-42`, sinon par sa forme d'affichage, par exemple `"Solaris"`. Si plusieurs enregistrements portent cette forme d'affichage, l'étape échoue avec « ambigu » et ne prend jamais le premier ; si aucun n'est trouvé, avec « introuvable ».
+- **Les valeurs** s'écrivent en paires `champ="valeur"` et sont toujours du texte, même un nombre comme `pages="224"`. La base de données contrôle à l'écriture, comme dans le formulaire, si une valeur convient à son champ.
+- **La vérification avant l'exécution** connaît les tables et les champs : une table inconnue, un champ que la table n'a pas et un champ donné deux fois sur une ligne constituent une anomalie avec ligne. Si une indication contient un espace réservé, l'application vérifie après le remplissage.
+
+### Créer, modifier et supprimer des enregistrements
+
+- `db-create` crée un enregistrement, `db-update` modifie les champs nommés d'un enregistrement, `db-delete` en supprime un. Les deux premières demandent au moins une paire.
+- **La même voie que le formulaire :** chaque commande écrit avec toutes les règles de la table, c'est-à-dire règles de contrôle, valeurs obligatoires, clé, protection contre la suppression et autorisations. Si la base de données refuse, l'étape échoue avec la phrase que montre aussi le formulaire.
+- **Lu à neuf :** `db-update` et `db-delete` lisent l'enregistrement juste avant d'écrire. Si quelqu'un d'autre le modifie entre-temps, l'étape échoue. Si quelqu'un modifie justement l'enregistrement dans un formulaire, l'étape échoue aussitôt, sans attendre.
+- **Le nouvel identifiant :** après `db-create "Library" title="The Invincible" as "nouveau"`, l'identifiant de l'enregistrement créé est disponible dans chaque ligne suivante sous la forme `{{created:nouveau}}`, par exemple dans `db-open "Library" "{{created:nouveau}}"`. Le nom se compose de lettres, de chiffres, de `_` et de `-` ; la casse ne compte pas, et chaque nom n'est attribué qu'une fois. Un `{{created:…}}` avant sa création constitue une anomalie ; si la création ne s'est pas exécutée dans une branche, la ligne échoue.
+- Dans une table en **forme en fichier de fiches**, `db-create` crée une fiche ; son nom est la valeur de la clé. Les valeurs obligatoires y valent aussi : si un champ obligatoire reste sans valeur, l'étape échoue avec un motif comme en forme de table, et rien n'est créé.
+- **Avant de supprimer**, l'application demande une fois avant la première étape et nomme ce qui sera supprimé ; « Non » ne laisse s'exécuter aucune étape. Si une cible n'est connue qu'au cours de l'exécution, la confirmation dit en mots ce qui sera supprimé, par exemple « L'enregistrement de la table 'Library' créé au cours de cette exécution » ; dans une boucle sur des enregistrements, elle nomme la requête, la table et la limite de 500.
+- **Un enregistrement encore référencé** ne peut pas être supprimé, comme dans le formulaire.
+
+### Requête dans un fichier
+
+`db-query "Long Books.md" into "Liste de lecture.md" under "Gros livres"` exécute un [fichier de requête](database.md) et écrit son résultat sous forme de tableau fixe dans un fichier.
+
+- **La source** est un fichier de requête avec la marque `db-query` et exactement un bloc de requête. Il s'exécute comme dans sa vue de lecture, indications comme `this.minpages` comprises. Si le fichier n'est pas un fichier de requête, la vérification signale « Pas un fichier de requête » ; si sa requête est erronée, « Requête erronée ».
+- **Le tableau** porte les libellés des colonnes en ligne d'en-tête et les valeurs telles que la vue de requête les montre ; un enregistrement devient un lien avec sa forme d'affichage comme texte, par exemple `[[Library#^r-00003|Solaris]]`, de sorte que la note montre le titre comme la vue de requête. Sans résultat, il reste un tableau sans lignes, suivi de la phrase que montre aussi la vue de requête.
+- **Avec `under`**, le tableau remplace le contenu de cette section, et le titre reste ; s'il manque ou apparaît plusieurs fois, l'étape échoue comme avec `insert`. Une deuxième exécution remplace le tableau au lieu d'en ajouter un deuxième. **Sans `under`**, l'étape crée le fichier et échoue s'il existe déjà, comme avec `create`. Pour collecter, on écrit dans un fichier daté : `into "Rapports/{{date}}.md"`.
+- Les enregistrements qu'une étape antérieure de la même exécution a écrits figurent déjà dans le résultat.
+
+### Boucle sur des enregistrements
+
+`db-for-each` répète les étapes jusqu'à `end` pour chaque enregistrement que renvoie un fichier de requête, sous la forme de la boucle `for-each` :
+
+````markdown
+```workflow
+db-for-each "Long Books.md"
+  db-update "Library" "{{record:id}}" loanNote="long : {{record:pages}} pages"
+end
+```
+````
+
+| Espace réservé | Valeur à chaque répétition |
+| --- | --- |
+| `{{record:champ}}` | la valeur du champ dans l'enregistrement courant, par exemple `{{record:pages}}` |
+| `{{record:id}}` | l'identifiant de l'enregistrement |
+| `{{record:table}}` | la table où il se trouve |
+| `{{record:file}}` | le fichier où il se trouve : en forme en fichier de fiches sa fiche, sinon le fichier de table |
+
+- **La requête doit renvoyer des enregistrements :** une requête `TABLE RECORDS`, non groupée. Sinon, la vérification signale que la requête ne renvoie aucun enregistrement.
+- **Liste fixe :** la liste est fixée à l'entrée dans la boucle et traitée dans l'ordre de la requête ; chaque enregistrement exactement une fois. Les enregistrements que l'exécution crée dans la boucle ne s'y ajoutent pas.
+- **Lu à neuf :** un enregistrement est lu au début de sa répétition et de nouveau avant chaque étape suivante qui nomme l'un de ses champs ; une étape voit ainsi ce qu'une étape antérieure de la même répétition a écrit. Si l'enregistrement a disparu entre-temps, l'exécution s'arrête à cette ligne avec « introuvable ».
+- **Limites :** au plus **500 enregistrements** ; s'il y en a davantage, l'étape échoue avant la première répétition, et aucun enregistrement n'est traité. Un ensemble vide ne donne aucune répétition et n'est pas un échec. Pas de boucle dans une boucle, de quelque type que ce soit ; une condition dans la boucle est permise.
+- `{{record:…}}` hors d'une boucle sur des enregistrements constitue une anomalie. Si une étape échoue dans la boucle, l'exécution s'arrête ; les enregistrements déjà traités le restent.
+
+### Valeur de champ comme espace réservé
+
+`{{db:Library:Solaris:pages}}` lit le champ `pages` de l'enregistrement « Solaris » de la table « Library », par exemple dans `notify "Pages : {{db:Library:Solaris:pages}}"`.
+
+- Les trois indications sont la table, l'enregistrement et le champ ; l'enregistrement se trouve comme plus haut, par son identifiant ou par sa forme d'affichage.
+- **La lecture a lieu au moment de l'étape**, pas avant l'exécution ; une valeur qu'une étape antérieure de la même exécution a écrite vaut donc.
+- **Un échec plutôt qu'une valeur vide :** si l'enregistrement est introuvable ou ambigu, ou si la table ne connaît pas le champ, l'étape échoue avec un motif. Une valeur de champ vide d'un enregistrement trouvé donne un texte vide.
+- La vérification signale à l'avance un espace réservé sans exactement trois indications, une table inconnue et un champ inconnu ; elle ne cherche pas l'enregistrement, car il ne vaut qu'au moment de l'étape.
+
+### Ouvrir des formulaires et contrôler la cohérence
+
+- **`db-open "Library" "Solaris"`** montre l'enregistrement dans le formulaire par défaut de sa table. **`db-open "Library"`** sans enregistrement commence un nouvel enregistrement comme « Nouvel enregistrement » et exige l'autorisation de créer dans la table ; si elle manque, l'étape échoue en nommant le rôle et la table. Une table en forme en fichier de fiches n'a pas ce nouvel enregistrement, et l'étape échoue avec un motif ; une nouvelle fiche se crée avec « Nouvelle fiche » dans la vue d'ensemble de la base de données ou avec `db-create`.
+- Si le formulaire contient des modifications non enregistrées, il demande avant de changer, et l'étape attend la réponse sans limite de temps. « Abandonner » ouvre la cible, et l'exécution continue. « Continuer la modification » laisse les modifications inchangées et termine l'exécution à cette ligne avec un motif ; l'exécution se termine de même si la question est fermée sans réponse, par exemple avec l'onglet du formulaire.
+- **`db-open-list "Loans List.md"`** ouvre un fichier de requête comme `open` ; un [formulaire de liste](database.md) y montre sa grille. Si le fichier n'est pas un fichier de requête, la vérification signale « Pas un fichier de requête ».
+- **`db-check`** contrôle toutes les tables, **`db-check "Library"`** une seule, avec le même contrôle que « Contrôler la cohérence » dans la vue d'ensemble de la base de données. Le résultat apparaît comme avec `notify`, par exemple « Cohérence : 3 constats dans ‹ Library › » ou « Cohérence : aucun constat » ; sans table nommée, il nomme les tables avec des constats. **Un constat n'arrête pas l'exécution** ; qui ne veut pas continuer après lui place `db-check` à la fin. Si le contrôle lui-même échoue, c'est un échec de l'étape. Le détail des constats s'affiche avec « Contrôler la cohérence » dans la vue d'ensemble de la base de données. `db-check` n'écrit rien.
+
+### Sans personne présente, interruption et trace
+
+**Un workflow écrit dans la base de données avec vos autorisations ; selon une planification et lors d'événements, il crée et modifie, mais ne supprime jamais.**
+
+| Commande | à la main | planifié et lors d'événements |
+| --- | --- | --- |
+| `db-create`, `db-update` | oui | oui |
+| `db-delete` | oui, après la confirmation | anomalie « Manuel uniquement » |
+| `db-query`, `db-for-each`, `{{db:…}}` | oui | oui |
+| `db-open` | oui | anomalie « Manuel uniquement » |
+| `db-open-list`, `db-check` | oui | oui |
+
+- **Si un workflow s'interrompt, les enregistrements qu'il a déjà écrits restent.** Chaque commande de base de données qui écrit des enregistrements est une sauvegarde à part, qui agit entièrement ou pas du tout ; il n'y a pas d'annulation de l'exécution.
+- **Trace dans le journal :** sur la page « Exécutions des workflows », le journal nomme pour chaque étape de base de données la table, l'enregistrement et l'identifiant d'opération, par exemple « Ligne 2 : db-update – table Library, enregistrement r-00007, opération 12 ». Les [justificatifs de modification](database.md) de cette étape portent le même identifiant d'opération.
+- **Pas d'événements :** ce qu'un workflow écrit dans la base de données ne déclenche aucun événement, ni sur le fichier de table ni sur une fiche.
 
 ## Planification et armement
 
@@ -425,7 +543,7 @@ La ligne a la forme `event: <événement> [in "<dossier ou fichier>"] [matching 
 
 ### Ce qu'une exécution lors d'un événement peut faire
 
-- Une exécution déclenchée par un événement s'exécute **sans personne présente**, comme une exécution planifiée : les espaces réservés de saisie et de choix, `confirm` et `delete` constituent l'anomalie « Manuel uniquement ». **Lors d'événements, rien n'est jamais supprimé.**
+- Une exécution déclenchée par un événement s'exécute **sans personne présente**, comme une exécution planifiée : les espaces réservés de saisie et de choix, `confirm`, `delete`, `db-delete` et `db-open` constituent l'anomalie « Manuel uniquement ». **Lors d'événements, rien n'est jamais supprimé.**
 - `{{file}}`, `{{from}}` et `{{task}}` portent les valeurs de l'événement (tableau ci-dessus). La vérification signale un espace réservé que l'événement ne fournit pas : `{{file}}` avec `area-opened`, `{{from}}` sauf avec `file-moved`, `{{task}}` sauf avec `task-done`.
 
 ### Quand les événements agissent
@@ -439,7 +557,7 @@ La ligne a la forme `event: <événement> [in "<dossier ou fichier>"] [matching 
 
 ### Pas de chaînes
 
-**Un workflow réagit à ce que vous ou d'autres programmes faites, jamais à ce que fait un workflow.** Ce qu'une exécution crée, modifie, déplace ou coche ne déclenche aucun événement ; un workflow qui, lors d'un nouveau fichier dans « Entrée », crée lui-même un fichier dans « Entrée » ne tourne donc pas en rond. Qui veut un enchaînement appelle explicitement le second workflow avec `workflow "Nom"`. Si une étape écrit dans un document ouvert et non enregistré, seul votre enregistrement est une modification du fichier et déclenche `file-changed` ; une tâche qu'une telle étape coche dans le document déclenche `task-done`.
+**Un workflow réagit à ce que vous ou d'autres programmes faites, jamais à ce que fait un workflow.** Ce qu'une exécution crée, modifie, déplace ou coche, y compris un enregistrement qu'elle écrit dans la base de données, ne déclenche aucun événement ; un workflow qui, lors d'un nouveau fichier dans « Entrée », crée lui-même un fichier dans « Entrée » ne tourne donc pas en rond. Qui veut un enchaînement appelle explicitement le second workflow avec `workflow "Nom"`. Si une étape écrit dans un document ouvert et non enregistré, seul votre enregistrement est une modification du fichier et déclenche `file-changed` ; une tâche qu'une telle étape coche dans le document déclenche `task-done`.
 
 **Frein d'urgence :** si le même workflow s'exécute par des événements plus de **20 fois en 5 minutes**, par exemple parce qu'un autre programme répond à ses modifications, la 21e exécution ne démarre plus. Le workflow est désarmé, les événements en attente pour lui expirent, et la barre d'état signale « Workflow ‹Nom› désarmé : plus de 20 exécutions déclenchées par des événements en 5 minutes », sans fenêtre au premier plan également comme notification du système d'exploitation. La page **Exécutions des workflows** affiche « non armé : frein d'urgence » sous la case et le motif dans la colonne **Résultat**. Après un nouvel armement, le frein recommence à compter.
 
@@ -501,7 +619,7 @@ Après une exécution dans cette fenêtre, la page montre le même motif que la 
 
 ### Ce qu'une exécution a fait
 
-Le bouton « Journal (N) » déplie sous la ligne le **journal** de la dernière exécution : chaque fichier et chaque dossier qu'elle a créé, modifié, déplacé, copié ou supprimé, sous la forme « Ligne N : commande – chemin », le chemin relatif à la racine de la zone. Si l'exécution n'a rien touché, il affiche « Aucun fichier touché » ; avec un très grand nombre de fichiers touchés, le journal est tronqué et le signale.
+Le bouton « Journal (N) » déplie sous la ligne le **journal** de la dernière exécution : chaque fichier et chaque dossier qu'elle a créé, modifié, déplacé, copié ou supprimé, sous la forme « Ligne N : commande – chemin », le chemin relatif à la racine de la zone ; une étape de base de données apparaît sous la forme « Ligne N : commande – table, enregistrement, opération » (section « Commandes de base de données »). Si l'exécution n'a rien touché, il affiche « Aucun fichier touché » ; avec un très grand nombre de fichiers touchés, le journal est tronqué et le signale.
 
 Il n'y a pas d'annulation d'une exécution entière. On annule de façon ciblée, avec les moyens qui existent de toute façon : les modifications de contenu par l'[historique du document](history.md) du fichier touché, les éléments supprimés depuis la corbeille, les éléments créés, déplacés et copiés dans le panneau de zone.
 
@@ -516,13 +634,14 @@ La mise en évidence et l'affichage ne modifient pas le texte du fichier.
 ## Limites
 
 - **Seulement dans la zone :** aucune commande ne lit ni n'écrit hors de la racine de la zone dans laquelle le workflow a été lancé, pas même par un espace réservé ; cela vaut aussi pour un workflow d'une zone liée.
-- **Pas de réseau, pas de programmes externes.** La suppression se fait uniquement avec `delete`, uniquement lors d'un lancement à la main, après une confirmation et vers la corbeille.
+- **Pas de réseau, pas de programmes externes.** Les fichiers ne sont supprimés que par `delete`, les enregistrements que par `db-delete`, tous deux uniquement lors d'un lancement à la main et après une confirmation ; les fichiers vont dans la corbeille.
 - **Pas d'exécution sans zone ouverte :** un workflow planifié ne s'exécute que tant que l'application et sa zone sont ouvertes ; il rattrape les échéances manquées selon les règles de `missed`. Les événements n'agissent de même que zone ouverte et ne sont pas rattrapés.
 - **Pas de chaînes :** un workflow réagit à ce que vous ou d'autres programmes faites, jamais à ce que fait un workflow. Qui veut un enchaînement appelle le workflow suivant avec `workflow "Nom"` ; contre une boucle passant par d'autres programmes, le frein d'urgence arrête un workflow après plus de 20 exécutions par des événements en 5 minutes (section « Événements »).
-- **Limites des blocs :** au plus trois niveaux d'imbrication, pas de boucle dans une boucle et au plus 500 fichiers par boucle.
+- **Limites des blocs :** au plus trois niveaux d'imbrication, pas de boucle dans une boucle et au plus 500 fichiers ou enregistrements par boucle.
+- **Base de données :** un workflow écrit dans la base de données avec vos autorisations ; selon une planification et lors d'événements, il crée et modifie, mais ne supprime jamais. Si un workflow s'interrompt, les enregistrements qu'il a déjà écrits restent. Ce qu'un workflow écrit dans la base de données ne déclenche aucun événement.
 - **Pas d'annulation d'une exécution :** les étapes exécutées le restent ; le journal montre ce que la dernière exécution a touché, et l'annulation se fait de façon ciblée.
 - **Les macros** restent telles quelles et peuvent être appelées comme étape ; une macro est une suite de commandes dans les paramètres, un workflow une procédure sous forme de document. **Les [blocs de script](scripts.md)** restent en lecture seule, y compris comme étape de script ; un workflow n'est pas un langage de script général, mais un catalogue fixe de commandes.
 
 ## Étapes ultérieures
 
-Une autre étape est prévue, sans que sa portée ni sa date soient fixées : des commandes pour la [base de données](database.md). La vérification connaît déjà les mots-clés de ces commandes et les signale comme « n'est disponible qu'à une étape ultérieure », afin qu'un tel fichier ne s'exécute pas en partie.
+Une autre étape est prévue, sans que sa portée ni sa date soient fixées : des commandes pour l'échange de données de table de la [base de données](database.md), `db-export` et `db-import`. La vérification connaît déjà ces deux mots-clés et les signale comme « n'est disponible qu'à une étape ultérieure », afin qu'un tel fichier ne s'exécute pas en partie.

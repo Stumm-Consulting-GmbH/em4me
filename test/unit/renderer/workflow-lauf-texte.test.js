@@ -37,6 +37,8 @@ const {
 const { EVENT_TYPES } = await import('../../../src/shared/workflows/workflow-event.js');
 const { RUNNER_CODES } = await import('../../../src/shared/workflows/workflow-runner.js');
 const { BEGLEIT_CODES } = await import('../../../src/main/documents/companion-files.js');
+// 4T-002545: die Abweisung der Schreib-Schnittstelle als Code des Schritt-Moduls.
+const { DB_REJECTED } = await import('../../../src/main/workflows/workflow-db-steps.js');
 
 const QUELLEN = [
   'src/main/ipc/workflows.js',
@@ -46,6 +48,10 @@ const QUELLEN = [
   'src/main/workflows/workflow-maintenance-steps.js',
   'src/main/workflows/workflow-buffer-requests.js',
   'src/main/workflows/workflow-run-state.js',
+  // 4T-002545: die Schreib-Schritte der Datenbank.
+  'src/main/workflows/workflow-db-steps.js',
+  // 4T-002546: die Abfrage in eine Datei.
+  'src/main/workflows/workflow-db-query.js',
   'src/shared/workflows/workflow-edit.js',
   'src/renderer/modules/workflows/workflow-window.js',
 ];
@@ -66,6 +72,7 @@ describe('Durchlauf-Wächter: jeder Fehlschlag-Code hat einen Text', () => {
       ...geernteteCodes(),
       ...RUNNER_CODES,
       ...BEGLEIT_CODES,
+      DB_REJECTED,
       'partial',
       'notWorkflow',
       'fileMissing',
@@ -88,6 +95,59 @@ describe('Durchlauf-Wächter: jeder Fehlschlag-Code hat einen Text', () => {
       .map(fehlschlagSchluessel)
       .filter((k) => typeof katalog[k] !== 'string' || katalog[k] === '');
     expect(fehlend).toEqual([]);
+  });
+});
+
+// 4T-002545 (Df, De, AK3): Eine Abweisung der Schreib-Schnittstelle trägt den
+// Satz der Maske, gebildet aus ihren Lagen über `auftrag-text.js`.
+describe('Abweisung der Datenbank (4T-002545)', () => {
+  it('ein fehlendes Recht nennt Rolle, Tabelle und Handgriff', () => {
+    const lage = {
+      code: 'auftragPruefBefund',
+      naht: {
+        code: 'regelNichtErlaubt',
+        rolle: 'assistant',
+        tabelle: 'Daten/Library.md',
+        operation: 'delete',
+      },
+    };
+    const text = grundText({ code: DB_REJECTED, detail: { table: 'Library', lagen: [lage] } });
+    expect(text).toContain('assistant');
+    expect(text).toContain('Library');
+    expect(text).toContain(de['database.overview.allow.delete']);
+    expect(text).not.toContain('Daten/');
+  });
+
+  it('eine Prüfregel nennt Feld, Wert und Meldung wie die Maske', () => {
+    const lage = {
+      code: 'auftragPruefBefund',
+      naht: {
+        code: 'regelPruefregelVerletzt',
+        feld: 'pages',
+        wert: '0',
+        regel: 'value > 0',
+        meldung: 'Ein Buch hat Seiten.',
+      },
+    };
+    expect(grundText({ code: DB_REJECTED, detail: { lagen: [lage] } })).toBe(
+      de['database.auftrag.regelPruefregelVerletzt']
+        .replace('{wert}', '0')
+        .replace('{feld}', 'pages')
+        .replace('{regel}', 'value > 0')
+        .replace('{meldung}', 'Ein Buch hat Seiten.'),
+    );
+  });
+
+  it('ohne Lagen der allgemeine Text des Codes; die eigenen Fehlschläge mit Tabelle und Datensatz', () => {
+    expect(grundText({ code: DB_REJECTED, detail: {} })).toBe(de['workflow.fehlschlag.dbRejected']);
+    expect(
+      grundText({ code: 'dbRecordLocked', detail: { table: 'Library', record: 'Solaris' } }),
+    ).toBe(
+      einsetzen(de['workflow.fehlschlag.dbRecordLocked'], { table: 'Library', record: 'Solaris' }),
+    );
+    expect(
+      grundText({ code: 'dbRecordLocked', detail: { table: 'Library', record: 'Solaris' } }),
+    ).toContain("'Solaris'");
   });
 });
 

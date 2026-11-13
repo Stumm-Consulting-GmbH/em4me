@@ -33,7 +33,8 @@ afterEach(() => {
 
 // 4T-002352: `aus` ist die gespeicherte Aus-Liste der Erweiterungen; ohne sie
 // gibt es keinen Speicher, und der Schalter gilt als eingeschaltet.
-function welt({ mitBereich = true, aus = null, trashItem = null } = {}) {
+// 4T-002544: `extra` ergänzt die Abhängigkeiten (Tor und Sicht der Datenbank).
+function welt({ mitBereich = true, aus = null, trashItem = null, extra = null } = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-wf-kanal-'));
   tmpDirs.push(root);
   const kanaele = new Map();
@@ -68,6 +69,7 @@ function welt({ mitBereich = true, aus = null, trashItem = null } = {}) {
           }),
         }
       : {}),
+    ...(extra ? extra(root) : {}),
   });
   const workflowPath = path.join(root, 'Workflows', 'Ablauf.md');
   const event = { sender: { id: 1 } };
@@ -91,8 +93,12 @@ describe('Kanäle', () => {
     // an (ipc/workflow-folder.js); geprüft werden sie in workflow-folder-ipc.test.js.
     // Teil 2 brachte workflow:setFolder, workflow:create und workflow:fileInfo;
     // 4T-002350 den Lese-Kanal workflow:runs (ipc/workflow-runs.js).
+    // 4T-002544: workflow:dbCatalog, die Auskunft über den Datenbank-Bestand.
     expect([...welt().kanaele.keys()]).toEqual([
       'workflow:step',
+      'workflow:dbCatalog',
+      // 4T-002547: Datenbank-Werte eines Laufs.
+      'workflow:dbRead',
       'workflow:bufferEditDone',
       'workflow:recordRun',
       'workflow:folderList',
@@ -432,6 +438,293 @@ describe('Pflege-Befehle über workflow:step', () => {
         line: 2,
         taskText: '- [ ] Rückblick schreiben',
       },
+    });
+  });
+});
+
+// 4T-002544 (Ausführungs-Entscheidung 4): die Auskunft über Tabellen, Felder und
+// Abfrage-Dateien für die Rückfrage des Prüfers.
+describe('workflow:dbCatalog', () => {
+  const FENCE = '```';
+  function datenbankWelt({ an = true, bereit = true } = {}) {
+    return welt({
+      extra: (root) => {
+        const tabelle = path.join(root, 'Daten', 'Rechnungen.md');
+        const abfrage = path.join(root, 'Abfragen', 'Offen.md');
+        const kaputt = path.join(root, 'Abfragen', 'Kaputt.md');
+        fs.mkdirSync(path.dirname(tabelle), { recursive: true });
+        fs.mkdirSync(path.dirname(abfrage), { recursive: true });
+        fs.writeFileSync(
+          tabelle,
+          '---\ndb-table:\n  fields:\n    - name: nummer\n      type: string\n' +
+            '    - name: status\n      type: string\n---\n',
+        );
+        fs.writeFileSync(
+          abfrage,
+          `---\ndb-query: {}\n---\n${FENCE}perspective-query\nTABLE RECORDS nummer FROM "Rechnungen"\n${FENCE}\n`,
+        );
+        fs.writeFileSync(
+          kaputt,
+          `---\ndb-query: {}\n---\n${FENCE}perspective-query\nTABLE (\n${FENCE}\n`,
+        );
+        const sicht = {
+          dbKindsPerFile: new Map([
+            [tabelle, ['table']],
+            [abfrage, ['query']],
+            [kaputt, ['query']],
+          ]),
+          files: new Map(),
+        };
+        return {
+          datenbankAktiv: () => an,
+          backlinks: {
+            bufferTextFor: () => null,
+            bufferOwnerFor: () => null,
+            ensureIndexForDemand: () => {},
+            datenbankSicht: () => (bereit ? { status: 'ready', sicht } : { status: 'indexing' }),
+          },
+        };
+      },
+    });
+  }
+
+  it('liefert Tabellen mit Feldern und die Auslegung der Abfrage-Dateien', async () => {
+    const res = await datenbankWelt().rufe('workflow:dbCatalog');
+    expect(res).toEqual({
+      ok: true,
+      enabled: true,
+      tables: [{ name: 'Rechnungen', path: 'Daten/Rechnungen.md', fields: ['nummer', 'status'] }],
+      queries: [
+        { path: 'Abfragen/Kaputt.md', state: 'invalid' },
+        {
+          path: 'Abfragen/Offen.md',
+          state: 'ok',
+          records: true,
+          grouped: false,
+          table: 'Rechnungen',
+        },
+      ],
+    });
+  });
+
+  it('antwortet bei ausgeschalteter Datenbank mit leeren Listen', async () => {
+    expect(await datenbankWelt({ an: false }).rufe('workflow:dbCatalog')).toEqual({
+      ok: true,
+      enabled: false,
+      tables: [],
+      queries: [],
+    });
+  });
+
+  it('meldet einen Index im Aufbau und einen fehlenden Bereich', async () => {
+    expect(await datenbankWelt({ bereit: false }).rufe('workflow:dbCatalog')).toEqual({
+      ok: false,
+      code: 'notReady',
+    });
+    expect(await welt({ mitBereich: false }).rufe('workflow:dbCatalog')).toEqual({
+      ok: false,
+      code: 'noArea',
+    });
+  });
+});
+
+// 4T-002545 (E7): Die Schreib-Schritte der Datenbank am Schritt-Kanal — Prüfung
+// der Paare und Argument-Arten fail-closed, dann der Weg über das Schritt-Modul
+// mit der Schreib-Schnittstelle des Prozesses (hier eine mitschreibende
+// Attrappe; die echte prüft `workflow-db-steps.test.js`).
+describe('Datenbank-Schritte über workflow:step (4T-002545)', () => {
+  const paar = (key, value) => ({ key, value });
+  const db = (keyword, args, extra = {}) => schritt(keyword, args, extra);
+
+  function datenbankWelt() {
+    const auftraege = [];
+    const w = welt({
+      extra: (root) => {
+        const tabelle = path.join(root, 'Daten', 'Library.md');
+        fs.mkdirSync(path.dirname(tabelle), { recursive: true });
+        fs.writeFileSync(tabelle, '---\ndb-table:\n  fields:\n    - name: title\n---\n');
+        return {
+          datenbankAktiv: () => true,
+          sperrVerwaltung: { gehalteneSperren: () => [] },
+          schreibSchnittstelle: {
+            fuehreAuftragAus: async (wurzel, auftrag, optionen) => {
+              auftraege.push({ wurzel, auftrag, optionen });
+              return { ok: true, vorgang: 9, ergebnisse: [{ id: 'r-00001' }], dateien: [] };
+            },
+          },
+          backlinks: {
+            bufferTextFor: () => null,
+            bufferOwnerFor: () => null,
+            ensureIndexForDemand: () => {},
+            datenbankSicht: () => ({
+              status: 'ready',
+              sicht: { dbKindsPerFile: new Map([[tabelle, ['table']]]) },
+            }),
+          },
+        };
+      },
+    });
+    return { ...w, auftraege };
+  }
+
+  it.each([
+    ['db-create ohne Paar', db('db-create', ['Library'])],
+    ['db-create mit leerer Paar-Liste', db('db-create', ['Library'], { pairs: [] })],
+    ['db-update ohne Datensatz', db('db-update', ['Library'], { pairs: [paar('title', 'x')] })],
+    ['db-delete mit Paaren', db('db-delete', ['Library', 'r-1'], { pairs: [paar('title', 'x')] })],
+    ['Paar ohne Feld-Namen', db('db-create', ['Library'], { pairs: [paar(' ', 'x')] })],
+    ['Paar mit Gleichheitszeichen', db('db-create', ['Library'], { pairs: [paar('a=b', 'x')] })],
+    ['Paar mit Zahl', db('db-create', ['Library'], { pairs: [paar('title', 7)] })],
+    [
+      'Feld doppelt',
+      db('db-create', ['Library'], { pairs: [paar('title', 'x'), paar('Title', 'y')] }),
+    ],
+    ['leere Tabelle', db('db-create', [' '], { pairs: [paar('title', 'x')] })],
+    ['Tabelle zu lang', db('db-create', ['x'.repeat(5000)], { pairs: [paar('title', 'x')] })],
+    [
+      'Name hinter as bei db-update',
+      db('db-update', ['Library', 'r-1'], { pairs: [paar('title', 'x')], result: 'neu' }),
+    ],
+    ['Name hinter as leer', db('db-create', ['Library'], { pairs: [paar('t', 'x')], result: ' ' })],
+    // 4T-002546 (V6): db-query mit Ziel `into` und `under`.
+    ['db-query ohne into', db('db-query', ['A.md'])],
+    ['db-query mit leerem into', db('db-query', ['A.md'], { target: ' ' })],
+    ['db-query ohne Abfrage-Datei', db('db-query', [''], { target: 'B.md' })],
+    [
+      'db-query mit at-start',
+      db('db-query', ['A.md'], { target: 'B.md', position: { kind: 'atStart' } }),
+    ],
+    [
+      'into bei db-create',
+      db('db-create', ['Library'], { pairs: [paar('t', 'x')], target: 'B.md' }),
+    ],
+    // 4T-002548 (V5): die Masken- und Konsistenz-Befehle.
+    ['db-open ohne Tabelle', db('db-open', [])],
+    ['db-open mit drei Argumenten', db('db-open', ['Library', 'r-1', 'x'])],
+    ['db-open mit Paaren', db('db-open', ['Library'], { pairs: [paar('title', 'x')] })],
+    ['db-open-list ohne Datei', db('db-open-list', [])],
+    ['db-check mit zwei Argumenten', db('db-check', ['Library', 'x'])],
+    ['db-check mit Zahl', db('db-check', [7])],
+    ['db-check mit into', db('db-check', [], { target: 'B.md' })],
+  ])('%s: invalidStep, kein Auftrag', async (_name, step) => {
+    const w = datenbankWelt();
+    const res = await w.rufe('workflow:step', { workflowPath: w.workflowPath, step });
+    expect(res).toMatchObject({ ok: false, code: 'invalidStep' });
+    expect(w.auftraege).toEqual([]);
+  });
+
+  it('führt db-create über die Schnittstelle des Prozesses aus, mit der Naht der Lauf-Marke', async () => {
+    const w = datenbankWelt();
+    const res = await w.rufe('workflow:step', {
+      workflowPath: w.workflowPath,
+      step: db('db-create', ['Library'], { pairs: [paar('title', 'Probe')], result: 'neu' }),
+    });
+    expect(res).toEqual({
+      ok: true,
+      line: 3,
+      keyword: 'db-create',
+      record: 'r-00001',
+      effect: {
+        kind: 'db',
+        paths: [path.join(w.root, 'Daten', 'Library.md')],
+        table: 'Library',
+        record: 'r-00001',
+        transaction: 9,
+      },
+    });
+    expect(w.auftraege).toHaveLength(1);
+    expect(w.auftraege[0].wurzel).toBe(w.root);
+    expect(w.auftraege[0].auftrag).toEqual({
+      anweisungen: [{ tabelle: 'Daten/Library.md', art: 'create', werte: { title: 'Probe' } }],
+    });
+    expect(typeof w.auftraege[0].optionen.vorSchreiben).toBe('function');
+  });
+
+  it('reicht db-open-list und db-check an das Modul der Masken weiter (4T-002548)', async () => {
+    const w = datenbankWelt();
+    const rufe = (step) => w.rufe('workflow:step', { workflowPath: w.workflowPath, step });
+    expect(await rufe(db('db-open-list', ['Daten/Library.md']))).toEqual({
+      ok: false,
+      line: 3,
+      keyword: 'db-open-list',
+      code: 'dbQueryFileMissing',
+      detail: { path: 'Daten/Library.md' },
+    });
+    expect(await rufe(db('db-check', ['Fremd']))).toMatchObject({
+      ok: false,
+      keyword: 'db-check',
+      code: 'dbTableUnknown',
+    });
+    expect(w.auftraege).toEqual([]);
+  });
+
+  it('nimmt keine Identität aus dem Fenster an: eine Angabe benutzer am Schritt reist nicht mit (E8)', async () => {
+    const w = datenbankWelt();
+    await w.rufe('workflow:step', {
+      workflowPath: w.workflowPath,
+      step: { ...db('db-create', ['Library'], { pairs: [paar('title', 'x')] }), benutzer: 'chef' },
+    });
+    expect(Object.keys(w.auftraege[0].auftrag.anweisungen[0]).sort()).toEqual([
+      'art',
+      'tabelle',
+      'werte',
+    ]);
+  });
+});
+
+// 4T-002547 (V6): Der Lese-Kanal der Datenbank-Werte eines Laufs prüft die Form
+// der Anfrage fail-closed und löst gegen die Wurzel des sendenden Fensters auf;
+// den echten Lese-Weg prüft `workflow-db-schleife.test.js`.
+describe('workflow:dbRead (4T-002547)', () => {
+  const lesen = ({ an = true, ...rest } = {}) =>
+    welt({ ...rest, extra: () => ({ datenbankAktiv: () => an }) });
+
+  it.each([
+    ['ohne Anfrage', undefined],
+    ['unbekannte Art', { art: 'file', tabelle: 'T', kennung: 'r-1' }],
+    ['record ohne Kennung', { art: 'record', tabelle: 'T' }],
+    ['record mit leerer Tabelle', { art: 'record', tabelle: ' ', kennung: 'r-1' }],
+    ['db ohne Feld', { art: 'db', table: 'T', record: 'r-1' }],
+    ['db mit Zahl als Datensatz', { art: 'db', table: 'T', record: 7, field: 'f' }],
+    ['db mit zu langem Feld', { art: 'db', table: 'T', record: 'r', field: 'x'.repeat(5000) }],
+  ])('%s: invalidStep', async (_name, anfrage) => {
+    const w = lesen();
+    expect(await w.rufe('workflow:dbRead', { workflowPath: w.workflowPath, anfrage })).toEqual({
+      ok: false,
+      code: 'invalidStep',
+      detail: {},
+    });
+  });
+
+  it('verweigert bei ausgeschalteten Workflows und ohne Bereich', async () => {
+    const anfrage = { art: 'db', table: 'T', record: 'r-1', field: 'f' };
+    const aus = welt({ aus: ['workflows'] });
+    expect(await aus.rufe('workflow:dbRead', { workflowPath: aus.workflowPath, anfrage })).toEqual({
+      ok: false,
+      code: 'extensionOff',
+      detail: {},
+    });
+    const ohne = lesen({ mitBereich: false });
+    expect(
+      await ohne.rufe('workflow:dbRead', { workflowPath: ohne.workflowPath, anfrage }),
+    ).toMatchObject({
+      ok: false,
+      code: 'noArea',
+    });
+  });
+
+  it('reicht beide Arten an das Schritt-Modul weiter; eine ausgeschaltete Datenbank weist dort ab', async () => {
+    const w = lesen({ an: false });
+    const rufe = (anfrage) => w.rufe('workflow:dbRead', { workflowPath: w.workflowPath, anfrage });
+    expect(await rufe({ art: 'record', tabelle: 'Daten/T.md', kennung: 'r-1' })).toMatchObject({
+      ok: false,
+      code: 'dbRejected',
+      detail: { table: 'Daten/T.md', record: 'r-1', lagen: [{ code: 'auftragErweiterungAus' }] },
+    });
+    expect(await rufe({ art: 'db', table: 'T', record: 'Solaris', field: 'pages' })).toMatchObject({
+      ok: false,
+      code: 'dbRejected',
+      detail: { table: 'T', record: 'Solaris' },
     });
   });
 });

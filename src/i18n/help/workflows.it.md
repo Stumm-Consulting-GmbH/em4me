@@ -1,6 +1,6 @@
 # Workflow
 
-Un **workflow** mette per iscritto operazioni ricorrenti come sequenza fissa di passi: creare, rinominare, spostare, copiare e spostare nel cestino file e cartelle, accodare o inserire testo, impostare proprietà ed etichette nell'intestazione, spuntare attività, eseguire comandi, macro e altri workflow. Condizioni e ripetizioni decidono quali passi vengono eseguiti e per quali file; un passo di script calcola un valore senza scrivere nulla. Un workflow è un **normale file Markdown**; ciò che fa sta in un blocco di comandi fissi, una riga per passo. Il file resta così leggibile senza l'applicazione, si può condividere e si modifica come qualsiasi altro documento.
+Un **workflow** mette per iscritto operazioni ricorrenti come sequenza fissa di passi: creare, rinominare, spostare, copiare e spostare nel cestino file e cartelle, accodare o inserire testo, impostare proprietà ed etichette nell'intestazione, spuntare attività, eseguire comandi, macro e altri workflow. Condizioni e ripetizioni decidono quali passi vengono eseguiti e per quali file; un passo di script calcola un valore senza scrivere nulla. I comandi della banca dati creano, modificano ed eliminano record, scrivono il risultato di una query in un file, aprono maschere e verificano la coerenza. Un workflow è un **normale file Markdown**; ciò che fa sta in un blocco di comandi fissi, una riga per passo. Il file resta così leggibile senza l'applicazione, si può condividere e si modifica come qualsiasi altro documento.
 
 Un workflow si avvia **a mano**: dal menu, dalla palette dei comandi, con una scorciatoia da tastiera, un pulsante sopra il blocco o il menu contestuale del pannello dell'area. Un workflow con pianificazione viene inoltre eseguito **secondo la pianificazione**, un workflow con evento **a un evento** dell'area, per esempio un nuovo file in una cartella, in entrambi i casi non appena è attivato. **Prima che venga eseguito il primo passo, l'applicazione controlla l'intero workflow**; un errore compare sopra il blocco con riga e motivo, e non viene eseguito nulla.
 
@@ -171,6 +171,21 @@ Questi comandi aprono un **blocco** che una riga `end` chiude; i passi intermedi
 | `for-each` | per ogni: blocco una volta per ogni file che corrisponde al modello | cartella con modello di file | `for-each "Ingresso/*.md"` |
 | `script` | script: eseguire il blocco di script di una sezione e dare un nome al suo risultato | titolo, `as "nome"` | `script "Conteggio" as "numero"` |
 
+### Banca dati
+
+Questi comandi lavorano con i record della [banca dati](database.md) dell'area. Dettagli nella sezione «Comandi della banca dati».
+
+| Comando | Significato | Indicazioni | Esempio |
+| --- | --- | --- | --- |
+| `db-create` | creare un record | tabella, coppie `campo="valore"`, a scelta `as "nome"` | `db-create "Library" title="The Invincible" author="Stanisław Lem" pages="186"` |
+| `db-update` | modificare un record | tabella, record, coppie `campo="valore"` | `db-update "Library" "Solaris" loanNote="in prestito"` |
+| `db-delete` | eliminare un record | tabella, record | `db-delete "Library" "r-00024"` |
+| `db-query` | query in un file: scrivere il risultato di un file di query come tabella | file di query, `into "destinazione"`, a scelta `under "titolo"` | `db-query "Long Books.md" into "Elenco di lettura.md" under "Libri lunghi"` |
+| `db-for-each` | per ogni record: il blocco una volta per ogni record di un file di query | file di query | `db-for-each "Long Books.md"` |
+| `db-open` | aprire una maschera: mostrare un record nella sua maschera predefinita o, senza record, iniziarne uno nuovo | tabella, a scelta record | `db-open "Library" "Solaris"` |
+| `db-open-list` | aprire una maschera elenco: aprire un file di query | file di query | `db-open-list "Loans List.md"` |
+| `db-check` | verificare la coerenza: tutte le tabelle o una | a scelta tabella | `db-check "Library"` |
+
 ### Fonti di un contenuto
 
 `create`, `append` e `insert` prendono il loro contenuto da una di tre fonti. Un contenuto non sta mai come testo libero nella riga di comando.
@@ -201,12 +216,16 @@ I segnaposto valgono in ogni dato di una riga di comando. Modelli e workflow con
 | `{{task}}` | con `task-done`, il testo dell'attività completata |
 | `{{item}}`, `{{item:name}}` | in un ciclo `for-each`, il percorso del file corrente e il suo nome senza estensione |
 | `{{script:name}}` | il risultato del passo di script `script … as "name"` |
+| `{{record:campo}}`, `{{record:id}}`, `{{record:table}}`, `{{record:file}}` | in un ciclo `db-for-each` un campo del record corrente, il suo identificatore, la sua tabella e il suo file (sezione «Comandi della banca dati») |
+| `{{created:nome}}` | l'identificatore del record che `db-create … as "nome"` ha creato |
+| `{{db:Tabella:Record:Campo}}` | il valore di un campo della banca dati, letto al momento del passo |
 
 - **Tutte le finestre prima del primo passo:** le finestre di inserimento e di scelta dell'intera esecuzione compaiono una dopo l'altra prima che accada qualcosa, comprese quelle dei modelli usati e dei workflow richiamati. Una stessa domanda viene posta una sola volta e vale ovunque. Annullare una finestra annulla l'esecuzione, e nessun passo viene eseguito.
 - **Un istante per esecuzione:** `{{date}}` e `{{time}}` hanno lo stesso valore in tutte le righe, anche a cavallo della mezzanotte. Allo stesso modo gli appunti vengono letti una sola volta all'avvio, e `{{clipboard}}` ha lo stesso contenuto in tutte le righe.
 - **In un modello usato da un workflow**, `{{title}}` e `{{folder}}` indicano come sempre il nuovo file, mentre `{{file}}` e `{{area}}` indicano il documento attivo e l'area.
 - **Secondo la pianificazione e agli eventi** non c'è nessuno che risponda a una finestra: in un workflow con `trigger: schedule` o `trigger: event`, i segnaposto di inserimento e di scelta sono il rilievo «Solo manuale».
-- `{{item}}`, `{{item:name}}` e `{{script:name}}` ricevono il loro valore solo durante l'esecuzione; nel nome di un workflow o di una macro, nel percorso di un modello e nella destinazione di `delete` sono perciò un rilievo.
+- `{{item}}`, `{{item:name}}`, `{{script:name}}`, `{{record:…}}`, `{{created:…}}` e `{{db:…}}` ricevono il loro valore solo durante l'esecuzione; nel nome di un workflow o di una macro, nel percorso di un modello e nella destinazione di `delete` sono perciò un rilievo.
+- `{{record:…}}`, `{{created:…}}` e `{{db:…}}` valgono solo nelle righe di comando. In un modello, anche in uno che un workflow inserisce, restano come testo.
 - `{{cursor}}` non è ammesso in una riga di comando. `\{{` scrive un `{{` letterale.
 - Se `{{folder}}` resta vuoto nella cartella radice, `"{{folder}}/Nuovo.md"` diventa il percorso `Nuovo.md`. Senza documento attivo, `{{file}}` è vuoto, e un percorso formato con esso è un rilievo.
 
@@ -231,7 +250,7 @@ Il comando di un workflow riceve il suo identificativo dal percorso del file nel
 ## Svolgimento di un'esecuzione
 
 1. L'applicazione controlla il workflow insieme ai workflow che richiama.
-2. Le finestre di tutti i segnaposto compaiono una dopo l'altra; se l'esecuzione contiene `delete`, segue l'unica conferma delle destinazioni da eliminare.
+2. Le finestre di tutti i segnaposto compaiono una dopo l'altra; se l'esecuzione contiene `delete` o `db-delete`, segue l'unica conferma delle destinazioni da eliminare.
 3. I passi vengono eseguiti rigorosamente uno dopo l'altro; ciascuno attende il precedente. Condizioni e cicli decidono quali passi vengono eseguiti e quante volte.
 4. Il primo fallimento termina l'esecuzione. La barra di stato mostra «Workflow ‹Nome› interrotto alla riga N: motivo».
 
@@ -314,6 +333,105 @@ return pq.pages('Attività').filter(function (p) { return p.status === 'aperto';
 - **La stessa sandbox dei blocchi di script:** lo script legge i dati dell'area tramite l'interfaccia pq, con il file di workflow come documento proprio (`pq.current()`), e non ha accesso a file, rete né all'applicazione. È **di sola lettura**. Viene interrotto dopo **5 secondi**. Un errore o un'interruzione è un fallimento del passo e termina l'esecuzione con «Script non riuscito» o «Script interrotto dopo 5 secondi».
 - **Impostazione «Esegui blocchi di script»:** il passo di script segue la stessa impostazione dei blocchi di script (**Impostazioni → Comportamento**, disattivata per impostazione predefinita). Se è disattivata, il controllo segnala «I blocchi di script sono disattivati» con la riga; il workflow non viene eseguito e non si può attivare. Subito prima di ogni script l'applicazione consulta di nuovo l'impostazione.
 - Il controllo cerca la sezione prima del primo passo: se manca, compare più volte o non contiene alcun blocco di script, è un rilievo. Anche un `{{script:nome}}` prima del passo che lo fornisce è un rilievo; se il passo che lo fornisce non è stato eseguito in un ramo, la riga fallisce.
+
+## Comandi della banca dati
+
+Con i comandi della banca dati un workflow lavora con i record della [banca dati](database.md) dell'area: crea, modifica ed elimina record, scrive il risultato di un file di query come tabella in un file, ripete passi per ogni record di una query, legge singoli valori di campo, apre maschere e verifica la coerenza. L'esempio annota una nota di prestito su ogni libro lungo, scrive l'elenco dei libri lunghi in una nota e poi verifica la tabella:
+
+````markdown
+```workflow
+db-for-each "Long Books.md"
+  db-update "Library" "{{record:id}}" loanNote="lungo: {{record:pages}} pagine"
+end
+db-query "Long Books.md" into "Elenco di lettura.md" under "Libri lunghi"
+db-check "Library"
+```
+````
+
+I comandi della banca dati richiedono l'estensione «Banca dati». Se è disattivata, il controllo segnala «La banca dati è disattivata» per ciascuno di questi comandi, e il workflow non viene eseguito.
+
+### Tabella, record e valori
+
+- **La tabella** si indica con il suo nome, come con `FROM` in una query, o con il percorso del suo file: `"Library"` oppure `"Library.md"`. Se due tabelle hanno lo stesso nome, il controllo segnala «Tabella ambigua»; allora aiuta il percorso.
+- **Il record** si trova come in un collegamento: prima come identificatore, `r-00042` o `r-42`, altrimenti tramite la sua forma di visualizzazione, per esempio `"Solaris"`. Se più record portano questa forma di visualizzazione, il passo fallisce con «ambiguo» e non prende mai il primo; se non se ne trova nessuno, con «non trovato».
+- **I valori** si scrivono come coppie `campo="valore"` e sono sempre testo, anche un numero come `pages="224"`. Se un valore è adatto al suo campo lo verifica la banca dati in scrittura, come nella maschera.
+- **Il controllo prima dell'esecuzione** conosce tabelle e campi: una tabella sconosciuta, un campo che la tabella non ha e un campo indicato due volte in una riga sono un rilievo con riga. Se un'indicazione contiene un segnaposto, l'applicazione controlla dopo averlo riempito.
+
+### Creare, modificare ed eliminare record
+
+- `db-create` crea un record, `db-update` modifica i campi indicati di un record, `db-delete` ne elimina uno. I primi due richiedono almeno una coppia.
+- **La stessa via della maschera:** ogni comando scrive con tutte le regole della tabella, cioè regole di verifica, valori obbligatori, chiave, protezione dall'eliminazione e permessi. Se la banca dati respinge, il passo fallisce con la frase che mostra anche la maschera.
+- **Letto di nuovo:** `db-update` e `db-delete` leggono il record subito prima di scrivere. Se qualcun altro lo modifica nel frattempo, il passo fallisce. Se qualcuno sta modificando il record in una maschera proprio in quel momento, il passo fallisce subito, senza attendere.
+- **Il nuovo identificatore:** dopo `db-create "Library" title="The Invincible" as "nuovo"`, l'identificatore del record creato è disponibile in ogni riga successiva come `{{created:nuovo}}`, per esempio in `db-open "Library" "{{created:nuovo}}"`. Il nome è fatto di lettere, cifre, `_` e `-`; maiuscole e minuscole non contano, e ogni nome si assegna una volta sola. Un `{{created:…}}` prima della sua creazione è un rilievo; se la creazione non è stata eseguita in un ramo, la riga fallisce.
+- In una tabella in **forma a schedario**, `db-create` crea una scheda; il suo nome è il valore della chiave. Anche lì valgono i valori obbligatori: se un campo obbligatorio resta senza valore, il passo fallisce con un motivo come in forma di tabella, e non viene creato nulla.
+- **Prima di eliminare**, l'applicazione chiede una volta prima del primo passo e indica che cosa verrà eliminato; «No» non lascia eseguire alcun passo. Se una destinazione si conosce solo durante l'esecuzione, la conferma dice a parole che cosa verrà eliminato, per esempio «Il record della tabella 'Library' creato in questa esecuzione»; in un ciclo sui record indica la query, la tabella e il limite di 500.
+- **Un record a cui fa ancora riferimento qualcosa** non si può eliminare, come nella maschera.
+
+### Query in un file
+
+`db-query "Long Books.md" into "Elenco di lettura.md" under "Libri lunghi"` esegue un [file di query](database.md) e scrive il suo risultato come tabella fissa in un file.
+
+- **La fonte** è un file di query con la marca `db-query` ed esattamente un blocco di query. Viene eseguito come nella sua vista di lettura, indicazioni come `this.minpages` comprese. Se il file non è un file di query, il controllo segnala «Non è un file di query»; se la sua query è errata, «Query errata».
+- **La tabella** porta le etichette delle colonne come riga di intestazione e i valori come li mostra la vista della query; un record diventa un collegamento con la sua forma di visualizzazione come testo, per esempio `[[Library#^r-00003|Solaris]]`, così la nota mostra il titolo come la vista della query. Senza risultati resta una tabella senza righe, seguita dalla frase che mostra anche la vista della query.
+- **Con `under`** la tabella sostituisce il contenuto di quella sezione, e il titolo resta; se manca o compare più volte, il passo fallisce come con `insert`. Una seconda esecuzione sostituisce la tabella invece di aggiungerne una seconda. **Senza `under`** il passo crea il file e fallisce se esiste già, come con `create`. Per raccogliere si scrive in un file datato: `into "Rapporti/{{date}}.md"`.
+- I record che un passo precedente della stessa esecuzione ha scritto compaiono già nel risultato.
+
+### Ciclo sui record
+
+`db-for-each` ripete i passi fino a `end` per ogni record che restituisce un file di query, nella forma del ciclo `for-each`:
+
+````markdown
+```workflow
+db-for-each "Long Books.md"
+  db-update "Library" "{{record:id}}" loanNote="lungo: {{record:pages}} pagine"
+end
+```
+````
+
+| Segnaposto | Valore a ogni ripetizione |
+| --- | --- |
+| `{{record:campo}}` | il valore del campo nel record corrente, per esempio `{{record:pages}}` |
+| `{{record:id}}` | l'identificatore del record |
+| `{{record:table}}` | la tabella in cui si trova |
+| `{{record:file}}` | il file in cui si trova: nella forma a schedario la sua scheda, altrimenti il file di tabella |
+
+- **La query deve restituire record:** una query `TABLE RECORDS`, non raggruppata. Altrimenti il controllo segnala che la query non restituisce record.
+- **Elenco fisso:** l'elenco è fissato all'ingresso nel ciclo e viene elaborato nell'ordine della query; ogni record esattamente una volta. I record che l'esecuzione crea nel ciclo non si aggiungono.
+- **Letto di nuovo:** un record viene letto all'inizio della sua ripetizione e di nuovo prima di ogni passo successivo che nomina uno dei suoi campi; così un passo vede ciò che ha scritto un passo precedente della stessa ripetizione. Se nel frattempo il record è scomparso, l'esecuzione termina a questa riga con «non trovato».
+- **Limiti:** al massimo **500 record**; se sono di più, il passo fallisce prima della prima ripetizione, e nessun record è stato elaborato. Un insieme vuoto non dà alcuna ripetizione e non è un fallimento. Nessun ciclo dentro un ciclo, di qualunque tipo; una condizione dentro il ciclo è permessa.
+- `{{record:…}}` fuori da un ciclo sui record è un rilievo. Se un passo nel ciclo fallisce, l'esecuzione termina; i record già elaborati restano elaborati.
+
+### Valore di campo come segnaposto
+
+`{{db:Library:Solaris:pages}}` legge il campo `pages` del record «Solaris» della tabella «Library», per esempio in `notify "Pagine: {{db:Library:Solaris:pages}}"`.
+
+- Le tre indicazioni sono tabella, record e campo; il record si trova come sopra, tramite identificatore o forma di visualizzazione.
+- **Viene letto al momento del passo**, non prima dell'esecuzione; vale quindi un valore che un passo precedente della stessa esecuzione ha scritto.
+- **Fallimento invece di vuoto:** se il record non si trova, è ambiguo o la tabella non conosce il campo, il passo fallisce con un motivo. Un valore di campo vuoto di un record trovato è un testo vuoto.
+- Il controllo segnala in anticipo un segnaposto senza esattamente tre indicazioni, una tabella sconosciuta e un campo sconosciuto; non cerca il record, perché vale solo al momento del passo.
+
+### Aprire maschere e verificare la coerenza
+
+- **`db-open "Library" "Solaris"`** mostra il record nella maschera predefinita della sua tabella. **`db-open "Library"`** senza record inizia un nuovo record come «Nuovo record» e richiede il permesso di creare nella tabella; se manca, il passo fallisce indicando ruolo e tabella. Una tabella in forma a schedario non ha questo nuovo record, e il passo fallisce con un motivo; una nuova scheda si crea con «Nuova scheda» nella panoramica della banca dati o con `db-create`.
+- Se la maschera ha una modifica non salvata, chiede prima di cambiare, e il passo attende la risposta senza limite di tempo. «Scarta» apre la destinazione, e l'esecuzione continua. «Continua a modificare» lascia invariata la modifica e termina l'esecuzione a questa riga con un motivo; l'esecuzione termina allo stesso modo se la domanda viene chiusa senza risposta, per esempio con la scheda della maschera.
+- **`db-open-list "Loans List.md"`** apre un file di query come `open`; una [maschera elenco](database.md) vi mostra la sua griglia. Se il file non è un file di query, il controllo segnala «Non è un file di query».
+- **`db-check`** verifica tutte le tabelle, **`db-check "Library"`** una sola, con la stessa verifica di «Verifica coerenza» nella panoramica della banca dati. Il risultato compare come con `notify`, per esempio «Coerenza: 3 rilievi in ‹Library›» oppure «Coerenza: nessun rilievo»; senza tabella indicata nomina le tabelle con rilievi. **Un rilievo non ferma l'esecuzione**; chi non vuole proseguire dopo di esso mette `db-check` alla fine. Se la verifica stessa fallisce, è un fallimento del passo. I rilievi nel dettaglio li mostra «Verifica coerenza» nella panoramica della banca dati. `db-check` non scrive nulla.
+
+### Senza nessuno presente, interruzione e traccia
+
+**Un workflow scrive nella banca dati con i vostri permessi; secondo pianificazione e agli eventi crea e modifica, ma non elimina mai.**
+
+| Comando | a mano | pianificato e agli eventi |
+| --- | --- | --- |
+| `db-create`, `db-update` | sì | sì |
+| `db-delete` | sì, dopo la conferma | rilievo «Solo manuale» |
+| `db-query`, `db-for-each`, `{{db:…}}` | sì | sì |
+| `db-open` | sì | rilievo «Solo manuale» |
+| `db-open-list`, `db-check` | sì | sì |
+
+- **Se un workflow si interrompe, restano i record che ha già scritto.** Ogni comando della banca dati che scrive record è un salvataggio a sé, che ha effetto per intero o per niente; l'esecuzione non si annulla.
+- **Traccia nel registro:** sulla pagina «Esecuzioni dei workflow» il registro indica per ogni passo della banca dati tabella, record e identificatore di operazione, per esempio «Riga 2: db-update – tabella Library, record r-00007, operazione 12». Lo stesso identificatore di operazione portano i [giustificativi di modifica](database.md) di questo passo.
+- **Nessun evento:** ciò che un workflow scrive nella banca dati non fa scattare alcun evento, né sul file di tabella né su una scheda.
 
 ## Pianificazione e attivazione
 
@@ -425,7 +543,7 @@ La riga ha la forma `event: <evento> [in "<cartella o file>"] [matching "<modell
 
 ### Che cosa può fare un'esecuzione a un evento
 
-- Un'esecuzione da un evento si svolge **senza nessuno presente**, come un'esecuzione pianificata: i segnaposto di inserimento e di scelta, `confirm` e `delete` sono il rilievo «Solo manuale». **Agli eventi non si elimina mai nulla.**
+- Un'esecuzione da un evento si svolge **senza nessuno presente**, come un'esecuzione pianificata: i segnaposto di inserimento e di scelta, `confirm`, `delete`, `db-delete` e `db-open` sono il rilievo «Solo manuale». **Agli eventi non si elimina mai nulla.**
 - `{{file}}`, `{{from}}` e `{{task}}` portano i valori dell'evento (tabella sopra). Il controllo segnala un segnaposto che l'evento non fornisce: `{{file}}` con `area-opened`, `{{from}}` tranne che con `file-moved`, `{{task}}` tranne che con `task-done`.
 
 ### Quando agiscono gli eventi
@@ -439,7 +557,7 @@ La riga ha la forma `event: <evento> [in "<cartella o file>"] [matching "<modell
 
 ### Nessuna catena
 
-**Un workflow reagisce a ciò che fate voi o altri programmi, mai a ciò che fa un workflow.** Ciò che un'esecuzione crea, modifica, sposta o spunta non fa scattare alcun evento; un workflow che, a un nuovo file in «Ingresso», crea esso stesso un file in «Ingresso» non gira quindi in tondo. Chi vuole una sequenza richiama espressamente il secondo workflow con `workflow "Nome"`. Se un passo scrive in un documento aperto e non salvato, solo il vostro salvataggio è una modifica del file e fa scattare `file-changed`; un'attività che un tale passo spunta nel documento fa scattare `task-done`.
+**Un workflow reagisce a ciò che fate voi o altri programmi, mai a ciò che fa un workflow.** Ciò che un'esecuzione crea, modifica, sposta o spunta, anche un record che scrive nella banca dati, non fa scattare alcun evento; un workflow che, a un nuovo file in «Ingresso», crea esso stesso un file in «Ingresso» non gira quindi in tondo. Chi vuole una sequenza richiama espressamente il secondo workflow con `workflow "Nome"`. Se un passo scrive in un documento aperto e non salvato, solo il vostro salvataggio è una modifica del file e fa scattare `file-changed`; un'attività che un tale passo spunta nel documento fa scattare `task-done`.
 
 **Freno di emergenza:** se lo stesso workflow viene eseguito da eventi più di **20 volte in 5 minuti**, per esempio perché un altro programma risponde alle sue modifiche, la 21ª esecuzione non parte più. Il workflow viene disattivato, gli eventi in attesa per lui decadono, e la barra di stato segnala «Workflow ‹Nome› disattivato: più di 20 esecuzioni attivate da eventi in 5 minuti», senza finestre in primo piano anche come notifica del sistema operativo. La pagina **Esecuzioni dei workflow** mostra «non attivato: freno di emergenza» sotto la casella e il motivo nella colonna **Risultato**. Dopo una nuova attivazione il freno ricomincia a contare.
 
@@ -501,7 +619,7 @@ Dopo un'esecuzione in questa finestra, la pagina mostra lo stesso motivo della b
 
 ### Che cosa ha fatto un'esecuzione
 
-Il pulsante «Registro (N)» apre sotto la riga il **registro** dell'ultima esecuzione: ogni file e ogni cartella che ha creato, modificato, spostato, copiato o eliminato, come «Riga N: comando – percorso», con il percorso relativo alla radice dell'area. Se l'esecuzione non ha toccato nulla, mostra «Nessun file toccato»; con moltissimi file toccati, il registro è troncato e lo indica.
+Il pulsante «Registro (N)» apre sotto la riga il **registro** dell'ultima esecuzione: ogni file e ogni cartella che ha creato, modificato, spostato, copiato o eliminato, come «Riga N: comando – percorso», con il percorso relativo alla radice dell'area; un passo della banca dati compare come «Riga N: comando – tabella, record, operazione» (sezione «Comandi della banca dati»). Se l'esecuzione non ha toccato nulla, mostra «Nessun file toccato»; con moltissimi file toccati, il registro è troncato e lo indica.
 
 Non c'è un annullamento di un'intera esecuzione. Si annulla in modo mirato, con i mezzi che esistono comunque: le modifiche al contenuto con la [cronologia del documento](history.md) del file toccato, ciò che è stato eliminato dal cestino, ciò che è stato creato, spostato e copiato nel pannello dell'area.
 
@@ -516,13 +634,14 @@ Evidenziazione e indicazione non modificano il testo del file.
 ## Limiti
 
 - **Solo nell'area:** nessun comando legge o scrive fuori dalla radice dell'area in cui il workflow è stato avviato, nemmeno tramite un segnaposto; ciò vale anche per un workflow di un'area collegata.
-- **Nessuna rete, nessun programma esterno.** Si elimina solo con `delete`, solo in un avvio a mano, dopo una conferma e verso il cestino.
+- **Nessuna rete, nessun programma esterno.** I file li elimina solo `delete`, i record solo `db-delete`, entrambi solo in un avvio a mano e dopo una conferma; i file vanno nel cestino.
 - **Nessuna esecuzione senza area aperta:** un workflow pianificato viene eseguito solo finché l'applicazione e la sua area sono aperte; recupera le scadenze perse secondo le regole di `missed`. Anche gli eventi agiscono solo con l'area aperta e non vengono recuperati.
 - **Nessuna catena:** un workflow reagisce a ciò che fate voi o altri programmi, mai a ciò che fa un workflow. Chi vuole una sequenza richiama il workflow successivo con `workflow "Nome"`; contro un ciclo attraverso altri programmi, il freno di emergenza ferma un workflow dopo più di 20 esecuzioni da eventi in 5 minuti (sezione «Eventi»).
-- **Limiti dei blocchi:** al massimo tre livelli di annidamento, nessun ciclo dentro un ciclo e al massimo 500 file per ciclo.
+- **Limiti dei blocchi:** al massimo tre livelli di annidamento, nessun ciclo dentro un ciclo e al massimo 500 file o record per ciclo.
+- **Banca dati:** un workflow scrive nella banca dati con i vostri permessi; secondo pianificazione e agli eventi crea e modifica, ma non elimina mai. Se un workflow si interrompe, restano i record che ha già scritto. Ciò che un workflow scrive nella banca dati non fa scattare alcun evento.
 - **Nessun annullamento di un'esecuzione:** i passi eseguiti restano eseguiti; il registro mostra ciò che l'ultima esecuzione ha toccato, e si annulla in modo mirato.
 - **Le macro** restano come sono e si possono richiamare come passo; una macro è una sequenza di comandi nelle impostazioni, un workflow una procedura come documento. **I [blocchi di script](scripts.md)** restano di sola lettura, anche come passo di script; un workflow non è un linguaggio di script generale, ma un catalogo fisso di comandi.
 
 ## Fasi successive
 
-È prevista un'altra fase, senza che portata e tempi siano fissati: comandi per la [banca dati](database.md). Il controllo conosce già le parole chiave di questi comandi e le segnala come «disponibile solo in una fase successiva», affinché un file del genere non venga eseguito in parte.
+È prevista un'altra fase, senza che portata e tempi siano fissati: comandi per lo scambio di dati di tabella della [banca dati](database.md), `db-export` e `db-import`. Il controllo conosce già queste due parole chiave e le segnala come «disponibile solo in una fase successiva», affinché un file del genere non venga eseguito in parte.

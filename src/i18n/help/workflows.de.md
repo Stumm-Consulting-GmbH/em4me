@@ -1,6 +1,6 @@
 # Workflows
 
-Ein **Workflow** schreibt wiederkehrende Handgriffe als feste Folge von Schritten auf: Dateien und Ordner anlegen, umbenennen, verschieben, kopieren und in den Papierkorb legen, Text anhängen oder einfügen, Eigenschaften und Schlagwörter im Dateikopf setzen, Aufgaben abhaken, Kommandos, Makros und andere Workflows ausführen. Bedingungen und Wiederholungen bestimmen, welche Schritte laufen und für welche Dateien; ein Skript-Schritt rechnet einen Wert aus, ohne etwas zu schreiben. Ein Workflow ist eine **gewöhnliche Markdown-Datei**; was er tut, steht in einem Block fester Befehle, eine Zeile je Schritt. Die Datei bleibt damit ohne die Anwendung lesbar, lässt sich weitergeben und wie jedes andere Dokument bearbeiten.
+Ein **Workflow** schreibt wiederkehrende Handgriffe als feste Folge von Schritten auf: Dateien und Ordner anlegen, umbenennen, verschieben, kopieren und in den Papierkorb legen, Text anhängen oder einfügen, Eigenschaften und Schlagwörter im Dateikopf setzen, Aufgaben abhaken, Kommandos, Makros und andere Workflows ausführen. Bedingungen und Wiederholungen bestimmen, welche Schritte laufen und für welche Dateien; ein Skript-Schritt rechnet einen Wert aus, ohne etwas zu schreiben. Datenbank-Befehle legen Datensätze an, ändern und löschen sie, schreiben das Ergebnis einer Abfrage in eine Datei, öffnen Masken und prüfen die Konsistenz. Ein Workflow ist eine **gewöhnliche Markdown-Datei**; was er tut, steht in einem Block fester Befehle, eine Zeile je Schritt. Die Datei bleibt damit ohne die Anwendung lesbar, lässt sich weitergeben und wie jedes andere Dokument bearbeiten.
 
 Gestartet wird ein Workflow **von Hand**: aus dem Menü, der Kommando-Palette, über ein Tastenkürzel, einen Knopf über dem Block oder das Kontextmenü des Bereichs-Panels. Ein Workflow mit Zeitplan läuft außerdem **nach Zeitplan**, ein Workflow mit Ereignis **bei einem Ereignis** im Bereich, etwa einer neuen Datei in einem Ordner, jeweils sobald er scharf geschaltet ist. **Bevor der erste Schritt läuft, prüft die Anwendung den ganzen Workflow**; ein Fehler steht mit Zeile und Grund über dem Block, und es läuft nichts.
 
@@ -171,6 +171,21 @@ Diese Befehle öffnen einen **Block**, den eine Zeile `end` schließt; die Schri
 | `for-each` | für jede: Block einmal je Datei, die zum Muster passt | Ordner mit Datei-Muster | `for-each "Eingang/*.md"` |
 | `script` | Skript: den Skript-Block eines Abschnitts ausführen und sein Ergebnis benennen | Überschrift, `as "Name"` | `script "Zählung" as "anzahl"` |
 
+### Datenbank
+
+Diese Befehle arbeiten mit den Datensätzen der [Datenbank](database.md) des Bereichs. Einzelheiten im Abschnitt „Datenbank-Befehle".
+
+| Befehl | Bedeutung | Angaben | Beispiel |
+| --- | --- | --- | --- |
+| `db-create` | Datensatz anlegen | Tabelle, Paare `feld="Wert"`, wahlweise `as "Name"` | `db-create "Library" title="The Invincible" author="Stanisław Lem" pages="186"` |
+| `db-update` | Datensatz ändern | Tabelle, Datensatz, Paare `feld="Wert"` | `db-update "Library" "Solaris" loanNote="verliehen"` |
+| `db-delete` | Datensatz löschen | Tabelle, Datensatz | `db-delete "Library" "r-00024"` |
+| `db-query` | Abfrage in eine Datei: das Ergebnis einer Abfrage-Datei als Tabelle schreiben | Abfrage-Datei, `into "Ziel"`, wahlweise `under "Überschrift"` | `db-query "Long Books.md" into "Leseliste.md" under "Lange Bücher"` |
+| `db-for-each` | für jeden Datensatz: Block einmal je Datensatz einer Abfrage-Datei | Abfrage-Datei | `db-for-each "Long Books.md"` |
+| `db-open` | Maske öffnen: einen Datensatz in seiner Standard-Maske zeigen oder ohne Datensatz eine Neuanlage beginnen | Tabelle, wahlweise Datensatz | `db-open "Library" "Solaris"` |
+| `db-open-list` | Listen-Maske öffnen: eine Abfrage-Datei öffnen | Abfrage-Datei | `db-open-list "Loans List.md"` |
+| `db-check` | Konsistenz prüfen: alle Tabellen oder eine | wahlweise Tabelle | `db-check "Library"` |
+
 ### Quellen eines Inhalts
 
 `create`, `append` und `insert` nehmen ihren Inhalt aus einer von drei Quellen. Ein Inhalt steht nie als Fließtext in der Befehls-Zeile.
@@ -201,12 +216,16 @@ Platzhalter gelten in jeder Angabe einer Befehls-Zeile. Vorlagen und Workflows t
 | `{{task}}` | bei `task-done` der Text der erledigten Aufgabe |
 | `{{item}}`, `{{item:name}}` | in einer Schleife `for-each` der Pfad der jeweiligen Datei und ihr Name ohne Endung |
 | `{{script:name}}` | das Ergebnis des Skript-Schritts `script … as "name"` |
+| `{{record:feld}}`, `{{record:id}}`, `{{record:table}}`, `{{record:file}}` | in einer Schleife `db-for-each` ein Feld des jeweiligen Datensatzes, seine Kennung, seine Tabelle und seine Datei (Abschnitt „Datenbank-Befehle") |
+| `{{created:name}}` | die Kennung des Datensatzes, den `db-create … as "name"` angelegt hat |
+| `{{db:Tabelle:Datensatz:Feld}}` | der Wert eines Felds aus der Datenbank, gelesen beim Schritt selbst |
 
 - **Alle Dialoge vor dem ersten Schritt:** Die Eingabe- und Auswahl-Dialoge des ganzen Laufs erscheinen nacheinander, bevor etwas geschieht, die der eingesetzten Vorlagen und der aufgerufenen Workflows eingeschlossen. Eine gleiche Frage wird einmal gestellt und gilt überall. Wer einen Dialog abbricht, bricht den Lauf ab, und kein Schritt läuft.
 - **Ein Zeitpunkt je Lauf:** `{{date}}` und `{{time}}` haben in allen Zeilen denselben Wert, auch über Mitternacht. Ebenso wird die Zwischenablage einmal zum Start gelesen, und `{{clipboard}}` hat in allen Zeilen denselben Inhalt.
 - **In einer eingesetzten Vorlage** meinen `{{title}}` und `{{folder}}` wie gewohnt die neue Datei, `{{file}}` und `{{area}}` dagegen das aktive Dokument und den Bereich.
 - **Nach Zeitplan und bei Ereignissen** gibt es niemanden, der einen Dialog beantwortet: Eingabe- und Auswahl-Platzhalter sind in einem Workflow mit `trigger: schedule` oder `trigger: event` der Befund „Nur von Hand".
-- `{{item}}`, `{{item:name}}` und `{{script:name}}` erhalten ihren Wert erst im Lauf; im Namen eines Workflows oder Makros, im Pfad einer Vorlage und im Ziel von `delete` sind sie deshalb ein Befund.
+- `{{item}}`, `{{item:name}}`, `{{script:name}}`, `{{record:…}}`, `{{created:…}}` und `{{db:…}}` erhalten ihren Wert erst im Lauf; im Namen eines Workflows oder Makros, im Pfad einer Vorlage und im Ziel von `delete` sind sie deshalb ein Befund.
+- `{{record:…}}`, `{{created:…}}` und `{{db:…}}` gelten nur in Befehls-Zeilen. In einer Vorlage, auch in einer, die ein Workflow einsetzt, bleiben sie als Text stehen.
 - `{{cursor}}` ist in einer Befehls-Zeile nicht erlaubt. `\{{` schreibt ein wörtliches `{{`.
 - Bleibt `{{folder}}` im Wurzel-Ordner leer, entsteht aus `"{{folder}}/Neu.md"` der Pfad `Neu.md`. Ohne aktives Dokument ist `{{file}}` leer, und ein Pfad daraus ist ein Befund.
 
@@ -231,7 +250,7 @@ Das Kommando eines Workflows erhält seine Kennung aus dem Pfad der Datei im Wor
 ## Ablauf eines Laufs
 
 1. Die Anwendung prüft den Workflow samt den Workflows, die er aufruft.
-2. Die Dialoge aller Platzhalter erscheinen nacheinander; enthält der Lauf `delete`, folgt die eine Bestätigung der Lösch-Ziele.
+2. Die Dialoge aller Platzhalter erscheinen nacheinander; enthält der Lauf `delete` oder `db-delete`, folgt die eine Bestätigung der Lösch-Ziele.
 3. Die Schritte laufen strikt nacheinander; jeder wartet auf den vorigen. Bedingungen und Schleifen bestimmen, welche Schritte laufen und wie oft.
 4. Der erste Fehlschlag beendet den Lauf. Die Statusleiste zeigt „Workflow ‹Name› abgebrochen in Zeile N: Grund".
 
@@ -314,6 +333,105 @@ return pq.pages('Aufgaben').filter(function (p) { return p.status === 'offen'; }
 - **Dieselbe Sandbox wie die Skript-Blöcke:** Das Skript liest die Daten des Bereichs über die pq-Schnittstelle, mit der Workflow-Datei als eigenem Dokument (`pq.current()`), und hat keinen Zugriff auf Dateien, Netz und Anwendung. Es ist **rein lesend**. Nach **5 Sekunden** wird es abgebrochen. Ein Fehler oder ein Abbruch ist ein Fehlschlag des Schritts und beendet den Lauf mit „Skript fehlgeschlagen" oder „Skript nach 5 Sekunden abgebrochen".
 - **Einstellung „Skript-Blöcke ausführen":** Der Skript-Schritt folgt derselben Einstellung wie die Skript-Blöcke (**Einstellungen → Verhalten**, Vorgabe aus). Ist sie aus, meldet die Prüfung „Skript-Blöcke sind ausgeschaltet" mit Zeile; der Workflow läuft nicht und lässt sich nicht scharf schalten. Unmittelbar vor jedem Skript fragt die Anwendung die Einstellung erneut ab.
 - Den Abschnitt sucht die Prüfung vor dem ersten Schritt: Fehlt er, gibt es ihn mehrfach oder enthält er keinen Skript-Block, ist das ein Befund. Ein `{{script:name}}` vor dem Schritt, der es liefert, ist ebenfalls ein Befund; ist der liefernde Schritt in einem Zweig nicht gelaufen, schlägt die Zeile fehl.
+
+## Datenbank-Befehle
+
+Mit den Datenbank-Befehlen arbeitet ein Workflow mit den Datensätzen der [Datenbank](database.md) des Bereichs: Er legt Datensätze an, ändert und löscht sie, schreibt das Ergebnis einer Abfrage-Datei als Tabelle in eine Datei, wiederholt Schritte für jeden Datensatz einer Abfrage, liest einzelne Feldwerte, öffnet Masken und prüft die Konsistenz. Das Beispiel trägt bei jedem langen Buch eine Ausleih-Notiz ein, schreibt die Liste der langen Bücher in eine Notiz und prüft danach die Tabelle:
+
+````markdown
+```workflow
+db-for-each "Long Books.md"
+  db-update "Library" "{{record:id}}" loanNote="lang: {{record:pages}} Seiten"
+end
+db-query "Long Books.md" into "Leseliste.md" under "Lange Bücher"
+db-check "Library"
+```
+````
+
+Die Datenbank-Befehle setzen die Erweiterung „Datenbank" voraus. Ist sie abgeschaltet, meldet die Prüfung bei jedem dieser Befehle „Datenbank ist ausgeschaltet", und der Workflow läuft nicht.
+
+### Tabelle, Datensatz und Werte
+
+- **Die Tabelle** steht als Name, wie bei `FROM` in einer Abfrage, oder als Pfad ihrer Datei: `"Library"` oder `"Library.md"`. Heißen zwei Tabellen gleich, meldet die Prüfung „Tabelle uneindeutig"; dann hilft der Pfad.
+- **Der Datensatz** wird gefunden wie in einem Verweis: zuerst als Kennung, `r-00042` oder `r-42`, sonst über seine Anzeige-Form, etwa `"Solaris"`. Tragen mehrere Datensätze diese Anzeige-Form, schlägt der Schritt mit „uneindeutig" fehl und nimmt nie den ersten; findet sich keiner, mit „nicht gefunden".
+- **Werte** stehen als Paare `feld="Wert"` und sind immer Text, auch eine Zahl wie `pages="224"`. Ob ein Wert zu seinem Feld passt, prüft die Datenbank beim Schreiben wie in der Maske.
+- **Die Prüfung vor dem Lauf** kennt Tabellen und Felder: Eine unbekannte Tabelle, ein Feld, das die Tabelle nicht hat, und ein Feld, das in einer Zeile zweimal steht, sind ein Befund mit Zeile. Steht in der Angabe ein Platzhalter, prüft die Anwendung nach dem Füllen.
+
+### Datensätze anlegen, ändern und löschen
+
+- `db-create` legt einen Datensatz an, `db-update` ändert die genannten Felder eines Datensatzes, `db-delete` löscht einen. Beide ersten brauchen mindestens ein Paar.
+- **Derselbe Weg wie die Maske:** Jeder Befehl schreibt mit allen Regeln der Tabelle, also Prüfregeln, Pflichtwerten, Schlüssel, Lösch-Schutz und Berechtigungen. Weist die Datenbank ab, schlägt der Schritt mit dem Satz fehl, den auch die Maske zeigt.
+- **Frisch gelesen:** `db-update` und `db-delete` lesen den Datensatz unmittelbar vor dem Schreiben. Ändert ihn jemand anderes dazwischen, schlägt der Schritt fehl. Bearbeitet gerade jemand den Datensatz in einer Maske, schlägt der Schritt sofort fehl, ohne zu warten.
+- **Die neue Kennung:** Nach `db-create "Library" title="The Invincible" as "neu"` steht die Kennung des angelegten Datensatzes in jeder folgenden Zeile als `{{created:neu}}` bereit, etwa in `db-open "Library" "{{created:neu}}"`. Der Name besteht aus Buchstaben, Ziffern, `_` und `-`; Groß- und Kleinschreibung zählt nicht, und jeder Name wird nur einmal vergeben. Ein `{{created:…}}` vor seiner Anlage ist ein Befund; ist die Anlage in einem Zweig nicht gelaufen, schlägt die Zeile fehl.
+- In einer Tabelle in **Kartei-Form** legt `db-create` eine Karteikarte an; ihr Name ist der Wert des Schlüssels. Auch dort gilt die Pflicht-Angabe: Fehlt der Wert eines Pflichtfelds, schlägt der Schritt wie in Tabellen-Form mit Grund fehl, und es entsteht nichts.
+- **Vor dem Löschen** fragt die Anwendung vor dem ersten Schritt einmal nach und nennt, was gelöscht wird; „Nein" lässt keinen Schritt laufen. Steht ein Ziel erst im Lauf fest, sagt die Bestätigung in Worten, was gelöscht wird, etwa „Den in diesem Lauf angelegten Datensatz der Tabelle 'Library'"; in einer Schleife über Datensätze nennt sie Abfrage, Tabelle und die Grenze von 500.
+- **Ein Datensatz, auf den noch verwiesen wird,** lässt sich wie in der Maske nicht löschen.
+
+### Abfrage in eine Datei
+
+`db-query "Long Books.md" into "Leseliste.md" under "Lange Bücher"` führt eine [Abfrage-Datei](database.md) aus und schreibt ihr Ergebnis als feste Tabelle in eine Datei.
+
+- **Die Quelle** ist eine Abfrage-Datei mit der Marke `db-query` und genau einem Abfrage-Block. Sie läuft wie in ihrer Lese-Ansicht, Angaben wie `this.minpages` eingeschlossen. Ist die Datei keine Abfrage-Datei, meldet die Prüfung „keine Abfrage-Datei", ist ihre Abfrage fehlerhaft, „Abfrage fehlerhaft".
+- **Die Tabelle** trägt die Beschriftungen der Spalten als Kopfzeile und die Werte so, wie die Abfrage-Ansicht sie zeigt; ein Datensatz wird zu einem Verweis mit seiner Anzeige-Form als Text, etwa `[[Library#^r-00003|Solaris]]`, sodass die Notiz den Titel zeigt wie die Abfrage-Ansicht. Ohne Treffer steht eine Tabelle ohne Zeilen da, darunter der Satz, den auch die Abfrage-Ansicht zeigt.
+- **Mit `under`** ersetzt die Tabelle den Inhalt dieses Abschnitts, die Überschrift bleibt; fehlt sie oder kommt sie mehrfach vor, schlägt der Schritt fehl wie bei `insert`. Ein zweiter Lauf ersetzt die Tabelle, statt eine zweite anzuhängen. **Ohne `under`** legt der Schritt die Datei neu an und schlägt fehl, wenn es sie schon gibt, wie bei `create`. Wer sammeln will, schreibt in eine datierte Datei: `into "Berichte/{{date}}.md"`.
+- Datensätze, die ein früherer Schritt desselben Laufs geschrieben hat, stehen schon im Ergebnis.
+
+### Schleife über Datensätze
+
+`db-for-each` wiederholt die Schritte bis `end` für jeden Datensatz, den eine Abfrage-Datei liefert, in der Form der Schleife `for-each`:
+
+````markdown
+```workflow
+db-for-each "Long Books.md"
+  db-update "Library" "{{record:id}}" loanNote="lang: {{record:pages}} Seiten"
+end
+```
+````
+
+| Platzhalter | Wert je Wiederholung |
+| --- | --- |
+| `{{record:feld}}` | der Wert des Felds im jeweiligen Datensatz, etwa `{{record:pages}}` |
+| `{{record:id}}` | die Kennung des Datensatzes |
+| `{{record:table}}` | die Tabelle, in der er steht |
+| `{{record:file}}` | die Datei, in der er steht: in der Kartei-Form seine Karteikarte, sonst die Tabellen-Datei |
+
+- **Die Abfrage muss Datensätze liefern:** eine Abfrage `TABLE RECORDS`, nicht gruppiert. Sonst meldet die Prüfung „Abfrage liefert keine Datensätze".
+- **Feste Liste:** Die Liste steht beim Eintritt in die Schleife fest und wird in der Reihenfolge der Abfrage abgearbeitet; jeder Datensatz genau einmal. Datensätze, die der Lauf in der Schleife anlegt, kommen nicht hinzu.
+- **Frisch gelesen:** Ein Datensatz wird zu Beginn seiner Wiederholung gelesen und vor jedem weiteren Schritt, der eines seiner Felder nennt, erneut; so sieht ein Schritt, was ein früherer derselben Wiederholung geschrieben hat. Ist der Datensatz bis dahin verschwunden, endet der Lauf an dieser Zeile mit „nicht gefunden".
+- **Grenzen:** Höchstens **500 Datensätze**; sind es mehr, schlägt der Schritt vor der ersten Wiederholung fehl, und kein Datensatz ist bearbeitet. Eine leere Menge ergibt keine Wiederholung und ist kein Fehlschlag. Keine Schleife in einer Schleife, gleich welcher Art; eine Bedingung in der Schleife ist erlaubt.
+- `{{record:…}}` außerhalb einer Schleife über Datensätze ist ein Befund. Schlägt ein Schritt in der Schleife fehl, endet der Lauf; die schon bearbeiteten Datensätze bleiben bearbeitet.
+
+### Feldwert als Platzhalter
+
+`{{db:Library:Solaris:pages}}` liest das Feld `pages` des Datensatzes „Solaris" der Tabelle „Library", etwa in `notify "Seiten: {{db:Library:Solaris:pages}}"`.
+
+- Die drei Angaben sind Tabelle, Datensatz und Feld; der Datensatz wird gefunden wie oben, als Kennung oder über seine Anzeige-Form.
+- **Gelesen wird beim Schritt selbst**, nicht vor dem Lauf; so gilt ein Wert, den ein früherer Schritt desselben Laufs geschrieben hat.
+- **Fehlschlag statt leer:** Findet sich der Datensatz nicht, ist er uneindeutig oder kennt die Tabelle das Feld nicht, schlägt der Schritt mit Grund fehl. Ein leerer Feldwert eines gefundenen Datensatzes ist ein leerer Text.
+- Die Prüfung meldet vorab einen Platzhalter ohne genau drei Angaben, eine unbekannte Tabelle und ein unbekanntes Feld; den Datensatz sucht sie nicht, weil er erst zum Zeitpunkt des Schritts gilt.
+
+### Masken öffnen und Konsistenz prüfen
+
+- **`db-open "Library" "Solaris"`** zeigt den Datensatz in der Standard-Maske seiner Tabelle. **`db-open "Library"`** ohne Datensatz beginnt eine Neuanlage wie „Neuer Datensatz" und verlangt das Recht, in der Tabelle anzulegen; fehlt es, schlägt der Schritt mit Rolle und Tabelle fehl. In einer Tabelle in Kartei-Form gibt es diese Neuanlage nicht, und der Schritt schlägt mit Grund fehl; eine neue Karteikarte legt „Neue Karteikarte" in der Übersicht der Datenbank oder `db-create` an.
+- Hat die Maske eine ungespeicherte Bearbeitung, fragt sie nach, bevor sie wechselt, und der Schritt wartet ohne Zeitgrenze auf die Antwort. „Verwerfen" öffnet das Ziel, und der Lauf geht weiter. „Weiter bearbeiten" lässt die Bearbeitung unverändert und beendet den Lauf an dieser Zeile mit Grund; ebenso endet er, wenn die Rückfrage ohne Antwort geschlossen wird, etwa mit dem Reiter der Maske.
+- **`db-open-list "Loans List.md"`** öffnet eine Abfrage-Datei wie `open`; eine [Listen-Maske](database.md) zeigt dort ihr Gitter. Ist die Datei keine Abfrage-Datei, meldet die Prüfung „keine Abfrage-Datei".
+- **`db-check`** prüft alle Tabellen, **`db-check "Library"`** eine, mit derselben Prüfung wie „Konsistenz prüfen" in der Übersicht der Datenbank. Das Ergebnis erscheint wie bei `notify`, etwa „Konsistenz: 3 Befunde in ‹Library›" oder „Konsistenz: keine Befunde"; ohne genannte Tabelle nennt es die Tabellen mit Befunden. **Ein Befund hält den Lauf nicht an**; wer danach nicht weitermachen will, setzt `db-check` an das Ende. Schlägt die Prüfung selbst fehl, ist das ein Fehlschlag des Schritts. Die Befunde im Einzelnen zeigt „Konsistenz prüfen" in der Übersicht der Datenbank. `db-check` schreibt nichts.
+
+### Ohne Zuschauer, Abbruch und Spur
+
+**Ein Workflow schreibt in die Datenbank mit Ihren Rechten; nach Zeitplan und bei Ereignissen legt er an und ändert, löscht aber nie.**
+
+| Befehl | von Hand | nach Zeitplan und bei Ereignissen |
+| --- | --- | --- |
+| `db-create`, `db-update` | ja | ja |
+| `db-delete` | ja, nach der Bestätigung | Befund „Nur von Hand" |
+| `db-query`, `db-for-each`, `{{db:…}}` | ja | ja |
+| `db-open` | ja | Befund „Nur von Hand" |
+| `db-open-list`, `db-check` | ja | ja |
+
+- **Bricht ein Workflow ab, bleiben die Datensätze, die er schon geschrieben hat.** Jeder Datenbank-Befehl, der Datensätze schreibt, ist ein eigener Speichervorgang, der ganz oder gar nicht wirkt; eine Rücknahme des Laufs gibt es nicht.
+- **Spur im Journal:** Auf der Seite „Workflow-Läufe" nennt das Journal je Datenbank-Schritt Tabelle, Datensatz und Vorgangs-Kennung, etwa „Zeile 2: db-update – Tabelle Library, Datensatz r-00007, Vorgang 12". Dieselbe Vorgangs-Kennung tragen die [Änderungsbelege](database.md) dieses Schritts.
+- **Keine Ereignisse:** Was ein Workflow in die Datenbank schreibt, löst kein Ereignis aus, weder an der Tabellen-Datei noch an einer Karteikarte.
 
 ## Zeitplan und Scharf-Schaltung
 
@@ -425,7 +543,7 @@ Die Zeile hat die Form `event: <Ereignis> [in "<Ordner oder Datei>"] [matching "
 
 ### Was ein Lauf bei einem Ereignis darf
 
-- Ein Lauf durch ein Ereignis läuft wie ein Lauf nach Zeitplan **ohne Zuschauer**: Eingabe- und Auswahl-Platzhalter, `confirm` und `delete` sind der Befund „Nur von Hand". **Gelöscht wird bei Ereignissen nie.**
+- Ein Lauf durch ein Ereignis läuft wie ein Lauf nach Zeitplan **ohne Zuschauer**: Eingabe- und Auswahl-Platzhalter, `confirm`, `delete`, `db-delete` und `db-open` sind der Befund „Nur von Hand". **Gelöscht wird bei Ereignissen nie.**
 - `{{file}}`, `{{from}}` und `{{task}}` tragen die Werte des Ereignisses (Tafel oben). Einen Platzhalter, den das Ereignis nicht liefert, meldet die Prüfung: `{{file}}` bei `area-opened`, `{{from}}` außer bei `file-moved`, `{{task}}` außer bei `task-done`.
 
 ### Wann Ereignisse wirken
@@ -439,7 +557,7 @@ Die Zeile hat die Form `event: <Ereignis> [in "<Ordner oder Datei>"] [matching "
 
 ### Keine Ketten
 
-**Ein Workflow reagiert auf das, was Sie oder andere Programme tun, nie auf das, was ein Workflow tut.** Was ein Lauf anlegt, ändert, verschiebt oder abhakt, löst kein Ereignis aus; ein Workflow, der bei einer neuen Datei in „Eingang" selbst eine Datei in „Eingang" anlegt, läuft deshalb nicht im Kreis. Wer eine Folge will, ruft den zweiten Workflow ausdrücklich mit `workflow "Name"` auf. Schreibt ein Schritt in ein geöffnetes, ungespeichertes Dokument, ist erst Ihr Speichern eine Änderung der Datei und löst `file-changed` aus; eine Aufgabe, die ein solcher Schritt im Dokument abhakt, löst `task-done` aus.
+**Ein Workflow reagiert auf das, was Sie oder andere Programme tun, nie auf das, was ein Workflow tut.** Was ein Lauf anlegt, ändert, verschiebt oder abhakt, auch ein Datensatz, den er in die Datenbank schreibt, löst kein Ereignis aus; ein Workflow, der bei einer neuen Datei in „Eingang" selbst eine Datei in „Eingang" anlegt, läuft deshalb nicht im Kreis. Wer eine Folge will, ruft den zweiten Workflow ausdrücklich mit `workflow "Name"` auf. Schreibt ein Schritt in ein geöffnetes, ungespeichertes Dokument, ist erst Ihr Speichern eine Änderung der Datei und löst `file-changed` aus; eine Aufgabe, die ein solcher Schritt im Dokument abhakt, löst `task-done` aus.
 
 **Not-Bremse:** Läuft derselbe Workflow durch Ereignisse mehr als **20-mal in 5 Minuten**, etwa weil ein anderes Programm auf seine Änderungen antwortet, startet der 21. Lauf nicht mehr. Der Workflow wird entschärft, wartende Ereignisse für ihn verfallen, und die Statusleiste meldet „Workflow ‹Name› entschärft: mehr als 20 Läufe durch Ereignisse in 5 Minuten", ohne Fenster im Vordergrund zusätzlich als Benachrichtigung des Betriebssystems. Die Seite **Workflow-Läufe** zeigt unter dem Kästchen „nicht scharf: Not-Bremse" und den Grund in der Spalte **Ergebnis**. Nach erneutem Scharf-Schalten zählt die Bremse von vorn.
 
@@ -501,7 +619,7 @@ Nach einem Lauf in diesem Fenster zeigt die Seite denselben Grund wie die Status
 
 ### Was ein Lauf getan hat
 
-Der Knopf „Journal (N)" klappt unter der Zeile das **Journal** des letzten Laufs auf: jede Datei und jeden Ordner, die er angelegt, geändert, verschoben, kopiert oder gelöscht hat, als „Zeile N: Befehl – Pfad", der Pfad relativ zur Bereichs-Wurzel. Hat der Lauf nichts berührt, steht dort „Keine Datei berührt"; bei sehr vielen berührten Dateien ist das Journal gekürzt und sagt das.
+Der Knopf „Journal (N)" klappt unter der Zeile das **Journal** des letzten Laufs auf: jede Datei und jeden Ordner, die er angelegt, geändert, verschoben, kopiert oder gelöscht hat, als „Zeile N: Befehl – Pfad", der Pfad relativ zur Bereichs-Wurzel; ein Datenbank-Schritt steht als „Zeile N: Befehl – Tabelle, Datensatz, Vorgang" (Abschnitt „Datenbank-Befehle"). Hat der Lauf nichts berührt, steht dort „Keine Datei berührt"; bei sehr vielen berührten Dateien ist das Journal gekürzt und sagt das.
 
 Eine Rücknahme eines ganzen Laufs gibt es nicht. Zurückgenommen wird gezielt, mit den Mitteln, die es ohnehin gibt: Inhalts-Änderungen über die [Dokument-Historie](history.md) der berührten Datei, Gelöschtes aus dem Papierkorb, Angelegtes, Verschobenes und Kopiertes im Bereichs-Panel.
 
@@ -516,13 +634,14 @@ Hervorhebung und Anzeige ändern den Text der Datei nicht.
 ## Grenzen
 
 - **Nur im Bereich:** Kein Befehl liest oder schreibt außerhalb der Wurzel des Bereichs, in dem der Workflow gestartet wurde, auch nicht über einen Platzhalter; das gilt auch für einen Workflow aus einem verknüpften Bereich.
-- **Kein Netz, keine Fremdprogramme.** Gelöscht wird nur mit `delete`, nur bei einem Start von Hand, nach einer Bestätigung und in den Papierkorb.
+- **Kein Netz, keine Fremdprogramme.** Dateien löscht nur `delete`, Datensätze nur `db-delete`, beide nur bei einem Start von Hand und nach einer Bestätigung; Dateien gehen in den Papierkorb.
 - **Kein Lauf ohne geöffneten Bereich:** Ein Workflow nach Zeitplan läuft nur, solange die Anwendung und sein Bereich geöffnet sind; verpasste Termine holt er nach den Regeln von `missed` nach. Ereignisse wirken ebenso nur bei geöffnetem Bereich und werden nicht nachgeholt.
 - **Keine Ketten:** Ein Workflow reagiert auf das, was Sie oder andere Programme tun, nie auf das, was ein Workflow tut. Wer eine Folge will, ruft den nächsten Workflow mit `workflow "Name"` auf; gegen eine Schleife über andere Programme hält die Not-Bremse einen Workflow nach mehr als 20 Läufen durch Ereignisse in 5 Minuten an (Abschnitt „Ereignisse").
-- **Grenzen der Blöcke:** höchstens drei Ebenen Verschachtelung, keine Schleife in einer Schleife und höchstens 500 Dateien je Schleife.
+- **Grenzen der Blöcke:** höchstens drei Ebenen Verschachtelung, keine Schleife in einer Schleife und höchstens 500 Dateien oder Datensätze je Schleife.
+- **Datenbank:** Ein Workflow schreibt in die Datenbank mit Ihren Rechten; nach Zeitplan und bei Ereignissen legt er an und ändert, löscht aber nie. Bricht ein Workflow ab, bleiben die Datensätze, die er schon geschrieben hat. Was ein Workflow in die Datenbank schreibt, löst kein Ereignis aus.
 - **Keine Rücknahme eines Laufs:** Ausgeführte Schritte bleiben ausgeführt; das Journal zeigt, was der letzte Lauf berührt hat, und zurückgenommen wird gezielt.
 - **Makros** bleiben, wie sie sind, und sind als Schritt aufrufbar; ein Makro ist eine Folge von Kommandos in den Einstellungen, ein Workflow ein Ablauf als Dokument. **[Skript-Blöcke](scripts.md)** bleiben rein lesend, auch als Skript-Schritt; ein Workflow ist keine allgemeine Skript-Sprache, sondern ein fester Katalog von Befehlen.
 
 ## Spätere Ausbaustufen
 
-Eine weitere Ausbaustufe ist vorgesehen, ohne dass Umfang und Zeitpunkt feststehen: Befehle für die [Datenbank](database.md). Die Prüfung kennt die Schlüsselwörter dieser Befehle schon und meldet sie als „gibt es erst in einer späteren Ausbaustufe", damit eine solche Datei nicht teilweise läuft.
+Eine weitere Ausbaustufe ist vorgesehen, ohne dass Umfang und Zeitpunkt feststehen: Befehle für den Austausch von Tabellen-Daten der [Datenbank](database.md), `db-export` und `db-import`. Die Prüfung kennt diese beiden Schlüsselwörter schon und meldet sie als „gibt es erst in einer späteren Ausbaustufe", damit eine solche Datei nicht teilweise läuft.

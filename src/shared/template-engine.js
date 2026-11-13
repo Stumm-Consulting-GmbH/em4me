@@ -46,6 +46,26 @@
 //                             Platzhalter ohne Rücksicht auf die Schreibung
 //                             zusammenfinden; erlaubt sind Buchstaben, Ziffern,
 //                             `_` und `-`.
+//   {{record:feld}}           Feld des jeweiligen Datensatzes einer Workflow-
+//                             Schleife `db-for-each` (4T-002544, Entscheidung
+//                             Dc); der Knoten heißt `record:<feld>`, der
+//                             Feld-Name bleibt, wie er geschrieben ist. Werte
+//                             liefert der Ablauf-Kern (4T-002547).
+//   {{db:Tabelle:Datensatz:Feld}}  Feldwert eines Datensatzes in einer
+//                             Befehls-Zeile (4T-002544, Entscheidung Dd);
+//                             genau drei nicht leere Angaben, sonst
+//                             `invalidParams`. Der Knoten heißt
+//                             `db:<Tabelle>:<Datensatz>:<Feld>` und trägt die
+//                             drei Angaben unter `db`. Gelesen wird beim
+//                             Schritt (4T-002547).
+//   {{created:name}}          Kennung des Datensatzes eines `db-create … as
+//                             "name"` desselben Workflow-Laufs (4T-002547,
+//                             Entscheidung Da); der Name wie bei `script`.
+//
+//   **Nur in Befehls-Zeilen** (4T-002547, Dd): `record`, `db` und `created`
+//   gelten in den Zeilen eines Workflows, nicht in Vorlagen. Ohne Wert im
+//   Kontext bleiben sie deshalb als ihr eigener Text stehen, statt still leer
+//   zu werden; eine Vorlage liest so nie Datenbank-Inhalte.
 //   {{cursor}} / {{cursor:2}} nummerierte Cursor-Ziele; die Marker werden
 //                             entfernt, die Offsets im Ergebnis-Text geliefert.
 //
@@ -167,6 +187,35 @@ function parsePlaceholder(inner, pos) {
       if (scriptName === null) return makeError('invalidParams', pos, { name });
       return { ok: true, node: { type: 'context', name: `script:${scriptName}` } };
     }
+    case 'record': {
+      const field = params.length === 1 ? params[0].trim() : '';
+      if (field === '') return makeError('invalidParams', pos, { name });
+      return { ok: true, node: { type: 'context', name: `record:${field}`, befehlsZeile: true } };
+    }
+    case 'created': {
+      const createdName = params.length === 1 ? normalizeScriptName(params[0]) : null;
+      if (createdName === null) return makeError('invalidParams', pos, { name });
+      return {
+        ok: true,
+        node: { type: 'context', name: `created:${createdName}`, befehlsZeile: true },
+      };
+    }
+    case 'db': {
+      const teile = params.map((t) => t.trim());
+      if (teile.length !== 3 || teile.some((t) => t === '')) {
+        return makeError('invalidParams', pos, { name });
+      }
+      const [table, record, field] = teile;
+      return {
+        ok: true,
+        node: {
+          type: 'context',
+          name: `db:${teile.join(':')}`,
+          db: { table, record, field },
+          befehlsZeile: true,
+        },
+      };
+    }
     case 'cursor': {
       let number = 1;
       if (params.length > 0) {
@@ -213,7 +262,13 @@ function analyzeTemplate(text) {
       }
       // 4T-002347: Lage des Platzhalters im Text (Anfang inklusive, Ende
       // exklusiv), für Befund-Spalten und die Hervorhebung der Workflows.
-      segments.push({ ...parsed.node, from: i, to: close + 2 });
+      segments.push({
+        ...parsed.node,
+        from: i,
+        to: close + 2,
+        // 4T-002547: der eigene Text eines Platzhalters nur für Befehls-Zeilen.
+        ...(parsed.node.befehlsZeile ? { roh: src.slice(i, close + 2) } : {}),
+      });
       if (parsed.node.type === 'input' && !seenInputs.has(parsed.node.key)) {
         seenInputs.add(parsed.node.key);
         const { key, kind, question, defaultValue, options } = parsed.node;
@@ -240,6 +295,9 @@ function analyzeTemplate(text) {
 //   from, task      alter Pfad und Aufgaben-Text eines Ereignis-Laufs (fehlend = leer)
 //   item, item:name Pfad und Name ohne Endung der Datei einer Workflow-Schleife (fehlend = leer)
 //   script:<name>   Ergebnis eines Skript-Schritts eines Workflows (fehlend = leer)
+//   record:<feld>, db:<T>:<D>:<F>, created:<name>  Datenbank-Werte eines
+//                   Workflow-Laufs; fehlend bleibt der Platzhalter als Text stehen
+//                   (4T-002547, Dd: nur in Befehls-Zeilen)
 //   nowMs           Bezugszeitpunkt der Zeit-Platzhalter (fehlend = jetzt)
 //   clipboard       Zwischenablage-Text (fehlend = leer)
 //   answers         { [input.key]: string } — Antworten der Dialog-Kette
@@ -271,7 +329,8 @@ function fillTemplate(analysis, context) {
       case 'context': {
         // Der Name stammt allein aus der geschlossenen Liste in parsePlaceholder.
         const value = ctx[seg.name];
-        text += value == null ? '' : String(value);
+        if (value == null && seg.befehlsZeile) text += seg.roh;
+        else text += value == null ? '' : String(value);
         break;
       }
       case 'input': {

@@ -287,3 +287,44 @@ describe('addTag und removeTag', () => {
     );
   });
 });
+
+// 4T-002546 (Db): `replaceSection` ersetzt den Inhalt eines Abschnitts.
+describe('replaceSection: Abschnitt ersetzen (4T-002546)', () => {
+  const ersetze = (heading, text) => ({ op: 'replaceSection', heading, text });
+
+  it('ersetzt bis zur nächsten Überschrift gleichen oder höheren Rangs, samt Unter-Abschnitten', () => {
+    const vorher = '# T\n\n## A\nalt\n### Unter\nu\n## B\nbleibt\n';
+    const r = applyContentEdit(vorher, ersetze('A', '| x |\n| --- |'));
+    expect(r).toEqual({
+      ok: true,
+      changed: true,
+      text: '# T\n\n## A\n\n| x |\n| --- |\n\n## B\nbleibt\n',
+    });
+    expect(applyContentEdit(r.text, ersetze('A', '| x |\n| --- |'))).toMatchObject({
+      changed: false,
+    });
+  });
+
+  it('der letzte Abschnitt, auch ohne Zeilenumbruch nach der Überschrift', () => {
+    expect(applyContentEdit('## A\nalt\n', ersetze('A', 'neu')).text).toBe('## A\n\nneu\n');
+    expect(applyContentEdit('## A', ersetze('A', 'neu')).text).toBe('## A\n\nneu\n');
+  });
+
+  it('erhält Zeilenenden, Byte-Order-Zeichen und Dateikopf', () => {
+    const crlf = `${BOM}---\r\nx: 1\r\n---\r\n## A\r\nalt\r\n## B\r\n`;
+    expect(applyContentEdit(crlf, ersetze('A', 'neu')).text).toBe(
+      `${BOM}---\r\nx: 1\r\n---\r\n## A\r\n\r\nneu\r\n\r\n## B\r\n`,
+    );
+  });
+
+  it('fehlende und mehrfache Überschrift sind ein Fehlschlag wie bei insert', () => {
+    expect(applyContentEdit('## B\n', ersetze('A', 'x'))).toEqual({
+      ok: false,
+      code: 'headingUnknown',
+    });
+    expect(applyContentEdit('## A\n## A\n', ersetze('A', 'x'))).toEqual({
+      ok: false,
+      code: 'headingAmbiguous',
+    });
+  });
+});

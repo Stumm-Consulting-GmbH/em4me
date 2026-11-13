@@ -1,6 +1,6 @@
 # Workflows
 
-A **workflow** writes down recurring steps as a fixed sequence: create, rename, move, copy and move to the trash files and folders, append or insert text, set properties and tags in the front matter, tick off tasks, run commands, macros and other workflows. Conditions and repetitions decide which steps run and for which files; a script step works out a value without writing anything. A workflow is an **ordinary Markdown file**; what it does is written in a block of fixed commands, one line per step. The file therefore stays readable without the app, can be passed on and can be edited like any other document.
+A **workflow** writes down recurring steps as a fixed sequence: create, rename, move, copy and move to the trash files and folders, append or insert text, set properties and tags in the front matter, tick off tasks, run commands, macros and other workflows. Conditions and repetitions decide which steps run and for which files; a script step works out a value without writing anything. Database commands create, change and delete records, write the result of a query to a file, open forms and check consistency. A workflow is an **ordinary Markdown file**; what it does is written in a block of fixed commands, one line per step. The file therefore stays readable without the app, can be passed on and can be edited like any other document.
 
 A workflow is started **by hand**: from the menu, the command palette, with a keyboard shortcut, a button above the block or the context menu of the area panel. A workflow with a schedule also runs **on schedule**, a workflow with an event **on an event** in the area, such as a new file in a folder, in both cases once it is armed. **Before the first step runs, the app checks the whole workflow**; an error is shown above the block with line and reason, and nothing runs.
 
@@ -171,6 +171,21 @@ These commands open a **block** that a line `end` closes; the steps in between r
 | `for-each` | for each: block once per file that matches the pattern | folder with file pattern | `for-each "Inbox/*.md"` |
 | `script` | script: run the script block of a section and name its result | heading, `as "name"` | `script "Count" as "number"` |
 
+### Database
+
+These commands work with the records of the area's [database](database.md). Details in the section "Database commands".
+
+| Command | Meaning | Arguments | Example |
+| --- | --- | --- | --- |
+| `db-create` | create a record | table, pairs `field="value"`, optionally `as "name"` | `db-create "Library" title="The Invincible" author="Stanisław Lem" pages="186"` |
+| `db-update` | change a record | table, record, pairs `field="value"` | `db-update "Library" "Solaris" loanNote="on loan"` |
+| `db-delete` | delete a record | table, record | `db-delete "Library" "r-00024"` |
+| `db-query` | query into a file: write the result of a query file as a table | query file, `into "target"`, optionally `under "heading"` | `db-query "Long Books.md" into "Reading List.md" under "Long books"` |
+| `db-for-each` | for each record: the block once per record of a query file | query file | `db-for-each "Long Books.md"` |
+| `db-open` | open a form: show a record in its default form or, without a record, start a new one | table, optionally record | `db-open "Library" "Solaris"` |
+| `db-open-list` | open a list form: open a query file | query file | `db-open-list "Loans List.md"` |
+| `db-check` | check consistency: all tables or one | optionally table | `db-check "Library"` |
+
 ### Sources of a content
 
 `create`, `append` and `insert` take their content from one of three sources. A content never stands as running text in the command line.
@@ -201,12 +216,16 @@ Placeholders work in every argument of a command line. Templates and workflows s
 | `{{task}}` | with `task-done`, the text of the completed task |
 | `{{item}}`, `{{item:name}}` | in a `for-each` loop, the path of the current file and its name without extension |
 | `{{script:name}}` | the result of the script step `script … as "name"` |
+| `{{record:field}}`, `{{record:id}}`, `{{record:table}}`, `{{record:file}}` | in a `db-for-each` loop a field of the current record, its identifier, its table and its file (section "Database commands") |
+| `{{created:name}}` | the identifier of the record that `db-create … as "name"` has created |
+| `{{db:table:record:field}}` | the value of a field from the database, read at the step itself |
 
 - **All dialogs before the first step:** the input and choice dialogs of the whole run appear one after the other before anything happens, including those of the templates used and of the called workflows. The same question is asked once and applies everywhere. Cancelling a dialog cancels the run, and no step runs.
 - **One point in time per run:** `{{date}}` and `{{time}}` have the same value in all lines, also across midnight. Likewise the clipboard is read once at the start, and `{{clipboard}}` has the same content in all lines.
 - **In a template used by a workflow**, `{{title}}` and `{{folder}}` mean the new file as usual, while `{{file}}` and `{{area}}` mean the active document and the area.
 - **On schedule and on events** nobody is there to answer a dialog: input and choice placeholders are the finding "Manual only" in a workflow with `trigger: schedule` or `trigger: event`.
-- `{{item}}`, `{{item:name}}` and `{{script:name}}` only get their value during the run; in the name of a workflow or macro, the path of a template and the target of `delete` they are therefore a finding.
+- `{{item}}`, `{{item:name}}`, `{{script:name}}`, `{{record:…}}`, `{{created:…}}` and `{{db:…}}` only get their value during the run; in the name of a workflow or macro, the path of a template and the target of `delete` they are therefore a finding.
+- `{{record:…}}`, `{{created:…}}` and `{{db:…}}` apply only in command lines. In a template, including one that a workflow inserts, they stay as text.
 - `{{cursor}}` is not allowed in a command line. `\{{` writes a literal `{{`.
 - If `{{folder}}` is empty in the root folder, `"{{folder}}/New.md"` becomes the path `New.md`. Without an active document, `{{file}}` is empty, and a path made from it is a finding.
 
@@ -231,7 +250,7 @@ The command of a workflow gets its ID from the path of the file in the workflows
 ## Course of a run
 
 1. The app checks the workflow together with the workflows it calls.
-2. The dialogs of all placeholders appear one after the other; if the run contains `delete`, the one confirmation of the targets to delete follows.
+2. The dialogs of all placeholders appear one after the other; if the run contains `delete` or `db-delete`, the one confirmation of the targets to delete follows.
 3. The steps run strictly one after the other; each waits for the previous one. Conditions and loops decide which steps run and how often.
 4. The first failure ends the run. The status bar shows "Workflow ‹Name› aborted at line N: reason".
 
@@ -314,6 +333,105 @@ return pq.pages('Tasks').filter(function (p) { return p.status === 'open'; }).le
 - **The same sandbox as script blocks:** the script reads the data of the area through the pq interface, with the workflow file as its own document (`pq.current()`), and has no access to files, network or the app. It is **read-only**. It is stopped after **5 seconds**. An error or a stop is a failure of the step and ends the run with "Script failed" or "Script stopped after 5 seconds".
 - **Setting "Run script blocks":** the script step follows the same setting as script blocks (**Settings → Behavior**, off by default). If it is off, the check reports "Script blocks are turned off" with line; the workflow does not run and cannot be armed. Right before every script, the app asks for the setting again.
 - The check looks for the section before the first step: if it is missing, occurs more than once or holds no script block, that is a finding. A `{{script:name}}` before the step that provides it is a finding as well; if the providing step did not run in a branch, the line fails.
+
+## Database commands
+
+With the database commands a workflow works with the records of the area's [database](database.md): it creates, changes and deletes records, writes the result of a query file as a table to a file, repeats steps for every record of a query, reads single field values, opens forms and checks consistency. The example adds a loan note to every long book, writes the list of long books to a note and then checks the table:
+
+````markdown
+```workflow
+db-for-each "Long Books.md"
+  db-update "Library" "{{record:id}}" loanNote="long: {{record:pages}} pages"
+end
+db-query "Long Books.md" into "Reading List.md" under "Long books"
+db-check "Library"
+```
+````
+
+The database commands require the extension "Database". If it is switched off, the check reports "The database is turned off" at each of these commands, and the workflow does not run.
+
+### Table, record and values
+
+- **The table** is given by its name, as with `FROM` in a query, or by the path of its file: `"Library"` or `"Library.md"`. If two tables have the same name, the check reports "Ambiguous table"; the path then helps.
+- **The record** is found as in a reference: first as an identifier, `r-00042` or `r-42`, otherwise by its display form, for instance `"Solaris"`. If several records carry this display form, the step fails with "ambiguous" and never takes the first one; if none is found, with "not found".
+- **Values** are written as pairs `field="value"` and are always text, even a number like `pages="224"`. Whether a value fits its field is checked by the database on writing, as in the form.
+- **The check before the run** knows tables and fields: an unknown table, a field the table does not have and a field given twice in one line are a finding with line. If an argument contains a placeholder, the app checks after filling it in.
+
+### Creating, changing and deleting records
+
+- `db-create` creates a record, `db-update` changes the named fields of a record, `db-delete` deletes one. The first two need at least one pair.
+- **The same route as the form:** every command writes with all the rules of the table, that is check rules, required values, key, deletion protection and permissions. If the database rejects it, the step fails with the sentence the form shows as well.
+- **Read fresh:** `db-update` and `db-delete` read the record immediately before writing. If someone else changes it in between, the step fails. If someone is editing the record in a form right now, the step fails at once, without waiting.
+- **The new identifier:** after `db-create "Library" title="The Invincible" as "new"`, the identifier of the created record is available in every following line as `{{created:new}}`, for instance in `db-open "Library" "{{created:new}}"`. The name consists of letters, digits, `_` and `-`; case does not count, and each name is given only once. A `{{created:…}}` before its creation is a finding; if the creation did not run in a branch, the line fails.
+- In a table in **card form**, `db-create` creates a card; its name is the value of the key. The required values apply there as well: if a required field has no value, the step fails with a reason as in table form, and nothing is created.
+- **Before deleting**, the app asks once before the first step and names what will be deleted; "No" lets no step run. If a target is only determined during the run, the confirmation says in words what will be deleted, for instance "The record of the table 'Library' created in this run"; in a loop over records it names the query, the table and the limit of 500.
+- **A record that is still referenced** cannot be deleted, as in the form.
+
+### Query into a file
+
+`db-query "Long Books.md" into "Reading List.md" under "Long books"` runs a [query file](database.md) and writes its result as a fixed table to a file.
+
+- **The source** is a query file with the mark `db-query` and exactly one query block. It runs as in its reading view, including details like `this.minpages`. If the file is not a query file, the check reports "Not a query file"; if its query is faulty, "Faulty query".
+- **The table** carries the column labels as its header row and the values as the query view shows them; a record becomes a reference with its display form as text, for instance `[[Library#^r-00003|Solaris]]`, so the note shows the title just like the query view. Without results there is a table without rows, followed by the sentence the query view shows as well.
+- **With `under`** the table replaces the content of that section, and the heading stays; if it is missing or occurs more than once, the step fails as with `insert`. A second run replaces the table instead of appending a second one. **Without `under`** the step creates the file and fails if it already exists, as with `create`. To collect, write to a dated file: `into "Reports/{{date}}.md"`.
+- Records that an earlier step of the same run has written are already in the result.
+
+### Loop over records
+
+`db-for-each` repeats the steps up to `end` for every record a query file returns, in the form of the `for-each` loop:
+
+````markdown
+```workflow
+db-for-each "Long Books.md"
+  db-update "Library" "{{record:id}}" loanNote="long: {{record:pages}} pages"
+end
+```
+````
+
+| Placeholder | Value per repetition |
+| --- | --- |
+| `{{record:field}}` | the value of the field in the current record, for instance `{{record:pages}}` |
+| `{{record:id}}` | the identifier of the record |
+| `{{record:table}}` | the table it is in |
+| `{{record:file}}` | the file it is in: in card form its card, otherwise the table file |
+
+- **The query must return records:** a `TABLE RECORDS` query, not grouped. Otherwise the check reports that the query returns no records.
+- **Fixed list:** the list is fixed when the loop is entered and is worked through in the order of the query; every record exactly once. Records the run creates inside the loop are not added.
+- **Read fresh:** a record is read at the start of its repetition and again before every further step that names one of its fields; a step thus sees what an earlier step of the same repetition has written. If the record has disappeared by then, the run ends at this line with "not found".
+- **Limits:** at most **500 records**; if there are more, the step fails before the first repetition, and no record has been processed. An empty set gives no repetition and is not a failure. No loop inside a loop, of whatever kind; a condition inside the loop is allowed.
+- `{{record:…}}` outside a loop over records is a finding. If a step inside the loop fails, the run ends; the records already processed stay processed.
+
+### Field value as a placeholder
+
+`{{db:Library:Solaris:pages}}` reads the field `pages` of the record "Solaris" in the table "Library", for instance in `notify "Pages: {{db:Library:Solaris:pages}}"`.
+
+- The three parts are table, record and field; the record is found as above, as an identifier or by its display form.
+- **It is read at the step itself**, not before the run; a value that an earlier step of the same run has written therefore applies.
+- **Failure instead of empty:** if the record is not found, is ambiguous or the table does not know the field, the step fails with a reason. An empty field value of a record that was found is empty text.
+- The check reports in advance a placeholder without exactly three parts, an unknown table and an unknown field; it does not look for the record, because that only holds at the time of the step.
+
+### Opening forms and checking consistency
+
+- **`db-open "Library" "Solaris"`** shows the record in the default form of its table. **`db-open "Library"`** without a record starts a new record like "New record" and requires the permission to create in the table; if it is missing, the step fails with role and table. A table in card form has no such new record, and the step fails with a reason; a new card is created by "New card" in the database overview or by `db-create`.
+- If the form has unsaved edits, it asks before it switches, and the step waits for the answer without a time limit. "Discard" opens the target, and the run continues. "Keep editing" leaves the edits unchanged and ends the run at this line with a reason; the run ends the same way if the question is closed without an answer, for instance with the tab of the form.
+- **`db-open-list "Loans List.md"`** opens a query file like `open`; a [list form](database.md) shows its grid there. If the file is not a query file, the check reports "Not a query file".
+- **`db-check`** checks all tables, **`db-check "Library"`** one, with the same check as "Check consistency" in the database overview. The result appears as with `notify`, for instance "Consistency: 3 findings in ‹Library›" or "Consistency: no findings"; without a named table it names the tables with findings. **A finding does not stop the run**; whoever does not want to continue after it puts `db-check` at the end. If the check itself fails, that is a failure of the step. The findings in detail are shown by "Check consistency" in the database overview. `db-check` writes nothing.
+
+### Without anyone watching, aborts and traces
+
+**A workflow writes to the database with your permissions; on a schedule and on events it creates and changes, but never deletes.**
+
+| Command | by hand | on a schedule and on events |
+| --- | --- | --- |
+| `db-create`, `db-update` | yes | yes |
+| `db-delete` | yes, after the confirmation | finding "Manual only" |
+| `db-query`, `db-for-each`, `{{db:…}}` | yes | yes |
+| `db-open` | yes | finding "Manual only" |
+| `db-open-list`, `db-check` | yes | yes |
+
+- **If a workflow aborts, the records it has already written remain.** Every database command that writes records is a save operation of its own that takes effect completely or not at all; there is no undo of the run.
+- **Trace in the journal:** on the "Workflow runs" page the journal names table, record and operation identifier for every database step, for instance "Line 2: db-update – table Library, record r-00007, operation 12". The [change records](database.md) of this step carry the same operation identifier.
+- **No events:** what a workflow writes to the database triggers no event, neither at the table file nor at a card.
 
 ## Schedule and arming
 
@@ -425,7 +543,7 @@ The line has the form `event: <event> [in "<folder or file>"] [matching "<patter
 
 ### What a run on an event may do
 
-- A run on an event runs **without anyone watching**, like a run on schedule: input and choice placeholders, `confirm` and `delete` are the finding "Manual only". **Nothing is ever deleted on events.**
+- A run on an event runs **without anyone watching**, like a run on schedule: input and choice placeholders, `confirm`, `delete`, `db-delete` and `db-open` are the finding "Manual only". **Nothing is ever deleted on events.**
 - `{{file}}`, `{{from}}` and `{{task}}` carry the values of the event (table above). The check reports a placeholder the event does not provide: `{{file}}` with `area-opened`, `{{from}}` except with `file-moved`, `{{task}}` except with `task-done`.
 
 ### When events take effect
@@ -439,7 +557,7 @@ The line has the form `event: <event> [in "<folder or file>"] [matching "<patter
 
 ### No chains
 
-**A workflow responds to what you or other programs do, never to what a workflow does.** What a run creates, changes, moves or ticks off triggers no event; a workflow that creates a file in "Inbox" itself on a new file in "Inbox" therefore does not run in circles. Whoever wants a sequence calls the second workflow explicitly with `workflow "Name"`. If a step writes into an open, unsaved document, only your saving is a change of the file and triggers `file-changed`; a task that such a step ticks off in the document triggers `task-done`.
+**A workflow responds to what you or other programs do, never to what a workflow does.** What a run creates, changes, moves or ticks off, including a record it writes to the database, triggers no event; a workflow that creates a file in "Inbox" itself on a new file in "Inbox" therefore does not run in circles. Whoever wants a sequence calls the second workflow explicitly with `workflow "Name"`. If a step writes into an open, unsaved document, only your saving is a change of the file and triggers `file-changed`; a task that such a step ticks off in the document triggers `task-done`.
 
 **Emergency brake:** if the same workflow runs on events more than **20 times in 5 minutes**, for example because another program responds to its changes, the 21st run no longer starts. The workflow is disarmed, waiting events for it lapse, and the status bar reports "Workflow ‹Name› disarmed: more than 20 runs triggered by events in 5 minutes", with no window in the foreground also as a notification of the operating system. The **Workflow runs** page shows "not armed: emergency brake" below the checkbox and the reason in the column **Result**. After arming it again, the brake counts from the start.
 
@@ -501,7 +619,7 @@ After a run in this window, the page shows the same reason as the status bar. Th
 
 ### What a run has done
 
-The button "Journal (N)" unfolds the **journal** of the last run below the row: every file and folder it has created, changed, moved, copied or deleted, as "Line N: command – path", the path relative to the area root. If the run touched nothing, it reads "No file touched"; with very many touched files the journal is truncated and says so.
+The button "Journal (N)" unfolds the **journal** of the last run below the row: every file and folder it has created, changed, moved, copied or deleted, as "Line N: command – path", the path relative to the area root; a database step appears as "Line N: command – table, record, operation" (section "Database commands"). If the run touched nothing, it reads "No file touched"; with very many touched files the journal is truncated and says so.
 
 There is no undo of a whole run. Undoing is done selectively, with the means that exist anyway: content changes through the [document history](history.md) of the file touched, deleted items from the trash, created, moved and copied items in the area panel.
 
@@ -516,13 +634,14 @@ Highlighting and display do not change the text of the file.
 ## Limits
 
 - **Only in the area:** no command reads or writes outside the root of the area in which the workflow was started, not even through a placeholder; this also applies to a workflow from a linked area.
-- **No network, no external programs.** Deleting happens only with `delete`, only for a start by hand, after a confirmation and into the trash.
+- **No network, no external programs.** Files are deleted only by `delete`, records only by `db-delete`, both only for a start by hand and after a confirmation; files go to the trash.
 - **No run without an open area:** a workflow on schedule runs only while the app and its area are open; it catches up on missed times according to the rules of `missed`. Events likewise take effect only while the area is open and are not caught up.
 - **No chains:** a workflow responds to what you or other programs do, never to what a workflow does. Whoever wants a sequence calls the next workflow with `workflow "Name"`; against a loop through other programs, the emergency brake stops a workflow after more than 20 runs on events in 5 minutes (section "Events").
-- **Limits of blocks:** at most three levels of nesting, no loop inside a loop and at most 500 files per loop.
+- **Limits of blocks:** at most three levels of nesting, no loop inside a loop and at most 500 files or records per loop.
+- **Database:** a workflow writes to the database with your permissions; on a schedule and on events it creates and changes, but never deletes. If a workflow aborts, the records it has already written remain. What a workflow writes to the database triggers no event.
 - **No undo of a run:** steps carried out stay carried out; the journal shows what the last run has touched, and undoing is done selectively.
 - **Macros** stay as they are and can be called as a step; a macro is a sequence of commands in the settings, a workflow a procedure as a document. **[Script blocks](scripts.md)** remain read-only, also as a script step; a workflow is not a general scripting language but a fixed catalogue of commands.
 
 ## Later stages
 
-One further stage is planned, with scope and timing not yet fixed: commands for the [database](database.md). The check already knows the keywords of these commands and reports them as "only available in a later stage", so that such a file does not run in part.
+One further stage is planned, with scope and timing not yet fixed: commands for exchanging table data of the [database](database.md), `db-export` and `db-import`. The check already knows these two keywords and reports them as "only available in a later stage", so that such a file does not run in part.

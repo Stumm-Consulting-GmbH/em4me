@@ -517,3 +517,78 @@ describe('Pflege-Befehle und Zwischenablage beim Start', () => {
     expect(hinweisTexte()).toEqual(['eins', 'zwei']);
   });
 });
+
+// 4T-002545 (D3, Df, AK5, AK6): `db-delete` in derselben einen Bestätigung,
+// das Journal eines Datenbank-Schritts mit Tabelle, Datensatz und Vorgang.
+describe('Datenbank-Schritte beim Start (4T-002545)', () => {
+  it('eine Bestätigung nennt Dateien und Datensätze des Laufs, vor dem ersten Schritt', async () => {
+    const reihenfolge = [];
+    bestaetigeLoeschZiele.mockImplementation(async (name, ziele, datensaetze) => {
+      reihenfolge.push(['bestaetigung', name, ziele, datensaetze]);
+      return true;
+    });
+    schrittAntwort = (step) => {
+      reihenfolge.push(['schritt', step.keyword]);
+      return { ok: true, line: step.line, keyword: step.keyword, effect: { kind: 'unchanged' } };
+    };
+    const ok = await starteWorkflow({
+      path: 'C:/b/A.md',
+      text: W(
+        'A',
+        'db-create "Library" title="X"',
+        'db-delete "Library" "Solaris"',
+        'delete "Alt.md"',
+      ),
+    });
+    expect(ok).toBe(true);
+    expect(reihenfolge).toEqual([
+      ['bestaetigung', 'A', ['Alt.md'], [{ table: 'Library', record: 'Solaris' }]],
+      ['schritt', 'db-create'],
+      ['schritt', 'db-delete'],
+      ['schritt', 'delete'],
+    ]);
+  });
+
+  it('«Nein» vor einem db-delete lässt keinen Schritt laufen (AK6)', async () => {
+    bestaetigeLoeschZiele.mockResolvedValue(false);
+    const ok = await starteWorkflow({
+      path: 'C:/b/A.md',
+      text: W('A', 'db-create "Library" title="X"', 'db-delete "Library" "r-00001"'),
+    });
+    expect(ok).toBe(false);
+    expect(schritte).toEqual([]);
+    expect(laeufe[0].run).toMatchObject({ status: 'canceled' });
+  });
+
+  it('das Journal nennt je Datenbank-Schritt Tabelle, Datensatz und Vorgangs-Kennung (AK5)', async () => {
+    schrittAntwort = (step) => ({
+      ok: true,
+      line: step.line,
+      keyword: step.keyword,
+      record: 'r-00003',
+      effect: {
+        kind: 'db',
+        paths: ['C:/b/Daten/Library.md'],
+        table: 'Library',
+        record: 'r-00003',
+        transaction: 12,
+      },
+    });
+    expect(
+      await starteWorkflow({
+        path: 'C:/b/A.md',
+        text: W('A', 'db-create "Library" title="X" as "neu"'),
+      }),
+    ).toBe(true);
+    expect(laeufe[0].run.journal).toEqual([
+      {
+        line: 7,
+        command: 'db-create',
+        path: 'C:/b/Daten/Library.md',
+        table: 'Library',
+        record: 'r-00003',
+        transaction: 12,
+      },
+    ]);
+  });
+});

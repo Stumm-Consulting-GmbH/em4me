@@ -15,6 +15,9 @@
 // Workflows mit 4T-002355) und nicht über Importe, damit der Ordner
 // `workflows/` keinen Zyklus mit Kommando-Platzierung und Editor bildet (Wächter `scripts/lint-ordner-importe.js`). Ohne
 // Registrierung entfällt die jeweilige Prüfung, wie der Kern es vorsieht.
+// Seit 4T-002544 ebenso die Rückfragen `dbTable` und `dbQuery` nach Tabellen,
+// Feldern und Abfrage-Dateien (`workflow-db-rueckfrage.js`), dazu der
+// Schalter der Erweiterung «Datenbank» als `databaseEnabled`.
 //
 // **Texte:** Der Kern liefert Codes, die Texte liegen im Fragment
 // `src/i18n/fragments/<code>/workflows.json` unter `workflow.befund.<code>`.
@@ -28,7 +31,7 @@ import { t } from '../../i18n.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { isPerspectiveScriptsEnabled } from '../query/perspective-script-view.js';
 
-const RUECKFRAGEN = ['isKnownCommand', 'isKnownMacro', 'isKnownWorkflow'];
+const RUECKFRAGEN = ['isKnownCommand', 'isKnownMacro', 'isKnownWorkflow', 'dbTable', 'dbQuery'];
 // Die Kommando-Kennungen liest die Prüfung selbst aus der Registry (ein
 // prozess-neutrales Modul, kein Zyklus); dynamische Kommandos stehen dort mit.
 const kommandoBekannt = (id) => COMMANDS.some((c) => c.id === id);
@@ -76,6 +79,8 @@ export function pruefeWorkflow(text, opts = {}) {
     templatesEnabled: isExtensionActive('templates'),
     // 4T-002465 (3n): die Einstellung «Skript-Blöcke ausführen» des Fensters.
     scriptsEnabled: isPerspectiveScriptsEnabled(),
+    // 4T-002544: Befund «Datenbank ist ausgeschaltet» an jedem Datenbank-Befehl.
+    databaseEnabled: isExtensionActive('database'),
     ...rueckfragen,
   });
 }

@@ -47,8 +47,9 @@
 // **Pflege-Befehle** (4T-002424, Regeln P1 und P4): Enthält der vorbereitete
 // Lauf samt aufgerufener Workflows ein `delete`, nennt **eine** Bestätigung
 // vor dem ersten Schritt alle Ziele mit Pfad; «Nein» lässt keinen Schritt
-// laufen und verbucht `canceled`. Vor jedem `delete` schließt das Fenster seine
-// Reiter auf das Ziel. `confirm` stellt seine Frage im Lauf mit «Ja» und
+// laufen und verbucht `canceled`; seit 4T-002545 nennt sie ebenso die Ziele
+// jedes `db-delete` mit Tabelle und Datensatz (D3). Vor jedem `delete` schließt
+// das Fenster seine Reiter auf das Ziel. `confirm` stellt seine Frage im Lauf mit «Ja» und
 // «Nein». Beides gibt es nur beim Start von Hand; ein Lauf nach Zeitplan ist
 // schon in der Vorbereitung abgewiesen.
 //
@@ -111,6 +112,7 @@ import {
 import { WORKFLOWS_EXTENSION_ID } from '../../../shared/workflows/workflow-konstanten.js';
 import {
   MAX_CALL_DEPTH,
+  dbDeleteTargets,
   deleteTargets,
   runWorkflow,
 } from '../../../shared/workflows/workflow-runner.js';
@@ -413,9 +415,16 @@ function neuesJournal() {
     const wirkung = antwort && antwort.ok ? antwort.effect : null;
     if (!wirkung || !Array.isArray(wirkung.paths) || UNBERUEHRT.includes(wirkung.kind)) return;
     if (!jeDatei.has(pfad)) jeDatei.set(pfad, []);
+    // 4T-002545 (Df): ein Datenbank-Schritt nennt Tabelle, Datensatz und Vorgangs-Kennung.
+    const datenbank =
+      wirkung.kind === 'db'
+        ? { table: wirkung.table, record: wirkung.record, transaction: wirkung.transaction }
+        : {};
     for (const p of wirkung.paths) {
       if (typeof p !== 'string' || p === '') continue;
-      jeDatei.get(pfad).push({ line: antwort.line, command: antwort.keyword, path: p });
+      jeDatei
+        .get(pfad)
+        .push({ line: antwort.line, command: antwort.keyword, path: p, ...datenbank });
     }
   }
   return {
@@ -494,6 +503,8 @@ function laufDeps(startedAt, herkunft, ereignis) {
     sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
     confirm: (frage) => frageJaNein(laufName, frage),
     runScript: skriptLauf,
+    // 4T-002547: Datensatz einer Schleife db-for-each und Feldwert für {{db:…}}.
+    dbRead: (pfad, anfrage) => api.workflowDbRead(pfad, anfrage),
     // 4T-002423: nach Zeitplan zusätzlich als Benachrichtigung des Betriebssystems.
     notify: (text) => meldeNotify(text, { name: laufName, herkunft }),
     finish: (plan, ergebnis) =>
@@ -544,7 +555,10 @@ async function lauf(pfad, text, herkunft, ereignis) {
   }
   laufName = vorbereitet.plan.name;
   const ziele = deleteTargets(vorbereitet.plan);
-  if (ziele.length > 0 && !(await bestaetigeLoeschZiele(laufName, ziele))) {
+  // 4T-002545 (D3): dieselbe eine Bestätigung nennt auch die Ziele der `db-delete`.
+  const datensaetze = dbDeleteTargets(vorbereitet.plan);
+  const zuLoeschen = ziele.length > 0 || datensaetze.length > 0;
+  if (zuLoeschen && !(await bestaetigeLoeschZiele(laufName, ziele, datensaetze))) {
     await merke(pfad, laufStand({ status: 'canceled' }, startedAt, { origin: herkunft, ereignis }));
     return false;
   }

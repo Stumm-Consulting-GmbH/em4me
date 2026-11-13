@@ -88,6 +88,20 @@
 // `{{script:…}}` wird vor dem Lauf nur zur Probe gefüllt und erst im Lauf
 // endgültig (`prepareRun`, Ablauf-Kern).
 //
+// **Datenbank-Befehle der Stufe D (4T-002544, Entscheidungen Da bis Dg und
+// Dm der Konzept-Runde 4T-002543):** Hier stehen allein die Bausteine, die
+// jede Zeile betreffen: die Paare `feld="Wert"` (`pairsMissing` bei
+// `db-create` und `db-update` ohne Paar, `fieldDuplicate` bei einem Feld
+// zweimal in einer Zeile, `extraArgument` bei jedem anderen Befehl), die
+// zulässigen Options-Wörter eines Schemas und die Schleife `db-for-each` in
+// der Paarung der Blöcke: Sie öffnet einen Block wie `for-each`, keine
+// Schleife darf in einer Schleife stehen, gleich welcher Art (Dc), und
+// `blockStructure` nennt je Element die Art der umgebenden Schleife
+// (`loopKind`), damit `{{item}}` nur in `for-each` und `{{record:…}}` nur
+// in `db-for-each` gilt. Die Befunde gegen Tabellen, Felder und
+// Abfrage-Dateien prüft `workflow-check-db.js` über die Rückfragen `dbTable`
+// und `dbQuery`, dazu den Schalter der Erweiterung «Datenbank».
+//
 // Prozess-neutral: kein Electron, kein DOM, kein Datei-Zugriff.
 'use strict';
 
@@ -99,6 +113,7 @@ const {
   END_KEYWORD,
   FORBIDDEN_PLACEHOLDER_TYPES,
   LOOP_KEYWORD,
+  LOOP_KEYWORDS,
   MAX_BLOCK_DEPTH,
   MAX_WAIT_SECONDS,
   RESERVED_COMMAND_PREFIXES,
@@ -115,21 +130,22 @@ const { scriptBlock } = require('./workflow-document.js');
 const { checkAreaPath, checkFileName } = require('./workflow-paths.js');
 const { SCHEDULE_TRIGGER } = require('./workflow-schedule.js');
 const { EVENT_TRIGGER, eventProvides } = require('./workflow-event.js');
+// 4T-002547: `festVorDemLauf` liegt bei den Datenbank-Befunden, die es mitbenutzen.
+const { dbFindings, festVorDemLauf } = require('./workflow-check-db.js');
 
 const ZAHL_RE = /^\d+(?:\.\d+)?$/;
 const KOMMANDO_RE = /^[A-Za-z][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)+$/;
 // Ersatz eines Platzhalters für die Vorab-Prüfung eines Pfads: ein harmloser
 // Name, damit allein die Literal-Anteile über die Grenze urteilen.
 const PLATZHALTER_ERSATZ = 'x';
-// Was einen Zuschauer braucht und deshalb nur von Hand läuft.
-const NUR_VON_HAND_BEFEHLE = Object.freeze(['confirm', 'delete']);
+// Was einen Zuschauer braucht und deshalb nur von Hand läuft; 4T-002545 (D3,
+// De): `db-delete` wie `delete`, `db-open`, weil die Maske zurückfragt.
+const NUR_VON_HAND_BEFEHLE = Object.freeze(['confirm', 'delete', 'db-delete', 'db-open']);
 const NUR_VON_HAND_EINGABEN = Object.freeze(['prompt', 'select']);
 // Die Auslöser ohne Zuschauer, die sich scharf schalten lassen.
 const UNBEAUFSICHTIGTE_AUSLOESER = Object.freeze([SCHEDULE_TRIGGER, EVENT_TRIGGER]);
 // Die Platzhalter der Schleife (Knoten-Namen der Vorlagen-Engine).
 const SCHLEIFEN_PLATZHALTER = Object.freeze(['item', 'item:name']);
-// Befehle, deren erstes Argument vor dem ersten Schritt feststehen muss.
-const OHNE_SCHLEIFEN_WERT = Object.freeze(['workflow', 'macro', 'delete']);
 const MUSTER_TRENNER_RE = /[\\/]/;
 const JOKER_RE = /[*?]/;
 // Präfix der Knoten-Namen der Skript-Ergebnisse (`{{script:name}}`).
@@ -202,9 +218,15 @@ function loopNameMatches(muster, dateiName) {
 function checkPlaceholders(raw, stages = ENABLED_STAGES) {
   const analysis = analyzeTemplate(raw);
   if (!analysis.ok) {
+    // 4T-002544 (Dd): `{{db:…}}` ohne drei Angaben hat einen eigenen Grund.
+    const db = analysis.error.code === 'invalidParams' && analysis.error.name === 'db';
     return {
       analysis: null,
-      problems: [{ code: 'placeholderInvalid', detail: { engine: analysis.error.code } }],
+      problems: [
+        db
+          ? { code: 'dbPlaceholderInvalid', detail: { placeholder: 'db' } }
+          : { code: 'placeholderInvalid', detail: { engine: analysis.error.code } },
+      ],
     };
   }
   const problems = [];
@@ -313,6 +335,19 @@ function pruefeBezug(keyword, token, melde, options) {
   else if (lage === 'ambiguous') melde(`${keyword}Ambiguous`, token, { name });
 }
 
+// Nimmt ein Paar `feld="Wert"` auf (G4, 4T-002544): ein Feld zweimal in einer
+// Zeile ist `fieldDuplicate` (ohne Rücksicht auf die Schreibung, wie die
+// Definition doppelte Felder erkennt); der Wert ist Text (Ausführungs-
+// Entscheidung 6) und darf Platzhalter tragen.
+function paarAufnehmen(token, pairs, melde, stages) {
+  const name = token.key.trim();
+  if (pairs.some((p) => p.key.toLowerCase() === name.toLowerCase())) {
+    melde('fieldDuplicate', token, { field: name });
+  }
+  pruefeText('text', token, melde, false, stages);
+  pairs.push({ key: name, raw: token.value });
+}
+
 /**
  * Prüft eine gelesene Anweisung gegen den Katalog.
  *
@@ -337,7 +372,7 @@ function checkStatement(anweisung, options) {
   for (const spec of eintrag.args) {
     const token = tokens[i];
     const option = token && token.type === 'word' ? lookupOption(token.value) : null;
-    if (!token || option) {
+    if (!token || option || (token.type === 'pair' && eintrag.pairs)) {
       if (spec.optional) break;
       melde('missingArgument', token || null, { position: args.length + 1, expected: spec.type });
       break;
@@ -348,16 +383,24 @@ function checkStatement(anweisung, options) {
     i++;
   }
   const gruppen = {};
+  const pairs = [];
   while (i < tokens.length) {
     const token = tokens[i];
+    if (token.type === 'pair' && eintrag.pairs) {
+      paarAufnehmen(token, pairs, melde, options.stages);
+      i++;
+      continue;
+    }
     const option = token.type === 'word' ? lookupOption(token.value) : null;
     if (!option) {
       melde('extraArgument', token);
       i++;
       continue;
     }
-    if (!eintrag.groups[option.group]) melde('unknownOption', token, { option: token.value });
-    else if (gruppen[option.group]) melde('duplicateOption', token, { option: token.value });
+    const zulaessig = !eintrag.options || eintrag.options.includes(token.value);
+    if (!eintrag.groups[option.group] || !zulaessig) {
+      melde('unknownOption', token, { option: token.value });
+    } else if (gruppen[option.group]) melde('duplicateOption', token, { option: token.value });
     const wert = option.value ? tokens[i + 1] : null;
     if (option.value && (!wert || wert.type !== 'string')) {
       melde('missingArgument', wert || token, { option: token.value, expected: option.value });
@@ -375,6 +418,7 @@ function checkStatement(anweisung, options) {
   for (const [gruppe, pflicht] of Object.entries(eintrag.groups)) {
     if (pflicht === 'required' && !gruppen[gruppe]) melde('missingOption', null, { group: gruppe });
   }
+  if (eintrag.pairs === 'required' && pairs.length === 0) melde('pairsMissing', null);
   const step = {
     line: anweisung.line,
     blockLine: anweisung.blockLine,
@@ -383,6 +427,11 @@ function checkStatement(anweisung, options) {
     source: gruppen.source || null,
     position: gruppen.position || null,
   };
+  // 4T-002544: Paare und Ziel der Datenbank-Befehle, nur wo das Schema sie kennt.
+  if (eintrag.pairs) step.pairs = pairs;
+  if (eintrag.groups.target) step.target = gruppen.target || null;
+  // 4T-002545: der Name hinter `as` von `db-create` für `{{created:…}}` (Da).
+  if (eintrag.pairs && gruppen.result) step.result = normalizeScriptName(gruppen.result.raw);
   return { step: findings.length === 0 ? step : null, findings };
 }
 
@@ -452,27 +501,12 @@ function scriptFindings(anweisungen, schritte, text, options = {}) {
   return alle;
 }
 
-// Steht der Baustein dort, wo sein Wert vor dem ersten Schritt feststehen muss
-// (Name eines Workflows oder Makros, Ziel von `delete`, Pfad einer Vorlage)?
-// Liefert die Angabe für den Befund oder null.
-function festVorDemLauf(anweisung, token) {
-  const { tokens } = anweisung;
-  const index = tokens.indexOf(token);
-  const davor = index > 0 ? tokens[index - 1] : null;
-  if (davor && davor.type === 'word' && davor.value === 'from-template') {
-    return { option: 'from-template' };
-  }
-  if (index === 0 && OHNE_SCHLEIFEN_WERT.includes(anweisung.keyword)) {
-    return { keyword: anweisung.keyword };
-  }
-  return null;
-}
-
 // Die Platzhalter-Analysen der Texte einer Anweisung, mit ihrem Baustein.
+// Seit 4T-002544 auch die Werte der Paare `feld="Wert"`.
 function textAnalysen(anweisung) {
   const analysen = [];
   for (const token of anweisung.tokens) {
-    if (token.type !== 'string') continue;
+    if (token.type !== 'string' && token.type !== 'pair') continue;
     const analysis = analyzeTemplate(token.value);
     if (analysis.ok) analysen.push({ token, analysis }); // sonst `placeholderInvalid`
   }
@@ -526,15 +560,25 @@ function eventPlaceholderFindings(anweisung, event) {
  * @param {{keyword: string, line: number, blockLine?: number, from?: number}[]} items
  *   in Lese-Reihenfolge, aus `readBlock` oder `checkWorkflow`.
  * @returns {{findings: object[], blocks: Object<number, {else: (number|null),
- *   end: (number|null), loop: boolean}>, inLoop: boolean[]}} `blocks` je Index
- *   eines öffnenden Worts; `inLoop` je Index, ob das Element in einer Schleife
- *   steht (die Zeilen `for-each` und ihr `end` selbst nicht).
+ *   end: (number|null), loop: boolean}>, inLoop: boolean[], loopKind:
+ *   (string|null)[], loopOf: (number|null)[]}} `blocks` je Index eines
+ *   öffnenden Worts; `inLoop` je Index, ob das Element in einer Schleife
+ *   steht (die Zeilen der Schleife und ihr `end` selbst nicht); `loopKind`
+ *   je Index das Schlüsselwort dieser Schleife (`for-each` oder
+ *   `db-for-each`, 4T-002544) oder null, `loopOf` den Index ihrer Zeile.
  */
 function blockStructure(items) {
   const findings = [];
   const blocks = {};
   const inLoop = [];
+  const loopKind = [];
+  const loopOf = [];
   const stapel = [];
+  const merkeSchleife = (index) => {
+    const schleife = stapel.find((b) => b.loop);
+    loopKind[index] = schleife ? schleife.item.keyword : null;
+    loopOf[index] = schleife ? schleife.index : null;
+  };
   const melde = (item, code, detail = {}) =>
     findings.push({
       code,
@@ -546,9 +590,10 @@ function blockStructure(items) {
   (items || []).forEach((item, index) => {
     const kw = item.keyword;
     const inSchleife = stapel.some((b) => b.loop);
-    if (CONDITION_KEYWORDS.includes(kw) || kw === LOOP_KEYWORD) {
+    merkeSchleife(index);
+    if (CONDITION_KEYWORDS.includes(kw) || LOOP_KEYWORDS.includes(kw)) {
       inLoop[index] = inSchleife;
-      const loop = kw === LOOP_KEYWORD;
+      const loop = LOOP_KEYWORDS.includes(kw);
       if (loop && inSchleife) melde(item, 'loopNested');
       if (stapel.length >= MAX_BLOCK_DEPTH) {
         melde(item, 'blockTooDeep', { keyword: kw, max: MAX_BLOCK_DEPTH });
@@ -562,6 +607,7 @@ function blockStructure(items) {
       if (!oben) melde(item, 'blockEndExtra');
       else blocks[oben.index].end = index;
       inLoop[index] = stapel.some((b) => b.loop);
+      merkeSchleife(index);
       return;
     }
     inLoop[index] = inSchleife;
@@ -574,7 +620,7 @@ function blockStructure(items) {
   for (const offen of stapel) {
     melde(offen.item, 'blockEndMissing', { keyword: offen.item.keyword });
   }
-  return { findings, blocks, inLoop };
+  return { findings, blocks, inLoop, loopKind, loopOf };
 }
 
 // Die Platzhalter der Schleife in einer Analyse.
@@ -648,10 +694,12 @@ function blocksRun(finding) {
  *
  * @param {object} doc Ergebnis von `readWorkflowDocument`.
  * @param {{ownName?: string, templatesEnabled?: boolean, scriptsEnabled?: boolean,
- *   stages?: Array, isKnownCommand?: Function, isKnownMacro?: Function,
- *   isKnownWorkflow?: Function}} [options] `scriptsEnabled` ist die
+ *   databaseEnabled?: boolean, stages?: Array, isKnownCommand?: Function,
+ *   isKnownMacro?: Function, isKnownWorkflow?: Function, dbTable?: Function,
+ *   dbQuery?: Function}} [options] `scriptsEnabled` ist die
  *   Einstellung «Skript-Blöcke ausführen»; nur `true` gibt `script` und
- *   `if-script` frei (4T-002465).
+ *   `if-script` frei (4T-002465). `databaseEnabled`, `dbTable` und
+ *   `dbQuery` siehe `workflow-check-db.js` (4T-002544).
  * @returns {{ok: boolean, armable: boolean, steps: object[], findings: object[]}}
  *   `ok` genau dann, wenn kein Befund den Lauf verhindert (`blocksRun`);
  *   `armable` genau dann, wenn der Auslöser `schedule` oder `event` ist und gar
@@ -673,13 +721,17 @@ function checkWorkflow(doc, options = {}) {
     gelesen.statements.forEach((anweisung, index) => {
       const ergebnis = checkStatement(anweisung, options);
       findings.push(...ergebnis.findings);
-      findings.push(...loopPlaceholderFindings(anweisung, struktur.inLoop[index] === true));
+      // 4T-002544: `{{item}}` gilt nur in `for-each`, nicht in `db-for-each`.
+      findings.push(
+        ...loopPlaceholderFindings(anweisung, struktur.loopKind[index] === LOOP_KEYWORD),
+      );
       if (unbeaufsichtigt) findings.push(...manualOnlyFindings(anweisung));
       if (ereignis) findings.push(...eventPlaceholderFindings(anweisung, ereignis));
       schritte.push(ergebnis.step);
       if (ergebnis.step) steps.push(ergebnis.step);
     });
     findings.push(...scriptFindings(gelesen.statements, schritte, doc.source, options));
+    findings.push(...dbFindings(gelesen.statements, struktur, options));
   }
   findings.sort((a, b) => (a.line || 0) - (b.line || 0) || (a.column || 0) - (b.column || 0));
   const ok = findings.every((f) => !blocksRun(f));

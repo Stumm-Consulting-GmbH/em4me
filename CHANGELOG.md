@@ -14,6 +14,260 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.160.0.5221] - 2026-11-13 — Workflows Stufe D: Datenbank-Befehle
+
+Zug 3E-000408
+mit einem Mitglied, nach Punkt Dj der Konzept-Runde (am 2026-11-04 mit «Alle wie
+empfohlen» pauschal übernommen) und gestartet auf die Anweisung des Product
+Owners vom 2026-11-10: die Ausbaustufe Datenbank-Befehle der Workflows
+(3E-000368).
+Ein Workflow arbeitet jetzt mit den Datensätzen der Datenbank des Bereichs:
+`db-create`, `db-update` und `db-delete` legen Datensätze an, ändern und
+löschen sie über denselben Schreibweg wie die Maske, mit allen Regeln der
+Tabelle und den Rechten des angemeldeten Anwenders; `db-query` schreibt das
+Ergebnis einer Abfrage-Datei als feste Tabelle in eine Datei; `db-for-each`
+wiederholt Schritte für jeden Datensatz einer Abfrage; `{{record:…}}`,
+`{{created:…}}` und `{{db:…}}` tragen Werte aus der Datenbank in die
+Befehls-Zeilen; `db-open` und `db-open-list` öffnen Masken, und `db-check`
+meldet die Konsistenz als Hinweis. Nach Zeitplan und bei Ereignissen legt ein
+Workflow an und ändert, löscht aber nie; was er in die Datenbank schreibt, löst
+kein Ereignis aus. Alles hängt an der Erweiterung «Workflows» im Arbeitsmodus
+«Voll» und zusätzlich an der Erweiterung «Datenbank». Die Austausch-Befehle
+`db-export` und `db-import` folgen in einer eigenen Stufe. Konzept-Runde und
+Entscheidungen in
+4T-002543,
+der Abschluss-Anteil in
+4T-002550.
+
+**Entscheidungen des Product Owners vom 2026-11-04.** Das Entscheidungs-Paket
+Da bis Dm der Konzept-Runde ist am 2026-11-04 im Wortlaut «Alle wie empfohlen»
+angenommen, die Empfehlungen pauschal übernommen: Tabelle, Datensatz als Text
+und Paare in der Befehls-Zeile, der Datensatz gefunden wie in einem Verweis,
+die neue Kennung als `{{created:…}}` (Da); die Abfrage in einer Abfrage-Datei
+und das Ergebnis als Markdown-Tabelle, mit `under` an die Stelle eines
+Abschnitts (Db); `db-for-each` als Block wie `for-each` mit fester Liste und
+höchstens 500 Datensätzen (Dc); `{{db:…}}` mit Fehlschlag statt leerem Text
+(Dd); Schreiben nach Zeitplan und bei Ereignissen, Löschen und Masken nur von
+Hand (De); ein Auftrag je Befehl, keine Rücknahme eines Laufs, die
+Vorgangs-Kennung im Journal (Df); `db-open`, `db-open-list` und `db-check` mit
+dem Ergebnis als Benachrichtigung (Dg); `db-export` und `db-import` in einer
+eigenen Stufe D2 (Dh); die Roadmap-Kachel der Datenbank bleibt offen und nennt
+die Datenbank-Befehle der Workflows mit (Di); Zug, Startstand und Schnitt (Dj,
+Dk); das Nachziehen der Workflow-Zeilen beim Umbenennen eines Felds gehört der
+Schema-Evolution (Dm).
+
+**Fragen aus der Umsetzung, am 2026-11-12 beantwortet.** Die Fragen aus der
+Umsetzung sind am 2026-11-12 beantwortet, die Empfehlungen der Sitzung pauschal
+übernommen (auf die Frage «Übernehmen Sie die Empfehlungen zu den acht Fragen?»
+mit der Auswahl «Alle wie empfohlen»). Drei davon sind nachgezogen: `db-create`
+in eine Tabelle in Kartei-Form scheitert wie in Tabellen-Form mit Grund, wenn
+ein Pflicht-Feld fehlt, und legt nichts an (N1); die Bestätigung vor dem Löschen
+sagt ein Ziel, das erst im Lauf feststeht, in Worten statt mit dem rohen
+Platzhalter (N2); `db-open` wartet auf die Antwort der Rückfrage einer Maske mit
+ungespeicherter Bearbeitung, «Verwerfen» setzt den Lauf fort, «Weiter
+bearbeiten» und eine ohne Antwort geschlossene Rückfrage beenden ihn mit Grund
+(N3). Unverändert bestätigt sind der Halt des Laufs bei einem in der Schleife
+verschwundenen Datensatz, die Datenbank-Platzhalter als Text in Vorlagen und
+der Fehlschlag von `db-open` ohne Datensatz in Kartei-Form. Die Frage zu den
+Text-Befehlen eines Workflows in Dateien der Datenbank, die dort genau das
+dürfen sollen, was der Anwender von Hand im Editor darf, bekommt einen eigenen
+Vorgang.
+
+### Neu
+
+- **Katalog-Schemata und Prüfung der Datenbank-Befehle** (`4T-002544`). Der
+  Befehls-Katalog gibt die Stufe D frei: acht Befehle mit Argument-Schema, die
+  neuen Argument-Arten «Tabelle» und «Datensatz», Paare `feld="Wert"` als
+  Pflicht bei `db-create` und `db-update`, die Option `as` bei `db-create` und
+  `into` mit wahlweise `under` bei `db-query`; `db-for-each` ist ein Block bis
+  `end`. Neues Modul `src/shared/workflows/workflow-check-db.js` mit den
+  Befunden «Tabelle unbekannt», «Tabelle uneindeutig», «Feld unbekannt» (auch in
+  `{{record:…}}` und `{{db:…}}`), «Feld doppelt», Befehl ohne Paar, «keine
+  Abfrage-Datei», «Abfrage fehlerhaft», «Abfrage liefert keine Datensätze»,
+  `{{record:…}}` außerhalb der Schleife, `{{db:…}}` ohne drei Angaben und
+  «Datenbank ist ausgeschaltet», bei Platzhaltern nach dem Füllen. Die
+  Rückfrage nach Tabellen, Feldern und Abfrage-Dateien liefert der neue Kanal
+  `workflow:dbCatalog` (`src/main/workflows/workflow-db-auskunft.js`, im Fenster
+  `src/renderer/modules/workflows/workflow-db-rueckfrage.js`), nur lesend; die
+  Auflösung der Tabelle nach Name oder Pfad teilt `workflow-db-lookup.js`.
+- **Schreib-Schritte über die Schreib-Schnittstelle** (`4T-002545`). Neues
+  Schritt-Modul `src/main/workflows/workflow-db-steps.js`: `db-create`,
+  `db-update` und `db-delete` je als ein Auftrag an die eine Schreib-Schnittstelle
+  der Datenbank, die Tabelle nach Name oder Pfad, der Datensatz zuerst als
+  Kennung frisch gelesen, sonst über die Anzeige-Form, mehrere Treffer
+  «uneindeutig»; `db-update` und `db-delete` geben den eben gelesenen Stand als
+  Erwartung mit, und eine offene Maske auf dem Datensatz ist ein Fehlschlag ohne
+  Warten. Die Schreib-Schnittstelle bekommt die Naht `vorSchreiben`, über die
+  ein Workflow-Schritt jede Datei des Plans mit der Lauf-Marke versieht, sodass
+  kein Ereignis ausgelöst wird. Eine Abweisung zeigt den Satz der Maske. Das
+  Journal des Laufs nennt je Datenbank-Schritt Tabelle, Datensatz und
+  Vorgangs-Kennung, die Seite «Workflow-Läufe» zeigt die Zeile. `db-delete` und
+  `db-open` sind bei `trigger: schedule` und `trigger: event` der Befund «Nur von
+  Hand», und `db-delete` läuft von Hand nach der einen Bestätigung aller
+  Lösch-Ziele vor dem ersten Schritt. **Index auf dem Stand der eigenen
+  Schreibvorgänge:** Ein Schreib-Stand je Prozess
+  (`src/main/workflows/workflow-db-schreibstand.js`) trägt die geschriebenen
+  Dateien vor jeder index-gestützten Auflösung über `trageDateienNach` im
+  Bereichs-Index nach, auf dem Weg des Beobachters und ohne Warten auf Zeit; so
+  findet ein Schritt auch einen eben angelegten Datensatz über seine
+  Anzeige-Form. **Nachzug vom 2026-11-12 (N1):** Die Schreib-Schnittstelle
+  prüft beim Anlegen einer Karteikarte die Pflicht-Angaben als Vorgabe und setzt
+  die Prüfung nur aus, wenn der Auftrag das Merkmal `pflichtAussetzen` trägt
+  (`src/main/database/record-auftrag-pruefung.js`); «Neue Karteikarte» und die
+  Kopie einer Karteikarte fordern die Ausnahme ausdrücklich an und verhalten sich
+  unverändert, `db-create` fordert sie nicht an und scheitert deshalb auch in
+  Kartei-Form mit Grund, wenn ein Pflicht-Feld fehlt, ohne Datei, Begleitdatei
+  oder Journal-Eintrag.
+- **Abfrage in eine Datei** (`4T-002546`). Neues Modul
+  `src/main/workflows/workflow-db-query.js`: `db-query` führt die Abfrage-Datei
+  aus wie ihre Lese-Ansicht, `this.<Angabe>` eingeschlossen, und schreibt das
+  Ergebnis als Markdown-Tabelle in der Form der Abfrage-Ansicht (neuer
+  Baustein `src/shared/query/result-set-markdown.js`, Datensätze als Verweis
+  `[[Tabelle#^Kennung|Anzeige-Form]]`, sodass Live- und gerenderte Ansicht den
+  Namen zeigen wie die Abfrage-Ansicht); mit `under` ersetzt sie den Inhalt des Abschnitts
+  über die neue Bearbeitungs-Art `replaceSection` und den Weg der
+  Inhalts-Befehle, ohne `under` entsteht die Datei wie bei `create`. Ohne
+  Treffer steht eine Tabelle ohne Zeilen mit dem Satz der Ansicht da.
+- **Schleife über Datensätze und Datenbank-Platzhalter** (`4T-002547`).
+  `db-for-each` holt beim Eintritt die Datensätze der Abfrage-Datei in ihrer
+  Reihenfolge, höchstens 500, sonst ein Fehlschlag vor der ersten Wiederholung;
+  eine leere Menge ist kein Fehlschlag. Je Wiederholung tragen
+  `{{record:feld}}`, `{{record:id}}`, `{{record:table}}` und `{{record:file}}`
+  die Werte des Datensatzes, frisch gelesen zu Beginn der Wiederholung und vor
+  jedem weiteren Schritt mit einem Feld; ein verschwundener Datensatz beendet
+  den Lauf mit «nicht gefunden». `{{created:name}}` trägt die Kennung eines
+  `db-create … as "name"` desselben Laufs, `{{db:Tabelle:Datensatz:Feld}}` den
+  Feldwert zum Zeitpunkt des Schritts; ein fehlender Wert ist ein Fehlschlag,
+  nie ein leerer Text. Neuer Lese-Kanal `workflow:dbRead`, nur lesend und gegen
+  die Wurzel des sendenden Fensters. In Vorlagen bleiben die drei Platzhalter
+  als Text stehen; neue Befunde zum Namen hinter `as` und zu Datenbank-Werten an
+  Stellen, die vor dem ersten Schritt feststehen müssen. **Nachzug vom
+  2026-11-12 (N2):** Steht das Ziel eines `db-delete` erst im Lauf fest, nennt
+  die Bestätigung vor dem ersten Schritt es in Worten statt mit dem rohen
+  Platzhalter, etwa «Jeden Datensatz der Abfrage 'Loans List.md' in der Tabelle
+  'Library', höchstens 500» oder «Den in diesem Lauf angelegten Datensatz der
+  Tabelle 'Library'»; feste Ziele bleiben wortgleich. `dbDeleteTargets` in
+  `src/shared/workflows/workflow-runner.js` gibt die Art des Ziels mit,
+  `bestaetigeLoeschZiele` in `src/renderer/modules/workflows/workflow-window.js`
+  bildet die Zeile.
+- **Masken- und Konsistenz-Befehle** (`4T-002548`). Neues Modul
+  `src/main/workflows/workflow-db-masken.js`: `db-open` zeigt einen Datensatz in
+  der Standard-Maske seiner Tabelle, ohne Datensatz eröffnet der Hauptprozess
+  die Neuanlage über dieselbe Stelle wie das Kommando «Neuer Datensatz», mit
+  dem Recht zum Anlegen; `db-open-list` öffnet eine Abfrage-Datei wie `open`,
+  auch ohne Zuschauer; `db-check` führt die Konsistenz-Prüfung der Übersicht für
+  eine oder alle Tabellen aus und meldet das Ergebnis wie `notify`, etwa
+  «Konsistenz: 3 Befunde in ‹Rechnungen›», ohne den Lauf anzuhalten.
+  **Nachzug vom 2026-11-12 (N3):** Hat die geöffnete Maske eine ungespeicherte
+  Bearbeitung, wartet `db-open` ohne Zeitgrenze auf die Antwort ihrer
+  Rückfrage; «Verwerfen» öffnet das Ziel und setzt den Lauf fort, «Weiter
+  bearbeiten» beendet ihn mit Grund und lässt die Bearbeitung unverändert,
+  ebenso eine ohne Antwort geschlossene Rückfrage. Neues Modul
+  `src/renderer/modules/database/masken-warten.js` mit der aus
+  `masken-seite.js` herausgezogenen Rückfrage und der Warte-Stelle, die
+  höchstens eine wartende Antwort hält und sie genau einmal gibt; die neue
+  Funktion `oeffneMaskeImLauf` der Masken-Seite, die der Fenster-Handgriff
+  `dbOpen` statt `oeffneMaske` ruft. Die dabei gefundene Behebung an der Maske
+  steht unter «Behoben».
+
+### Behoben
+
+- **Maske nach dem Schließen mit ungespeicherter Bearbeitung** (`4T-002548`,
+  Befund der Gegenlese-Runde vom 2026-11-12). Wurde der Reiter einer Maske mit
+  ungespeicherter Bearbeitung geschlossen, blieb der Zustand der Bearbeitung
+  stehen, und das nächste Öffnen einer Maske, von Hand wie im Lauf eines
+  Workflows, zeigte den alten Datensatz in Bearbeitung statt des angefragten.
+  Jetzt endet die Bearbeitung mit dem Schließen, wie es das Handbuch sagt
+  (`src/renderer/modules/database/masken-seite.js`, `onClose`).
+
+### i18n
+
+- **Oberflächen-Texte der Stufe D** (`4T-002544`, `4T-002545`, `4T-002546`,
+  `4T-002547`, `4T-002548`), in allen fünf Sprachfassungen: Befunde der
+  Prüfung, Fehlschläge der Schritte, Argument-Arten und Gruppe des Ziels,
+  Journal-Zeile eines Datenbank-Schritts, Lösch-Bestätigung mit Datensätzen,
+  Spalten-Kopf der Abfrage-Tabelle und die Meldungen von `db-check` in Einzahl
+  und Mehrzahl. **Zählung nach Kapitel 13 der Entwicklungsrichtlinien**, erhoben
+  am 2026-11-10 und fortgeschrieben am 2026-11-12 über die Schlüssel aller
+  Fragmente je Sprache im Vergleich mit dem Start des Zuges: je Sprache **64 neue
+  Schlüssel** (5240 statt 5176), davon 52 im Fragment `workflows.json` (15 aus
+  `4T-002544`, 10 aus `4T-002545`, 3 aus `4T-002546`, 14 aus `4T-002547`, davon 6
+  aus dem Nachzug N2, 10 aus `4T-002548`, davon 2 aus dem Nachzug N3) und 12 Katalog-Schlüssel
+  aus `4T-002549`; **2 geändert**, `help.feature.workflows` und
+  `help.feature.workflowRuns` (`4T-002549`); keiner entfernt; in allen fünf
+  Sprachen gleich.
+- **Funktions-Katalog und Handbuch der Stufe D** (`4T-002549`), in allen fünf
+  Sprachfassungen: Die Handbuch-Seite «Workflows» bekommt den Abschnitt
+  «Datenbank-Befehle» mit sieben Unter-Abschnitten und im Abschnitt «Befehle»
+  die Tafel «Datenbank»; Einleitung, Platzhalter, Ablauf eines Laufs, Ereignisse,
+  Journal und Grenzen sind nachgezogen, «Spätere Ausbaustufen» nennt nur noch
+  `db-export` und `db-import`. Die Seiten «Datenbank», «Vorlagen» und
+  «Handbuch» (Überblick) sind ergänzt. Vier neue Katalog-Zeilen in der Gruppe
+  «Allgemein»: «Datensatz-Befehle in Workflows», «Abfrage in eine Datei»,
+  «Schleife über Datensätze in Workflows» und «Masken und Konsistenz in
+  Workflows»; die Erweiterung `workflows` führt sie in `featureKeys`. Die
+  Demo-Area bekommt einen sechsten Beispiel-Workflow «Library Report», der die
+  langen Bücher als Tabelle in die Station «16 Workflows» schreibt und die
+  Tabelle prüft, ohne einen Datensatz zu ändern.
+- **Nutzen-Darstellung, Roadmap-Kachel und READMEs** (`4T-002551`, Sammeltask
+  des Zuges). Die Nutzen-Seite des Handbuchs und die Nutzen-Seite der Webseite
+  nennen im Abschnitt «Handgriffe, die sich selbst erledigen» im Punkt «Ein
+  Schritt je Zeile» jetzt auch, dass ein Workflow Datensätze der Datenbank
+  anlegt, ändert, auswertet und einzeln abarbeitet (Nutzen-Prüfschritt,
+  Antwort des Product Owners vom 2026-11-12 auf die Frage der Sitzung ‹Soll die
+  Nutzen-Seite in Handbuch und Webseite erwähnen, dass Workflows jetzt mit der
+  Datenbank arbeiten?›, mit der Auswahl ‹Halbsatz ergänzen›). Der Text der
+  Roadmap-Kachel «Datenbank-Anwendungen» nennt statt der jetzt ausgelieferten
+  Datenbank-Befehle das Offene, die Austausch-Befehle in Workflows; die Kachel
+  bleibt «geplant» (Antwort des Product Owners vom 2026-11-12 auf die Frage der
+  Sitzung ‹Wie soll der Kachel-Text ab diesem Release lauten?›, mit der Auswahl
+  ‹Auf das Offene kürzen›). Beides in allen fünf Sprachfassungen. Die
+  Funktionsbeschreibung im `README.md` (Status, Chronik, Markdown-Umfang,
+  Handbuch) und die öffentliche README nennen die Datenbank-Befehle der
+  Workflows.
+
+### Intern
+
+- **Prüfdateien der Stufe** (`4T-002544` bis `4T-002549`): neue
+  Unit-Prüfdateien `workflow-check-db`, `workflow-db-steps`,
+  `db-record-auftrag-lauf-marke`, `db-index-eigene-schreibvorgaenge`,
+  `workflow-db-query`, `result-set-markdown`, `workflow-db-schleife`,
+  `workflow-db-masken` und im Fenster `workflow-db-rueckfrage`, die realen
+  Konstellationen mit echtem Index und echter Schreib-Schnittstelle; bestehende
+  Prüfdateien der Workflows, des Kanals, der Brücke, der Vorlagen-Engine und des
+  Demo-Bestands nachgezogen; neue Ablauf-Prüfdatei `workflow-datenbank.spec.js`
+  (WF-DB-01 bis WF-DB-04). Abdeckungs-Matrix mit F-416 bis F-419 für die vier
+  neuen Katalog-Zeilen (`4T-002549`); der eingefrorene Wert der
+  Erweiterungs-Registry in der Größen-Ausnahmen-Liste steigt nach der
+  benannten Ausnahme für Aufzählungs-Dateien von 905 auf 909 Code-Zeilen.
+- **Abschluss-Anteil der Stufe** (`4T-002550`): Architektur um Form und Prüfung
+  der Datenbank-Befehle, Datenbank-Schritte im Hauptprozess, Schleife und Werte
+  im Lauf, Lauf-Marke und Index-Nachtrag, Lauf-Stand, Ergebnismenge als
+  Markdown-Tabelle, Aus-Zustand, Ablage-Frage, Sicherheit, eine Zeile im
+  Bedrohungsmodell und Glossar fortgeschrieben; die strategischen
+  Entscheidungen der Stufe in «Erkenntnisse und Entscheidungen» verankert;
+  Prüffall für den Aus-Zustand der Datenbank bei `db-for-each`.
+  **Ergebnis des Epic-Abschluss-Tests (E1, 2026-11-12, am endgültigen Stand
+  nach den Nachzügen):** grün unter Windows (Format, Lint, Unit-Suite und
+  Uhr-Lauf; Ablauf-Voll-Lauf 1401 grün, Ablauf-Nachweis am selben Stand) und im
+  Linux-Prüfstand (Epic-Tor); die Vorläufe vom 2026-11-10 samt der berichtigten
+  Windows-Annahme in einem Prüffall der Tabellen-Angabe als Pfad und dem
+  verfallenen Ablauf-Nachweis im Abschluss-Anteil `4T-002550`.
+- **Mitgelieferte Stände seit 1.159.0** (Webseite berührt, kein Anwendungs-Code,
+  kein Anwender-Text nötig): Der Zug-Zweig ist am 2026-11-10 vom
+  Integrationsstand nach dem Release 1.159.0 abgezweigt; mit ihm kamen die vier
+  Bildschirmfotos der Auslieferung von 1.159.0 im Nachzügler-Commit des Releases
+  (`4T-002468`, Sammeltask des Zuges `3E-000383`), mit der Auslieferung von
+  1.159.0 bereits veröffentlicht. Die übrigen Commits des Startstands berühren
+  weder Anwendungs-Code noch Webseite noch Bau-Ablauf. Mit dem Nachzug des
+  Integrationsstands in der Release-Strecke am 2026-11-13, vor dem Bau, kam
+  Pflege der Prüf-Infrastruktur vom 2026-11-12 hinzu: Einträge der
+  Flake-Quarantäne (`3E-000268`, `4T-002567`, `3E-000156`, `3E-000032`) und die
+  Prüfdatei der Befehls-Verfügbarkeit, die ihre Fälle ohne Kopien rechnet
+  (`4T-002562`); dazu der Quarantäne-Eintrag dieser Strecke zu einem wackelnden
+  Prüffall der Suchen-Ersetzen-Regressionen (`4T-002473`). Kein
+  Anwendungs-Code, kein Anwender-Text nötig.
+
 ## [1.159.0.5063] - 2026-11-07 — Workflows Stufe 3: Ereignisse, Bedingungen und Skript-Schritt
 
 Zug 3E-000383

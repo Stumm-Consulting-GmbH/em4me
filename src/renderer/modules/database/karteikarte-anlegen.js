@@ -83,7 +83,14 @@ export async function neueKarteikarte(tabellenPfad, { nachher } = {}) {
     validate: (wert) => (wert === '' ? 'database.card.nameEmpty' : null),
   });
   if (typeof name !== 'string' || name === '') return false;
-  const ergebnis = await sende({ tabelle: tabellenPfad, art: 'create', karteikarte: { name } });
+  // 4T-002545 (Epic 3E-000368): «Neue Karteikarte» legt ein leeres Feld-Gerüst
+  // an und fordert deshalb die Ausnahme von der Pflicht-Prüfung ausdrücklich an.
+  const ergebnis = await sende({
+    tabelle: tabellenPfad,
+    art: 'create',
+    karteikarte: { name },
+    pflichtAussetzen: true,
+  });
   if (!ergebnis || ergebnis.ok !== true) {
     meldeAbweisung(ergebnis || {});
     return false;
