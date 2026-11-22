@@ -30,6 +30,9 @@
 'use strict';
 
 import { leseTafel } from '../../../shared/kanban/kanban-core.js';
+// 4T-002793 (Epic 3E-000434): Der Tafel-Kern fragt den Scanner der %%-Kommentare;
+// dieses Modul meldet dafuer die Bruecke als Code-Frage an.
+import '../app/kommentar-code-frage.js';
 import { verschiebeKarte, verschiebeSpalte } from '../../../shared/kanban/kanban-operationen.js';
 import {
   einfuegePosition,

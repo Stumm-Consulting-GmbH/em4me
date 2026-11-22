@@ -576,6 +576,45 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+// 4T-002793 (Epic 3E-000434): die gemeldeten Faelle 2 und 3 der Klaerung
+// (test/unit/render/prozent-kommentare.test.js, KONSTELLATIONEN a und b) in
+// einer Text-Kachel. Die Kachel zeichnet der Kern mit seinem eigenen Zerleger,
+// der dabei auch die Code-Frage beantwortet.
+describe('dashboard-block: Text-Kachel mit den gemeldeten Fällen 2 und 3 (AK6)', () => {
+  it.each([
+    ['Fall 2', '`'],
+    ['Fall 3', '\\`'],
+  ])(
+    'gemeldeter %s: der Kommentar-Text erscheint nicht in der gezeichneten Kachel',
+    (_n, zeichen) => {
+      const host = dashboardIn(
+        [
+          '!kachel text',
+          `Die Taste ${zeichen} liegt oben links.`,
+          '',
+          'Preis vereinbart. %%GEHEIMVERMERK%% Ende.',
+          '',
+          `Das Zeichen ${zeichen} heißt Gravis.`,
+        ].join('\n'),
+      );
+      const kachel = host.querySelector('.dashboard-text');
+      expect(kachel).not.toBeNull();
+      expect(kachel.textContent).toContain('Gravis');
+      expect(kachel.textContent).toContain('Preis vereinbart.');
+      expect(host.innerHTML).not.toContain('GEHEIMVERMERK');
+    },
+  );
+
+  it('Gegenprobe: ein echtes Code-Stück der Kachel zeigt den Marker wörtlich als Code', () => {
+    const host = dashboardIn(
+      ['!kachel text', 'Taste ` gedrückt, %%GEHEIMVERMERK%% dann Taste ` losgelassen.'].join('\n'),
+    );
+    const code = host.querySelector('.dashboard-text code');
+    expect(code).not.toBeNull();
+    expect(code.textContent).toContain('GEHEIMVERMERK');
+  });
+});
+
 describe('dashboard-view: Befüllungs-Schritt', () => {
   it('macht jede Daten-Kachel mit Abfrage zum Abfrage-Container mit Form und Werten', () => {
     const host = dashboardIn();

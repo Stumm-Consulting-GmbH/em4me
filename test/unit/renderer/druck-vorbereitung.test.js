@@ -14,8 +14,10 @@
 // laufenden Editor, echte Mermaid-Renders und die vier Idle-Barrieren
 // braeuchte. Was hier zaehlt, ist die REIHENFOLGE ihrer Aufrufe, nicht ihre
 // Wirkung — deshalb schreibt jede Ersatz-Funktion ihren Namen in ein Protokoll.
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { createRequire } from 'node:module';
 
+const cjsRequire = createRequire(import.meta.url);
 const protokoll = [];
 
 const paneEls = { content: null };
@@ -649,6 +651,59 @@ describe('withPrintPreparation — private Kommentare im Quelltext-Block', () =>
     kommentareAn = false;
     setzeTab({ viewMode: 'source', content: TEXT });
     expect(await blockImLauf()).toBe(TEXT);
+  });
+});
+
+// 4T-002793 (Epic 3E-000434): die gemeldeten Faelle 2 und 3 der Klaerung
+// (test/unit/render/prozent-kommentare.test.js, KONSTELLATIONEN a und b). Ueber
+// Code im Fliesstext entscheidet die Anzeige; im Programm fragt der Fenster-Teil
+// ueber die Bruecke `kommentarImCode`, hier steht derselbe Kern dahinter
+// (Vorbild html-export.test.js).
+describe('withPrintPreparation — gemeldete Fälle 2 und 3 im Quelltext-Block (AK3)', () => {
+  const GEHEIM = 'GEHEIMVERMERK';
+  const FALL_2 = `Die Taste \` liegt oben links.\n\nPreis vereinbart. %%${GEHEIM}%% Ende.\n\nDas Zeichen \` heißt Gravis.\n`;
+  const FALL_3 = `Die Taste \\\` liegt oben links.\n\nPreis vereinbart. %%${GEHEIM}%% Ende.\n\nDas Zeichen \\\` heißt Gravis.\n`;
+  const CODE_STUECK = `Taste \` gedrückt, %%${GEHEIM}%% dann Taste \` losgelassen.\n`;
+
+  let apiVorher;
+  beforeEach(() => {
+    const kern = cjsRequire('../../../src/shared/markdown/plugins/comments.js');
+    cjsRequire('../../../src/shared/markdown/markdown.js');
+    apiVorher = window.api;
+    window.api = { ...(window.api || {}), kommentarImCode: kern.kommentarImCode };
+  });
+  // Keine Hinterlassenschaften: Die Bruecken-Attrappe gilt nur in diesem Block.
+  afterEach(() => {
+    window.api = apiVorher;
+  });
+
+  async function blockImLauf() {
+    let text = null;
+    await withPrintPreparation({
+      output: async () => {
+        text = paneEls.content.querySelector('.pdf-source-print').textContent;
+        return { ok: true };
+      },
+    });
+    return text;
+  }
+
+  it.each([
+    ['Fall 2', FALL_2],
+    ['Fall 3', FALL_3],
+  ])(
+    'gemeldeter %s: die vorbereitete Ausgabe enthält den Kommentar-Text nicht',
+    async (_n, text) => {
+      setzeTab({ viewMode: 'source', content: text });
+      const block = await blockImLauf();
+      expect(block).not.toContain(GEHEIM);
+      expect(block).toBe(text.replace(`%%${GEHEIM}%%`, ''));
+    },
+  );
+
+  it('Gegenprobe: ein echtes Code-Stück im selben Absatz bleibt im Block stehen', async () => {
+    setzeTab({ viewMode: 'source', content: CODE_STUECK });
+    expect(await blockImLauf()).toBe(CODE_STUECK);
   });
 });
 

@@ -7,6 +7,8 @@
 
 import { extractFrontmatter } from '../../../shared/markdown/frontmatter.js';
 import { stripPercentComments } from '../../../shared/markdown/plugins/comments.js';
+// 4T-002792 (Epic 3E-000434): meldet die Bruecke als Code-Frage des Scanners an.
+import '../app/kommentar-code-frage.js';
 
 /**
  * Der Quelltext fuer den Export aus der Quelltext-Ansicht: die privaten

@@ -919,7 +919,7 @@
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
       "sichtbarkeit": ["test/e2e/funktionen/prozent-kommentare.spec.js"],
-      "hinweis": "Fixtures kommentare.md und kommentare-portable.md; Unit test/unit/render/prozent-kommentare.test.js und E2E test/e2e/funktionen/prozent-kommentare.spec.js (PK-01 bis PK-03, 4T-000479)."
+      "hinweis": "Fixtures kommentare.md und kommentare-portable.md; Unit test/unit/render/prozent-kommentare.test.js und E2E test/e2e/funktionen/prozent-kommentare.spec.js (PK-01 bis PK-03, 4T-000479; PK-04 bis PK-06 mit der Vorlage test/fixtures/funktionen/prozent-kommentare-backticks.md, einzelne Backticks ausserhalb von Code und portabler Export, 4T-002794)."
     },
     {
       "key": "help.feature.headingNumbering",

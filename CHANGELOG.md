@@ -14,6 +14,90 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.161.1.5658] - 2026-11-22 — Private Kommentare bleiben privat
+
+Fehler-Release mit einem Vorhaben,
+3E-000434,
+freigegeben vom Auftraggeber am 2026-11-22 mit «Ja, veröffentlichen». Ein
+privater Kommentar blieb in Anzeige und Ausgabe sichtbar, wenn einzelne oder
+maskierte Backticks an anderer Stelle des Dokuments die eigene Code-Erkennung
+der Kommentar-Vorverarbeitung täuschten. Seither fragt die Erkennung für Code
+im Fließtext die Anzeige selbst
+(4T-002792),
+alle Verwender melden die Code-Frage an
+(4T-002793),
+Ablauf-Prüffall an der gebauten Programmdatei
+(4T-002794),
+Handbuch in fünf Sprachen
+(4T-002795);
+Klärung in
+4T-002791,
+Abschluss-Anteil in
+4T-002796.
+Offen und benannt: Sonder-Blöcke, die ihren Inhalt als Tabelle, Liste oder
+Karte zeichnen (Datentabelle in
+4T-002797),
+Code-Block in einem Behälter hinter einer Leerzeile, eingerückter Code-Block,
+einzelnes Wagenrücklauf-Zeichen in eingebetteten Ansichten, zwei konstruierte
+Grenzen im Bedrohungsmodell; die Lese-Ansicht großer Dokumente mit vielen
+Kommentaren hinter Code-Blöcken baut sich langsamer auf. Dazu die Obergrenze
+für den Rechenaufwand der Code-Frage: Wird sie in einem sehr langen Dokument
+mit Code-Block und vielen privaten Kommentaren überschritten, gilt ab dem
+betroffenen Kommentar der ganze Rest des Dokuments als privat; er fehlt dann
+ohne Hinweis in der Lese-Ansicht und in jedem Export, die Datei selbst bleibt
+unverändert. Der Editor zeigt an dieser Stelle die irreführende Meldung
+«Unpaariger Kommentar-Marker».
+
+Hinweis an Anwender im Wortlaut, bestätigt vom Auftraggeber am 2026-11-22 um
+13:16 («Die Entscheidungen 50, 51 und 52, da folge ich deiner Empfehlung.»,
+Empfehlung übernommen):
+
+> **Behoben.** Private Kommentare konnten in der Anzeige und in exportierten Dateien erscheinen, wenn im selben Dokument an anderer Stelle Backticks standen oder ein Code-Block in einem Aufzählungspunkt, einem Zitat, einem Container oder einer Definitionsliste. Das ist für diese Fälle behoben.
+>
+> **Noch offen.** Noch sichtbar werden kann ein privater Kommentar in Sonder-Blöcken mit eigener Darstellung, etwa in einer Datentabelle, einer Perspective Table, einem Datensatz, einem Dashboard, einem Diagramm, einem Workflow, einer Zeitleiste, einem Ereignis-Block und auf einer Karte der Canvas-Fläche in der Vorschau der Lese-Ansicht; nach einem Code-Block, der in einem Container oder einer Definitionsliste hinter einer Leerzeile steht; nach zwei einzelnen Prozentzeichen in einem eingerückten Code-Block, also in Zeilen mit vier Leerzeichen am Anfang statt zwischen Zeilen aus Backticks; und in eingebetteten Ansichten einer Datei, deren Zeilen allein mit einem Wagenrücklauf-Zeichen enden, wie in älteren Mac-Formaten. In sehr ungewöhnlich gebauten Dokumenten, etwa mit einem privaten Kommentar innerhalb einer E-Mail-Adresse, kann Text eines privaten Kommentars ebenfalls sichtbar bleiben. In sehr langen Dokumenten mit einem Code-Block und vielen privaten Kommentaren, ab rund 200 Seiten schon mit einem einzigen Kommentar weit hinter dem Code-Block, kann die Anzeige an einem privaten Kommentar enden: Der Rest des Dokuments fehlt dann in der Lese-Ansicht und in exportierten Dateien, die Datei selbst bleibt unverändert. In langen Dokumenten mit vielen privaten Kommentaren hinter einem Code-Block baut sich die Lese-Ansicht bis dahin langsamer auf. Eine vollständige Lösung ist in Arbeit.
+>
+> **Was Sie bis dahin tun.** Bis dahin gehören private Kommentare nicht in solche Sonder-Blöcke, und Code mit zwei Prozentzeichen gehört zwischen Zeilen aus drei Backticks. Sehr lange Dokumente mit Code-Blöcken und privaten Kommentaren lassen sich bis dahin in mehrere Dateien teilen. Wer Dokumente mit privaten Kommentaren mit einer früheren Fassung exportiert und weitergegeben hat, sollte die exportierten Dateien prüfen.
+
+### Behoben
+
+- **Private Kommentare bleiben verborgen, gleich welche Backticks an anderer
+  Stelle stehen** (`4T-002792`, Klärung `4T-002791`, Befunde des Zweitblicks
+  unter `3E-000434`). Für Code im Fließtext fragt die Kommentar-Erkennung den
+  Zerleger der Anzeige in der Fassung, die das Dokument zeichnet; die Marker
+  eines Absatz-Stücks fragt sie gemeinsam und halbiert bei gemischter Antwort.
+  Code-Blöcke mit Zaun erkennt sie nicht mehr selbst: Ab der ersten unsicheren
+  Stelle (eine Zeile aus drei Backticks oder Tilden, ein verdeckter Roh-Block,
+  ein Kommentar über ein Zeilenende) fragt sie für jeden weiteren Marker bis
+  zum Dokument-Ende die Anzeige. Lässt sich die Frage nicht stellen, ist ab dem
+  Marker alles privat bis zum Dokument-Ende. Der Anzeige-Prozess fragt über den
+  neuen Endpunkt `kommentarImCode` der Brücke, der allein eine Zeichenkette
+  nimmt.
+- **Alle Verwender der Kommentar-Erkennung entscheiden wie die Anzeige**
+  (`4T-002793`): Kommentar-Bereiche des Editors, Tags und Einstellungs-Block
+  der Tafel, Quelltext-Export, Druck und PDF aus der Quelltext-Ansicht,
+  Präsentation und Text-Kachel eines Dashboards. Der Zwischenspeicher der
+  Kommentar-Bereiche im Editor verfällt beim Umschalten jeder Erweiterung.
+
+### Dokumentation
+
+- **Hilfetext und Handbuch der privaten Kommentare geschärft** (`4T-002795`),
+  fünf Sprachen: Die Marker bleiben gewöhnlicher Text in Code-Blöcken zwischen
+  Zeilen aus mindestens drei Backticks oder Tilden und in Code im Fließtext.
+  Eingerückte Code-Blöcke ohne Zaun sind bewusst nicht geschützt.
+
+### Intern
+
+- **Prüffälle** (`4T-002792`, `4T-002793`, `4T-002794`): die Konstellationen
+  der Klärung und der Review-Runden je an Abtaster, Anzeige und portablem
+  Export, Wächter `kommentar-code-paritaet.test.js` über erzeugte Dokumente mit
+  festem Keim, Wächter `kommentar-code-frage.test.js` über die Anmeldung der
+  Code-Frage in jedem Verwender, Fälle je Verwender, Ablauf-Prüfdatei
+  `prozent-kommentare.spec.js` um PK-04 bis PK-06 erweitert.
+- **Abschluss-Anteil** (`4T-002796`): Architektur um die Designentscheidung
+  der Kommentar-Vorverarbeitung, die Modul-Karte und die Zeile «Private
+  Kommentare» im Bedrohungsmodell fortgeschrieben; Sammeltask
+  4T-002800.
+
 ## [1.161.0.5592] - 2026-11-22 — Workflows: Text-Befehle in Dateien der Datenbank
 
 Zug 3E-000421

@@ -63,7 +63,14 @@ const {
   taskMarkerBadgeSpec,
   isDueOverdue,
 } = require('./plugins/tasks.js');
-const { findPercentCommentRanges, stripPercentComments } = require('./plugins/comments.js');
+const {
+  findPercentCommentRanges,
+  stripPercentComments,
+  setzeCodeFrage,
+  baueCodeFrage,
+  meldeZerlegerAn,
+  kommentarImCode,
+} = require('./plugins/comments.js');
 const {
   calendarValueBadgeSpec,
   calendarSpanText,
@@ -105,6 +112,11 @@ module.exports = {
   isDueOverdue,
   findPercentCommentRanges,
   stripPercentComments,
+  // 4T-002792 (Epic 3E-000434): Code-Frage des Kommentar-Scanners.
+  setzeCodeFrage,
+  baueCodeFrage,
+  meldeZerlegerAn,
+  kommentarImCode,
   stripHeadingMarkers,
   // 4T-000546 (Epic 3E-000097): Kalender-Wert-Badges.
   calendarValueBadgeSpec,

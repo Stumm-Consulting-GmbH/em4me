@@ -669,6 +669,16 @@ describe('exportActiveTabAsHtml — Zielpfad, Schreiben, Rückmeldung', () => {
 // --- Private Kommentare im Quelltext-Export -----------------------------------------
 
 describe('Private Kommentare im Quelltext-Export', () => {
+  // 4T-002792 (Epic 3E-000434): Ueber Code im Fliesstext entscheidet die
+  // Anzeige. Im Programm beantwortet die Bruecke `kommentarImCode` die
+  // Code-Frage mit dem Zerleger des Preloads; hier steht derselbe Kern
+  // dahinter. Ohne Bruecke gaelte jeder Marker als Kommentar.
+  beforeEach(() => {
+    require('../../../src/shared/markdown/markdown.js');
+    const kern = require('../../../src/shared/markdown/plugins/comments.js');
+    window.api = { ...(window.api || {}), kommentarImCode: kern.kommentarImCode };
+  });
+
   const TEXT = [
     '# Kopf',
     'Vorher %% privat eins %% nachher',
@@ -730,6 +740,37 @@ describe('Private Kommentare im Quelltext-Export', () => {
     expect(await exportActiveTabAsHtml()).toBe(true);
     expect(geschrieben[0].text).toContain('privat eins');
     expect(geschrieben[0].text).toContain('geheim zwei');
+  });
+
+  // 4T-002793 (Epic 3E-000434): die gemeldeten Faelle 2 und 3 der Klaerung
+  // (test/unit/render/prozent-kommentare.test.js, KONSTELLATIONEN a und b).
+  const GEHEIM = 'GEHEIMVERMERK';
+  const FALL_2 = `Die Taste \` liegt oben links.\n\nPreis vereinbart. %%${GEHEIM}%% Ende.\n\nDas Zeichen \` heißt Gravis.\n`;
+  const FALL_3 = `Die Taste \\\` liegt oben links.\n\nPreis vereinbart. %%${GEHEIM}%% Ende.\n\nDas Zeichen \\\` heißt Gravis.\n`;
+
+  it.each([
+    ['Fall 2', FALL_2],
+    ['Fall 3', FALL_3],
+  ])('gemeldeter %s: Backticks in zwei anderen Absätzen, der Kommentar fehlt (AK2)', (_n, text) => {
+    const aus = quelltextFuerExport(text, true);
+    expect(aus).not.toContain(GEHEIM);
+    expect(aus).toBe(text.replace(`%%${GEHEIM}%%`, ''));
+  });
+
+  it('gemeldete Fälle 2 und 3 in der erzeugten Datei aus der Quelltext-Ansicht (AK2)', async () => {
+    for (const text of [FALL_2, FALL_3]) {
+      geschrieben.length = 0;
+      tabDerKlammer = { path: 'C:\\A\\B.md', viewMode: 'source', content: text };
+      paneEls.content = document.createElement('div');
+      expect(await exportActiveTabAsHtml()).toBe(true);
+      expect(geschrieben[0].text).not.toContain(GEHEIM);
+      expect(geschrieben[0].text).toContain('Gravis');
+    }
+  });
+
+  it('Gegenprobe: ein echtes Code-Stück im selben Absatz bleibt stehen', () => {
+    const text = `Taste \` gedrückt, %%${GEHEIM}%% dann Taste \` losgelassen.\n`;
+    expect(quelltextFuerExport(text, true)).toBe(text);
   });
 });
 

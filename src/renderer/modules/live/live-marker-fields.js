@@ -13,6 +13,8 @@ import { getDocText } from '../app/api.js';
 // 4T-000479 (Epic 3E-000089): geteilter Kommentar-Scanner — dieselbe Quelle wie
 // das Render-Strippen in markdown.js (CJS-Modul, esbuild loest den Import).
 import { findPercentCommentRanges } from '../../../shared/markdown/plugins.js';
+// 4T-002792 (Epic 3E-000434): meldet die Bruecke als Code-Frage des Scanners an.
+import '../app/kommentar-code-frage.js';
 // 4T-000596 (Epic 3E-000111): geteilter Spannen-Scanner der Inline-Berechnungen —
 // dieselbe Quelle wie die Render-Pipeline (Paritaet per Konstruktion; das
 // Modul ist bewusst markdown.js-frei und damit Bundle-tauglich).
@@ -187,7 +189,20 @@ export const markMarkerField = StateField.define({
 // paritaetisch (code-bewusst, Escape, unpaarig bis Dokument-Ende). Das
 // Frontmatter wird ausgeklammert: der Render-Pfad sieht nur den Body, ein
 // %% in YAML-Werten darf im Editor keinen Kommentar starten.
-const commentRangeCache = new WeakMap();
+let commentRangeCache = new WeakMap();
+
+// 4T-002793 (Epic 3E-000434): Ob ein Marker in einem Code-Stueck liegt,
+// beantwortet die Bruecke mit dem Zerleger der Anzeige in dessen Schalt-Zustand
+// (etwa: ohne Formel-Erweiterung ist ein Backtick in einer Formel gewoehnlicher
+// Text). Die Bereiche gelten deshalb je Dokument-Fassung UND Schalt-Zustand: Das
+// Umschalten jeder Erweiterung, interner wie externer, verwirft den
+// Zwischenspeicher. Der Zuhoerer haengt am Modul-Kopf und laeuft damit vor dem
+// Neuaufbau der Marker-Felder (app-broadcasts.js, registriert beim Start).
+if (typeof document !== 'undefined') {
+  document.addEventListener('scg:extensions-changed', () => {
+    commentRangeCache = new WeakMap();
+  });
+}
 
 export function computeCommentRanges(doc) {
   const cached = commentRangeCache.get(doc);

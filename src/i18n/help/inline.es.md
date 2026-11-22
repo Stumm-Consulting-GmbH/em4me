@@ -50,7 +50,7 @@ Seguimiento de cambios con cinco formas: inserción, eliminación, sustitución,
 
 ## Comentarios
 
-El texto entre marcadores `%%` es un comentario privado: se conserva en el código fuente, pero no aparece en ninguna vista renderizada ni en ninguna exportación. Los comentarios funcionan dentro de una línea y en varias líneas; un `%%` de apertura sin cierre actúa hasta el final del documento. En bloques de código y spans de código, `%%` queda como texto normal; `\%%` produce un `%%` literal en el texto corriente (cada marcador se escapa por separado). En el editor, las zonas de comentario están discretamente coloreadas (vistas código y en vivo). El comentario Critic Markup visible `{>>…<<}` de la sección anterior es independiente de esto: sirve para la revisión y se renderiza, mientras que el comentario `%%` permanece privado.
+El texto entre marcadores `%%` es un comentario privado: se conserva en el código fuente, pero no aparece en ninguna vista renderizada ni en ninguna exportación. Los comentarios funcionan dentro de una línea y en varias líneas; un `%%` de apertura sin cierre actúa hasta el final del documento. En bloques de código delimitados y en código en línea, `%%` queda como texto normal; `\%%` produce un `%%` literal en el texto corriente (cada marcador se escapa por separado). En el editor, las zonas de comentario están discretamente coloreadas (vistas código y en vivo). El comentario Critic Markup visible `{>>…<<}` de la sección anterior es independiente de esto: sirve para la revisión y se renderiza, mientras que el comentario `%%` permanece privado.
 
 ```markdown
 Texto visible %%comentario privado%% y sigue la frase.

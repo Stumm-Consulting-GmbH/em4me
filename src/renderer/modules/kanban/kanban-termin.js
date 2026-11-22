@@ -27,6 +27,9 @@ import {
   setzeKartenTermin,
 } from '../../../shared/kanban/kanban-operationen.js';
 import { leseTafel } from '../../../shared/kanban/kanban-core.js';
+// 4T-002793 (Epic 3E-000434): Der Tafel-Kern fragt den Scanner der %%-Kommentare;
+// dieses Modul meldet dafuer die Bruecke als Code-Frage an.
+import '../app/kommentar-code-frage.js';
 
 /**
  * Ändert den Text einer Karte und schreibt einen danach noch vorhandenen,

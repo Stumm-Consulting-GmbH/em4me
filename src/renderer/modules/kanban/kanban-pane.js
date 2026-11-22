@@ -21,6 +21,9 @@
 import { intlLocale, t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { leseTafel } from '../../../shared/kanban/kanban-core.js';
+// 4T-002793 (Epic 3E-000434): Der Tafel-Kern fragt den Scanner der %%-Kommentare;
+// dieses Modul meldet dafuer die Bruecke als Code-Frage an.
+import '../app/kommentar-code-frage.js';
 import {
   einstellungenAusModell,
   setzeTafelEinstellung,

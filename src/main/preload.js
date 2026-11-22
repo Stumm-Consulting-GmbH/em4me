@@ -383,6 +383,16 @@ contextBridge.exposeInMainWorld('api', {
     const html = renderMarkdown(text, lang, opts);
     return resolveImagesForBase(html, basePath, bildAufloesungsWurzel);
   },
+  // 4T-002792 (Epic 3E-000434): Code-Frage des Scanners der %%-Kommentare.
+  // Editor-Einfaerbung, Tafel und Quelltext-Export rufen den Scanner im
+  // Renderer; ob ein Marker in einem Code-Stueck liegt, entscheidet aber der
+  // Zerleger der Anzeige, und der lebt hier und nicht im Renderer (derselbe
+  // Weg wie buildMindmap). Der Renderer legt ein Absatz-Stueck mit einem oder
+  // mehreren Platzhaltern vor (dazu, ob das Dokument die Portable-Kennzeichnung
+  // traegt) und bekommt ja (alle Platzhalter liegen in Code-Stuecken), nein oder
+  // keine Antwort (null). Rein lesend, ohne Datei-Zugriff; alles ausser einer
+  // Zeichenkette bleibt ohne Antwort, die Laenge begrenzt der Kern.
+  kommentarImCode: require('../shared/markdown/plugins/comments.js').kommentarImCode,
   // 4T-001045 (Epic 3E-000151): Knoten-Baum fuer die Mindmap-Ansicht, derselbe
   // Weg wie renderMarkdown. Die Anordnung rechnet bewusst der Renderer, weil
   // sie eine echte Textmessung braucht. 4T-002068: Bilder der Notizen über die

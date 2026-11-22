@@ -26,7 +26,10 @@ import {
   convertMarkdownPortable,
   configureExtensions,
 } from '../../src/shared/markdown/markdown.js';
-import { findPercentCommentRanges } from '../../src/shared/markdown/plugins/comments.js';
+// Ueber plugins.js aus derselben Modul-Instanz wie die Pipeline, damit die
+// Code-Frage der Anzeige angemeldet ist; ueber Code-Bloecke entscheidet nur sie
+// (Weg (a) zu 3E-000434).
+import { findPercentCommentRanges } from '../../src/shared/markdown/plugins.js';
 import { replaceJournalNavFences } from '../../src/shared/journal-core.js';
 import { replaceJournalTimelineFences } from '../../src/shared/journal-timeline-core.js';
 

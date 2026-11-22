@@ -13,8 +13,9 @@
 // Erledigt-Kennzeichen, Archiv nach der Trennlinie, Einstellungs-Block mit
 // Code-Zaun und JSON-Zeile, Kopf-Werte `list` und `board`, Tafel nur aus dem
 // Kopf); ihre Inhalte sind erfunden.
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import {
   KANBAN_KOPF_SCHLUESSEL,
@@ -204,6 +205,49 @@ describe('kanban-core — Code-Zaun innerhalb eines %%-Kommentars (AK10)', () =>
     expect(model.einstellungen.jsonZeile).not.toBeNull();
     expect(model.spalten.map((s) => s.titel)).toEqual(['Planung', 'Umsetzung', 'Leer', 'Fertig']);
     expect(schreibeTafel(model)).toBe(text);
+  });
+});
+
+// 4T-002793 (Epic 3E-000434): Ueber Code im Fliesstext entscheidet die Anzeige
+// (4T-002792). Im Programm liest der Fenster-Teil die Tafel und fragt ueber die
+// Bruecke; hier steht derselbe Kern als Code-Frage dahinter (markdown.js meldet
+// seinen Zerleger beim Laden an). Danach wird die Frage wieder abgemeldet, damit
+// die uebrigen Faelle der Datei in ihrer Welt bleiben.
+describe('kanban-core — Einstellungs-Block nach Karten mit einzelnen Backticks (4T-002793, AK5)', () => {
+  const cjsRequire = createRequire(import.meta.url);
+  let abtaster;
+  beforeAll(() => {
+    abtaster = cjsRequire('../../src/shared/markdown/plugins/comments.js');
+    const kern = cjsRequire('../../src/shared/markdown/markdown.js');
+    abtaster.meldeZerlegerAn(kern.md, kern.mdPortable);
+  });
+  afterAll(() => {
+    abtaster.setzeCodeFrage(null);
+  });
+
+  // Gemeldete Faelle 2 und 3 als Karten: ein einzelner Backtick in einer Karte
+  // vor und einer nach einer Karte mit privatem Kommentar, einmal maskiert.
+  it.each([
+    ['einzelne Backticks', '`'],
+    ['maskierte Backticks', '\\`'],
+  ])('%s: der Block am Dateiende wird gefunden, der Rundlauf bleibt byte-gleich', (_n, zeichen) => {
+    const text = TAFEL.replace(
+      '- [ ] [[N1 🔄 2026-01-05 Erste Beispiel-Notiz]]\n',
+      `- [ ] Die Taste ${zeichen} liegt oben links\n- [ ] Preis %%GEHEIMVERMERK%% Ende\n- [ ] Das Zeichen ${zeichen} heißt Gravis\n- [ ] [[N1 🔄 2026-01-05 Erste Beispiel-Notiz]]\n`,
+    ).replace('- [ ] Dritte Beispiel-Aufgabe', `- [ ] Dritte Beispiel-Aufgabe ${zeichen}`);
+    expect(text).not.toBe(TAFEL);
+    const model = leseTafel(text);
+    const zeilen = text.split('\n');
+    expect(model.befunde).toEqual([]);
+    expect(model.einstellungen).not.toBeNull();
+    expect(model.einstellungen.geschlossen).toBe(true);
+    expect(zeilen[model.einstellungen.vonZeile]).toBe('%% kanban:settings');
+    expect(model.einstellungen.jsonZeile).not.toBeNull();
+    expect(model.spalten.map((s) => s.titel)).toEqual(['Planung', 'Umsetzung', 'Leer', 'Fertig']);
+    expect(schreibeTafel(model)).toBe(text);
+    // Der Kommentar der mittleren Karte bleibt ein Kommentar.
+    const bereiche = abtaster.findPercentCommentRanges(text);
+    expect(bereiche.some((b) => text.slice(b.from, b.to) === '%%GEHEIMVERMERK%%')).toBe(true);
   });
 });
 

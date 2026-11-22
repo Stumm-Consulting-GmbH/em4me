@@ -119,6 +119,31 @@ describe('Tags der Karte trennen (4T-001904, AK1/AK2)', () => {
     expect(text).toBe('Karte %%geheim #intern%% sichtbar');
   });
 
+  // 4T-002793 (Epic 3E-000434): die gemeldeten Faelle 2 und 3 der Klaerung in
+  // einer Karte mit Folgezeilen. Im Programm fragt der Fenster-Teil ueber die
+  // Bruecke `kommentarImCode`; hier steht derselbe Kern dahinter (Vorbild
+  // html-export.test.js).
+  it.each([
+    ['Fall 2', '`'],
+    ['Fall 3', '\\`'],
+  ])(
+    'gemeldeter %s: ein Tag im Kommentar zwischen Backticks anderer Absätze wandert nicht an den Fuß',
+    (_n, zeichen) => {
+      const abtaster = cjs('../../../src/shared/markdown/plugins/comments.js');
+      cjs('../../../src/shared/markdown/markdown.js');
+      const vorher = window.api.kommentarImCode;
+      window.api.kommentarImCode = abtaster.kommentarImCode;
+      try {
+        const quelle = `Die Taste ${zeichen} liegt oben links.\n\nPreis %%geheim #intern%% Ende #offen\n\nDas Zeichen ${zeichen} heißt Gravis.`;
+        const { text, tags } = trenneKartenTags(quelle);
+        expect(tags).toEqual(['offen']);
+        expect(text).toContain('%%geheim #intern%%');
+      } finally {
+        window.api.kommentarImCode = vorher;
+      }
+    },
+  );
+
   it('ein Hierarchie-Tag bleibt ganz', () => {
     expect(trenneKartenTags('Karte #projekt/alpha').tags).toEqual(['projekt/alpha']);
   });

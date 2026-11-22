@@ -26,6 +26,8 @@ import {
   maskiereFuerTagScan,
 } from '../../../shared/tag-erkennung.js';
 import { findPercentCommentRanges } from '../../../shared/markdown/plugins/comments.js';
+// 4T-002792 (Epic 3E-000434): meldet die Bruecke als Code-Frage des Scanners an.
+import '../app/kommentar-code-frage.js';
 import { zaunOeffnung, schliesstZaun } from '../../../shared/markdown/fence-level.js';
 
 export const FUSS_KLASSE = 'kanban-karte-tags';

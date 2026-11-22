@@ -34,7 +34,10 @@ import {
 } from '../../src/shared/presentation/presentation-core.js';
 import { md } from '../../src/shared/markdown/markdown.js';
 import { extractFrontmatter } from '../../src/shared/markdown/frontmatter.js';
-import { stripPercentComments } from '../../src/shared/markdown/plugins/comments.js';
+// Ueber plugins.js aus derselben Modul-Instanz wie die Pipeline, damit die
+// Code-Frage der Anzeige angemeldet ist; ueber Code-Bloecke entscheidet nur sie
+// (Weg (a) zu 3E-000434).
+import { stripPercentComments } from '../../src/shared/markdown/plugins.js';
 import {
   hintergrundBilderZiehen,
   hintergrundAnordnung,
@@ -461,6 +464,34 @@ describe('presentation-core — Sprecher-Notizen (AK5)', () => {
     const [folie] = lesePraesentation(text).folien;
     expect(texte(folie.notizen)).toEqual([]);
     expect(folie.quelltext).toBe(text.slice(KOPF.length));
+  });
+
+  // 4T-002793 (Epic 3E-000434): die gemeldeten Faelle 2 und 3 der Klaerung
+  // (test/unit/render/prozent-kommentare.test.js, KONSTELLATIONEN a und b). Die
+  // Praesentation liest im Vorlade-Skript, wo der Kern den Zerleger der Anzeige
+  // selbst als Code-Frage anmeldet; hier ebenso durch den Import von markdown.js.
+  it.each([
+    ['Fall 2', 'Die Taste ` liegt oben links.'],
+    ['Fall 3', 'Die Taste \\` liegt oben links.'],
+  ])(
+    'gemeldeter %s: der Kommentar zwischen Backticks anderer Absätze bleibt Sprecher-Notiz (AK4)',
+    (_n, vorher) => {
+      const nachher = vorher
+        .replace('Die Taste', 'Das Zeichen')
+        .replace('liegt oben links', 'heißt Gravis');
+      const text = `${KOPF}# A\n\n${vorher}\n\nPreis vereinbart. %%GEHEIMVERMERK%% Ende.\n\n${nachher}\n`;
+      const [folie] = lesePraesentation(text).folien;
+      expect(texte(folie.notizen)).toEqual(['GEHEIMVERMERK']);
+      expect(folie.quelltext).not.toContain('GEHEIMVERMERK');
+      expect(folie.quelltext).toContain('Preis vereinbart.  Ende.');
+    },
+  );
+
+  it('Gegenprobe: ein echtes Code-Stück im selben Absatz ist keine Notiz (AK4)', () => {
+    const text = `${KOPF}Taste \` gedrückt, %%GEHEIMVERMERK%% dann Taste \` losgelassen.\n`;
+    const [folie] = lesePraesentation(text).folien;
+    expect(texte(folie.notizen)).toEqual([]);
+    expect(folie.quelltext).toContain('%%GEHEIMVERMERK%%');
   });
 
   it('beachtet das Escape `\\%%` des Kommentar-Scanners', () => {
