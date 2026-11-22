@@ -12,6 +12,8 @@ La primera división de un documento se anuncia. Puedes rechazarla: entonces el 
 
 Si el guardado automático se ejecuta en segundo plano, no se divide nada sin preguntar. La pestaña simplemente queda modificada hasta que guardes una vez de forma manual y respondas a la pregunta.
 
+Un **workflow** sigue escribiendo sin dividir un documento corriente que alcanza por primera vez el tamaño de división, sin preguntar; se divide en el siguiente guardado manual con el anuncio habitual (página [Workflows](workflows.md), sección «Comandos de texto y archivos de la base de datos»).
+
 **Para las tablas de base de datos todo esto funciona de forma algo distinta.** Un archivo de tabla de la [base de datos](database.md) es almacenamiento técnico y no su texto: se divide ya a partir de unos 0,7 MB, el corte se sitúa entre dos registros en lugar de delante de un encabezado, y no se anuncia nada — ese archivo nunca fue un lugar en el que usted trabaje a mano. Todo lo demás de esta página se le aplica sin cambios, con una excepción: la búsqueda sobre el área recoge un archivo de tabla sin sus registros, esté en la parte que esté.
 
 ## Dónde se corta

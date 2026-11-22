@@ -44,6 +44,8 @@ const { MAX_LOOP_FILES } = require('../../shared/workflows/workflow-catalog.js')
 const { loopNameMatches, parseLoopPattern } = require('../../shared/workflows/workflow-check.js');
 const { resolveAreaPath } = require('./workflow-area-path.js');
 const { readCurrentText } = require('./workflow-content-steps.js');
+// 4T-002689 (Zweitblick, Runde 2): Kopf-Datei eines geteilten Dokuments.
+const { kopfPfadVon } = require('./workflow-platten-schreibweg.js');
 
 /** Die Befehle dieses Moduls. */
 const QUERY_KEYWORDS = Object.freeze(['if-exists', 'if-missing', 'if-property', 'for-each']);
@@ -134,7 +136,13 @@ function createWorkflowBlockQueries(deps) {
     if (step.keyword === 'if-missing') return { ok: true, value: stat === null };
     if (stat === null) return fehlschlag('fileMissing', { path: ziel });
     if (!stat.isFile()) return fehlschlag('notAFile', { path: ziel });
-    const gelesen = await readCurrentText(ctx.backlinks || backlinks, ort.abs);
+    // 4T-002689: Der Dateikopf eines geteilten Dokuments steht in der
+    // Kopf-Datei; ein genannter Folgeteil trägt nur seine Zuordnung. Gelesen
+    // wird deshalb die Kopf-Datei, im Fenster unter ihrem Pfad.
+    // Sicherheits-Review, Runde 1: Die Auflösung prüft die Grenze selbst.
+    const aufgeloest = await kopfPfadVon(ctx.root, ort.abs, ziel);
+    if (!aufgeloest.ok) return aufgeloest;
+    const gelesen = await readCurrentText(ctx.backlinks || backlinks, aufgeloest.kopf);
     if (!gelesen.ok) return fehlschlag('fileMissing', { path: ziel, fsCode: gelesen.fsCode });
     const kopf = extractFrontmatter(gelesen.text);
     if (kopf.parseError) return fehlschlag('frontmatterInvalid', { path: ziel });

@@ -182,6 +182,8 @@ Le regole sono volutamente brevi, perché il file è un archivio tecnico:
 
 **Non si perde mai un carattere.** Se un record ha troppe poche celle, i campi restanti rimangono vuoti; se ne ha troppe, quelle in eccesso restano intatte. Entrambi i casi vengono segnalati, ma nulla viene scritto via in silenzio — è l'unico errore che un archivio di dati non deve commettere.
 
+Un workflow non modifica queste righe con i suoi comandi di testo, ma solo con i comandi della banca dati; la struttura della tabella non la modifica mai (pagina [Workflow](workflows.md), sezione «Comandi di testo e file della banca dati»).
+
 Invece che in questo blocco, una tabella può anche conservare ciascuno dei suoi record in un documento proprio, con i campi nel frontmatter e testo libero sotto. La sezione «Forma a schedario» descrive questa seconda forma e quando è adatta.
 
 ## Regole di verifica
@@ -982,7 +984,7 @@ Due azioni portano dal documento alla maschera e ritorno:
 
 ### Limiti della forma a schedario
 
-Salvare, eliminare, copiare e rinominare nell'applicazione conoscono la scheda. Altre vie per cui un documento viene scritto non la conoscono: la sostituzione nell'area, l'aggiunta di voci di diario e di eventi, lo spostamento di capitoli di un libro, l'importazione di un file JSON Canvas e ogni modifica fuori dall'applicazione, come l'eliminazione nel gestore file o la modifica con un altro editor. Ciò che accade a una scheda per queste vie non lo verifica nessuno al momento della modifica, non produce alcun giustificativo, e l'eliminazione avviene senza protezione dall'eliminazione e senza che i suoi giustificativi passino alla tabella. La verifica di coerenza ne trova le conseguenze, per esempio un valore contrario a una regola, un riferimento che non raggiunge più alcun record o un documento senza identificatore. Anche il salvataggio nell'editor dell'applicazione si limita a segnalare e non produce alcun giustificativo; una modifica al frontmatter la nota solo la modifica successiva tramite la banca dati, che allora per ora non salva (sezione «Giustificativi di modifica»).
+Salvare, eliminare, copiare e rinominare nell'applicazione conoscono la scheda. La conoscono anche i workflow: i loro comandi di testo e per i file non modificano i campi di una scheda, la eliminano e la copiano tramite la banca dati e si fermano dove creerebbero o toglierebbero un record aggirando la banca dati (pagina [Workflow](workflows.md), sezione «Comandi di testo e file della banca dati»). Altre vie per cui un documento viene scritto non la conoscono: la sostituzione nell'area, l'aggiunta di voci di diario e di eventi, lo spostamento di capitoli di un libro, l'importazione di un file JSON Canvas e ogni modifica fuori dall'applicazione, come l'eliminazione nel gestore file o la modifica con un altro editor. Ciò che accade a una scheda per queste vie non lo verifica nessuno al momento della modifica, non produce alcun giustificativo, e l'eliminazione avviene senza protezione dall'eliminazione e senza che i suoi giustificativi passino alla tabella. La verifica di coerenza ne trova le conseguenze, per esempio un valore contrario a una regola, un riferimento che non raggiunge più alcun record o un documento senza identificatore. Anche il salvataggio nell'editor dell'applicazione si limita a segnalare e non produce alcun giustificativo; una modifica al frontmatter la nota solo la modifica successiva tramite la banca dati, che allora per ora non salva (sezione «Giustificativi di modifica»).
 
 ## La scheda della banca dati
 

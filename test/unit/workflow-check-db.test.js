@@ -559,3 +559,148 @@ describe('Neue Kennung und Werte eines Laufs (4T-002547)', () => {
     ]);
   });
 });
+
+// 4T-002692 (Epic 3E-000415, Te der Konzept-Runde 4T-002673): die Stufe
+// «Hinweis» des Prüfers. Nennt ein Text-Befehl sein Ziel fest und ist es eine
+// Tabellen-Datei oder eine Karteikarte, steht ein Hinweis in der eigenen Liste
+// `hints`; er zählt weder für `ok` noch für `armable` (AK3, AK4, AK7).
+describe('Stufe «Hinweis»: festes Ziel in einer Datei der Datenbank (4T-002692)', () => {
+  const KARTEI = {
+    tables: [
+      // Die Karteikarten, wie der Index sie führt; Maske, Abfrage, Steckbrief und
+      // ein Dokument ohne Kennung im selben Ordner stehen nicht darin.
+      {
+        name: 'Authors',
+        path: 'Authors/Authors.md',
+        fields: ['born'],
+        storage: 'cards',
+        cards: ['Umberto Eco.md', 'Italo Calvino.md'],
+      },
+      { name: 'Rechnungen', path: 'Daten/Rechnungen.md', fields: ['betrag'], storage: 'table' },
+      { name: 'Alt', path: 'Alt/Alt.md', fields: [] },
+      // Unbekannte Ablage-Form: keine Karteikarten, auch mit Liste.
+      { name: 'Fremd', path: 'Fremd/Fremd.md', fields: [], storage: 'karten', cards: ['Eco.md'] },
+    ],
+    queries: [{ path: 'Authors/Lebende.md', state: 'ok', records: true, grouped: false }],
+  };
+  const OPT = { ...createDbLookup(KARTEI), databaseEnabled: true };
+  const ZEITPLAN = 'trigger: schedule\nschedule: every day at 07:00\n';
+  const hinweise = (zeilen, optionen = OPT) =>
+    pruefe(zeilen, optionen).hints.map((h) => [h.code, h.blockLine, h.detail]);
+  const KARTE = 'Authors/Umberto Eco.md';
+
+  it('meldet eine Karteikarte als festes Ziel mit Tabelle und Pfad (AK3, AK7)', () => {
+    const r = pruefe([`set-property "${KARTE}" born "1932-01-06"`], OPT);
+    expect(r.hints).toEqual([
+      {
+        code: 'recordCard',
+        line: ERSTE_ZEILE,
+        blockLine: 1,
+        column: 14,
+        detail: { table: 'Authors', path: KARTE },
+      },
+    ]);
+    expect(r.findings).toEqual([]);
+  });
+
+  it('meldet die Tabellen-Datei selbst, auch in Tabellen-Form', () => {
+    expect(hinweise(['append "Daten/Rechnungen.md" from-file "Notiz.md"'])).toEqual([
+      ['tableFile', 1, { table: 'Rechnungen', path: 'Daten/Rechnungen.md' }],
+    ]);
+    expect(hinweise(['add-tag "Authors/Authors.md" "x"'])).toEqual([
+      ['tableFile', 1, { table: 'Authors', path: 'Authors/Authors.md' }],
+    ]);
+  });
+
+  it('gilt für jeden der sieben Text-Befehle', () => {
+    const zeilen = [
+      `append "${KARTE}" from-file "Notiz.md"`,
+      `insert "${KARTE}" under "Leben" from-file "Notiz.md"`,
+      `replace "${KARTE}" "alt" "neu"`,
+      `set-property "${KARTE}" born "1932"`,
+      `remove-property "${KARTE}" born`,
+      `add-tag "${KARTE}" "autor"`,
+      `remove-tag "${KARTE}" "autor"`,
+    ];
+    const r = pruefe(zeilen, OPT);
+    expect(r.findings).toEqual([]);
+    expect(r.hints.map((h) => [h.code, h.blockLine])).toEqual(
+      zeilen.map((_, i) => ['recordCard', i + 1]),
+    );
+  });
+
+  it('meldet db-query mit into nur zusammen mit under', () => {
+    const abfrage = 'Abfragen/Überfällige Rechnungen.md';
+    expect(
+      hinweise([`db-query "${abfrage}" into "${KARTE}" under "Liste"`], {
+        ...OPT,
+        dbQuery: MIT.dbQuery,
+      }),
+    ).toEqual([['recordCard', 1, { table: 'Authors', path: KARTE }]]);
+    expect(
+      hinweise([`db-query "${abfrage}" into "${KARTE}"`], { ...OPT, dbQuery: MIT.dbQuery }),
+    ).toEqual([]);
+  });
+
+  it('schweigt bei Platzhalter-Ziel, gewöhnlicher Datei und anderen Dateien im Ordner', () => {
+    expect(hinweise(['set-property "Authors/{{date}}.md" born "x"'])).toEqual([]);
+    expect(hinweise(['set-property "Notizen/Eco.md" born "x"'])).toEqual([]);
+    // Unterordner und Datei, die der Index nicht als Karteikarte führt.
+    expect(hinweise(['set-property "Authors/Alt/Eco.md" born "x"'])).toEqual([]);
+    expect(hinweise(['append "Authors/Bild.png" from-file "Notiz.md"'])).toEqual([]);
+    // Tabellen-Form, fehlende oder unbekannte Ablage-Form: keine Karteikarten.
+    expect(hinweise(['set-property "Daten/Eco.md" born "x"'])).toEqual([]);
+    expect(hinweise(['set-property "Alt/Eco.md" born "x"'])).toEqual([]);
+    expect(hinweise(['set-property "Fremd/Eco.md" born "x"'])).toEqual([]);
+    // Andere Befehle mit Pfad sind keine Text-Befehle.
+    expect(hinweise([`open "${KARTE}"`])).toEqual([]);
+  });
+
+  it('schweigt bei ausgeschalteter Datenbank und ohne Rückfrage (AK3)', () => {
+    const zeile = [`set-property "${KARTE}" born "x"`];
+    expect(hinweise(zeile, { ...OPT, databaseEnabled: false })).toEqual([]);
+    expect(hinweise(zeile, { databaseEnabled: true })).toEqual([]);
+    expect(hinweise(zeile, { ...OPT, dbFile: () => null })).toEqual([]);
+  });
+
+  // Nacharbeit 4T-002692: Karteikarte ist allein, was der Index als solche führt.
+  it('meldet Masken-, Abfrage-, Steckbrief-Datei und Dokument ohne Kennung im Ordner nicht als Karteikarte', () => {
+    for (const datei of ['Authors Maske.md', 'Lebende.md', 'Datenbank.md', 'Notiz.md']) {
+      expect(hinweise([`set-property "Authors/${datei}" born "x"`]), datei).toEqual([]);
+    }
+    expect(hinweise(['set-property "Authors/italo calvino.md" born "x"'])).toEqual(
+      process.platform === 'linux'
+        ? []
+        : [['recordCard', 1, { table: 'Authors', path: 'Authors/italo calvino.md' }]],
+    );
+    // Die Tabellen-Datei selbst bleibt Tabellen-Datei.
+    expect(hinweise(['set-property "Authors/Authors.md" born "x"'])).toEqual([
+      ['tableFile', 1, { table: 'Authors', path: 'Authors/Authors.md' }],
+    ]);
+  });
+
+  it('lässt ok und armable mit Hinweis wahr (AK4)', () => {
+    const r = pruefe([`set-property "${KARTE}" born "1932-01-06"`], OPT, ZEITPLAN);
+    expect(r.hints).toHaveLength(1);
+    expect(r.findings).toEqual([]);
+    expect(r.ok).toBe(true);
+    expect(r.armable).toBe(true);
+    expect(r.steps).toHaveLength(1);
+  });
+
+  it('dbFile der Auskunft: Art und Tabelle, ohne Rücksicht auf ./ und Trenner', () => {
+    const { dbFile } = createDbLookup(KARTEI);
+    expect(dbFile('./Authors/Umberto Eco.md')).toEqual({ kind: 'card', table: 'Authors' });
+    // Zweitblick Runde 1, Nr. 4: Punkt- und Leer-Segmente in der Mitte.
+    expect(dbFile('Authors/./Umberto Eco.md')).toEqual({ kind: 'card', table: 'Authors' });
+    expect(dbFile('Authors//Umberto Eco.md')).toEqual({ kind: 'card', table: 'Authors' });
+    expect(dbFile('Daten/./Rechnungen.md')).toEqual({ kind: 'table', table: 'Rechnungen' });
+    expect(hinweise(['set-property "Authors/./Umberto Eco.md" born "x"'])).toEqual([
+      ['recordCard', 1, { table: 'Authors', path: 'Authors/./Umberto Eco.md' }],
+    ]);
+    expect(dbFile('Authors\\Umberto Eco.md')).toEqual({ kind: 'card', table: 'Authors' });
+    expect(dbFile('Daten/Rechnungen.md')).toEqual({ kind: 'table', table: 'Rechnungen' });
+    expect(dbFile('')).toEqual({ kind: 'none' });
+    expect(createDbLookup(null).dbFile(KARTE)).toEqual({ kind: 'none' });
+  });
+});

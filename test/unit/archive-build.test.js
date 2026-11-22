@@ -2,8 +2,15 @@
 // X-03 Fehler-Toleranz, X-10 Notes-Archivierung) ueber die exportierte
 // archiveBuild()-Funktion mit injizierten Abhaengigkeiten.
 import { describe, it, expect, vi } from 'vitest';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import {
   archiveBuild,
+  archivOrdner,
+  pruefeArchivWert,
+  moveFile,
+  kopiereNotes,
   writeChecksumFiles,
   meldeTemporaere,
   raeumeTemporaere,
@@ -676,5 +683,113 @@ describe('4T-000658: writeChecksumFiles', () => {
     expect(ok).toBe(false);
     expect(write).toHaveBeenCalledTimes(1);
     expect(write.mock.calls[0][1]).toBe('bbb  EM4me-0.86.0-Portable.exe\n');
+  });
+});
+
+// 4T-002624: Release-Strecke 1.159.0 — der in der Git-Bash gesetzte UNC-Pfad kam
+// mit einem führenden Backslash an, die Ablage landete auf dem Laufwerk C:, und
+// die Meldung lautete «-> Versions-Archiv». Die Fälle arbeiten ausschließlich in
+// Temp-Ordnern oder mit einer Attrappe für das Anlegen des Archiv-Ordners; das
+// Versions-Archiv am Ablage-Ort wird nicht berührt.
+describe('4T-002624: Archiv-Pfad aufgelöst melden und Irrläufer abweisen', () => {
+  const VERSTUEMMELT = '\\SERVER01\\Freigabe\\Versions-Archiv';
+
+  it('weist unter Windows wurzel- und laufwerks-relative Werte ab und nimmt gültige an', () => {
+    expect(pruefeArchivWert(VERSTUEMMELT, 'win32')).toContain('genau einem Trenner');
+    expect(pruefeArchivWert('/SERVER01/Freigabe', 'win32')).toContain('genau einem Trenner');
+    expect(pruefeArchivWert('C:Versions-Archiv', 'win32')).toContain('laufwerks-relativ');
+    for (const gueltig of [
+      '\\\\SERVER01\\Freigabe\\Versions-Archiv',
+      '//SERVER01/Freigabe/Versions-Archiv',
+      'C:\\Archiv',
+      'D:/Archiv',
+      'releases',
+      'ablage\\archiv',
+    ])
+      expect(pruefeArchivWert(gueltig, 'win32')).toBe(null);
+  });
+
+  it('weist außerhalb von Windows einen Wert mit Backslash ab', () => {
+    expect(pruefeArchivWert(VERSTUEMMELT, 'linux')).toContain('Backslash');
+    expect(pruefeArchivWert('/mnt/nas/Versions-Archiv', 'linux')).toBe(null);
+    expect(pruefeArchivWert('releases', 'linux')).toBe(null);
+  });
+
+  it('nennt bei der Abweisung den aufgelösten Pfad, löst gültige Werte gegen die Wurzel auf', () => {
+    const umgebung = { EM4ME_VERSIONS_ARCHIV: VERSTUEMMELT };
+    expect(() => archivOrdner({ umgebung, plattform: 'win32' })).toThrow(
+      path.resolve(path.join(__dirname, '..', '..'), VERSTUEMMELT),
+    );
+    expect(() => archivOrdner({ umgebung, plattform: 'win32' })).toThrow('Nichts abgelegt');
+    const relativ = archivOrdner({ umgebung: { EM4ME_VERSIONS_ARCHIV: 'releases' } });
+    expect(relativ).toBe(path.join(path.join(__dirname, '..', '..'), 'releases'));
+  });
+
+  // Ohne die Abweisung legte `archiveBuild` den Archiv-Ordner mit
+  // `fs.mkdirSync(archivOrdner(), …)` an, unter Windows also im Wurzelverzeichnis
+  // des echten Laufwerks. Deshalb ist `fs.mkdirSync` in diesem Fall durch eine
+  // Attrappe ersetzt, die nur mitschreibt: Auch bei fehlender Abweisung entsteht
+  // nichts, und der Fall wird über die Attrappe rot statt über einen Ordner.
+  it('bricht vor der ersten Ablage ab, wenn der Archiv-Wert verstümmelt ist', () => {
+    vi.stubEnv('EM4ME_VERSIONS_ARCHIV', VERSTUEMMELT);
+    const mkdir = vi.spyOn(fs, 'mkdirSync').mockImplementation(() => undefined);
+    const move = vi.fn(() => true);
+    const copyNotes = vi.fn(() => true);
+    const writeChecksums = vi.fn(() => true);
+    let angelegt;
+    try {
+      expect(() =>
+        archiveBuild(['EM4me-0.24.0-Portable.exe', 'release-notes-0.24.0.md'], {
+          tagExists: () => false,
+          guardBuildNumber: () => null,
+          pkgVersion: '0.24.0',
+          move,
+          copyNotes,
+          writeChecksums,
+          raeumeWaisenBlockmaps: () => ({ entfernt: [], gescheitert: [] }),
+        }),
+      ).toThrow('EM4ME_VERSIONS_ARCHIV');
+    } finally {
+      angelegt = mkdir.mock.calls.map(([ziel]) => ziel);
+      mkdir.mockRestore();
+      vi.unstubAllEnvs();
+    }
+    expect(angelegt).toEqual([]);
+    expect(move).not.toHaveBeenCalled();
+    expect(copyNotes).not.toHaveBeenCalled();
+    expect(writeChecksums).not.toHaveBeenCalled();
+  });
+
+  it('nennt in jeder Ablage-Meldung den aufgelösten Zielpfad', () => {
+    const wurzel = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-archiv-'));
+    const von = path.join(wurzel, 'dist');
+    const nach = path.join(wurzel, 'archiv');
+    fs.mkdirSync(von);
+    fs.mkdirSync(nach);
+    fs.writeFileSync(path.join(von, 'EM4me-0.24.0-Portable.exe'), 'exe');
+    fs.writeFileSync(path.join(von, 'release-notes-0.24.0.md'), 'Hinweise');
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      expect(moveFile('EM4me-0.24.0-Portable.exe', { von, nach })).toBe(true);
+      expect(kopiereNotes('release-notes-0.24.0.md', { von, nach })).toBe(true);
+      const write = vi.fn();
+      writeChecksumFiles(['EM4me-0.24.0-Portable.exe'], {
+        hash: () => 'aaa',
+        write,
+        read: () => null,
+      });
+      const meldungen = log.mock.calls.map(([m]) => m);
+      expect(meldungen[0]).toBe(
+        `archive-build: EM4me-0.24.0-Portable.exe -> Versions-Archiv ${path.join(nach, 'EM4me-0.24.0-Portable.exe')}`,
+      );
+      expect(meldungen[1]).toContain(
+        `-> Versions-Archiv ${path.join(nach, 'release-notes-0.24.0.md')}`,
+      );
+      expect(meldungen[2]).toContain(`-> Versions-Archiv ${write.mock.calls[0][0]}`);
+      expect(path.isAbsolute(write.mock.calls[0][0])).toBe(true);
+    } finally {
+      log.mockRestore();
+      fs.rmSync(wurzel, { recursive: true, force: true });
+    }
   });
 });

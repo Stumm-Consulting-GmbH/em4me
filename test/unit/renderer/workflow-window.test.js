@@ -214,6 +214,52 @@ describe('Empfänger für Aufträge des Hauptprozesses', () => {
   });
 });
 
+// 4T-002690 (Weg (i)): Lesen vor dem Urteil und Anwenden nur auf den
+// beurteilten Stand; ein dazwischen geänderter Puffer bleibt unberührt.
+describe('Lesen und Erwartung für das Urteil der Datenbank (4T-002690)', () => {
+  it('ein Lese-Auftrag antwortet mit dem Stand des Editors, ohne etwas zu ändern', async () => {
+    const { ziel, transaktionen } = fenster({ aktiv: true, content: `${PLATTE}Zusatz\n` });
+    auftragsEmpfaenger({ requestId: 'k-3', path: PFAD, read: true });
+    auftragsEmpfaenger({ requestId: 'k-4', path: 'C:/Bereich/Fremd.md', read: true });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(antworten).toEqual([
+      { requestId: 'k-3', ok: true, code: null, changed: null, text: `${PLATTE}Zusatz\n` },
+      { requestId: 'k-4', ok: false, code: 'bufferUnavailable', changed: null },
+    ]);
+    expect(transaktionen).toHaveLength(0);
+    expect(ziel.content).toBe(`${PLATTE}Zusatz\n`);
+  });
+
+  it('mit der gelesenen Erwartung wird angewendet, mit einer anderen nichts (bufferChanged)', async () => {
+    const { ziel, transaktionen } = fenster({ aktiv: true, content: PLATTE });
+    expect(applyBufferEdit(PFAD, EINFUEGEN, `${PLATTE}inzwischen getippt\n`)).toEqual({
+      ok: false,
+      code: 'bufferChanged',
+    });
+    expect(transaktionen).toHaveLength(0);
+    expect(ziel.content).toBe(PLATTE);
+    expect(applyBufferEdit(PFAD, EINFUEGEN, PLATTE)).toEqual({ ok: true, changed: true });
+    expect(ziel.content).toBe('# Ziel\n## Protokoll\n- neu\nalt\n');
+  });
+
+  it('der Handgriff des eigenen Puffers und der Auftrag eines fremden tragen die Erwartung', async () => {
+    const { ziel } = fenster({ aktiv: false, content: PLATTE });
+    const res = await runWindowAction({
+      ok: true,
+      line: 4,
+      keyword: 'insert',
+      window: { action: 'editOwnBuffer', path: PFAD, edit: EINFUEGEN, expected: 'anders' },
+    });
+    expect(res).toMatchObject({ ok: false, code: 'bufferChanged', detail: { path: PFAD } });
+    auftragsEmpfaenger({ requestId: 'k-5', path: PFAD, edit: EINFUEGEN, expected: 'anders' });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(antworten).toEqual([
+      { requestId: 'k-5', ok: false, code: 'bufferChanged', changed: null },
+    ]);
+    expect(ziel.content).toBe(PLATTE);
+  });
+});
+
 describe('open und close', () => {
   // Die vorgegebene Antwort der Masken-Attrappe gilt je Fall; zurückgesetzt wird
   // auch nach einem gescheiterten Fall, damit er die folgenden nicht mitreißt.

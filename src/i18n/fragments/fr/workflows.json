@@ -100,6 +100,7 @@
   "workflow.fehlschlag.notAFile": "'{path}' n'est pas un fichier",
   "workflow.fehlschlag.notAFolder": "'{path}' n'est pas un dossier",
   "workflow.fehlschlag.outsideArea": "Le chemin se trouve hors de la zone",
+  "workflow.fehlschlag.partsMissing": "'{path}' se compose de plusieurs parties qui ne sont pas toutes présentes (manquantes : {teile}) ; rien n'a été écrit",
   "workflow.fehlschlag.runStateNotSaved": "État d'exécution non enregistré",
   "workflow.fehlschlag.sourceMissing": "Source introuvable",
   "workflow.fehlschlag.splitDocument": "'{path}' est un document divisé",
@@ -305,5 +306,19 @@
   "workflow.dbCheck.trenner": ", ",
   "workflow.fehlschlag.dbCheckFailed": "Le contrôle de cohérence n'a pas pu être exécuté",
   "workflow.fehlschlag.dbOpenEditContinued": "Le formulaire n'a pas été ouvert, car la modification non enregistrée se poursuit",
-  "workflow.fehlschlag.dbOpenFormClosed": "Le formulaire n'a pas été ouvert, car la question sur la modification non enregistrée a été fermée sans réponse"
+  "workflow.fehlschlag.dbCardLeavesTable": "La fiche '{path}' de la table '{table}' reste dans le dossier de sa table ; pour la retirer, utilisez db-delete et db-create",
+  "workflow.fehlschlag.dbRecordIntoTable": "'{path}' porte un identifiant d'enregistrement et n'entre pas sans contrôle dans le dossier de la table '{table}' ; pour le créer, utilisez db-create",
+  "workflow.fehlschlag.dbRecordsByText": "Un workflow modifie les enregistrements de la table '{table}' avec les commandes de base de données db-create, db-update et db-delete, pas avec {command}",
+  "workflow.fehlschlag.dbFieldByText": "Un workflow modifie le champ '{field}' de la fiche avec db-update, pas avec {command}",
+  "workflow.fehlschlag.dbRecordIdByText": "Un workflow ne modifie pas l'identifiant d'enregistrement d'une fiche de la table '{table}' avec {command} ; il crée les fiches avec db-create et les supprime avec db-delete",
+  "workflow.fehlschlag.dbStructureByText": "Un workflow ne modifie pas la structure de la table '{table}' ; modifiez-la à la main dans l'application",
+  "workflow.fehlschlag.dbProfileByText": "Un workflow ne modifie pas la fiche d'identité de la base de données ; modifiez-la à la main dans l'application",
+  "workflow.fehlschlag.bufferChanged": "Le document a encore été modifié dans l'éditeur pendant l'étape ; l'étape n'a rien modifié",
+  "workflow.fehlschlag.dbOpenFormClosed": "Le formulaire n'a pas été ouvert, car la question sur la modification non enregistrée a été fermée sans réponse",
+  "workflow.pruefung.hinweisZeile": "Remarque sur la ligne {line} : {grund}",
+  "workflow.pruefung.bereitMitHinweis": "prêt ; {hinweis}",
+  "workflow.hinweis.tableFile": "Ce fichier appartient à la table '{table}' : un workflow modifie ses enregistrements avec les commandes de base de données db-create, db-update et db-delete, et ne modifie pas du tout sa structure ; le texte libre reste possible",
+  "workflow.hinweis.recordCard": "Ce fichier est une fiche de la table '{table}' : un workflow modifie ses champs avec db-update et ne modifie pas du tout son identifiant d'enregistrement ; le texte libre reste possible",
+  "workflow.fehlschlag.dbCardRenamedAway": "La fiche '{path}' de la table '{table}' reste un fichier Markdown, car sous le nom '{name}' elle ne serait plus un enregistrement ; pour la retirer, utilisez db-delete",
+  "workflow.fehlschlag.dbRecordRenamedIn": "'{path}' porte un identifiant d'enregistrement et ne devient pas une fiche dans le dossier de la table '{table}' en étant renommé '{name}' ; pour le créer, utilisez db-create"
 }

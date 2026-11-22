@@ -100,6 +100,7 @@
   "workflow.fehlschlag.notAFile": "'{path}' is not a file",
   "workflow.fehlschlag.notAFolder": "'{path}' is not a folder",
   "workflow.fehlschlag.outsideArea": "The path lies outside the area",
+  "workflow.fehlschlag.partsMissing": "'{path}' consists of several parts, not all of which are present (missing: {teile}); nothing written",
   "workflow.fehlschlag.runStateNotSaved": "Run status not saved",
   "workflow.fehlschlag.sourceMissing": "Source not found",
   "workflow.fehlschlag.splitDocument": "'{path}' is a split document",
@@ -305,5 +306,19 @@
   "workflow.dbCheck.trenner": ", ",
   "workflow.fehlschlag.dbCheckFailed": "The consistency check could not be run",
   "workflow.fehlschlag.dbOpenEditContinued": "The form was not opened because the unsaved editing continues",
-  "workflow.fehlschlag.dbOpenFormClosed": "The form was not opened because the question about the unsaved editing was closed without an answer"
+  "workflow.fehlschlag.dbCardLeavesTable": "The card '{path}' of the table '{table}' stays in the folder of its table; use db-delete and db-create to take it out",
+  "workflow.fehlschlag.dbRecordIntoTable": "'{path}' carries a record identifier and does not go unchecked into the folder of the table '{table}'; use db-create to create it",
+  "workflow.fehlschlag.dbRecordsByText": "A workflow changes the records of the table '{table}' with the database commands db-create, db-update and db-delete, not with {command}",
+  "workflow.fehlschlag.dbFieldByText": "A workflow changes the field '{field}' of the card with db-update, not with {command}",
+  "workflow.fehlschlag.dbRecordIdByText": "A workflow does not change the record identifier of a card of the table '{table}' with {command}; it creates cards with db-create and removes them with db-delete",
+  "workflow.fehlschlag.dbStructureByText": "A workflow does not change the structure of the table '{table}'; change it by hand in the application",
+  "workflow.fehlschlag.dbProfileByText": "A workflow does not change the fact sheet of the database; change it by hand in the application",
+  "workflow.fehlschlag.bufferChanged": "The document was edited further in the editor during the step; the step changed nothing",
+  "workflow.fehlschlag.dbOpenFormClosed": "The form was not opened because the question about the unsaved editing was closed without an answer",
+  "workflow.pruefung.hinweisZeile": "Note on line {line}: {grund}",
+  "workflow.pruefung.bereitMitHinweis": "ready; {hinweis}",
+  "workflow.hinweis.tableFile": "This file belongs to the table '{table}': a workflow changes its records with the database commands db-create, db-update and db-delete, and does not change its structure at all; free text remains possible",
+  "workflow.hinweis.recordCard": "This file is a card of the table '{table}': a workflow changes its fields with db-update and does not change its record identifier at all; free text remains possible",
+  "workflow.fehlschlag.dbCardRenamedAway": "The card '{path}' of the table '{table}' stays a Markdown file, because as '{name}' it would no longer be a record; use db-delete to remove it",
+  "workflow.fehlschlag.dbRecordRenamedIn": "'{path}' carries a record identifier and does not become a card in the folder of the table '{table}' by renaming it to '{name}'; use db-create to create it"
 }

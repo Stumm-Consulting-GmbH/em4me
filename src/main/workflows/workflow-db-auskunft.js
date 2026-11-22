@@ -6,7 +6,8 @@
 // **Ein Kanal, eine Antwort.** Der Prüfer im Fenster ist synchron; er bekommt
 // den Bestand einmal je Stand über `workflow:dbCatalog` und fragt danach ohne
 // Kanal (`src/shared/workflows/workflow-db-lookup.js`). Die Auskunft trägt je
-// Tabelle Name, Pfad und Feld-Namen, je Abfrage-Datei, ob sie auswertbar ist,
+// Tabelle Name, Pfad, Feld-Namen und seit 4T-002692 die Ablage-Form
+// (`storage`) samt den Karteikarten (`cards`), je Abfrage-Datei, ob sie auswertbar ist,
 // ob sie Datensätze als Tabelle liefert, ob sie gruppiert und welche eine
 // Tabelle sie nennt. Die beiden Kanäle der Datenbank (`database:overview` und
 // `database:table`) hätten dafür einen Aufruf je Tabelle verlangt und die
@@ -16,6 +17,15 @@
 //
 // Pfade sind relativ zur Bereichs-Wurzel mit `/`, damit das Fenster sie mit
 // der Angabe einer Befehls-Zeile vergleichen kann.
+//
+// **Die Karteikarten einer Kartei-Tabelle** (4T-002692, Nacharbeit): Eine
+// Tabelle mit `storage: 'cards'` trägt `cards`, die Datei-Namen ihrer
+// Karteikarten, wie sie der Index führt (`recordsPerFile`, Einträge mit
+// `kartei` aus `karteikarten-erfassung.js`). Damit erkennt der Prüfer eine
+// Karteikarte am Bestand und nicht am Ordner: Masken-, Abfrage- und
+// Steckbrief-Dateien und Dokumente ohne Kennung im Ordner der Tabelle stehen
+// nicht darin. Nur der Name und nicht der Pfad, weil eine Karteikarte immer im
+// Ordner ihrer Tabelle liegt; das hält die Liste bei 1000 Karten um 20 KB.
 //
 // Electron-frei; Dateizugriff und Sicht kommen herein.
 'use strict';
@@ -31,6 +41,7 @@ const { checkRecordsQuery } = require('../index/query-records.js');
 const { extractFrontmatter } = require('../../shared/markdown/frontmatter.js');
 const { parseQuery } = require('../../shared/query/perspective-query.js');
 const { isGroupedTable } = require('../../shared/query/query-functions.js');
+const { pathCompareKey } = require('../../shared/platform.js');
 
 function relativ(wurzel, absPfad) {
   return path.relative(wurzel, absPfad).split(path.sep).join('/');
@@ -63,8 +74,24 @@ function auslegung(text) {
  * @param {Function} [p.bufferTextFor] ungespeicherter Stand vor der Platte.
  * @returns {Promise<{tables: object[], queries: object[]}>}
  */
+// 4T-002692: je Kartei-Tabelle (Vergleichs-Schlüssel ihres Pfads) die
+// Datei-Namen ihrer Karteikarten aus dem Index, sortiert.
+function karteikartenDerSicht(sicht) {
+  const karten = new Map();
+  for (const [absPfad, records] of (sicht && sicht.recordsPerFile) || []) {
+    const kartei = Array.isArray(records) && records[0] ? records[0].kartei : null;
+    if (typeof kartei !== 'string' || kartei === '') continue;
+    const schluessel = pathCompareKey(kartei);
+    if (!karten.has(schluessel)) karten.set(schluessel, []);
+    karten.get(schluessel).push(path.basename(absPfad));
+  }
+  for (const namen of karten.values()) namen.sort();
+  return karten;
+}
+
 async function workflowDbAuskunft({ wurzel, sicht, fsp, cache, bufferTextFor = null }) {
   const tables = [];
+  const karten = karteikartenDerSicht(sicht);
   for (const absPfad of markierteDateien(sicht).tabellen) {
     const definition = await tabellenDefinition({
       sicht,
@@ -75,10 +102,17 @@ async function workflowDbAuskunft({ wurzel, sicht, fsp, cache, bufferTextFor = n
       bufferTextFor,
     });
     if (!definition.gefunden) continue;
+    // 4T-002692: die Ablage-Form aus der Definition (`parseTableDefinition`
+    // setzt sie immer, `'table'` oder `'cards'`) und bei der Kartei-Form die
+    // Namen der Karteikarten, damit der Prüfer eine Karteikarte als festes Ziel
+    // eines Text-Befehls erkennt.
+    const kartei = definition.storage === 'cards';
     tables.push({
       name: definition.name,
       path: relativ(wurzel, absPfad),
       fields: (definition.fields || []).map((feld) => feld.name),
+      storage: kartei ? 'cards' : 'table',
+      ...(kartei ? { cards: karten.get(pathCompareKey(absPfad)) || [] } : {}),
     });
   }
   const queries = [];

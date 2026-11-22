@@ -100,6 +100,7 @@
   "workflow.fehlschlag.notAFile": "'{path}' no es un archivo",
   "workflow.fehlschlag.notAFolder": "'{path}' no es una carpeta",
   "workflow.fehlschlag.outsideArea": "La ruta está fuera del área",
+  "workflow.fehlschlag.partsMissing": "'{path}' consta de varias partes y no todas están presentes (faltan: {teile}); no se escribió nada",
   "workflow.fehlschlag.runStateNotSaved": "No se guardó el estado de la ejecución",
   "workflow.fehlschlag.sourceMissing": "No se encontró el origen",
   "workflow.fehlschlag.splitDocument": "'{path}' es un documento dividido",
@@ -305,5 +306,19 @@
   "workflow.dbCheck.trenner": ", ",
   "workflow.fehlschlag.dbCheckFailed": "No se pudo ejecutar la comprobación de coherencia",
   "workflow.fehlschlag.dbOpenEditContinued": "El formulario no se abrió porque la edición sin guardar continúa",
-  "workflow.fehlschlag.dbOpenFormClosed": "El formulario no se abrió porque la pregunta sobre la edición sin guardar se cerró sin respuesta"
+  "workflow.fehlschlag.dbCardLeavesTable": "La ficha '{path}' de la tabla '{table}' permanece en la carpeta de su tabla; para sacarla, use db-delete y db-create",
+  "workflow.fehlschlag.dbRecordIntoTable": "'{path}' lleva un identificador de registro y no entra sin comprobación en la carpeta de la tabla '{table}'; para crearlo, use db-create",
+  "workflow.fehlschlag.dbRecordsByText": "Un workflow cambia los registros de la tabla '{table}' con los comandos de base de datos db-create, db-update y db-delete, no con {command}",
+  "workflow.fehlschlag.dbFieldByText": "Un workflow cambia el campo '{field}' de la ficha con db-update, no con {command}",
+  "workflow.fehlschlag.dbRecordIdByText": "Un workflow no cambia el identificador de registro de una ficha de la tabla '{table}' con {command}; crea las fichas con db-create y las elimina con db-delete",
+  "workflow.fehlschlag.dbStructureByText": "Un workflow no cambia la estructura de la tabla '{table}'; cámbiela a mano en la aplicación",
+  "workflow.fehlschlag.dbProfileByText": "Un workflow no cambia la ficha de la base de datos; cámbiela a mano en la aplicación",
+  "workflow.fehlschlag.bufferChanged": "El documento se siguió editando en el editor durante el paso; el paso no cambió nada",
+  "workflow.fehlschlag.dbOpenFormClosed": "El formulario no se abrió porque la pregunta sobre la edición sin guardar se cerró sin respuesta",
+  "workflow.pruefung.hinweisZeile": "Aviso en la línea {line}: {grund}",
+  "workflow.pruefung.bereitMitHinweis": "listo; {hinweis}",
+  "workflow.hinweis.tableFile": "Este archivo pertenece a la tabla '{table}': un workflow cambia sus registros con los comandos de base de datos db-create, db-update y db-delete, y no cambia en absoluto su estructura; el texto libre sigue siendo posible",
+  "workflow.hinweis.recordCard": "Este archivo es una ficha de la tabla '{table}': un workflow cambia sus campos con db-update y no cambia en absoluto su identificador de registro; el texto libre sigue siendo posible",
+  "workflow.fehlschlag.dbCardRenamedAway": "La ficha '{path}' de la tabla '{table}' sigue siendo un archivo Markdown, porque como '{name}' ya no sería un registro; para quitarla, use db-delete",
+  "workflow.fehlschlag.dbRecordRenamedIn": "'{path}' lleva un identificador de registro y no se convierte en ficha en la carpeta de la tabla '{table}' al renombrarlo '{name}'; para crearlo, use db-create"
 }

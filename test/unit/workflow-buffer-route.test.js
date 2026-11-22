@@ -211,6 +211,191 @@ describe('Weg eines Inhalts-Schritts', () => {
   });
 });
 
+// 4T-002690 (Weg (i) des Tasks, AK2 bis AK4): Mit der Erweiterung «Datenbank»
+// liest der Hauptprozess den Puffer-Stand des haltenden Fensters, urteilt am
+// Ergebnis und schickt die Bearbeitung erst bei Freigabe, mit dem gelesenen
+// Stand als Erwartung. Ein Halt schickt keine Bearbeitung; Platte und Puffer
+// bleiben unverändert.
+describe('Urteil der Datenbank vor den Fenster-Wegen (4T-002690)', () => {
+  const LIBRARY = [
+    '---',
+    'db-table:',
+    '  fields:',
+    '    - name: title',
+    '  lastId: 1',
+    '---',
+    '',
+    'Freier Text.',
+    '',
+    '```perspective-records',
+    '|- id="r-00001"',
+    '| Solaris',
+    '```',
+    '',
+  ].join('\n');
+
+  function dbWelt({ besitzer, schritt, datenbankAn = true }) {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-wf-urteil-'));
+    tmpDirs.push(root);
+    const ziel = path.join(root, 'Library.md');
+    fs.writeFileSync(ziel, LIBRARY, 'utf8');
+    const eigenes = fenster(1);
+    const andere = fenster(7);
+    let kennung = 0;
+    const bufferRequests = createBufferRequests({ timeoutMs: 1000, newId: () => `k-${++kennung}` });
+    const schritte = createWorkflowContentSteps({
+      windows: new Map([[7, andere]]),
+      backlinks: { bufferTextFor: () => null, bufferOwnerFor: () => besitzer },
+      resolveHistoryFor: async () => ({ effective: false }),
+      recordMddOnSave: async () => {},
+      bufferRequests,
+      datenbankAktiv: () => datenbankAn,
+    });
+    const ctx = {
+      root,
+      owner: eigenes,
+      event: { sender: { id: 1 } },
+      workflowAbs: path.join(root, 'Ablauf.md'),
+    };
+    return {
+      ziel,
+      eigenes,
+      andere,
+      bufferRequests,
+      lauf: () =>
+        schritte.runContentStep(ctx, { source: null, position: null, line: 3, ...schritt }),
+    };
+  }
+  const warte = () => new Promise((r) => setTimeout(r, 20));
+  const ERSETZE_DATENSATZ = { keyword: 'replace', args: ['Library.md', 'Solaris', 'Solaris X'] };
+  const ERSETZE_FREI = { keyword: 'replace', args: ['Library.md', 'Freier Text.', 'Neu.'] };
+
+  it('anderes Fenster, Datensatz-Zeile: Lesen, Halt, keine Bearbeitung geschickt', async () => {
+    const w = dbWelt({ besitzer: 7, schritt: ERSETZE_DATENSATZ });
+    const lauf = w.lauf();
+    await warte();
+    expect(w.andere.post).toEqual([
+      { kanal: 'workflow:bufferEdit', daten: { requestId: 'k-1', path: w.ziel, read: true } },
+    ]);
+    w.bufferRequests.answer({ sender: { id: 7 } }, { requestId: 'k-1', ok: true, text: LIBRARY });
+    expect(await lauf).toEqual({
+      ok: false,
+      code: 'dbRecordsByText',
+      detail: { command: 'replace', path: 'Library.md', table: 'Library' },
+    });
+    expect(w.andere.post).toHaveLength(1);
+    expect(fs.readFileSync(w.ziel, 'utf8')).toBe(LIBRARY);
+  });
+
+  it('anderes Fenster, freier Text: Bearbeitung mit dem gelesenen Stand als Erwartung', async () => {
+    const w = dbWelt({ besitzer: 7, schritt: ERSETZE_FREI });
+    const lauf = w.lauf();
+    await warte();
+    w.bufferRequests.answer({ sender: { id: 7 } }, { requestId: 'k-1', ok: true, text: LIBRARY });
+    await warte();
+    expect(w.andere.post[1]).toEqual({
+      kanal: 'workflow:bufferEdit',
+      daten: {
+        requestId: 'k-2',
+        path: w.ziel,
+        edit: { op: 'replace', search: 'Freier Text.', replacement: 'Neu.' },
+        expected: LIBRARY,
+      },
+    });
+    w.bufferRequests.answer({ sender: { id: 7 } }, { requestId: 'k-2', ok: true });
+    expect((await lauf).effect).toMatchObject({ kind: 'edited', via: 'otherBuffer' });
+  });
+
+  it('der Puffer hat sich seit dem Lesen geändert: bufferChanged kommt durch', async () => {
+    const w = dbWelt({ besitzer: 7, schritt: ERSETZE_FREI });
+    const lauf = w.lauf();
+    await warte();
+    w.bufferRequests.answer({ sender: { id: 7 } }, { requestId: 'k-1', ok: true, text: LIBRARY });
+    await warte();
+    w.bufferRequests.answer(
+      { sender: { id: 7 } },
+      { requestId: 'k-2', ok: false, code: 'bufferChanged' },
+    );
+    expect(await lauf).toMatchObject({ ok: false, code: 'bufferChanged' });
+  });
+
+  it('eigenes Fenster: gelesen beim Absender; Halt ohne Handgriff, Freigabe mit Erwartung', async () => {
+    const halt = dbWelt({ besitzer: 1, schritt: ERSETZE_DATENSATZ });
+    const lauf = halt.lauf();
+    await warte();
+    expect(halt.eigenes.post[0].daten).toEqual({ requestId: 'k-1', path: halt.ziel, read: true });
+    halt.bufferRequests.answer(
+      { sender: { id: 1 } },
+      { requestId: 'k-1', ok: true, text: LIBRARY },
+    );
+    expect(await lauf).toMatchObject({ ok: false, code: 'dbRecordsByText' });
+    const frei = dbWelt({ besitzer: 1, schritt: ERSETZE_FREI });
+    const lauf2 = frei.lauf();
+    await warte();
+    frei.bufferRequests.answer(
+      { sender: { id: 1 } },
+      { requestId: 'k-1', ok: true, text: LIBRARY },
+    );
+    expect(await lauf2).toEqual({
+      ok: true,
+      window: {
+        action: 'editOwnBuffer',
+        path: frei.ziel,
+        edit: { op: 'replace', search: 'Freier Text.', replacement: 'Neu.' },
+        expected: LIBRARY,
+      },
+    });
+  });
+
+  it('Aufbau der Tabelle am Puffer: Halt auf beiden Fenster-Wegen, ohne Bearbeitung', async () => {
+    const schritt = { keyword: 'remove-property', args: ['Library.md', 'db-table'] };
+    for (const besitzer of [1, 7]) {
+      const w = dbWelt({ besitzer, schritt });
+      const fensterDesStands = besitzer === 1 ? w.eigenes : w.andere;
+      const lauf = w.lauf();
+      await warte();
+      w.bufferRequests.answer(
+        { sender: { id: besitzer } },
+        { requestId: 'k-1', ok: true, text: LIBRARY },
+      );
+      expect(await lauf).toMatchObject({
+        ok: false,
+        code: 'dbStructureByText',
+        detail: { table: 'Library', command: 'remove-property' },
+      });
+      expect(fensterDesStands.post).toHaveLength(1);
+      expect(fs.readFileSync(w.ziel, 'utf8')).toBe(LIBRARY);
+    }
+  });
+
+  it('eine Lese-Antwort ohne Text gilt als nicht gelesen: bufferUnavailable', async () => {
+    const w = dbWelt({ besitzer: 7, schritt: ERSETZE_FREI });
+    const lauf = w.lauf();
+    await warte();
+    w.bufferRequests.answer({ sender: { id: 7 } }, { requestId: 'k-1', ok: true });
+    expect(await lauf).toMatchObject({ ok: false, code: 'bufferUnavailable' });
+    expect(w.andere.post).toHaveLength(1);
+  });
+
+  it('Erweiterung «Datenbank» aus: der bisherige Weg ohne Lesen und ohne Erwartung', async () => {
+    const w = dbWelt({ besitzer: 7, schritt: ERSETZE_DATENSATZ, datenbankAn: false });
+    const lauf = w.lauf();
+    await warte();
+    expect(w.andere.post).toEqual([
+      {
+        kanal: 'workflow:bufferEdit',
+        daten: {
+          requestId: 'k-1',
+          path: w.ziel,
+          edit: { op: 'replace', search: 'Solaris', replacement: 'Solaris X' },
+        },
+      },
+    ]);
+    w.bufferRequests.answer({ sender: { id: 7 } }, { requestId: 'k-1', ok: true });
+    expect((await lauf).ok).toBe(true);
+  });
+});
+
 // 4T-002424 (Story 4S-001135, AK5; Regel P5): `add-tag` und `remove-tag` nehmen
 // dieselbe Weiche wie `set-property`; `complete-task` geht über den
 // Fenster-Handgriff `completeTask` und die Weiche der Aufgaben-Abfrage

@@ -12,6 +12,8 @@ Das erste Teilen eines Dokuments wird angekündigt. Sie können es ablehnen: Dan
 
 Läuft das automatische Speichern im Hintergrund, wird **nicht** ungefragt geteilt. Das Dokument bleibt so lange geändert stehen, bis Sie einmal von Hand speichern und die Frage beantworten.
 
+Ein **Workflow** schreibt ein gewöhnliches Dokument, das dabei erstmals die Größe zum Teilen erreicht, ungeteilt weiter, ohne Frage; geteilt wird es beim nächsten Speichern von Hand mit der gewohnten Ankündigung (Seite [Workflows](workflows.md), Abschnitt „Text-Befehle und Dateien der Datenbank").
+
 **Für Datenbank-Tabellen gilt all das etwas anders.** Eine Tabellen-Datei der [Datenbank](database.md) ist technische Ablage und nicht Ihr Text: Sie wird schon ab rund 0,7 MB geteilt, der Schnitt liegt zwischen zwei Datensätzen statt vor einer Überschrift, und angekündigt wird nichts — die Datei war nie etwas, in dem Sie von Hand arbeiten. Alles Weitere auf dieser Seite gilt für sie unverändert, mit einer Ausnahme: Die Suche über den Bereich nimmt eine Tabellen-Datei ohne ihre Datensätze auf, gleich in welchem Teil sie stehen.
 
 ## Wo geschnitten wird

@@ -12,6 +12,8 @@ La première division d'un document est annoncée. Vous pouvez la refuser : le f
 
 Si l'enregistrement automatique s'exécute en arrière-plan, rien n'est divisé sans être demandé. L'onglet reste simplement modifié jusqu'à ce que vous enregistriez une fois manuellement et répondiez à la question.
 
+Un **workflow** continue d'écrire non divisé un document ordinaire qui atteint pour la première fois la taille de division, sans question ; il est divisé au prochain enregistrement manuel avec l'annonce habituelle (page [Workflows](workflows.md), section « Commandes de texte et fichiers de la base de données »).
+
 **Pour les tables de base de données, tout cela fonctionne un peu différemment.** Un fichier de table de la [base de données](database.md) est un stockage technique et non votre texte : il est divisé dès environ 0,7 Mo, la coupure se situe entre deux enregistrements au lieu de précéder un titre, et rien n'est annoncé — ce fichier n'a jamais été un endroit où vous travaillez à la main. Tout le reste de cette page s'y applique sans changement, à une exception près : une recherche portant sur la zone prend un fichier de table sans ses enregistrements, quelle que soit la partie où ils se trouvent.
 
 ## Où la coupure est faite

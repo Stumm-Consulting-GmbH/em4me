@@ -4,7 +4,9 @@
 //
 // **Muster der Workflow-Namen:** Der Prüfer fragt synchron; dieses Modul hält
 // die Auskunft des Hauptprozesses (Kanal `workflow:dbCatalog`) und meldet die
-// Rückfragen `dbTable` und `dbQuery` über `registriereRueckfragen` an. Solange
+// Rückfragen `dbTable` und `dbQuery`, seit 4T-002692 dazu `dbFile`
+// (Tabellen-Datei oder Karteikarte für die Stufe «Hinweis»), über
+// `registriereRueckfragen` an. Solange
 // keine Auskunft vorliegt, antworten sie mit null, und die Prüfung entfällt,
 // wie der Kern es ohne Rückfrage vorsieht.
 //
@@ -80,9 +82,25 @@ export function dbQueryRueckfrage(pfad) {
   return nachschlagen ? nachschlagen.dbQuery(pfad) : null;
 }
 
-/** Meldet die beiden Rückfragen an und hört auf die Meldungen des Bestands. */
+/**
+ * Die Rückfrage nach der Art einer Datei (4T-002692): Tabellen-Datei,
+ * Karteikarte oder keins von beiden.
+ *
+ * @param {string} pfad Pfad relativ zur Bereichs-Wurzel.
+ * @returns {object|null}
+ */
+export function dbFileRueckfrage(pfad) {
+  auffrischen();
+  return nachschlagen ? nachschlagen.dbFile(pfad) : null;
+}
+
+/** Meldet die drei Rückfragen an und hört auf die Meldungen des Bestands. */
 export function initWorkflowDbRueckfrage() {
-  registriereRueckfragen({ dbTable: dbTableRueckfrage, dbQuery: dbQueryRueckfrage });
+  registriereRueckfragen({
+    dbTable: dbTableRueckfrage,
+    dbQuery: dbQueryRueckfrage,
+    dbFile: dbFileRueckfrage,
+  });
   if (typeof api.onBacklinksInvalidated === 'function') {
     api.onBacklinksInvalidated(() => (alt = true));
   }

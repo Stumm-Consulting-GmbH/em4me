@@ -17,6 +17,8 @@ const {
   createWorkflowBlockQueries,
   propertyMatches,
 } = require('../../src/main/workflows/workflow-block-queries.js');
+// 4T-002689: Teile eines geteilten Dokuments.
+const { writePartLine, PART_SEP, PART_INFIX } = require('../../src/shared/document-parts.js');
 
 const tmpDirs = [];
 afterEach(() => {
@@ -146,6 +148,28 @@ describe('if-property (4S-001147, AK1 und AK5)', () => {
     expect(propertyMatches({ x: false }, 'x', 'false')).toBe(true);
     expect(propertyMatches(null, 'x')).toBe(false);
     expect(propertyMatches({}, 'constructor')).toBe(false);
+  });
+
+  // 4T-002689 (Zweitblick, Runde 2, Befund 2): Der Dateikopf eines geteilten
+  // Dokuments steht in der Kopf-Datei; ein Folgeteil trägt nur seine Zuordnung.
+  it('ein geteiltes Dokument, genannt über seinen Folgeteil, antwortet mit dem Dateikopf des Dokuments', async () => {
+    const b = bereich();
+    const kopf = b.schreibe(
+      'Notizen.md',
+      writePartLine('---\nstatus: offen\n---\n# Eins\n', { index: 1, base: 'Notizen' }).text,
+    );
+    const teil2 = `Notizen${PART_SEP}${PART_INFIX}00002.md`;
+    b.schreibe(teil2, writePartLine('# Zwei\n', { index: 2, base: 'Notizen' }).text);
+    expect(await b.frage('if-property', [teil2, 'status', 'offen'])).toEqual({
+      ok: true,
+      value: true,
+    });
+    // Im Fenster unter dem Kopf-Pfad: dessen ungespeicherter Stand gilt.
+    b.puffer[kopf] = '---\nstatus: fertig\n---\n# Eins\n# Zwei\n';
+    expect(await b.frage('if-property', [teil2, 'status', 'fertig'])).toEqual({
+      ok: true,
+      value: true,
+    });
   });
 });
 

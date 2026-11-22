@@ -32,6 +32,24 @@
 // nichts davon ein Ereignis aus; die Meldung `file-moved` trägt zusätzlich das
 // Kennzeichen aus dem Lauf-Zusammenhang des Schritt-Kanals.
 //
+// **Karteikarten** (4T-002691, Epic 3E-000415, Tc Option (a)): `copy` einer
+// Karteikarte in den Ordner ihrer Tabelle geht über die Weiche des
+// Bereichs-Panels (`workflow-kartei-weiche.js`) und bekommt so eine neue
+// Kennung und einen Anlege-Beleg; ein belegter Name bleibt `targetExists`
+// (keine freie Nummer wie im Panel, weil das Ziel im Workflow fest genannt
+// ist). Mit Ziel außerhalb dieses Ordners bleibt sie eine gewöhnliche
+// Datei-Kopie, weil dort kein Datensatz entsteht. `move` einer Karteikarte aus
+// dem Ordner ihrer Tabelle hält an (`dbCardLeavesTable`), denn das käme einem
+// Löschen ohne Prüfung gleich. `rename` mit Endungswechsel hält mit eigenen
+// Codes an (`dbCardRenamedAway`, `dbRecordRenamedIn`); `rename` mit
+// Markdown-Endung und alle Befehle auf
+// ganze Ordner, Tabellen-Dateien und den Steckbrief bleiben wie von Hand.
+// `create`, `copy` und `move` einer Markdown-Datei, deren Dateikopf eine
+// Kennung `db-record` trägt, in den Ordner einer Kartei-Tabelle halten an
+// (`dbRecordIntoTable`), denn das käme einem Anlegen ohne Prüfung gleich; den
+// Ordner erkennt die Weiche (`karteiTabelleIn`). `db-query … into` ohne
+// `under` läuft über `create` und ist damit erfasst.
+//
 // Eigener Zustand: keiner.
 'use strict';
 
@@ -45,6 +63,8 @@ const { BEGLEIT_CODES } = require('../documents/companion-files');
 const { merkeLaufBewegung, merkeLaufStand } = require('../documents/self-write');
 const { resolveAreaPath } = require('./workflow-area-path.js');
 const { readStepSource } = require('./workflow-content-steps.js');
+const { createWorkflowKarteiWeiche } = require('./workflow-kartei-weiche.js');
+const { tabellenName } = require('../database/table-catalog.js');
 
 /** Die Befehle dieses Moduls. */
 const FILE_KEYWORDS = Object.freeze(['create', 'mkdir', 'rename', 'move', 'copy', 'open', 'close']);
@@ -110,17 +130,66 @@ async function ordnerInhalt(wurzel) {
  * @param {Function} deps.applyLinkUpdatesForRename Eingehende Verweise anpassen.
  * @param {Function} deps.renamesFromPairs Paare in die Form des Rewrite-Kerns.
  * @param {(channel: string, ...args: any[]) => void} deps.broadcast Meldung an alle Fenster.
+ * @param {object} [deps.karteiWeichen] 4T-002691: Weiche einer Karteikarte
+ *   (`database/kartei-weichen.js`); ohne sie ist nichts eine Karteikarte.
  * @returns {{runFileStep: Function}}
  */
 function createWorkflowFileSteps(deps) {
   const { isMarkdownPath, cascade, renameSingleFile, sendBookStateForDirs } = deps;
   const { applyLinkUpdatesForRename, renamesFromPairs, broadcast } = deps;
+  const kartei = createWorkflowKarteiWeiche(deps);
+
+  // 4T-002691: Liegt der Pfad im Ordner der Tabelle einer Karteikarte?
+  function imOrdnerDerTabelle(karte, abs) {
+    return isSamePath(path.dirname(abs), path.dirname(karte.tabelle));
+  }
+
+  // 4T-002691 (Punkt 3): Eine Markdown-Datei mit Kennung `db-record` im
+  // Dateikopf entstünde im Ordner einer Kartei-Tabelle als Datensatz ohne
+  // Prüfung; dann hält der Schritt an. Sonst null.
+  async function hineinlegenHalt(text, zielAbs, angabe) {
+    if (!isMarkdownPath(zielAbs)) return null;
+    const tabelle = await kartei.tabelleBeimHineinlegen(text, zielAbs);
+    if (tabelle === null) return null;
+    return fehlschlag('dbRecordIntoTable', { path: angabe, table: tabellenName(tabelle) });
+  }
+
+  // 4T-002691, Review Runde 1, Nr. 2 (technische Festlegung der steuernden
+  // Sitzung vom 2026-11-14 im Rahmen von Tc): `rename` kann die Endung
+  // wechseln. Wird eine Karteikarte dabei zu einer Datei, die keine
+  // Markdown-Datei ist, verlässt sie die Tabelle; wird
+  // eine Datei mit Kennung zur Markdown-Datei im Kartei-Ordner, käme das einem
+  // Anlegen gleich. Bleibt die Endung Markdown, läuft
+  // `rename` einer Karteikarte im selben Ordner wie von Hand.
+  //
+  // Review Runde 2, Nr. 1: Die Datei bleibt dabei im selben Ordner; Grund des
+  // Halts ist allein der Endungswechsel. Deshalb eigene Codes mit eigenem Satz
+  // (`dbCardRenamedAway`, `dbRecordRenamedIn`) statt der Sätze des Verschiebens;
+  // `name` ist der neue Name, wie der Schritt ihn nennt.
+  async function umbenennenHalt(quelleAbs, zielAbs, angabe, name) {
+    const karte = await kartei.karteikarteVon(quelleAbs);
+    if (karte) {
+      if (isMarkdownPath(zielAbs)) return null;
+      return fehlschlag('dbCardRenamedAway', {
+        path: angabe,
+        table: tabellenName(karte.tabelle),
+        name,
+      });
+    }
+    if (isMarkdownPath(quelleAbs) || !isMarkdownPath(zielAbs)) return null;
+    const text = await fs.readFile(quelleAbs, 'utf8');
+    const tabelle = await kartei.tabelleBeimHineinlegen(text, zielAbs);
+    if (tabelle === null) return null;
+    return fehlschlag('dbRecordRenamedIn', { path: angabe, table: tabellenName(tabelle), name });
+  }
 
   async function anlegen(ctx, step) {
     const ziel = await resolveAreaPath(ctx.root, step.args[0]);
     if (!ziel.ok) return ziel;
     const quelle = await readStepSource(ctx, step.source);
     if (!quelle.ok) return quelle;
+    const halt = await hineinlegenHalt(quelle.text, ziel.abs, step.args[0]);
+    if (halt) return halt;
     try {
       await fs.mkdir(path.dirname(ziel.abs), { recursive: true });
       merkeLaufStand(ziel.abs, quelle.text);
@@ -241,6 +310,8 @@ function createWorkflowFileSteps(deps) {
       return { ok: true, effect: { kind: 'unchanged', paths: [quelle.abs], via: 'disk' } };
     }
     if (stat.isDirectory()) return ordnerBewegen(ctx, quelle.abs, ziel.abs, 'renamed');
+    const halt = await umbenennenHalt(quelle.abs, ziel.abs, step.args[0], name);
+    if (halt) return halt;
     if (!isSamePath(ziel.abs, quelle.abs) && (await statOderNull(ziel.abs))) {
       return fehlschlag('targetExists', { path: relZiel });
     }
@@ -264,6 +335,23 @@ function createWorkflowFileSteps(deps) {
     if (stat.isDirectory() && isInsideArea(quelle.abs, ordner.abs)) {
       return fehlschlag('invalidStep', { path: step.args[1] });
     }
+    // 4T-002691: Eine Karteikarte verlässt den Ordner ihrer Tabelle nicht ungeprüft.
+    const karte = stat.isFile() ? await kartei.karteikarteVon(quelle.abs) : null;
+    if (karte && !imOrdnerDerTabelle(karte, ziel)) {
+      return fehlschlag('dbCardLeavesTable', {
+        path: step.args[0],
+        table: tabellenName(karte.tabelle),
+      });
+    }
+    // 4T-002691: Eine Datei mit Kennung legt `move` nicht in einen Kartei-Ordner.
+    // `move` behält den Namen samt Endung: Quelle und Ziel haben immer dieselbe
+    // Endung, beide Prüfungen sind gleichwertig, und eine `.txt` wird dabei nie
+    // eine Karteikarte (Klarstellung Review Runde 2, Nr. 2).
+    if (stat.isFile() && !karte && isMarkdownPath(ziel)) {
+      const text = await fs.readFile(quelle.abs, 'utf8');
+      const halt = await hineinlegenHalt(text, ziel, step.args[0]);
+      if (halt) return halt;
+    }
     if (await statOderNull(ziel)) return fehlschlag('targetExists', { path: ziel });
     await fs.mkdir(ordner.abs, { recursive: true });
     if (stat.isDirectory()) return ordnerBewegen(ctx, quelle.abs, ziel, 'moved');
@@ -278,8 +366,35 @@ function createWorkflowFileSteps(deps) {
     const stat = await statOderNull(quelle.abs);
     if (!stat) return fehlschlag('sourceMissing', { path: step.args[0] });
     if (!stat.isFile()) return fehlschlag('notAFile', { path: step.args[0] });
-    if (isMarkdownPath(quelle.abs) && readPartLine(await fs.readFile(quelle.abs, 'utf8'))) {
+    // Review Runde 1, Nr. 1: Der Text wird auch gelesen, wenn allein das ZIEL
+    // eine Markdown-Datei ist; eine `.txt` mit Kennung würde sonst als `.md`
+    // ungeprüft zur Karteikarte.
+    const mdQuelle = isMarkdownPath(quelle.abs);
+    const text =
+      mdQuelle || isMarkdownPath(ziel.abs) ? await fs.readFile(quelle.abs, 'utf8') : null;
+    if (mdQuelle && readPartLine(text)) {
       return fehlschlag('splitDocument', { path: step.args[0] });
+    }
+    // 4T-002691: Eine Karteikarte in den Ordner ihrer Tabelle geht über die Weiche.
+    const karte = await kartei.karteikarteVon(quelle.abs);
+    if (karte && isMarkdownPath(ziel.abs) && imOrdnerDerTabelle(karte, ziel.abs)) {
+      const kopiert = await kartei.kopiere(karte, ctx.root, ziel.abs, step.args[1]);
+      if (kopiert.belegt) return fehlschlag('targetExists', { path: step.args[1] });
+      if (!kopiert.ok) return kopiert;
+      const neu = kartei.neuerKartenPfad(ziel.abs);
+      // Begleitdatei wie im Panel (`area:copyFile`): Die Karte ist ein angelegter
+      // Datensatz mit Anlege-Beleg und wird nicht am Datenbank-Weg vorbei
+      // zurückgenommen, wenn allein die Begleitdatei scheitert.
+      const begleit = await kopiereBegleitdatei(quelle.abs, neu);
+      if (!begleit.ok)
+        console.warn('[workflow] Begleitdatei der Karteikarte fehlt:', begleit.error);
+      return { ok: true, effect: { kind: 'copied', paths: [neu], via: 'disk' } };
+    }
+    // 4T-002691: Jede andere Datei mit Kennung, auch eine Karteikarte in den
+    // Ordner einer anderen Kartei-Tabelle, hält vor dem Kartei-Ordner an.
+    if (text !== null) {
+      const halt = await hineinlegenHalt(text, ziel.abs, step.args[0]);
+      if (halt) return halt;
     }
     try {
       await fs.mkdir(path.dirname(ziel.abs), { recursive: true });

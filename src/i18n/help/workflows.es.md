@@ -106,6 +106,7 @@ Los comandos, ordenados según su objeto. Las rutas son relativas a la raíz del
 - **Carpeta de destino que falta:** `create`, `copy` y `move` la crean dentro del área.
 - **Mover y renombrar** siguen el mismo camino que en el panel del área: los enlaces al archivo se actualizan, las subpáginas y el archivo acompañante se mueven con él.
 - `mkdir` sobre una carpeta existente y `close` sobre un documento no abierto tienen éxito sin cambiar nada. `close` sobre un documento sin guardar muestra la pregunta de guardado habitual; «Cancelar» termina la ejecución en esa línea.
+- **Fichas de la base de datos:** `copy`, `move` y `rename` de una ficha y un archivo con identificador de registro que llegaría a la carpeta de una tabla en forma de fichero siguen las reglas de la sección «Comandos de texto y archivos de la base de datos».
 
 ### Contenido y cabecera
 
@@ -121,6 +122,7 @@ Los comandos, ordenados según su objeto. Las rutas son relativas a la raíz del
 - `replace` sustituye cada aparición, como «Reemplazar todo» en el editor; si no encuentra ninguna, el paso falla.
 - `set-property` y `remove-property` dejan las demás propiedades en su orden. `remove-property` sobre una propiedad que no existe tiene éxito sin cambios.
 - **Archivos abiertos:** si el archivo de destino está abierto en una ventana y sin guardar, el cambio va a esa ventana y aparece allí como cambio en el editor; el trabajo sin guardar se conserva. Si no, el archivo se escribe directamente.
+- **Archivos de la base de datos:** en un archivo de tabla o una ficha, estos comandos cambian el texto libre y las propiedades que no son un campo de la tabla; no cambian registros, campos ni la estructura (sección «Comandos de texto y archivos de la base de datos»).
 
 ### Aplicación y desarrollo
 
@@ -148,7 +150,7 @@ Los comandos, ordenados según su objeto. Las rutas son relativas a la raíz del
 | `complete-task` | marcar como hecha la primera tarea abierta que contiene el texto buscado | ruta, texto buscado | `complete-task "Proyectos/Plan.md" "Enviar oferta"` |
 | `confirm` | hacer una pregunta con «Sí» y «No» | pregunta | `confirm "¿Archivar todos los borradores?"` |
 
-- **`delete`** mueve el destino a la papelera, como el borrado en el panel del área; una carpeta va entera. Con un archivo van su archivo acompañante (`.mdd`) con el estado de ejecución y sus registros de cambios (`.mddl`). La raíz del área no se puede borrar. Un destino borrado se recupera de la papelera.
+- **`delete`** mueve el destino a la papelera, como el borrado en el panel del área; una carpeta va entera. Con un archivo van su archivo acompañante (`.mdd`) con el estado de ejecución y sus registros de cambios (`.mddl`). La raíz del área no se puede borrar. Un destino borrado se recupera de la papelera. Una ficha la elimina `delete` a través de la base de datos (sección «Comandos de texto y archivos de la base de datos»).
 - **Una confirmación por ejecución:** si una ejecución contiene `delete`, **una** confirmación antes del primer paso nombra todos los destinos de la ejecución con su ruta, también los de los workflows llamados; «No» no deja ejecutar ningún paso, y la ejecución cuenta como entrada cancelada. Si un destino está abierto en esta ventana, se cierra antes del paso; con cambios sin guardar aparece la pregunta de guardado habitual, y «Cancelar» termina la ejecución en esa línea.
 - **`add-tag` y `remove-tag`** solo cambian la lista `tags` de la cabecera; una etiqueta ya presente o ausente no es un error. Una `#` inicial se omite, y las mayúsculas y minúsculas no cuentan en la comparación; una etiqueta vacía o con espacios no es válida. Si `remove-tag` quita la última etiqueta, queda la lista vacía `tags: []`. Las etiquetas del texto (`#etiqueta`) no se tocan; para ellas está `replace`.
 - **`complete-task`** busca entre las tareas abiertas del archivo, las mismas que muestra la [consulta de tareas](tasks.md), la primera cuyo texto contiene el texto buscado, distinguiendo mayúsculas y minúsculas. La marca como hecha igual que un clic en la consulta de tareas, con la fecha de finalización según la configuración de las tareas. Si no encuentra ninguna, el paso falla.
@@ -433,6 +435,58 @@ end
 - **Rastro en el registro de la ejecución:** en la página «Ejecuciones de workflows», el registro de la ejecución nombra para cada paso de base de datos la tabla, el registro y el identificador de operación, por ejemplo «Línea 2: db-update – tabla Library, registro r-00007, operación 12». Los [justificantes de cambio](database.md) de este paso llevan el mismo identificador de operación.
 - **Sin eventos:** lo que un workflow escribe en la base de datos no dispara ningún evento, ni en el archivo de tabla ni en una ficha.
 
+### Comandos de texto y archivos de la base de datos
+
+**Un workflow no cambia nada en los archivos de una base de datos saltándose sus reglas: cambia los registros con los comandos de base de datos y nunca cambia la estructura de una tabla; el texto libre queda abierto a los comandos de texto.** Los comandos de texto son los comandos de contenido y cabecera (`append`, `insert`, `replace`, `set-property`, `remove-property`), los comandos de etiquetas `add-tag` y `remove-tag` y `db-query … into` con `under`. Las reglas de esta sección valen mientras la extensión «Base de datos» está activada; solo el párrafo sobre los documentos divididos vale siempre.
+
+| Lo que cambiaría un comando de texto | Lo que hace el workflow | En su lugar |
+| --- | --- | --- |
+| los registros de un archivo de tabla: cambiar, añadir o quitar una línea del bloque de registros | se detiene | `db-create`, `db-update`, `db-delete` |
+| establecer, cambiar o quitar un campo de la tabla en la cabecera de una ficha | se detiene | `db-update` |
+| cambiar o quitar el identificador `db-record` de una ficha | se detiene | `db-create` y `db-delete` |
+| convertir en ficha un archivo de la carpeta de una tabla en forma de fichero con `set-property … db-record` | se detiene | `db-create` |
+| la estructura de una tabla, la ficha de la base de datos, o convertir un archivo en tabla con `set-property … db-table` | se detiene siempre | a mano en la aplicación |
+| el texto libre de un archivo de tabla o de una ficha, las propiedades que no son un campo de la tabla y las etiquetas | los cambia | — |
+
+Si la estructura de la tabla en forma de fichero no se puede leer, cada dato de la cabecera de sus fichas cuenta por precaución como campo, y cualquier cambio en la cabecera se detiene, también en las etiquetas y en las propiedades corrientes, mientras que el texto libre que sigue se puede seguir cambiando, hasta que usted ponga en orden la estructura de la tabla.
+
+````markdown
+```workflow
+# Un campo de la ficha: db-update en lugar de set-property
+db-update "Authors" "Umberto Eco" born="1932-01-06"
+# Un registro de la tabla: db-update en lugar de replace
+db-update "Library" "Solaris" loanNote="prestado"
+# El texto libre de la ficha sigue abierto a los comandos de texto
+append "Authors/Umberto Eco.md" from-section "Nota"
+```
+````
+
+- **Medido por el resultado:** la aplicación compara el archivo antes y después del paso. Un `append` a un archivo de tabla pone su texto detrás del bloque de registros cerrado y se ejecuta; si el archivo termina en un bloque que nadie ha cerrado, el texto acaba en los registros y el paso se detiene. Los campos se reconocen sin distinguir mayúsculas y minúsculas. Si la tabla tiene un campo `tags`, también `add-tag` y `remove-tag` se detienen en una de sus fichas.
+- **`complete-task`** marca como hechas tareas del texto libre de un archivo de tabla o de una ficha; una línea del bloque de registros no es una tarea y no se encuentra.
+- **Una detención no cambia nada:** no cambian ni el archivo ni un documento abierto. El motivo nombra la tabla o el campo y el comando que lleva al objetivo, y aparece como toda cancelación en la barra de estado y en la página «Ejecuciones de workflows», según la programación y ante eventos además como notificación del sistema operativo. Sin nadie presente valen las mismas reglas.
+- **Documentos abiertos:** si el archivo está abierto y sin guardar en una ventana, la regla vale para el estado en el editor. Si un documento abierto, sea cual sea, se sigue editando en el editor durante el paso, el paso no cambia nada y la ejecución se detiene con este motivo; un nuevo inicio trabaja con el nuevo estado.
+
+**Comandos de archivo sobre fichas.** Una ficha se elimina, se copia y se coloca como lo permite la base de datos:
+
+| Caso | Lo que hace el workflow | En su lugar |
+| --- | --- | --- |
+| `delete` de una ficha | elimina a través de la base de datos como el borrado en el panel del área, con protección contra el borrado y justificante; si la base de datos lo rechaza, la ficha se queda y la ejecución se detiene con su motivo | — |
+| `copy` de una ficha a la carpeta de su tabla | crea una ficha nueva a través de la base de datos como la copia en el panel del área: el nombre del destino como clave, un identificador nuevo y un justificante de creación; si la base de datos lo rechaza, no se crea ninguna copia | — |
+| `copy` de una ficha a una carpeta sin tabla en forma de fichero | copia el archivo; allí no se crea ningún registro | — |
+| `move` de una ficha fuera de la carpeta de su tabla | se detiene | `db-delete` y `db-create` |
+| `rename` de una ficha a un nombre sin extensión Markdown (`.md`, `.markdown`, `.mdown`, `.mkd`) | se detiene | `db-delete` |
+| llevar un archivo con identificador de registro como archivo Markdown a la carpeta de una tabla en forma de fichero: con `create`, `copy` o `move` hacia ella, o con `rename` a una extensión Markdown | se detiene | `db-create` |
+| `rename` de una ficha en la carpeta de su tabla, el nuevo nombre tiene una extensión Markdown | cambia el nombre del archivo como a mano; la clave y el identificador se mantienen | — |
+| `move`, `rename` y `delete` de una carpeta entera con una tabla en forma de fichero, comandos de archivo sobre archivos de tabla y sobre la ficha de la base de datos | como a mano | — |
+
+`delete` y `copy` de una ficha escriben con sus permisos, como los comandos de base de datos. `delete` sigue siendo también aquí «Solo manual», con la única confirmación antes del primer paso. Los archivos de resultado de `db-query … into` sin `under` siguen a `create`.
+
+**Documentos divididos.** Los comandos de texto trabajan en un [documento dividido](document-parts.md) sobre el documento entero, incluso con la base de datos desactivada: `append` añade al final de la última parte, `insert` y `replace` encuentran su lugar en cualquier parte, y una ruta que nombra una parte siguiente se refiere al documento entero. Una fuente `from-file` también se lee entera. Si falta una parte, el paso no cambia nada y la ejecución se detiene. Si un workflow lleva por primera vez un documento corriente por encima del umbral de división, lo sigue escribiendo sin dividir, sin pregunta y sin detenerse; se divide al siguiente guardado a mano con la pregunta habitual. Un archivo de tabla lo divide como el guardado a mano.
+
+**Aviso temprano:** si un comando de texto nombra su destino sin marcador y el destino es un archivo de tabla o una ficha, la indicación de comprobación sobre el bloque muestra un aviso en la línea, con la tabla y los comandos de base de datos. Un aviso no es un hallazgo: no pone la indicación en rojo y no impide ni el inicio ni la activación. Si el destino contiene un marcador, solo la ejecución reconoce el archivo.
+
+**Workflows existentes:** la aplicación no reescribe ningún workflow. Un workflow que quiera cambiar registros, campos de una ficha o la estructura de una tabla con un comando de texto o de archivo se detiene en esa línea con el motivo, también según la programación y ante eventos; sustituya la línea por el comando que nombra el motivo.
+
 ## Programación y activación
 
 Un workflow con `trigger: schedule` y una línea `schedule` se ejecuta por sí solo en las fechas de su programación en cuanto está **activado**:
@@ -626,7 +680,7 @@ No hay forma de deshacer una ejecución entera. Se deshace de forma selectiva, c
 ## Ayuda en el editor
 
 - **Resaltado:** en las líneas de comando, la palabra clave aparece en negrita, el texto entre comillas en color y los marcadores en cursiva, tanto en el editor como en la vista de lectura. Las palabras de bloque de las condiciones y los bucles, `else` y `end` aparecen además subrayadas con puntos en el editor.
-- **Indicación de comprobación:** el modo en vivo, la vista renderizada y la vista dividida muestran sobre el bloque el resultado de la comprobación: en verde «listo» o en rojo «Línea N: motivo», con «(+N más)» si hay varios hallazgos. Allí aparecen también los avisos sobre varios bloques y sobre un disparador todavía no compatible, así como los hallazgos de la programación con su línea en la cabecera. La indicación sigue al texto poco después de cada cambio y muestra el mismo hallazgo que señala el inicio. Al imprimir, en una exportación y en un archivo incrustado, la línea de cabecera no aparece.
+- **Indicación de comprobación:** el modo en vivo, la vista renderizada y la vista dividida muestran sobre el bloque el resultado de la comprobación: en verde «listo» o en rojo «Línea N: motivo», con «(+N más)» si hay varios hallazgos. Allí aparecen también los avisos sobre varios bloques y sobre un disparador todavía no compatible, así como los hallazgos de la programación con su línea en la cabecera. Un **aviso**, por ejemplo sobre un destino que es un archivo de tabla o una ficha, sigue a los hallazgos como «Aviso en la línea N: …»; sin hallazgo, la indicación sigue en verde con «listo; Aviso en la línea N: …». Un aviso no impide ni el inicio ni la activación. La indicación sigue al texto poco después de cada cambio y muestra el mismo hallazgo que señala el inicio. Al imprimir, en una exportación y en un archivo incrustado, la línea de cabecera no aparece.
 - **Botón «Activado»:** con `trigger: schedule` y `trigger: event`, la línea de cabecera lleva junto a «Iniciar» el botón para activar (sección «Programación y activación»).
 
 El resaltado y la indicación no cambian el texto del archivo.
@@ -638,7 +692,7 @@ El resaltado y la indicación no cambian el texto del archivo.
 - **Ninguna ejecución sin área abierta:** un workflow programado solo se ejecuta mientras la aplicación y su área están abiertas; recupera las fechas perdidas según las reglas de `missed`. Los eventos también actúan solo con el área abierta y no se recuperan.
 - **Sin cadenas:** un workflow reacciona a lo que usted u otros programas hacen, nunca a lo que hace un workflow. Quien quiera una secuencia llama al siguiente workflow con `workflow "Nombre"`; contra un bucle a través de otros programas, el freno de emergencia detiene un workflow tras más de 20 ejecuciones por eventos en 5 minutos (sección «Eventos»).
 - **Límites de los bloques:** como máximo tres niveles de anidamiento, ningún bucle dentro de un bucle y como máximo 500 archivos o registros por bucle.
-- **Base de datos:** un workflow escribe en la base de datos con sus permisos; según la programación y ante eventos crea y cambia, pero nunca elimina. Si un workflow se interrumpe, se quedan los registros que ya ha escrito. Lo que un workflow escribe en la base de datos no dispara ningún evento.
+- **Base de datos:** un workflow escribe en la base de datos con sus permisos; según la programación y ante eventos crea y cambia, pero nunca elimina. Si un workflow se interrumpe, se quedan los registros que ya ha escrito. Lo que un workflow escribe en la base de datos no dispara ningún evento. Cambia los registros y los campos de una ficha solo con los comandos de base de datos, y nunca cambia la estructura de una tabla ni la ficha de la base de datos (sección «Comandos de texto y archivos de la base de datos»).
 - **No se deshace una ejecución:** los pasos ejecutados quedan ejecutados; el registro muestra lo que ha tocado la última ejecución, y se deshace de forma selectiva.
 - **Las macros** siguen como están y pueden llamarse como paso; una macro es una secuencia de comandos en la configuración, un workflow un procedimiento como documento. **Los [bloques de script](scripts.md)** siguen siendo de solo lectura, también como paso de script; un workflow no es un lenguaje de script general, sino un catálogo fijo de comandos.
 

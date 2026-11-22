@@ -231,3 +231,65 @@ describe('Ziel, Grenze und Historie', () => {
     expect(w.historien).toEqual([]);
   });
 });
+
+// 4T-002690 (Story 4S-001215): Auf dem Platten-Weg fällt das Urteil der
+// Datenbank vor dem Schreiben, mit dem Stand vor und nach der Bearbeitung und
+// dem Befehl des Schritts; ein Halt schreibt nichts, auch keine Historie. Die
+// Regeln selbst prüft `workflow-db-urteil.test.js`.
+describe('Urteil der Datenbank auf dem Platten-Weg (4T-002690)', () => {
+  function mitUrteil(antwort) {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-wf-inhalt-'));
+    tmpDirs.push(root);
+    const ziel = path.join(root, 'Ziel.md');
+    fs.writeFileSync(ziel, 'alt\n', 'utf8');
+    const aufrufe = [];
+    const historien = [];
+    const schritte = createWorkflowContentSteps({
+      windows: new Map(),
+      backlinks: { bufferTextFor: () => null, bufferOwnerFor: () => null },
+      resolveHistoryFor: async () => ({ effective: true }),
+      recordMddOnSave: async (...args) => historien.push(args),
+      bufferRequests: { request: async () => ({ ok: false, code: 'bufferUnavailable' }) },
+      dbUrteil: {
+        aktiv: () => true,
+        urteile: async (auftrag) => {
+          aufrufe.push(auftrag);
+          return antwort;
+        },
+      },
+    });
+    const ctx = { root, owner: {}, event: { sender: { id: 1 } }, workflowAbs: ziel };
+    const lauf = () =>
+      schritte.runContentStep(ctx, {
+        line: 2,
+        keyword: 'replace',
+        args: ['Ziel.md', 'alt', 'neu'],
+        source: null,
+        position: null,
+      });
+    return { ziel, aufrufe, historien, lauf };
+  }
+
+  it('fragt mit altem und neuem Stand, Befehl und genanntem Pfad', async () => {
+    const w = mitUrteil({ ok: true });
+    expect((await w.lauf()).ok).toBe(true);
+    expect(w.aufrufe).toEqual([
+      {
+        abs: w.ziel,
+        alterText: 'alt\n',
+        neuerText: 'neu\n',
+        befehl: 'replace',
+        anzeige: 'Ziel.md',
+      },
+    ]);
+    expect(fs.readFileSync(w.ziel, 'utf8')).toBe('neu\n');
+  });
+
+  it('ein Halt kommt unverändert zurück, die Datei und die Historie bleiben unberührt', async () => {
+    const halt = { ok: false, code: 'dbRecordsByText', detail: { table: 'T' } };
+    const w = mitUrteil(halt);
+    expect(await w.lauf()).toEqual(halt);
+    expect(fs.readFileSync(w.ziel, 'utf8')).toBe('alt\n');
+    expect(w.historien).toEqual([]);
+  });
+});

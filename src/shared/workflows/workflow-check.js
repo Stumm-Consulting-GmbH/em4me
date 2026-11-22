@@ -131,7 +131,7 @@ const { checkAreaPath, checkFileName } = require('./workflow-paths.js');
 const { SCHEDULE_TRIGGER } = require('./workflow-schedule.js');
 const { EVENT_TRIGGER, eventProvides } = require('./workflow-event.js');
 // 4T-002547: `festVorDemLauf` liegt bei den Datenbank-Befunden, die es mitbenutzen.
-const { dbFindings, festVorDemLauf } = require('./workflow-check-db.js');
+const { dbFindings, dbTargetHints, festVorDemLauf } = require('./workflow-check-db.js');
 
 const ZAHL_RE = /^\d+(?:\.\d+)?$/;
 const KOMMANDO_RE = /^[A-Za-z][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)+$/;
@@ -696,22 +696,27 @@ function blocksRun(finding) {
  * @param {{ownName?: string, templatesEnabled?: boolean, scriptsEnabled?: boolean,
  *   databaseEnabled?: boolean, stages?: Array, isKnownCommand?: Function,
  *   isKnownMacro?: Function, isKnownWorkflow?: Function, dbTable?: Function,
- *   dbQuery?: Function}} [options] `scriptsEnabled` ist die
+ *   dbQuery?: Function, dbFile?: Function}} [options] `scriptsEnabled` ist die
  *   Einstellung «Skript-Blöcke ausführen»; nur `true` gibt `script` und
  *   `if-script` frei (4T-002465). `databaseEnabled`, `dbTable` und
  *   `dbQuery` siehe `workflow-check-db.js` (4T-002544).
- * @returns {{ok: boolean, armable: boolean, steps: object[], findings: object[]}}
+ * @returns {{ok: boolean, armable: boolean, steps: object[], findings: object[],
+ *   hints: object[]}}
  *   `ok` genau dann, wenn kein Befund den Lauf verhindert (`blocksRun`);
  *   `armable` genau dann, wenn der Auslöser `schedule` oder `event` ist und gar
- *   kein Befund vorliegt; `steps` nur aus fehlerfreien Zeilen.
+ *   kein Befund vorliegt; `steps` nur aus fehlerfreien Zeilen. `hints` ist die
+ *   Stufe «Hinweis» (4T-002692, `dbTargetHints` in `workflow-check-db.js`): Sie
+ *   zählt weder für `ok` noch für `armable`.
  */
 function checkWorkflow(doc, options = {}) {
-  if (!doc || !doc.isWorkflow) return { ok: false, armable: false, steps: [], findings: [] };
+  if (!doc || !doc.isWorkflow)
+    return { ok: false, armable: false, steps: [], findings: [], hints: [] };
   const ausloeser = doc.meta ? doc.meta.trigger : null;
   const unbeaufsichtigt = UNBEAUFSICHTIGTE_AUSLOESER.includes(ausloeser);
   const ereignis = ausloeser === EVENT_TRIGGER && doc.meta.event ? doc.meta.event.event : null;
   const findings = [...doc.findings];
   const steps = [];
+  let hints = [];
   if (doc.block) {
     const gelesen = readBlock(doc.block.lines, doc.block.contentLine);
     findings.push(...gelesen.findings);
@@ -732,10 +737,12 @@ function checkWorkflow(doc, options = {}) {
     });
     findings.push(...scriptFindings(gelesen.statements, schritte, doc.source, options));
     findings.push(...dbFindings(gelesen.statements, struktur, options));
+    // 4T-002692: die Stufe «Hinweis», getrennt von den Befunden.
+    hints = dbTargetHints(gelesen.statements, options);
   }
   findings.sort((a, b) => (a.line || 0) - (b.line || 0) || (a.column || 0) - (b.column || 0));
   const ok = findings.every((f) => !blocksRun(f));
-  return { ok, armable: ok && unbeaufsichtigt && findings.length === 0, steps, findings };
+  return { ok, armable: ok && unbeaufsichtigt && findings.length === 0, steps, findings, hints };
 }
 
 module.exports = {

@@ -16,6 +16,8 @@ const {
   MAINTENANCE_KEYWORDS,
   createWorkflowMaintenanceSteps,
 } = require('../../src/main/workflows/workflow-maintenance-steps.js');
+// 4T-002689: Teile eines geteilten Dokuments.
+const { writePartLine, PART_SEP, PART_INFIX } = require('../../src/shared/document-parts.js');
 
 const tmpDirs = [];
 afterEach(() => {
@@ -224,5 +226,102 @@ describe('complete-task (P3)', () => {
     expect((await b.lauf('complete-task', ['../Plan.md', 'x'])).code).toBe('outsideArea');
     expect((await b.lauf('complete-task', ['Ordner', 'x'])).code).toBe('notAFile');
     expect((await b.lauf('complete-task', ['Fehlt.md', 'x'])).code).toBe('targetMissing');
+  });
+});
+
+// 4T-002690 (Befund 11, AK5): `complete-task` bleibt unberührt und durchläuft
+// kein Urteil der Datenbank; es antwortet mit dem Fenster-Handgriff wie bisher.
+// Eine Aufgaben-Zeile IM Datensatz-Block einer Tabellen-Datei wird nicht als
+// Aufgabe gefunden, weil der Index Code-Blöcke und damit die Fence
+// `perspective-records` auslässt; abgehakt wird dort also nie eine Datensatz-Zeile.
+describe('complete-task an einer Tabellen-Datei (4T-002690)', () => {
+  const TABELLE = [
+    '---',
+    'db-table:',
+    '  fields:',
+    '    - name: title',
+    '    - name: notiz',
+    '---',
+    '',
+    '- [ ] Bestand prüfen',
+    '',
+    '```perspective-records',
+    '|- id="r-00001"',
+    '| Solaris',
+    '| Zeile eins',
+    '- [ ] Bestand im Block',
+    '```',
+    '',
+  ].join('\n');
+
+  it('hakt die Aufgabe außerhalb des Blocks ab, wie bei jeder Datei', async () => {
+    const b = bereich();
+    const abs = b.schreibe('Daten/Library.md', TABELLE);
+    const res = await b.lauf('complete-task', ['Daten/Library.md', 'Bestand']);
+    expect(res).toEqual({
+      ok: true,
+      window: { action: 'completeTask', path: abs, line: 8, taskText: '- [ ] Bestand prüfen' },
+    });
+  });
+
+  it('eine Aufgaben-Zeile im Datensatz-Block wird nicht gefunden: taskNotFound, Datei unverändert', async () => {
+    const b = bereich();
+    b.schreibe('Daten/Library.md', TABELLE);
+    const res = await b.lauf('complete-task', ['Daten/Library.md', 'Bestand im Block']);
+    expect(res).toMatchObject({ ok: false, code: 'taskNotFound' });
+    expect(fs.readFileSync(path.join(b.root, 'Daten', 'Library.md'), 'utf8')).toBe(TABELLE);
+  });
+});
+
+// 4T-002689 (Zweitblick, Runde 2, Befund 2): `complete-task` an einem in Teile
+// zerlegten Dokument. Gesucht wird im ganzen Dokument; der Handgriff trägt den
+// Pfad der Kopf-Datei, unter dem ein Fenster das Dokument führt, und die Zeile
+// im zusammengesetzten Stand, wie ihn der Editor zeigt.
+describe('complete-task an einem geteilten Dokument (4T-002689)', () => {
+  function geteilt(b) {
+    const kopf = b.schreibe(
+      'Plan.md',
+      writePartLine('# Eins\n- [ ] Erste Aufgabe\n', { index: 1, base: 'Plan' }).text,
+    );
+    b.schreibe(
+      `Plan${PART_SEP}${PART_INFIX}00002.md`,
+      writePartLine('# Zwei\n- [ ] Aufgabe im zweiten Teil\n', { index: 2, base: 'Plan' }).text,
+    );
+    return kopf;
+  }
+
+  it('findet eine Aufgabe im zweiten Teil, auch über den Folgeteil genannt', async () => {
+    const b = bereich();
+    const kopf = geteilt(b);
+    const erwartet = {
+      ok: true,
+      window: {
+        action: 'completeTask',
+        path: kopf,
+        line: 7,
+        taskText: '- [ ] Aufgabe im zweiten Teil',
+      },
+    };
+    expect(await b.lauf('complete-task', ['Plan.md', 'im zweiten Teil'])).toEqual(erwartet);
+    const ueberFolgeteil = await b.lauf('complete-task', [
+      `Plan${PART_SEP}${PART_INFIX}00002.md`,
+      'im zweiten Teil',
+    ]);
+    expect(ueberFolgeteil).toEqual(erwartet);
+  });
+
+  it('fehlt ein Teil, hält der Schritt an', async () => {
+    const b = bereich();
+    geteilt(b);
+    b.schreibe(
+      `Plan${PART_SEP}${PART_INFIX}00003.md`,
+      writePartLine('# Drei\n', { index: 3, base: 'Plan' }).text,
+    );
+    fs.rmSync(path.join(b.root, `Plan${PART_SEP}${PART_INFIX}00002.md`));
+    expect(await b.lauf('complete-task', ['Plan.md', 'Erste'])).toEqual({
+      ok: false,
+      code: 'partsMissing',
+      detail: { path: 'Plan.md', teile: '2' },
+    });
   });
 });

@@ -41,7 +41,7 @@ const {
  *   `ownName` fällt ohne Angabe auf den Namen der Datei selbst zurück.
  * @returns {{isWorkflow: boolean, meta: object|null, blockLines: number[],
  *   block: object|null, ok: boolean, armable: boolean, steps: object[],
- *   findings: object[]}} `ok` sagt, ob der Start von Hand möglich ist,
+ *   findings: object[], hints: object[]}} `ok` sagt, ob der Start von Hand möglich ist,
  *   `armable`, ob sich der Workflow scharf schalten lässt (4T-002419).
  */
 function analyzeWorkflow(text, options = {}) {
@@ -56,6 +56,7 @@ function analyzeWorkflow(text, options = {}) {
       armable: false,
       steps: [],
       findings: [],
+      hints: [],
     };
   }
   const geprueft = checkWorkflow(doc, { ...options, ownName: options.ownName || doc.meta.name });
@@ -68,6 +69,8 @@ function analyzeWorkflow(text, options = {}) {
     armable: geprueft.armable,
     steps: geprueft.steps,
     findings: geprueft.findings,
+    // 4T-002692: die Stufe «Hinweis» des Prüfers, getrennt von den Befunden.
+    hints: geprueft.hints,
   };
 }
 

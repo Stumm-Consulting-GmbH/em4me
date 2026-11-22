@@ -155,6 +155,8 @@ export async function schalteScharf(pfad, an, opts = {}) {
   if (typeof api.workflowSetArmed !== 'function') return { ok: false, code: 'unexpected' };
   if (an && typeof opts.text === 'string') {
     const analyse = pruefeWorkflow(opts.text, { fileName: pfad });
+    // 4T-002692: Hinweise des Prüfers (`analyse.hints`) sperren nicht; allein
+    // die Befunde zählen, wie in `armable`.
     if (analyse.isWorkflow && !analyse.armable && analyse.findings.length > 0) {
       return abgewiesen(pfad, { ok: false, code: 'findings', findings: analyse.findings });
     }

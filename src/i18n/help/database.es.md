@@ -182,6 +182,8 @@ Las reglas son breves a propósito, porque el archivo es almacenamiento técnico
 
 **Nunca se pierde un carácter.** Si un registro tiene demasiadas pocas celdas, los campos restantes quedan vacíos; si tiene demasiadas, las sobrantes permanecen intactas. Ambos casos se informan, pero nada se escribe en silencio — ese es el único fallo que un almacén de datos no debe cometer.
 
+Un workflow no cambia estas líneas con sus comandos de texto, sino solo con los comandos de base de datos; la estructura de la tabla no la cambia nunca (página [Workflows](workflows.md), sección «Comandos de texto y archivos de la base de datos»).
+
 En lugar de en este bloque, una tabla también puede guardar cada uno de sus registros en un documento propio, con los campos en el frontmatter y texto libre debajo. La sección «Forma de fichero» describe esta segunda forma y cuándo conviene.
 
 ## Reglas de comprobación
@@ -982,7 +984,7 @@ Dos acciones llevan del documento al formulario y de vuelta:
 
 ### Límites de la forma de fichero
 
-Guardar, eliminar, copiar y cambiar el nombre en la aplicación conocen la ficha. Otras vías por las que se escribe un documento no la conocen: el reemplazo en el área, la ampliación de entradas de diario y de eventos, el traslado de capítulos de un libro, la importación de un archivo JSON Canvas y cualquier cambio fuera de la aplicación, como eliminar en el gestor de archivos o editar con otro editor. Lo que le ocurre a una ficha por estas vías no lo comprueba nadie en el momento del cambio, no genera ningún justificante, y la eliminación se produce sin protección contra la eliminación y sin que sus justificantes pasen a la tabla. La comprobación de coherencia encuentra las consecuencias, por ejemplo un valor contrario a una regla, una referencia que ya no alcanza ningún registro o un documento sin identificador. También el guardado en el editor de la aplicación solo informa y no genera ningún justificante; un cambio en el frontmatter solo lo nota el siguiente cambio a través de la base de datos, que entonces no guarda de momento (sección «Justificantes de cambio»).
+Guardar, eliminar, copiar y cambiar el nombre en la aplicación conocen la ficha. También la conocen los workflows: sus comandos de texto y de archivo no cambian los campos de una ficha, la eliminan y la copian a través de la base de datos y se detienen donde crearían o quitarían un registro saltándose la base de datos (página [Workflows](workflows.md), sección «Comandos de texto y archivos de la base de datos»). Otras vías por las que se escribe un documento no la conocen: el reemplazo en el área, la ampliación de entradas de diario y de eventos, el traslado de capítulos de un libro, la importación de un archivo JSON Canvas y cualquier cambio fuera de la aplicación, como eliminar en el gestor de archivos o editar con otro editor. Lo que le ocurre a una ficha por estas vías no lo comprueba nadie en el momento del cambio, no genera ningún justificante, y la eliminación se produce sin protección contra la eliminación y sin que sus justificantes pasen a la tabla. La comprobación de coherencia encuentra las consecuencias, por ejemplo un valor contrario a una regla, una referencia que ya no alcanza ningún registro o un documento sin identificador. También el guardado en el editor de la aplicación solo informa y no genera ningún justificante; un cambio en el frontmatter solo lo nota el siguiente cambio a través de la base de datos, que entonces no guarda de momento (sección «Justificantes de cambio»).
 
 ## La ficha de la base de datos
 

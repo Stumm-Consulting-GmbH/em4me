@@ -106,6 +106,7 @@ Les commandes, classées selon leur objet. Les chemins sont relatifs à la racin
 - **Dossier cible manquant :** `create`, `copy` et `move` le créent à l'intérieur de la zone.
 - **Déplacer et renommer** suivent le même chemin que dans le panneau de zone : les liens vers le fichier sont mis à jour, les sous-pages et le fichier compagnon suivent.
 - `mkdir` sur un dossier existant et `close` sur un document non ouvert réussissent sans rien modifier. `close` sur un document non enregistré affiche la demande d'enregistrement habituelle ; « Annuler » met fin à l'exécution à cette ligne.
+- **Fiches de la base de données :** `copy`, `move` et `rename` d'une fiche, ainsi qu'un fichier portant un identifiant d'enregistrement qui arriverait dans le dossier d'une table en fichier de fiches, suivent les règles de la section « Commandes de texte et fichiers de la base de données ».
 
 ### Contenu et en-tête
 
@@ -121,6 +122,7 @@ Les commandes, classées selon leur objet. Les chemins sont relatifs à la racin
 - `replace` remplace chaque occurrence, comme « Tout remplacer » dans l'éditeur ; s'il n'en trouve aucune, l'étape échoue.
 - `set-property` et `remove-property` laissent les autres propriétés dans leur ordre. `remove-property` sur une propriété qui n'existe pas réussit sans modification.
 - **Fichiers ouverts :** si le fichier cible est ouvert dans une fenêtre et non enregistré, la modification va à cette fenêtre et y apparaît comme modification dans l'éditeur ; le travail non enregistré est conservé. Sinon, le fichier est écrit directement.
+- **Fichiers de la base de données :** dans un fichier de table ou une fiche, ces commandes modifient le texte libre et les propriétés qui ne sont pas un champ de la table ; elles ne modifient ni les enregistrements, ni les champs, ni la structure (section « Commandes de texte et fichiers de la base de données »).
 
 ### Application et déroulement
 
@@ -148,7 +150,7 @@ Les commandes, classées selon leur objet. Les chemins sont relatifs à la racin
 | `complete-task` | cocher la première tâche ouverte contenant le texte cherché | chemin, texte cherché | `complete-task "Projets/Plan.md" "Envoyer l'offre"` |
 | `confirm` | poser une question avec « Oui » et « Non » | question | `confirm "Archiver tous les brouillons ?"` |
 
-- **`delete`** place la cible dans la corbeille, comme la suppression dans le panneau de zone ; un dossier part en entier. Avec un fichier partent son fichier compagnon (`.mdd`) avec l'état d'exécution et ses justificatifs de modification (`.mddl`). La racine de la zone ne peut pas être supprimée. Une cible supprimée se récupère dans la corbeille.
+- **`delete`** place la cible dans la corbeille, comme la suppression dans le panneau de zone ; un dossier part en entier. Avec un fichier partent son fichier compagnon (`.mdd`) avec l'état d'exécution et ses justificatifs de modification (`.mddl`). La racine de la zone ne peut pas être supprimée. Une cible supprimée se récupère dans la corbeille. Une fiche, `delete` la supprime par la base de données (section « Commandes de texte et fichiers de la base de données »).
 - **Une confirmation par exécution :** si une exécution contient `delete`, **une** confirmation avant la première étape nomme toutes les cibles de l'exécution avec leur chemin, y compris celles des workflows appelés ; « Non » ne laisse s'exécuter aucune étape, et l'exécution compte comme saisie annulée. Si une cible est ouverte dans cette fenêtre, elle est fermée avant l'étape ; en cas de modifications non enregistrées apparaît la demande d'enregistrement habituelle, et « Annuler » met fin à l'exécution à cette ligne.
 - **`add-tag` et `remove-tag`** ne modifient que la liste `tags` de l'en-tête ; une étiquette déjà présente ou absente n'est pas une erreur. Un `#` initial est omis, et la casse ne compte pas dans la comparaison ; une étiquette vide ou contenant des espaces n'est pas valide. Si `remove-tag` retire la dernière étiquette, la liste vide `tags: []` reste en place. Les étiquettes dans le texte (`#étiquette`) restent intactes ; pour elles, il y a `replace`.
 - **`complete-task`** cherche parmi les tâches ouvertes du fichier, celles-là mêmes que montre la [requête de tâches](tasks.md), la première dont le texte contient le texte cherché, en respectant la casse. Elle la coche comme un clic dans la requête de tâches, avec la date d'achèvement selon les paramètres des tâches. Si elle n'en trouve aucune, l'étape échoue.
@@ -433,6 +435,58 @@ end
 - **Trace dans le journal :** sur la page « Exécutions des workflows », le journal nomme pour chaque étape de base de données la table, l'enregistrement et l'identifiant d'opération, par exemple « Ligne 2 : db-update – table Library, enregistrement r-00007, opération 12 ». Les [justificatifs de modification](database.md) de cette étape portent le même identifiant d'opération.
 - **Pas d'événements :** ce qu'un workflow écrit dans la base de données ne déclenche aucun événement, ni sur le fichier de table ni sur une fiche.
 
+### Commandes de texte et fichiers de la base de données
+
+**Un workflow ne modifie rien dans les fichiers d'une base de données en contournant ses règles : il modifie les enregistrements avec les commandes de base de données et ne modifie jamais la structure d'une table ; le texte libre reste ouvert aux commandes de texte.** Les commandes de texte sont les commandes de contenu et d'en-tête (`append`, `insert`, `replace`, `set-property`, `remove-property`), les commandes d'étiquettes `add-tag` et `remove-tag` et `db-query … into` avec `under`. Les règles de cette section s'appliquent tant que l'extension « Base de données » est activée ; seul le paragraphe sur les documents divisés s'applique toujours.
+
+| Ce qu'une commande de texte modifierait | Ce que fait le workflow | À la place |
+| --- | --- | --- |
+| les enregistrements d'un fichier de table : modifier, ajouter ou retirer une ligne du bloc d'enregistrements | s'arrête | `db-create`, `db-update`, `db-delete` |
+| définir, modifier ou retirer un champ de la table dans l'en-tête d'une fiche | s'arrête | `db-update` |
+| modifier ou retirer l'identifiant `db-record` d'une fiche | s'arrête | `db-create` et `db-delete` |
+| faire d'un fichier du dossier d'une table en fichier de fiches une fiche avec `set-property … db-record` | s'arrête | `db-create` |
+| la structure d'une table, la fiche d'identité de la base de données, ou faire d'un fichier une table avec `set-property … db-table` | s'arrête toujours | à la main dans l'application |
+| le texte libre d'un fichier de table ou d'une fiche, les propriétés qui ne sont pas un champ de la table et les étiquettes | les modifie | — |
+
+Si la structure de la table en fichier de fiches ne peut pas être lue, chaque indication de l'en-tête de ses fiches compte par précaution comme un champ, et toute modification de l'en-tête s'arrête, y compris pour les étiquettes et les propriétés ordinaires, tandis que le texte libre qui suit reste modifiable, jusqu'à ce que vous ayez remis en ordre la structure de la table.
+
+````markdown
+```workflow
+# Un champ de la fiche : db-update au lieu de set-property
+db-update "Authors" "Umberto Eco" born="1932-01-06"
+# Un enregistrement de la table : db-update au lieu de replace
+db-update "Library" "Solaris" loanNote="prêté"
+# Le texte libre de la fiche reste ouvert aux commandes de texte
+append "Authors/Umberto Eco.md" from-section "Note"
+```
+````
+
+- **Mesuré au résultat :** l'application compare le fichier avant et après l'étape. Un `append` sur un fichier de table place son texte après le bloc d'enregistrements fermé et s'exécute ; si le fichier se termine dans un bloc que personne n'a fermé, le texte arrive dans les enregistrements et l'étape s'arrête. Les champs sont reconnus sans tenir compte des majuscules et des minuscules. Si la table a un champ `tags`, `add-tag` et `remove-tag` s'arrêtent aussi sur l'une de ses fiches.
+- **`complete-task`** coche des tâches dans le texte libre d'un fichier de table ou d'une fiche ; une ligne du bloc d'enregistrements n'est pas une tâche et n'est pas trouvée.
+- **Un arrêt ne modifie rien :** ni le fichier ni un document ouvert ne changent. Le motif nomme la table ou le champ et la commande qui mène au but ; il apparaît comme toute interruption dans la barre d'état et sur la page « Exécutions des workflows », selon une planification et lors d'événements en outre comme notification du système d'exploitation. Sans personne présente, les mêmes règles s'appliquent.
+- **Documents ouverts :** si le fichier est ouvert et non enregistré dans une fenêtre, la règle s'applique à l'état dans l'éditeur. Si un document ouvert, quel qu'il soit, est encore modifié dans l'éditeur pendant l'étape, l'étape ne modifie rien et l'exécution s'arrête avec ce motif ; un nouveau lancement travaille avec le nouvel état.
+
+**Commandes de fichier sur les fiches.** Une fiche est supprimée, copiée et déposée comme la base de données le permet :
+
+| Cas | Ce que fait le workflow | À la place |
+| --- | --- | --- |
+| `delete` d'une fiche | supprime par la base de données comme la suppression dans le panneau de zone, avec protection contre la suppression et justificatif ; si la base de données refuse, la fiche reste et l'exécution s'arrête avec son motif | — |
+| `copy` d'une fiche dans le dossier de sa table | crée une nouvelle fiche par la base de données comme la copie dans le panneau de zone : le nom de la cible comme clé, un nouvel identifiant, un justificatif de création ; si la base de données refuse, aucune copie n'est créée | — |
+| `copy` d'une fiche dans un dossier sans table en fichier de fiches | copie le fichier ; aucun enregistrement n'y naît | — |
+| `move` d'une fiche hors du dossier de sa table | s'arrête | `db-delete` et `db-create` |
+| `rename` d'une fiche vers un nom sans extension Markdown (`.md`, `.markdown`, `.mdown`, `.mkd`) | s'arrête | `db-delete` |
+| amener un fichier portant un identifiant d'enregistrement comme fichier Markdown dans le dossier d'une table en fichier de fiches : avec `create`, `copy` ou `move` vers ce dossier, ou avec `rename` vers une extension Markdown | s'arrête | `db-create` |
+| `rename` d'une fiche dans le dossier de sa table, le nouveau nom a une extension Markdown | renomme le fichier comme à la main ; la clé et l'identifiant restent | — |
+| `move`, `rename` et `delete` d'un dossier entier avec une table en fichier de fiches, commandes de fichier sur les fichiers de table et sur la fiche d'identité | comme à la main | — |
+
+`delete` et `copy` d'une fiche écrivent avec vos autorisations, comme les commandes de base de données. `delete` reste ici aussi « Manuel uniquement », avec l'unique confirmation avant la première étape. Les fichiers de résultat de `db-query … into` sans `under` suivent `create`.
+
+**Documents divisés.** Les commandes de texte travaillent dans un [document divisé](document-parts.md) sur le document entier, même avec la base de données désactivée : `append` ajoute à la fin de la dernière partie, `insert` et `replace` trouvent leur endroit dans chaque partie, et un chemin qui nomme une partie suivante désigne le document entier. Une source `from-file` est elle aussi lue en entier. Si une partie manque, l'étape ne modifie rien et l'exécution s'arrête. Si un workflow fait passer un document ordinaire pour la première fois au-dessus du seuil de division, il continue à l'écrire non divisé, sans question et sans s'arrêter ; il est divisé au prochain enregistrement à la main, avec la question habituelle. Un fichier de table, il le divise comme l'enregistrement à la main.
+
+**Remarque précoce :** si une commande de texte nomme sa cible sans espace réservé et que la cible est un fichier de table ou une fiche, l'affichage de vérification au-dessus du bloc montre une remarque sur la ligne, avec la table et les commandes de base de données. Une remarque n'est pas une anomalie : elle ne colore pas l'affichage en rouge et n'empêche ni le lancement ni l'armement. Si la cible contient un espace réservé, seule l'exécution reconnaît le fichier.
+
+**Workflows existants :** l'application ne réécrit aucun workflow. Un workflow qui veut modifier des enregistrements, des champs d'une fiche ou la structure d'une table avec une commande de texte ou de fichier s'arrête à cette ligne avec le motif, aussi selon une planification et lors d'événements ; remplacez la ligne par la commande que nomme le motif.
+
 ## Planification et armement
 
 Un workflow avec `trigger: schedule` et une ligne `schedule` s'exécute de lui-même aux échéances de sa planification dès qu'il est **armé** :
@@ -626,7 +680,7 @@ Il n'y a pas d'annulation d'une exécution entière. On annule de façon ciblée
 ## Aide dans l'éditeur
 
 - **Mise en évidence :** dans les lignes de commande, le mot-clé apparaît en gras, le texte entre guillemets en couleur et les espaces réservés en italique, dans l'éditeur comme dans le rendu. Les mots de bloc des conditions et des boucles, `else` et `end` sont en outre soulignés en pointillé dans l'éditeur.
-- **Affichage de vérification :** le mode direct, la vue rendue et la vue partagée affichent au-dessus du bloc le résultat de la vérification : en vert « prêt » ou en rouge « Ligne N : motif », avec « (+N autres) » en cas de plusieurs anomalies. Les messages sur plusieurs blocs et sur un déclencheur pas encore pris en charge y figurent aussi, de même que les anomalies de la planification avec leur ligne dans l'en-tête. L'affichage suit le texte peu après chaque modification et montre la même anomalie que celle signalée au lancement. À l'impression, dans un export et pour un fichier intégré, la ligne d'en-tête n'apparaît pas.
+- **Affichage de vérification :** le mode direct, la vue rendue et la vue partagée affichent au-dessus du bloc le résultat de la vérification : en vert « prêt » ou en rouge « Ligne N : motif », avec « (+N autres) » en cas de plusieurs anomalies. Les messages sur plusieurs blocs et sur un déclencheur pas encore pris en charge y figurent aussi, de même que les anomalies de la planification avec leur ligne dans l'en-tête. Une **remarque**, par exemple sur une cible qui est un fichier de table ou une fiche, suit les anomalies sous la forme « Remarque sur la ligne N : … » ; sans anomalie, l'affichage reste vert avec « prêt ; Remarque sur la ligne N : … ». Une remarque n'empêche ni le lancement ni l'armement. L'affichage suit le texte peu après chaque modification et montre la même anomalie que celle signalée au lancement. À l'impression, dans un export et pour un fichier intégré, la ligne d'en-tête n'apparaît pas.
 - **Bouton « Armé » :** avec `trigger: schedule` et `trigger: event`, la ligne d'en-tête porte à côté de « Lancer » le bouton d'armement (section « Planification et armement »).
 
 La mise en évidence et l'affichage ne modifient pas le texte du fichier.
@@ -638,7 +692,7 @@ La mise en évidence et l'affichage ne modifient pas le texte du fichier.
 - **Pas d'exécution sans zone ouverte :** un workflow planifié ne s'exécute que tant que l'application et sa zone sont ouvertes ; il rattrape les échéances manquées selon les règles de `missed`. Les événements n'agissent de même que zone ouverte et ne sont pas rattrapés.
 - **Pas de chaînes :** un workflow réagit à ce que vous ou d'autres programmes faites, jamais à ce que fait un workflow. Qui veut un enchaînement appelle le workflow suivant avec `workflow "Nom"` ; contre une boucle passant par d'autres programmes, le frein d'urgence arrête un workflow après plus de 20 exécutions par des événements en 5 minutes (section « Événements »).
 - **Limites des blocs :** au plus trois niveaux d'imbrication, pas de boucle dans une boucle et au plus 500 fichiers ou enregistrements par boucle.
-- **Base de données :** un workflow écrit dans la base de données avec vos autorisations ; selon une planification et lors d'événements, il crée et modifie, mais ne supprime jamais. Si un workflow s'interrompt, les enregistrements qu'il a déjà écrits restent. Ce qu'un workflow écrit dans la base de données ne déclenche aucun événement.
+- **Base de données :** un workflow écrit dans la base de données avec vos autorisations ; selon une planification et lors d'événements, il crée et modifie, mais ne supprime jamais. Si un workflow s'interrompt, les enregistrements qu'il a déjà écrits restent. Ce qu'un workflow écrit dans la base de données ne déclenche aucun événement. Il ne modifie les enregistrements et les champs d'une fiche qu'avec les commandes de base de données, et ne modifie jamais la structure d'une table ni la fiche d'identité (section « Commandes de texte et fichiers de la base de données »).
 - **Pas d'annulation d'une exécution :** les étapes exécutées le restent ; le journal montre ce que la dernière exécution a touché, et l'annulation se fait de façon ciblée.
 - **Les macros** restent telles quelles et peuvent être appelées comme étape ; une macro est une suite de commandes dans les paramètres, un workflow une procédure sous forme de document. **Les [blocs de script](scripts.md)** restent en lecture seule, y compris comme étape de script ; un workflow n'est pas un langage de script général, mais un catalogue fixe de commandes.
 

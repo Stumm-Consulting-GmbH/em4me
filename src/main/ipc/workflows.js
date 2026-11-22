@@ -339,29 +339,33 @@ function registerWorkflowsIpc(handle, deps) {
     if (!isValidStep(step)) return { ok: false, ...kopf, code: 'invalidStep', detail: {} };
     const lage = await kontext(event, nutzlast.workflowPath, { fremdeDefinition: true });
     if (!lage.ok) return { ok: false, ...kopf, code: lage.code, detail: {} };
+    // 4T-002690: Der Befehl des Schritts reist im Kontext mit, damit der Satz
+    // eines Halts der Datenbank ihn auch dort nennt, wo ein anderer Befehl den
+    // Schreibweg der Inhalts-Befehle nimmt (`db-query … into`).
+    const ctx = { ...lage.ctx, befehl: step.keyword };
     // 4T-002461 (Story 4S-001144): Jeder Schritt läuft im Lauf-Zusammenhang
     // (documents/self-write.js, Abschnitt «Lauf-Marke»): Was er schreibt oder
     // bewegt, löst kein Ereignis aus, auch der Verweis-Nachzug einer Bewegung.
     const ergebnis = await imWorkflowLauf(() => {
-      if (FILE_KEYWORDS.includes(step.keyword)) return dateiSchritte.runFileStep(lage.ctx, step);
+      if (FILE_KEYWORDS.includes(step.keyword)) return dateiSchritte.runFileStep(ctx, step);
       if (MAINTENANCE_KEYWORDS.includes(step.keyword)) {
-        return pflegeSchritte.runMaintenanceStep(lage.ctx, step);
+        return pflegeSchritte.runMaintenanceStep(ctx, step);
       }
       // 4T-002464: Fragen der Bedingungen und der Schleife, nur lesend.
-      if (QUERY_KEYWORDS.includes(step.keyword)) return blockFragen.runQueryStep(lage.ctx, step);
+      if (QUERY_KEYWORDS.includes(step.keyword)) return blockFragen.runQueryStep(ctx, step);
       // 4T-002545: die Schreib-Schritte der Datenbank, im selben Lauf-Zusammenhang.
       if (DB_WRITE_KEYWORDS.includes(step.keyword)) {
-        return datenbankSchritte.runDbStep(lage.ctx, step);
+        return datenbankSchritte.runDbStep(ctx, step);
       }
       // 4T-002546: die Abfrage in eine Datei.
       if (DB_QUERY_KEYWORDS.includes(step.keyword)) {
-        return datenbankAbfrage.runDbQueryStep(lage.ctx, step);
+        return datenbankAbfrage.runDbQueryStep(ctx, step);
       }
       // 4T-002548: Masken öffnen und Konsistenz prüfen.
       if (DB_FORM_KEYWORDS.includes(step.keyword)) {
-        return datenbankMasken.runDbFormStep(lage.ctx, step);
+        return datenbankMasken.runDbFormStep(ctx, step);
       }
-      return inhaltsSchritte.runContentStep(lage.ctx, step);
+      return inhaltsSchritte.runContentStep(ctx, step);
     });
     return { ...kopf, ...ergebnis };
   });

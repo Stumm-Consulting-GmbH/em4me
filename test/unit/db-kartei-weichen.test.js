@@ -199,10 +199,14 @@ function prozess(
     pruefNaht,
   });
   const auftraege = [];
+  // 4T-002691: die Zahl der Zusatz-Argumente je Aufruf, damit sichtbar ist,
+  // dass das Panel die Schnittstelle weiter ohne Optionen ruft.
+  const zusaetze = [];
   const gezaehlt = {
-    fuehreAuftragAus: (wurzel, auftrag) => {
+    fuehreAuftragAus: (wurzel, auftrag, ...rest) => {
       auftraege.push(auftrag);
-      return schnittstelle.fuehreAuftragAus(wurzel, auftrag);
+      zusaetze.push(rest);
+      return schnittstelle.fuehreAuftragAus(wurzel, auftrag, ...rest);
     },
   };
   const karteiWeichen = erzeugeKarteiWeichen({
@@ -254,8 +258,10 @@ function prozess(
       handler.get(name)({}, ...args);
   return {
     schnittstelle,
+    karteiWeichen,
     korb,
     auftraege,
+    zusaetze,
     shellAufrufe,
     gezeigt,
     loesche: kanal('area:trashFile'),
@@ -501,6 +507,84 @@ describe('Kopieren einer Karteikarte im Bereichs-Panel (4T-002405, F5 A)', () =>
     expect(lies(path.join(path.dirname(k.ada), 'Ada-1.md'))).toBe(ADA);
     expect(p.auftraege).toEqual([]);
     expect(lies(k.autoren)).toBe(AUTOREN);
+  });
+});
+
+// --- Naht der Lauf-Marke ----------------------------------------------------------------------
+
+// 4T-002691 (Epic 3E-000415, Tc Option (a)): Die Weiche reicht eine optionale
+// Angabe `vorSchreiben` an die Schnittstelle durch, damit eine Karte, die ein
+// Workflow über sie anlegt, keinen Ereignis-Workflow auslöst. Ohne Angabe ruft
+// sie die Schnittstelle wie bisher mit zwei Argumenten.
+describe('Naht der Lauf-Marke an der Weiche (4T-002691)', () => {
+  it('das Panel ruft die Schnittstelle beim Löschen und Kopieren weiter ohne Optionen (AK8)', async () => {
+    const k = kartei();
+    const p = prozess(k);
+
+    expect(await p.kopiere(k.ada)).toMatchObject({ ok: true, name: 'Ada-1.md' });
+    expect(await p.loesche(k.alan)).toEqual({ ok: true, path: k.alan, datenbank: true });
+
+    expect(p.auftraege.map((a) => a.anweisungen[0].art)).toEqual(['create', 'delete']);
+    expect(p.zusaetze).toEqual([[], []]);
+  });
+
+  it('reicht vorSchreiben beim Kopieren durch: Die neue Karte steht mit ihrem Inhalt darin', async () => {
+    const k = kartei();
+    const p = prozess(k);
+    const gemerkt = [];
+    const vorSchreiben = (dateien) => gemerkt.push(...dateien);
+
+    const handlung = await p.karteiWeichen.kopierHandlung(k.ada, k.wurzel);
+    await handlung.kopiere(path.join(path.dirname(k.ada), 'Ada 2.md'), { vorSchreiben });
+
+    expect(p.zusaetze).toEqual([[{ vorSchreiben }]]);
+    const karte = gemerkt.find((d) => d.pfad === path.join(path.dirname(k.ada), 'Ada 2.md'));
+    expect(karte.neu).toContain('db-record: r-00003');
+  });
+
+  it('reicht vorSchreiben beim Löschen durch und löscht wie ohne Angabe', async () => {
+    const k = kartei();
+    const p = prozess(k);
+    const aufrufe = [];
+    const vorSchreiben = (dateien) => aufrufe.push(dateien);
+
+    const karte = await p.karteiWeichen.karteikarteVon(k.alan);
+    const ergebnis = await p.karteiWeichen.loescheKarteikarte(karte, k.wurzel, { vorSchreiben });
+
+    expect(ergebnis).toEqual({ ok: true, path: k.alan, datenbank: true });
+    expect(p.zusaetze).toEqual([[{ vorSchreiben }]]);
+    // Die Schnittstelle ruft die Naht genau einmal vor dem ersten Schreiben.
+    expect(aufrufe).toHaveLength(1);
+    expect(fs.existsSync(k.alan)).toBe(false);
+  });
+
+  it('eine Angabe ohne vorSchreiben gilt als keine Angabe', async () => {
+    const k = kartei();
+    const p = prozess(k);
+    const karte = await p.karteiWeichen.karteikarteVon(k.alan);
+    await p.karteiWeichen.loescheKarteikarte(karte, k.wurzel, {});
+    expect(p.zusaetze).toEqual([[]]);
+  });
+});
+
+// 4T-002691: die Auskunft über den Ordner einer Kartei-Tabelle, mit derselben
+// Erkennung wie `karteikarteVon`, nur lesend, im Aus-Zustand null.
+describe('Auskunft karteiTabelleIn (4T-002691)', () => {
+  it('nennt die eine Kartei-Tabelle eines Ordners, sonst null; nichts geht an die Schnittstelle', async () => {
+    const k = kartei();
+    const p = prozess(k);
+    expect(await p.karteiWeichen.karteiTabelleIn(path.dirname(k.autoren))).toBe(k.autoren);
+    expect(await p.karteiWeichen.karteiTabelleIn(path.dirname(k.bert))).toBeNull();
+    expect(await p.karteiWeichen.karteiTabelleIn(k.wurzel)).toBeNull();
+    expect(await p.karteiWeichen.karteiTabelleIn(path.join(k.wurzel, 'Fehlt'))).toBeNull();
+    expect(await p.karteiWeichen.karteiTabelleIn('')).toBeNull();
+    expect(p.auftraege).toEqual([]);
+  });
+
+  it('liefert im Aus-Zustand der Erweiterung null', async () => {
+    const k = kartei();
+    const p = prozess(k, { aktiv: false });
+    expect(await p.karteiWeichen.karteiTabelleIn(path.dirname(k.autoren))).toBeNull();
   });
 });
 

@@ -40,6 +40,15 @@
 // noch das Ereignis `task-done` dieses Abhakens löst etwas aus. `delete` legt
 // in den Papierkorb und erzeugt kein Ereignis.
 //
+// **`delete` einer Karteikarte** (4T-002691, Epic 3E-000415, Tc Option (a))
+// geht über die Weiche des Bereichs-Panels (`workflow-kartei-weiche.js`):
+// Lösch-Schutz, Rechte und Lösch-Beleg prüft die Schreib-Schnittstelle, und sie
+// legt Karteikarte und Beleg-Datei in den Papierkorb. Weist sie ab, bleibt die
+// Karte, und der Schritt scheitert mit `dbRejected` und den Lagen. Die
+// Begleitdatei `.mdd`, die die Weiche liegen ließe, nimmt der Schritt danach mit,
+// damit `delete` einer Karteikarte dieselben Dateien entfernt wie bei jeder
+// anderen Datei. Ein Ordner mit einer ganzen Kartei-Tabelle bleibt wie von Hand.
+//
 // Eigener Zustand: keiner.
 'use strict';
 
@@ -53,7 +62,10 @@ const { MDD_EXT, companionPathFor } = require('../../shared/markdown-data-family
 const { merkeLaufAufgabe } = require('../documents/self-write');
 const { modelMatchesGlobalFilter, parseTaskLine } = require('../../shared/tasks/task-markers.js');
 const { resolveAreaPath } = require('./workflow-area-path.js');
-const { readCurrentText } = require('./workflow-content-steps.js');
+// 4T-002689 (Zweitblick, Runde 2): ein Dokument, wie die Anwendung es führt,
+// auch wenn es in Teile zerlegt ist und ein Folgeteil genannt wird.
+const { liesDokument } = require('./workflow-platten-schreibweg.js');
+const { createWorkflowKarteiWeiche } = require('./workflow-kartei-weiche.js');
 
 /** Die Befehle dieses Moduls. */
 const MAINTENANCE_KEYWORDS = Object.freeze(['delete', 'complete-task']);
@@ -116,6 +128,8 @@ function findOpenTask(abs, text, suche, env) {
  * @param {() => object|null} [deps.getStore] Einstellungs-Speicher (Aufgaben-Umgebung).
  * @param {(p: string) => Promise<void>} [deps.trashItem] Papierkorb; Vorgabe
  *   `shell.trashItem` aus Electron (Prüffälle geben eine Attrappe).
+ * @param {object} [deps.karteiWeichen] 4T-002691: Weiche einer Karteikarte
+ *   (`database/kartei-weichen.js`); ohne sie ist nichts eine Karteikarte.
  * @returns {{runMaintenanceStep: Function}}
  */
 function createWorkflowMaintenanceSteps(deps) {
@@ -123,6 +137,7 @@ function createWorkflowMaintenanceSteps(deps) {
     typeof deps.trashItem === 'function'
       ? deps.trashItem
       : (p) => require('electron').shell.trashItem(p);
+  const kartei = createWorkflowKarteiWeiche(deps);
 
   function aufgabenUmgebung() {
     const store = typeof deps.getStore === 'function' ? deps.getStore() : null;
@@ -134,8 +149,11 @@ function createWorkflowMaintenanceSteps(deps) {
     });
   }
 
-  async function begleiterMitnehmen(abs) {
-    const begleiter = [...(await pflichtBegleitPfade(abs))];
+  // Begleit-Dateien einer Datei: die Pflicht-Arten und die Begleitdatei `.mdd`.
+  // 4T-002691: Bei einer Karteikarte nimmt die Weiche die Pflicht-Arten (die
+  // Beleg-Datei) schon selbst mit; dann bleibt allein `.mdd`.
+  async function begleiterMitnehmen(abs, { nurMdd = false } = {}) {
+    const begleiter = nurMdd ? [] : [...(await pflichtBegleitPfade(abs))];
     const mdd = companionPathFor(abs, MDD_EXT);
     if (await liegtDa(mdd)) begleiter.push(mdd);
     const liegenGeblieben = [];
@@ -163,17 +181,24 @@ function createWorkflowMaintenanceSteps(deps) {
     }
     const stat = await statOderNull(ziel.abs);
     if (!stat) return fehlschlag('targetMissing', { path: step.args[0] });
-    try {
-      await papierkorb(ziel.abs);
-    } catch (err) {
-      return fehlschlag('trashFailed', {
-        path: step.args[0],
-        message: err && err.message ? err.message : String(err),
-      });
+    // 4T-002691: Eine Karteikarte geht über die Weiche; ein Ordner nie.
+    const karte = stat.isFile() ? await kartei.karteikarteVon(ziel.abs) : null;
+    if (karte) {
+      const geloescht = await kartei.loesche(karte, ctx.root);
+      if (!geloescht.ok) return geloescht;
+    } else {
+      try {
+        await papierkorb(ziel.abs);
+      } catch (err) {
+        return fehlschlag('trashFailed', {
+          path: step.args[0],
+          message: err && err.message ? err.message : String(err),
+        });
+      }
     }
     const effect = { kind: 'trashed', paths: [ziel.abs], via: 'disk' };
     if (stat.isFile()) {
-      const liegenGeblieben = await begleiterMitnehmen(ziel.abs);
+      const liegenGeblieben = await begleiterMitnehmen(ziel.abs, { nurMdd: karte !== null });
       if (liegenGeblieben.length > 0) effect.companionLeft = liegenGeblieben;
     }
     return { ok: true, effect };
@@ -186,17 +211,21 @@ function createWorkflowMaintenanceSteps(deps) {
     const stat = await statOderNull(ziel.abs);
     if (!stat) return fehlschlag('targetMissing', { path: relPfad });
     if (!stat.isFile()) return fehlschlag('notAFile', { path: relPfad });
-    const gelesen = await readCurrentText(ctx.backlinks || deps.backlinks, ziel.abs);
-    if (!gelesen.ok) return fehlschlag('targetMissing', { path: relPfad, fsCode: gelesen.fsCode });
-    const treffer = findOpenTask(ziel.abs, gelesen.text, suche, aufgabenUmgebung());
+    // 4T-002689: Gesucht wird im ganzen Dokument, und der Handgriff trägt den
+    // Pfad der Kopf-Datei, unter dem ein Fenster ein geteiltes Dokument führt;
+    // die Zeile zählt im zusammengesetzten Stand, wie ihn der Editor zeigt.
+    const backlinks = ctx.backlinks || deps.backlinks;
+    const gelesen = await liesDokument(backlinks, ctx.root, ziel.abs, relPfad, 'targetMissing');
+    if (!gelesen.ok) return gelesen;
+    const treffer = findOpenTask(gelesen.kopf, gelesen.text, suche, aufgabenUmgebung());
     if (!treffer) return fehlschlag('taskNotFound', { path: relPfad, text: suche });
     const model = parseTaskLine(treffer.taskText);
-    await merkeLaufAufgabe(ziel.abs, model ? model.description : suche);
+    await merkeLaufAufgabe(gelesen.kopf, model ? model.description : suche);
     return {
       ok: true,
       window: {
         action: 'completeTask',
-        path: ziel.abs,
+        path: gelesen.kopf,
         line: treffer.line,
         taskText: treffer.taskText,
       },

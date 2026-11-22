@@ -522,6 +522,19 @@ describe('Vollbestands-Vergleich gegen die alte Logik (4T-001636)', () => {
   // weiter über isCommandAvailable, mit dem ersten Kommando der Bedingung in
   // der lesenden Hülle; warum das für alle Kommandos derselben Bedingung
   // trägt und wie es mitgeprüft wird, steht bei lesendeHuelle.
+  //
+  // 4T-002661: Die Werte je Regel und Bedingung stehen in einem Byte-Feld statt
+  // in einem Array aus kontexte.map. Ein solches Array hält je Eintrag einen
+  // Verweis von acht Byte; bei bis zu 41 Reihen (13 alte Regeln, 28 neue
+  // Bedingungen) zu 294 912 Belegungen waren das bis zu rund 97 MB je Lauf,
+  // jetzt rund 12 MB. Ausgewertet und verglichen wird dasselbe in derselben
+  // Zahl; die Zeit des Falls tragen die Auswertungen in der lesenden Hülle.
+  function werteUeber(auswertung) {
+    const werte = new Uint8Array(kontexte.length);
+    for (let i = 0; i < kontexte.length; i++) werte[i] = auswertung(kontexte[i]) ? 1 : 0;
+    return werte;
+  }
+
   it('genau die sechs gemessenen Kommandos entscheiden anders als vorher', () => {
     const fremdGelesen = new Set();
     const altWerte = new Map();
@@ -530,12 +543,12 @@ describe('Vollbestands-Vergleich gegen die alte Logik (4T-001636)', () => {
     const abweichend = new Set();
     for (const cmd of gemessenerBestand) {
       const altName = altRegelFuer(cmd);
-      if (!altWerte.has(altName)) altWerte.set(altName, kontexte.map(ALT_REGELN[altName]));
+      if (!altWerte.has(altName)) altWerte.set(altName, werteUeber(ALT_REGELN[altName]));
       if (!neuWerte.has(cmd.availability)) {
         const beobachtet = lesendeHuelle(cmd, fremdGelesen);
         neuWerte.set(
           cmd.availability,
-          kontexte.map((ctx) => isCommandAvailable(beobachtet, ctx)),
+          werteUeber((ctx) => isCommandAvailable(beobachtet, ctx)),
         );
       }
       const paar = `${altName}|${cmd.availability}`;
@@ -733,6 +746,14 @@ describe('Diagramm-Kommandos in der Palette (4T-002024)', () => {
   // der Felder, auch eines, das erst bei gemischter Belegung kippt (V4b).
   // Strenger als zuvor ist der Fall nur bei einem Kommando, das ein Feld liest,
   // ohne dass sein Ergebnis davon abhängt; auch das ist ein stilles Lesen.
+  //
+  // 4T-002661: Die Grund-Belegung ist EIN Objekt je Messung, das belege() für
+  // jeden Kontext neu beschreibt, statt je Kontext ein neues Objekt mit einer
+  // Abschrift aus Object.entries zu bauen (bis hierher 294 912 Objekte und
+  // ebenso viele Eintrags-Listen je Lauf). Die Felder außer den beiden
+  // Lage-Feldern sind eigene Werte des Objekts, die beiden Lage-Felder die
+  // vermerkenden Getter seines Prototyps; das ist dieselbe Form wie zuvor.
+  const NICHT_LAGE_FELDER = AVAILABILITY_CONTEXT_FIELDS.filter((f) => !LAGE_FELDER.includes(f));
   function vermerkendeGrundBelegung() {
     const messung = { gelesen: false };
     const lesezeichen = {};
@@ -744,11 +765,9 @@ describe('Diagramm-Kommandos in der Palette (4T-002024)', () => {
         },
       });
     }
-    messung.fuer = (ctx) => {
-      const grund = Object.create(lesezeichen);
-      for (const [feld, wert] of Object.entries(ctx)) {
-        if (!LAGE_FELDER.includes(feld)) grund[feld] = wert;
-      }
+    const grund = Object.create(lesezeichen);
+    messung.belege = (ctx) => {
+      for (const feld of NICHT_LAGE_FELDER) grund[feld] = ctx[feld];
       return grund;
     };
     return messung;
@@ -761,32 +780,42 @@ describe('Diagramm-Kommandos in der Palette (4T-002024)', () => {
   // ein Kommando gilt als empfindlich, wenn seine Bedingung ein Lage-Feld
   // liest; warum das für alle Kommandos derselben Bedingung trägt, steht bei
   // lesendeHuelle.
+  //
+  // 4T-002661: Die Schleife läuft außen über die Kontexte und innen über die
+  // Bedingungen, die noch nicht beim Lesen gesehen wurden, damit die eine
+  // Grund-Belegung je Kontext einmal beschrieben wird. Ausgewertet wird
+  // dasselbe: jede Bedingung an jeder Grund-Belegung, bis sie ein Lage-Feld
+  // liest.
   it('alle bisherigen Kommandos sind gegen beide Lage-Felder unempfindlich', () => {
     const bisherige = COMMANDS.filter((c) => !NEUE_KOMMANDOS.includes(c.id));
     expect(bisherige.length).toBe(COMMANDS.length - NEUE_KOMMANDOS.length);
     const messung = vermerkendeGrundBelegung();
-    const grundBelegungen = kontexte.map((ctx) => messung.fuer(ctx));
     const fremdGelesen = new Set();
-    const bedingungLiest = new Map();
-    const empfindlich = new Set();
+    const beobachtetJeBedingung = new Map();
     for (const cmd of bisherige) {
-      if (!bedingungLiest.has(cmd.availability)) {
-        const beobachtet = lesendeHuelle(cmd, fremdGelesen);
-        let liest = false;
-        for (const grund of grundBelegungen) {
-          messung.gelesen = false;
-          isCommandAvailable(beobachtet, grund);
-          if (messung.gelesen) {
-            liest = true;
-            break;
-          }
-        }
-        bedingungLiest.set(cmd.availability, liest);
+      if (!beobachtetJeBedingung.has(cmd.availability)) {
+        beobachtetJeBedingung.set(cmd.availability, lesendeHuelle(cmd, fremdGelesen));
       }
-      if (bedingungLiest.get(cmd.availability)) empfindlich.add(cmd.id);
     }
+    let offen = [...beobachtetJeBedingung.values()];
+    const lesend = new Set();
+    for (const ctx of kontexte) {
+      if (offen.length === 0) break;
+      const grund = messung.belege(ctx);
+      let gesehen = false;
+      for (let i = 0; i < offen.length; i++) {
+        messung.gelesen = false;
+        isCommandAvailable(offen[i], grund);
+        if (messung.gelesen) {
+          lesend.add(offen[i].availability);
+          gesehen = true;
+        }
+      }
+      if (gesehen) offen = offen.filter((b) => !lesend.has(b.availability));
+    }
+    const empfindlich = bisherige.filter((c) => lesend.has(c.availability)).map((c) => c.id);
     expect([...fremdGelesen], 'die Palette liest am Kommando mehr als availability').toEqual([]);
-    expect([...empfindlich], 'Kommandos, die still ein Lage-Feld lesen').toEqual([]);
+    expect(empfindlich, 'Kommandos, die still ein Lage-Feld lesen').toEqual([]);
   });
 
   // 4T-002154: Gegenprobe, dass die Messung ein Lesen überhaupt sieht: Das
@@ -800,30 +829,51 @@ describe('Diagramm-Kommandos in der Palette (4T-002024)', () => {
     expect(basis, 'keine Lage, in der das Kommando frei wäre').toBeTruthy();
     isCommandAvailable(
       COMMANDS.find((c) => c.id === 'chart.insert'),
-      messung.fuer(basis),
+      messung.belege(basis),
     );
     expect(messung.gelesen).toBe(true);
   });
 
+  // 4T-002661: Die Belegung setzt inLageBelegung am Kontext, statt je Kontext
+  // und Belegung eine Kopie zu bauen (bis hierher rund 2,4 Millionen Kopien je
+  // Lauf); Vorbild ist test/unit/command-availability.test.js seit 4T-002562.
+  // Eine abweichende Lage wird erst beim Vermerken abgeschrieben, weil der
+  // Kontext danach wieder seine Grund-Belegung trägt.
+  function inLageBelegung(ctx, inDatentabelle, diagrammGewaehlt, auswertung) {
+    ctx.inDatentabelle = inDatentabelle;
+    ctx.diagrammGewaehlt = diagrammGewaehlt;
+    try {
+      return auswertung(ctx);
+    } finally {
+      ctx.inDatentabelle = false;
+      ctx.diagrammGewaehlt = false;
+    }
+  }
+  const traegtLage = (c) => c.inDatentabelle || c.diagrammGewaehlt;
+
   it('die beiden neuen Kommandos, aufgezählt über Basis mal vier Belegungen', () => {
+    // Voraussetzung der Grund-Belegung: in KONTEXTE stehen beide Lage-Felder auf false.
+    expect(kontexte.some(traegtLage)).toBe(false);
     for (const id of NEUE_KOMMANDOS) {
       const cmd = COMMANDS.find((c) => c.id === id);
       expect(cmd, `${id} fehlt in der Registry`).toBeTruthy();
       let frei = 0;
       let gesperrt = 0;
       const abweichend = [];
+      const auswerten = (c) => {
+        const wert = isCommandAvailable(cmd, c);
+        if (wert) frei += 1;
+        else gesperrt += 1;
+        if (wert !== sollDiagramm(id, c) && abweichend.length < 3) abweichend.push({ ...c });
+      };
       for (const ctx of kontexte) {
-        for (const [a, d] of LAGE_BELEGUNGEN) {
-          const c = { ...ctx, inDatentabelle: a, diagrammGewaehlt: d };
-          const wert = isCommandAvailable(cmd, c);
-          if (wert) frei += 1;
-          else gesperrt += 1;
-          if (wert !== sollDiagramm(id, c) && abweichend.length < 3) abweichend.push(c);
-        }
+        for (const [a, d] of LAGE_BELEGUNGEN) inLageBelegung(ctx, a, d, auswerten);
       }
       expect(abweichend, `${id}: weicht von der Regel ab`).toEqual([]);
       expect(frei, `${id}: nie wählbar`).toBeGreaterThan(0);
       expect(gesperrt, `${id}: nie gesperrt`).toBeGreaterThan(0);
     }
+    // Und KONTEXTE trägt danach wieder seine Grund-Belegung.
+    expect(kontexte.some(traegtLage)).toBe(false);
   });
 });

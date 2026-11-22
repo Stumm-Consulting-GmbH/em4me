@@ -182,6 +182,8 @@ The rules are kept short, because the file is technical storage:
 
 **No character is ever lost.** If a record has too few cells, the remaining fields stay empty; if it has too many, the surplus ones are left untouched. Both are reported, but nothing is silently written away — that is the one mistake a data store must not make.
 
+A workflow does not change these lines with its text commands, only with the database commands; it does not change the structure of the table at all (page [Workflows](workflows.md), section «Text commands and files of the database»).
+
 Instead of in this block, a table can also keep each of its records in a document of its own, with the fields in the frontmatter and free text below. The section «Card form» describes this second form and when it fits.
 
 ## Validation rules
@@ -982,7 +984,7 @@ Two actions lead back and forth between document and form:
 
 ### Limits of the card form
 
-Saving, deleting, copying and renaming in the application know the card. Other routes on which a document is written do not know it: replacing across the area, appending journal entries and events, moving the chapters of a book, importing a JSON Canvas file and every change outside the application, such as deleting in the file manager or editing with another editor. What happens to a card on these routes is checked by nobody at the moment of the change, it produces no change record, and deleting happens without deletion protection and without its change records going to the table. The consistency check finds the consequences, for instance a value against a rule, a reference that no longer hits a record, or a document without identifier. Saving in the editor of the application also only reports and produces no change record; a change to the frontmatter is noticed only by the next change through the database, which then does not save for the time being (section «Change records»).
+Saving, deleting, copying and renaming in the application know the card. So do workflows: their text and file commands do not change the fields of a card, delete and copy it through the database and stop where they would create or remove a record past the database (page [Workflows](workflows.md), section «Text commands and files of the database»). Other routes on which a document is written do not know it: replacing across the area, appending journal entries and events, moving the chapters of a book, importing a JSON Canvas file and every change outside the application, such as deleting in the file manager or editing with another editor. What happens to a card on these routes is checked by nobody at the moment of the change, it produces no change record, and deleting happens without deletion protection and without its change records going to the table. The consistency check finds the consequences, for instance a value against a rule, a reference that no longer hits a record, or a document without identifier. Saving in the editor of the application also only reports and produces no change record; a change to the frontmatter is noticed only by the next change through the database, which then does not save for the time being (section «Change records»).
 
 ## The fact sheet of the database
 

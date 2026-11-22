@@ -28,10 +28,12 @@ vi.mock('../../../src/renderer/modules/extensions/extension-lifecycle.js', () =>
 
 const i18n = await import('../../../src/renderer/i18n.js');
 await i18n.loadTranslations('de');
+const { t } = i18n;
 const {
   befundSchluessel,
   befundText,
   befundZeile,
+  hinweisZeile,
   kopfAussage,
   pruefeWorkflow,
   registriereRueckfragen,
@@ -175,6 +177,84 @@ describe('Texte der Prüf-Anzeige', () => {
     expect(kopfAussage(analyse, 9).text).toBe(
       'Zeile 9: 2 workflow-Blöcke; erlaubt ist genau einer',
     );
+  });
+});
+
+// 4T-002692 (Te der Konzept-Runde 4T-002673): die Stufe «Hinweis» in der
+// Kopfzeile, unterscheidbar von einem Befund (AK3, AK4).
+describe('Hinweise des Prüfers in der Prüf-Anzeige (4T-002692)', () => {
+  const KARTE = 'Authors/Umberto Eco.md';
+  const ZEILE = `set-property "${KARTE}" born "1932-01-06"`;
+  const kartei = () =>
+    registriereRueckfragen(
+      createDbLookup({
+        tables: [
+          {
+            name: 'Authors',
+            path: 'Authors/Authors.md',
+            fields: [],
+            storage: 'cards',
+            cards: ['Umberto Eco.md'],
+          },
+        ],
+        queries: [],
+      }),
+    );
+
+  it('sagt «bereit» und den Hinweis mit Tabelle und db-update, die Aussage bleibt ok', () => {
+    kartei();
+    const analyse = pruefeWorkflow(datei(ZEILE));
+    expect(analyse.findings).toEqual([]);
+    expect(analyse.hints.map((h) => h.code)).toEqual(['recordCard']);
+    const grund = t('workflow.hinweis.recordCard').replace('{table}', 'Authors');
+    const zeile = `Hinweis zu Zeile 7: ${grund}`;
+    expect(kopfAussage(analyse, 6)).toEqual({
+      ok: true,
+      hinweis: true,
+      text: `bereit; ${zeile}`,
+      liste: [zeile],
+    });
+    expect(grund).toContain("'Authors'");
+    expect(grund).toContain('db-update');
+  });
+
+  it('stellt Hinweise hinter die Befunde; ein Befund färbt rot, nie der Hinweis', () => {
+    kartei();
+    const a = kopfAussage(pruefeWorkflow(datei('fliege "a"', ZEILE)), 6);
+    expect(a.ok).toBe(false);
+    expect(a.hinweis).toBeUndefined();
+    expect(a.text).toBe("Zeile 7: Unbekannter Befehl 'fliege' (+1 weitere)");
+    expect(a.liste[1]).toMatch(/^Hinweis zu Zeile 8: /);
+  });
+
+  it('zeigt keinen Hinweis bei ausgeschalteter Datenbank', () => {
+    kartei();
+    aus.add('database');
+    const analyse = pruefeWorkflow(datei(ZEILE));
+    expect(analyse.hints).toEqual([]);
+    expect(kopfAussage(analyse, 6).text).toBe('bereit');
+  });
+
+  it('meldet einen Hinweis-Code ohne Text laut und zeigt den Code', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(hinweisZeile({ code: 'gibtEsNicht', line: 3 })).toBe('Hinweis zu Zeile 3: gibtEsNicht');
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('gibtEsNicht'));
+    warn.mockRestore();
+  });
+
+  it('jeder Hinweis-Code hat einen Text in allen fünf Sprachen', () => {
+    for (const sprache of [de, en, fr, es, it_]) {
+      for (const key of [
+        'workflow.hinweis.tableFile',
+        'workflow.hinweis.recordCard',
+        'workflow.pruefung.hinweisZeile',
+        'workflow.pruefung.bereitMitHinweis',
+      ]) {
+        expect(sprache[key], key).toEqual(expect.any(String));
+      }
+      expect(sprache['workflow.hinweis.tableFile']).toContain('{table}');
+      expect(sprache['workflow.hinweis.recordCard']).toContain('db-update');
+    }
   });
 });
 

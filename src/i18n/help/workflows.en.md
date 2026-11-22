@@ -106,6 +106,7 @@ The commands, ordered by what they act on. Paths are relative to the area root.
 - **Missing target folder:** `create`, `copy` and `move` create it inside the area.
 - **Moving and renaming** take the same route as in the area panel: links to the file are updated, subpages and the companion file move along.
 - `mkdir` on an existing folder and `close` on a document that is not open succeed without changing anything. `close` on an unsaved document shows the usual save prompt; "Cancel" ends the run at this line.
+- **Cards of the database:** `copy`, `move` and `rename` of a card and a file with a record identifier that would end up in the folder of a card index table follow the rules in the section "Text commands and files of the database".
 
 ### Content and front matter
 
@@ -121,6 +122,7 @@ The commands, ordered by what they act on. Paths are relative to the area root.
 - `replace` replaces every occurrence, like "Replace all" in the editor; if it finds none, the step fails.
 - `set-property` and `remove-property` leave the other properties in their order. `remove-property` on a property that does not exist succeeds without a change.
 - **Open files:** if the target file is open in a window and unsaved, the change goes to that window and appears there as a change in the editor; unsaved work is kept. Otherwise the file is written directly.
+- **Files of the database:** in a table file or a card these commands change free text and properties that are not a field of the table; they do not change records, fields or the structure (section "Text commands and files of the database").
 
 ### App and flow
 
@@ -148,7 +150,7 @@ The commands, ordered by what they act on. Paths are relative to the area root.
 | `complete-task` | tick off the first open task containing the search text | path, search text | `complete-task "Projects/Plan.md" "Send offer"` |
 | `confirm` | ask a question with "Yes" and "No" | question | `confirm "Archive all drafts?"` |
 
-- **`delete`** moves the target to the trash, like deleting in the area panel; a folder goes as a whole. Together with a file go its companion file (`.mdd`) including the run state and its change records (`.mddl`). The root of the area cannot be deleted. A deleted target is restored from the trash.
+- **`delete`** moves the target to the trash, like deleting in the area panel; a folder goes as a whole. Together with a file go its companion file (`.mdd`) including the run state and its change records (`.mddl`). The root of the area cannot be deleted. A deleted target is restored from the trash. A card is deleted by `delete` through the database (section "Text commands and files of the database").
 - **One confirmation per run:** if a run contains `delete`, **one** confirmation before the first step names all targets of the run with their path, including those of the called workflows; "No" lets no step run, and the run counts as cancelled input. If a target is open in this window, it is closed before the step; with unsaved changes the usual save prompt appears, and "Cancel" ends the run at this line.
 - **`add-tag` and `remove-tag`** change only the list `tags` in the front matter; a tag that is already there or missing is not an error. A leading `#` is dropped, and case does not count in the comparison; an empty tag or one containing spaces is invalid. If `remove-tag` removes the last tag, the empty list `tags: []` remains. Tags in the text (`#tag`) stay untouched; `replace` is there for those.
 - **`complete-task`** looks among the open tasks of the file, the same ones the [task query](tasks.md) shows, for the first one whose text contains the search text, case-sensitively. It ticks it off like a click in the task query, including the completion date according to the task settings. If it finds none, the step fails.
@@ -433,6 +435,58 @@ end
 - **Trace in the journal:** on the "Workflow runs" page the journal names table, record and operation identifier for every database step, for instance "Line 2: db-update – table Library, record r-00007, operation 12". The [change records](database.md) of this step carry the same operation identifier.
 - **No events:** what a workflow writes to the database triggers no event, neither at the table file nor at a card.
 
+### Text commands and files of the database
+
+**A workflow changes nothing in the files of a database that bypasses its rules: it changes records with the database commands and never changes the structure of a table; free text remains open to the text commands.** Text commands are the commands for content and front matter (`append`, `insert`, `replace`, `set-property`, `remove-property`), the tag commands `add-tag` and `remove-tag`, and `db-query … into` with `under`. The rules of this section apply while the extension "Database" is switched on; only the paragraph on split documents always applies.
+
+| What a text command would change | What the workflow does | Instead |
+| --- | --- | --- |
+| records of a table file: change, add or remove a line in the record block | stops | `db-create`, `db-update`, `db-delete` |
+| set, change or remove a field of the table in the front matter of a card | stops | `db-update` |
+| change or remove the identifier `db-record` of a card | stops | `db-create` and `db-delete` |
+| turn a file in the folder of a card index table into a card with `set-property … db-record` | stops | `db-create` |
+| the structure of a table, the fact sheet of the database, or turn a file into a table with `set-property … db-table` | always stops | by hand in the app |
+| free text of a table file or card, properties that are not a field of the table, and tags | changes them | — |
+
+If the structure of the card index table cannot be read, every entry in the front matter of its cards counts as a field as a precaution, and every change to the front matter stops, including tags and ordinary properties, while free text below it can still be changed, until you have put the structure of the table in order.
+
+````markdown
+```workflow
+# A field of the card: db-update instead of set-property
+db-update "Authors" "Umberto Eco" born="1932-01-06"
+# A record of the table: db-update instead of replace
+db-update "Library" "Solaris" loanNote="on loan"
+# Free text of the card stays open to text commands
+append "Authors/Umberto Eco.md" from-section "Note"
+```
+````
+
+- **Measured by the result:** the app compares the file before and after the step. An `append` to a table file puts its text after the closed record block and runs; if the file ends in a block that nobody has closed, the text lands in the records, and the step stops. Fields are recognised regardless of case. If the table has a field `tags`, `add-tag` and `remove-tag` also stop at one of its cards.
+- **`complete-task`** ticks off tasks in the free text of a table file or card; a line in the record block is not a task and is not found.
+- **A stop changes nothing:** neither the file nor an open document changes. The reason names table or field and the command that leads to the goal, and like every abort it appears in the status bar and on the page "Workflow runs", on a schedule and on events also as a notification of the operating system. Without anyone watching, the same rules apply.
+- **Open documents:** if the file is open and unsaved in a window, the rule applies to the state in the editor. If an open document, whichever it is, is edited further in the editor during the step, the step changes nothing, and the run stops with this reason; a new start works with the new state.
+
+**File commands on cards.** A card is deleted, copied and placed the way the database allows:
+
+| Case | What the workflow does | Instead |
+| --- | --- | --- |
+| `delete` of a card | deletes through the database like deleting in the area panel, with deletion protection and change record; if the database rejects it, the card stays, and the run stops with its reason | — |
+| `copy` of a card into the folder of its table | creates a new card through the database like copying in the area panel: the name of the target as key, a new identifier, a creation record; if the database rejects it, no copy is made | — |
+| `copy` of a card into a folder without a card index table | copies the file; no record is created there | — |
+| `move` of a card out of the folder of its table | stops | `db-delete` and `db-create` |
+| `rename` of a card to a name without a Markdown extension (`.md`, `.markdown`, `.mdown`, `.mkd`) | stops | `db-delete` |
+| bring a file with a record identifier as a Markdown file into the folder of a card index table: with `create`, `copy` or `move` into it, or with `rename` to a Markdown extension | stops | `db-create` |
+| `rename` of a card in the folder of its table, the new name has a Markdown extension | renames the file as by hand; key and identifier stay | — |
+| `move`, `rename` and `delete` of a whole folder with a card index table, file commands on table files and on the fact sheet | as by hand | — |
+
+`delete` and `copy` of a card write with your permissions, like the database commands. `delete` remains "Manual only" here too, with the one confirmation before the first step. Result files of `db-query … into` without `under` follow `create`.
+
+**Split documents.** Text commands work on a [split document](document-parts.md) as a whole, even with the database switched off: `append` appends to the end of the last part, `insert` and `replace` find their place in every part, and a path that names a following part means the whole document. A source `from-file` is read as a whole as well. If a part is missing, the step changes nothing, and the run stops. If a workflow lifts an ordinary document above the splitting threshold for the first time, it keeps writing it unsplit, without a prompt and without stopping; it is split at the next save by hand with the usual prompt. A table file it splits like saving by hand.
+
+**Early notice:** if a text command names its target without a placeholder and the target is a table file or a card, the check display above the block shows a notice at the line, with the table and the database commands. A notice is not a finding: it does not turn the display red and prevents neither the start nor arming. If the target contains a placeholder, only the run recognises the file.
+
+**Existing workflows:** the app rewrites no workflow. A workflow that wants to change records, fields of a card or the structure of a table with a text or file command stops at that line with the reason, also on a schedule and on events; replace the line with the command the reason names.
+
 ## Schedule and arming
 
 A workflow with `trigger: schedule` and a `schedule` line runs by itself at the times of its schedule once it is **armed**:
@@ -626,7 +680,7 @@ There is no undo of a whole run. Undoing is done selectively, with the means tha
 ## Support in the editor
 
 - **Highlighting:** in the command lines, the keyword is bold, text in quotes coloured and placeholders italic, in the editor as in the reading view. The block words of conditions and loops, `else` and `end` are additionally underlined with dots in the editor.
-- **Check display:** the live view, the rendered view and the split view show the result of the check above the block: green "ready" or red "Line N: reason", with "(+N more)" for several findings. The notices about several blocks and about a trigger not yet supported appear there too, as do the findings of the schedule with their line in the front matter. The display follows the text shortly after every change and shows the same finding the start reports. In printing, in an export and for an embedded file the header line does not appear.
+- **Check display:** the live view, the rendered view and the split view show the result of the check above the block: green "ready" or red "Line N: reason", with "(+N more)" for several findings. The notices about several blocks and about a trigger not yet supported appear there too, as do the findings of the schedule with their line in the front matter. A **notice**, for instance about a target that is a table file or a card, follows the findings as "Note on line N: …"; without a finding the display stays green with "ready; Note on line N: …". A notice prevents neither the start nor arming. The display follows the text shortly after every change and shows the same finding the start reports. In printing, in an export and for an embedded file the header line does not appear.
 - **"Armed" button:** with `trigger: schedule` and `trigger: event`, the header line carries the button for arming next to "Run" (section "Schedule and arming").
 
 Highlighting and display do not change the text of the file.
@@ -638,7 +692,7 @@ Highlighting and display do not change the text of the file.
 - **No run without an open area:** a workflow on schedule runs only while the app and its area are open; it catches up on missed times according to the rules of `missed`. Events likewise take effect only while the area is open and are not caught up.
 - **No chains:** a workflow responds to what you or other programs do, never to what a workflow does. Whoever wants a sequence calls the next workflow with `workflow "Name"`; against a loop through other programs, the emergency brake stops a workflow after more than 20 runs on events in 5 minutes (section "Events").
 - **Limits of blocks:** at most three levels of nesting, no loop inside a loop and at most 500 files or records per loop.
-- **Database:** a workflow writes to the database with your permissions; on a schedule and on events it creates and changes, but never deletes. If a workflow aborts, the records it has already written remain. What a workflow writes to the database triggers no event.
+- **Database:** a workflow writes to the database with your permissions; on a schedule and on events it creates and changes, but never deletes. If a workflow aborts, the records it has already written remain. What a workflow writes to the database triggers no event. It changes records and the fields of a card only with the database commands, and the structure of a table and the fact sheet not at all (section "Text commands and files of the database").
 - **No undo of a run:** steps carried out stay carried out; the journal shows what the last run has touched, and undoing is done selectively.
 - **Macros** stay as they are and can be called as a step; a macro is a sequence of commands in the settings, a workflow a procedure as a document. **[Script blocks](scripts.md)** remain read-only, also as a script step; a workflow is not a general scripting language but a fixed catalogue of commands.
 

@@ -14,6 +14,218 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.161.0.5592] - 2026-11-22 — Workflows: Text-Befehle in Dateien der Datenbank
+
+Zug 3E-000421
+mit einem Mitglied, gestartet auf die Antwort des Product Owners vom 2026-11-14
+«Ja, Zug starten»: die Text- und Datei-Befehle der Workflows in Dateien der
+Datenbank
+(3E-000415).
+Ein Workflow ändert in den Dateien einer Datenbank nichts mehr an ihren Regeln
+vorbei: Datensätze einer Tabellen-Datei und Felder einer Karteikarte ändert er
+mit den Datenbank-Befehlen, den Aufbau einer Tabelle und den Steckbrief gar
+nicht; freier Text und Eigenschaften, die kein Feld der Tabelle sind, bleiben
+für die Text-Befehle offen. `delete` und `copy` einer Karteikarte gehen über
+die Datenbank wie im Bereichs-Panel, und was einem Anlegen oder Löschen eines
+Datensatzes gleichkäme, hält an. Die Text-Befehle arbeiten in geteilten
+Dokumenten im ganzen Dokument, und die Prüf-Anzeige über dem Block gibt einen
+frühen Hinweis, ohne Start oder Scharf-Schaltung zu sperren. Die Regeln für
+Dateien der Datenbank gelten bei eingeschalteter Erweiterung «Datenbank», auch
+nach Zeitplan und bei Ereignissen; das Arbeiten in geteilten Dokumenten gilt
+immer. Konzept-Runde und Entscheidungen in
+4T-002673,
+der Abschluss-Anteil in
+4T-002694.
+
+**Entscheidungen des Product Owners vom 2026-11-14.** Das Entscheidungs-Paket
+Ta bis Th der Konzept-Runde ist im Wortlaut «Ja, alle acht Fragen wie
+empfohlen.» angenommen, die Empfehlungen der Sitzung pauschal übernommen:
+Datensätze einer Tabellen-Datei nur mit den Datenbank-Befehlen (Ta); Felder und
+Kennung einer Karteikarte nur mit den Datenbank-Befehlen, freier Text bleibt
+offen (Tb); `delete` und `copy` einer Karteikarte wie im Bereichs-Panel, was
+einem Anlegen oder Löschen gleichkommt, hält an (Tc); Text-Befehle arbeiten in
+geteilten Dokumenten richtig (Td); Halt-Satz mit Wegweiser zum passenden Befehl
+und früher Hinweis im Editor (Te); bestehende Workflows werden angesagt, nicht
+umgebaut (Tf); eigener Zug mit einem Mitglied (Tg) und Schnitt (Th). Ta, Tb
+und die Halt-Fälle aus Tc sind strenger als das Speichern von Hand und damit
+eine gekennzeichnete Abweichung von der am 2026-11-12 pauschal übernommenen
+Richtung, nach der ein Workflow in Dateien der Datenbank genau das darf, was der
+Anwender dort von Hand im Editor darf. Mit der Antwort «Ja, Zug starten» auf die
+Frage der Sitzung «Starten Sie den Zug mit den vier Empfehlungen zu den
+Detail-Fragen?» sind vier weitere Empfehlungen pauschal übernommen: Den Aufbau
+einer Tabelle und den Steckbrief ändert ein Text-Befehl nie, unabhängig vom
+Recht (Aufbau-Regel, sie ersetzt an dieser Stelle die Richtung vom 2026-11-12);
+ein gewöhnliches Dokument, das ein Workflow erstmals über die Teilungs-Schwelle
+hebt, schreibt er ungeteilt weiter; `copy` einer Karteikarte in einen Ordner
+ohne Kartei-Tabelle bleibt eine Datei-Kopie; Datei-Befehle auf einen ganzen
+Ordner mit einer Kartei-Tabelle bleiben wie von Hand.
+
+### Verhaltens-Änderung für bestehende Workflows
+
+Die Anwendung schreibt keinen Workflow um (Tf). Ein Workflow, der bisher mit
+einem Text- oder Datei-Befehl Datensätze, Felder einer Karteikarte oder den
+Aufbau einer Tabelle geändert hat, hält jetzt an dieser Zeile mit Grund an,
+auch nach Zeitplan und bei Ereignissen, solange die Erweiterung «Datenbank»
+eingeschaltet ist; der Grund nennt den Befehl, der zum Ziel führt, und der
+frühe Hinweis zeigt die Zeile beim Öffnen des Workflows, wenn ihr Ziel ohne
+Platzhalter dasteht. Ersatz je Fall (`4T-002690`, `4T-002691`):
+
+| Was der Workflow bisher tat | Stattdessen |
+| --- | --- |
+| Datensätze einer Tabellen-Datei mit `append`, `insert`, `replace` oder `db-query … into` mit `under` ändern, hinzufügen oder entfernen | `db-create`, `db-update`, `db-delete` |
+| ein Feld der Tabelle im Dateikopf einer Karteikarte mit `set-property` oder `remove-property` setzen, ändern oder entfernen, auch `add-tag` und `remove-tag`, wenn die Tabelle ein Feld `tags` führt | `db-update` |
+| die Kennung `db-record` einer Karteikarte ändern oder entfernen | `db-create` und `db-delete` |
+| den Aufbau einer Tabelle oder den Steckbrief der Datenbank ändern, eine Datei mit `set-property … db-table` zur Tabelle machen | von Hand in der Anwendung |
+| eine Karteikarte mit `move` aus dem Ordner ihrer Tabelle verschieben | `db-delete` und `db-create` |
+| eine Karteikarte mit `rename` auf einen Namen ohne die Endung `.md` umbenennen | `db-delete` |
+| eine Datei mit Datensatz-Kennung als Markdown-Datei in den Ordner einer Kartei-Tabelle legen (`create`, `copy`, `move`), dort mit `rename` auf die Endung `.md` umbenennen oder dort mit `set-property … db-record` zur Karteikarte machen | `db-create` |
+
+`delete` und `copy` einer Karteikarte brauchen keinen Ersatz: Sie gehen jetzt
+über die Datenbank wie im Bereichs-Panel, und eine Abweisung der Datenbank hält
+den Lauf mit ihrem Grund an (Punkt unter «Geändert»).
+
+### Geändert
+
+- **Regeln der Datenbank an den Text-Befehlen** (`4T-002690`). Neues Modul
+  `src/main/workflows/workflow-db-urteil.js`: Vor allen drei Wegen eines
+  Text-Befehls (Platte, eigenes Fenster, anderes Fenster) vergleicht es den
+  Stand vor und nach der Bearbeitung, ohne Rechte und nur bei eingeschalteter
+  Erweiterung «Datenbank». Eine geänderte Definition einer Tabelle oder des
+  Steckbriefs hält immer (`dbStructureByText`, `dbProfileByText`), ein
+  geänderter Rumpf des Datensatz-Blocks, zeichengenau verglichen, hält
+  (`dbRecordsByText`), eine geänderte Kennung oder ein geändertes Feld einer
+  Karteikarte, ohne Rücksicht auf die Schreibung, hält (`dbRecordIdByText`,
+  `dbFieldByText`); gemessen am Ergebnis, nicht am Befehl. Auf den
+  Fenster-Wegen liest der Hauptprozess den Puffer über einen Lese-Auftrag des
+  bestehenden Kanals `workflow:bufferEdit`, urteilt und schickt die Bearbeitung
+  mit dem gelesenen Stand als Erwartung; weicht der Puffer inzwischen ab, wendet
+  das Fenster nichts an (`bufferChanged`). Kein neuer Kanal. Der Befehl eines
+  Schritts reist im Lauf-Kontext mit (`src/main/ipc/workflows.js`), damit der
+  Halt-Satz ihn auch bei `db-query … into` nennt. `complete-task` durchläuft
+  kein Urteil und findet eine Zeile im Datensatz-Block nicht.
+- **Datei-Befehle an Karteikarten** (`4T-002691`). Neues Modul
+  `src/main/workflows/workflow-kartei-weiche.js`: `delete` und `copy` einer
+  Karteikarte laufen über die Weiche des Bereichs-Panels
+  (`src/main/database/kartei-weichen.js`) an die Schreib-Schnittstelle, mit
+  Lauf-Marke; eine Abweisung ist der Fehlschlag `dbRejected` mit dem Satz der
+  Datenbank. `move` einer Karteikarte aus dem Ordner ihrer Tabelle hält an
+  (`dbCardLeavesTable`), ebenso `create`, `copy` und `move` einer Datei mit
+  Kennung als Markdown-Datei in den Ordner einer Kartei-Tabelle
+  (`dbRecordIntoTable`) und `rename` mit Wechsel der Endung in beiden
+  Richtungen (`dbCardRenamedAway`, `dbRecordRenamedIn`). Die Weiche des
+  Bereichs-Panels trägt zwei additive Ergänzungen, die Durchreichung von
+  `vorSchreiben` an die Schreib-Schnittstelle und die lesende Auskunft
+  `karteiTabelleIn(ordner)`; ohne diese Angaben arbeitet das Panel unverändert.
+- **Schreibweg der Text-Befehle** (`4T-002689`). Neues Modul
+  `src/main/workflows/workflow-platten-schreibweg.js` statt `schreibePlatte`:
+  Der Platten-Weg der Text-Befehle geht die Bausteine des Speicherns von Hand
+  in der Reihenfolge von `file:save` (zusammengesetzter Stand, Halt bei
+  fehlendem Teil mit `partsMissing`, Teilungs-Planung, Sicherung, Historie) und
+  schreibt mit der Lauf-Marke. Sichtbare Wirkung: Er schreibt jetzt
+  einheitliche Zeilenenden (LF) und kein Byte-Order-Zeichen, wie das Speichern
+  von Hand; bisher behielt er beides aus der rohen Datei. Ein gewöhnliches
+  Dokument, das ein Workflow erstmals über die Teilungs-Schwelle hebt, schreibt
+  er ungeteilt, eine Tabellen-Datei teilt er wie das Speichern von Hand.
+  `src/main/ipc/files.js` ist nicht berührt; ein Wächter-Prüffall hält beide
+  Wege beim Lesen und Schreiben der Teile gleich.
+- **Weiter bearbeitete Dokumente** (`4T-002690`). Bei eingeschalteter
+  Erweiterung «Datenbank» wird ein geöffnetes Dokument, das der Anwender
+  während des Schritts im Editor weiter bearbeitet, nicht überschrieben: Der
+  Schritt ändert nichts, und der Lauf hält mit `bufferChanged` an.
+
+### Neu
+
+- **Früher Hinweis im Prüfer** (`4T-002692`). Der Prüfer kennt neben den
+  Befunden die Stufe «Hinweis» (`hints` aus `checkWorkflow`, Codes `tableFile`
+  und `recordCard`), die weder die Bereitschaft noch die Scharf-Schaltung
+  berührt: Nennt ein Text-Befehl eine Tabellen-Datei oder eine Karteikarte fest
+  als Ziel, zeigt die Prüf-Anzeige über dem Block einen Hinweis an der Zeile,
+  grün mit «bereit; Hinweis zu Zeile N: …», ohne Befund. Die Tabellen-Auskunft
+  `workflow:dbCatalog` trägt dafür je Tabelle ihre Ablage-Form und die
+  Datei-Namen ihrer Karteikarten aus dem Index (`workflow-db-auskunft.js`), die
+  neue Rückfrage `dbFile` löst ein Ziel auf. Der Kopfkommentar von
+  `workflow-catalog.js` ist berichtigt.
+
+### Behoben
+
+- **Text-Befehle in geteilten Dokumenten** (`4T-002689`). Die Text-Befehle
+  lasen und schrieben bei einem geteilten Dokument, das in keinem Fenster
+  ungespeichert offen war, nur die Kopf-Datei: `append` hängte am Ende des
+  ersten Teils an, also mitten im Dokument, und `insert` und `replace` endeten
+  mit «nicht gefunden», wenn die Stelle in einem späteren Teil stand. Jetzt
+  arbeiten sie am ganzen Dokument; ein Folgeteil als Ziel meint das ganze
+  Dokument und wird vor der Weiche auf die Kopf-Datei aufgelöst, eine Quelle
+  `from-file` wird ganz gelesen, `complete-task` sucht im ganzen Dokument und
+  `if-property` liest den Dateikopf der Kopf-Datei; fehlt ein Teil, hält der
+  Schritt an und ändert nichts.
+
+### i18n
+
+- **Oberflächen-Texte** (`4T-002689`, `4T-002690`, `4T-002691`, `4T-002692`),
+  in allen fünf Sprachfassungen: Halt-Sätze der neuen Fehlschläge und die Texte
+  des frühen Hinweises. **Zählung nach Kapitel 13 der Entwicklungsrichtlinien**,
+  erhoben am 2026-11-14 über die Schlüssel aller Fragmente je Sprache im
+  Vergleich mit dem Start des Zuges: je Sprache **15 neue Schlüssel** (5255
+  statt 5240), alle im Fragment `workflows.json` (1 aus `4T-002689`, 6 aus
+  `4T-002690`, 4 aus `4T-002691`, 4 aus `4T-002692`); **1 geändert**,
+  `help.feature.workflowDbRecords` (`4T-002693`); keiner entfernt; in allen
+  fünf Sprachen gleich.
+- **Funktions-Katalog, Handbuch und Demo-Area** (`4T-002693`), in allen fünf
+  Sprachfassungen: Die Handbuch-Seite «Workflows» bekommt unter
+  «Datenbank-Befehle» den Unter-Abschnitt «Text-Befehle und Dateien der
+  Datenbank» mit den Tafeln der Text- und der Datei-Befehle samt Ersatz, einem
+  Beispiel und den Absätzen zu geteilten Dokumenten, frühem Hinweis und
+  bestehenden Workflows; «Dateien und Ordner», «Inhalt und Dateikopf»,
+  «Pflege-Befehle», «Unterstützung im Editor» und «Grenzen» sind nachgezogen.
+  Die Seiten «Datenbank», «Teilung großer Dokumente» und «Handbuch» (Überblick)
+  sind ergänzt, die Katalog-Zeile «Datensatz-Befehle in Workflows» um einen
+  Satz. Die Demo-Area erklärt die Regel mit einem Satz in der Station
+  «16 Workflows»; kein neuer Beispiel-Workflow.
+
+### Intern
+
+- **Prüfdateien** (`4T-002689`, `4T-002690`, `4T-002691`, `4T-002692`, `4T-002694`): neue
+  Unit-Prüfdateien `workflow-geteilte-dokumente`, `workflow-db-urteil` und
+  `workflow-datei-befehle-kartei`; nachgezogen die Prüfdateien der
+  Inhalts-, Datei-, Pflege- und Datenbank-Schritte, der Weiche des
+  Puffers, des Fensters, des Prüfers, der Kartei-Weiche und des Kanals; neue
+  Ablauf-Prüfdateien `workflow-geteilte-dokumente.spec.js` (WF-TEILE-01),
+  `workflow-datenbank-regeln.spec.js` (WF-DB-REGEL-01, WF-DB-REGEL-02),
+  `workflow-datenbank-regeln-wege.spec.js` (WF-DB-REGEL-03 bis WF-DB-REGEL-06)
+  und `workflow-datei-befehle-kartei.spec.js` (WF-KARTE-01, WF-KARTE-02). Die
+  neuen Prüfdateien stehen in der Klassen-Karte.
+- **Architektur und Abschluss-Anteil** (`4T-002689`, `4T-002690`, `4T-002691`,
+  `4T-002693`, `4T-002694`): Modul-Karte um die drei neuen Module, die
+  Designentscheidung «Text- und Datei-Befehle in Dateien der Datenbank», der
+  Punkt der Workflow-Schritte im Abschnitt «Sicherheit» und die Zeile
+  «Workflow-Befehle der Datenbank» im Bedrohungsmodell nachgezogen, deren
+  bekannte Grenze damit geschlossen ist, samt der Grenz-Prüfung für Pfade aus
+  der Zuordnungs-Zeile geteilter Dokumente; die strategischen Entscheidungen in
+  «Erkenntnisse und Entscheidungen» verankert. **Ergebnis des
+  Epic-Abschluss-Tests (E1, 2026-11-14):** grün unter Windows (Format, Lint,
+  Unit-Suite und Uhr-Lauf; Ablauf-Voll-Lauf 1410 grün, Ablauf-Nachweis am
+  selben Stand) und im Linux-Prüfstand (Epic-Tor); Einzelheiten im
+  Abschluss-Anteil `4T-002694`.
+- **Mitgelieferte Stände seit 1.160.0** (Webseite und ihr Bau-Werkzeug berührt,
+  kein Anwendungs-Code, kein Anwender-Text nötig): Der Zug-Zweig ist am
+  2026-11-14 vom Integrationsstand nach dem Release 1.160.0 abgezweigt; mit ihm
+  kamen die 18 Bildschirmfotos der Webseite, die der Nachtrag zum Release
+  1.160.0 am 2026-11-13 in der Auflösung des neuen Release-Rechners neu erzeugt
+  hat (`4T-002551`, Sammeltask des Zuges `3E-000408`), nach der Auskunft des
+  Release-Bereichs vom 2026-11-21 seit dem 2026-11-13 veröffentlicht. Mit dem
+  Nachzug des Integrationsstands am 2026-11-21, vor der Übergabe an den
+  Release-Bereich, kamen zwei neue Einträge der öffentlichen Roadmap in der
+  Stufe «geplant» hinzu, je mit Titel und Text in fünf Sprachen und einer Zeile
+  im Bau-Werkzeug der Webseite: «Rechner und Umrechner» (`2A-000048`,
+  Konzept-Vorhaben `3E-000423`; nach dem Vermerk im Bau-Werkzeug Entscheidung
+  des Product Owners vom 2026-11-15: öffentlich) und «Textmakros» (`2A-000049`,
+  Konzept-Vorhaben `3E-000424` mit der Konzept-Runde `4T-002742`,
+  Stufen-Skelette `3E-000425`, `3E-000426` und `3E-000427`; nach dem Vermerk im
+  Bau-Werkzeug Entscheidung des Product Owners vom 2026-11-21: öffentlich). Die
+  übrigen Commits des Nachzugs berühren weder Anwendungs-Code noch Bau-Ablauf;
+  an der Webseite sonst allein die Zuordnungs-Datei der Roadmap mit Einträgen
+  «nicht öffentlich».
+
 ## [1.160.0.5221] - 2026-11-13 — Workflows Stufe D: Datenbank-Befehle
 
 Zug 3E-000408

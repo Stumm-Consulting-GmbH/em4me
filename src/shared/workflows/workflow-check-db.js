@@ -34,6 +34,17 @@
 // `pairsMissing`, `fieldDuplicate`, `dbPlaceholderInvalid` und `loopNested`
 // meldet `workflow-check.js`, weil sie ohne Rückfrage feststehen.
 //
+// **Die Stufe «Hinweis»** (4T-002692, Te der Konzept-Runde 4T-002673):
+// `dbTargetHints` meldet, wenn ein Text-Befehl sein Ziel fest nennt (ohne
+// Platzhalter) und das Ziel eine Tabellen-Datei (`tableFile`) oder eine
+// Karteikarte (`recordCard`) ist. Ein Hinweis ist kein Befund: Er steht in
+// der eigenen Liste `hints` des Prüfers, zählt weder für `ok` noch für
+// `armable` und hält keinen Lauf an, weil freier Text in diesen Dateien
+// erlaubt bleibt; ob ein Schreiben Datensätze, Felder oder den Aufbau berührt,
+// entscheidet erst der Lauf am Inhalt. Ziele aus Platzhaltern bleiben dem Lauf
+// überlassen; ohne Rückfrage `dbFile` und bei ausgeschalteter Erweiterung
+// «Datenbank» gibt es keinen Hinweis.
+//
 // **Ohne Rückfrage entfällt die Prüfung**, wie bei Kommando, Makro und
 // Workflow; ebenso, solange die Rückfrage noch nichts weiß (Antwort null).
 // Eigene Angaben eines Datensatzes (`{{record:id}}`, `{{record:table}}`,
@@ -63,6 +74,18 @@ const ABFRAGE_BEFEHLE = Object.freeze(['db-query', DB_LOOP_KEYWORD, 'db-open-lis
 const EIGENE_ANGABEN = Object.freeze(['id', 'table', 'file']);
 const RECORD_PRAEFIX = 'record:';
 const CREATED_PRAEFIX = 'created:';
+// 4T-002692: die Text-Befehle, deren erstes Argument die Ziel-Datei ist.
+const TEXT_BEFEHLE = Object.freeze([
+  'append',
+  'insert',
+  'replace',
+  'set-property',
+  'remove-property',
+  'add-tag',
+  'remove-tag',
+]);
+// 4T-002692: der Code des Hinweises je Art der Datei aus `dbFile`.
+const HINWEIS_JE_ART = Object.freeze({ table: 'tableFile', card: 'recordCard' });
 // Befehle, deren erstes Argument vor dem ersten Schritt feststehen muss
 // (4T-002547 hierher aus workflow-check.js, das die Regel weiter nutzt).
 const OHNE_SCHLEIFEN_WERT = Object.freeze(['workflow', 'macro', 'delete']);
@@ -272,4 +295,41 @@ function dbFilledFindings(step, args, options, melde) {
   pruefeBefehl(step.keyword, wert.trim(), felder, options, melde);
 }
 
-module.exports = { dbFilledFindings, dbFindings, festVorDemLauf };
+// 4T-002692: der Baustein mit dem Ziel eines Text-Befehls, bei `db-query` der
+// Wert hinter `into`, und nur, wenn die Zeile auch `under` trägt; sonst null.
+function zielBaustein(anweisung) {
+  const { keyword, tokens } = anweisung;
+  if (TEXT_BEFEHLE.includes(keyword)) return tokens[0] || null;
+  if (keyword !== 'db-query') return null;
+  const wort = (w) => tokens.findIndex((t) => t.type === 'word' && t.value === w);
+  const into = wort('into');
+  return into >= 0 && wort('under') >= 0 ? tokens[into + 1] || null : null;
+}
+
+/**
+ * Die Hinweise «festes Ziel in einer Datei der Datenbank» (4T-002692): eine
+ * eigene Stufe neben den Befunden, die nichts sperrt.
+ *
+ * @param {object[]} anweisungen aus `readBlock`, in Lese-Reihenfolge.
+ * @param {{databaseEnabled?: boolean, dbFile?: Function}} options
+ * @returns {object[]} Hinweise `{ code, line, blockLine, column, detail: { table,
+ *   path } }` mit `code` `tableFile` oder `recordCard`.
+ */
+function dbTargetHints(anweisungen, options = {}) {
+  if (options.databaseEnabled === false) return [];
+  const hints = [];
+  for (const anweisung of anweisungen || []) {
+    const ziel = zielBaustein(anweisung);
+    if (!ziel || ziel.type !== 'string' || hatPlatzhalter(ziel.value)) continue;
+    const pfad = ziel.value.trim();
+    const art = pfad === '' ? null : frage(options.dbFile, pfad);
+    const code = art ? HINWEIS_JE_ART[art.kind] : null;
+    if (!code) continue;
+    const { findings, melde } = bericht(anweisung);
+    melde(code, ziel, { table: art.table, path: pfad });
+    hints.push(...findings);
+  }
+  return hints;
+}
+
+module.exports = { dbFilledFindings, dbFindings, dbTargetHints, festVorDemLauf };

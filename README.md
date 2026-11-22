@@ -141,7 +141,11 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   creates, changes and deletes records the same way the form does, with your
   permissions and all the rules of the table, writes the result of a query as
   a table into a note and repeats steps for every record of a query; it
-  deletes records only when you start it by hand and after you confirm. A
+  deletes records only when you start it by hand and after you confirm. Its
+  general text and file commands respect the rules of the database too: a step
+  that would change records, the fields of a card or the structure of a table
+  stops the run, changes nothing and names the database command to use
+  instead. A
   workflow acts only within your open area, overwrites nothing, deletes files
   only to the trash and only after you confirm, and never goes online.
 - **Areas keep projects apart, and can still talk** — bind a window to a

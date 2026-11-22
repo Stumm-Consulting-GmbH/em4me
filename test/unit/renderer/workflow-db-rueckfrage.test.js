@@ -82,6 +82,33 @@ describe('Rückfragen nach Tabellen und Feldern', () => {
     expect(ansichten[0].dispatch).toHaveBeenCalledTimes(1);
   });
 
+  // 4T-002692: Die Rückfrage `dbFile` reicht die Ablage-Form der Auskunft durch (AK7).
+  it('meldet dbFile an und erkennt Tabellen-Datei und Karteikarte aus der Auskunft', async () => {
+    antwort = {
+      ...BIBLIOTHEK,
+      tables: [
+        ...BIBLIOTHEK.tables,
+        {
+          name: 'Authors',
+          path: 'Authors/Authors.md',
+          fields: ['born'],
+          storage: 'cards',
+          cards: ['Umberto Eco.md'],
+        },
+      ],
+    };
+    expect(pruefung.aktuelleRueckfragen().dbFile).toBe(modul.dbFileRueckfrage);
+    expect(modul.dbFileRueckfrage('Authors/Umberto Eco.md')).toBeNull();
+    await warte();
+    expect(modul.dbFileRueckfrage('Authors/Umberto Eco.md')).toEqual({
+      kind: 'card',
+      table: 'Authors',
+    });
+    expect(modul.dbFileRueckfrage('Library.md')).toEqual({ kind: 'table', table: 'Library' });
+    expect(modul.dbFileRueckfrage('Notiz.md')).toEqual({ kind: 'none' });
+    expect(modul.dbFileRueckfrage('Authors/Notiz.md')).toEqual({ kind: 'none' });
+  });
+
   it('verwirft die Auskunft bei ausgeschalteter Datenbank', async () => {
     await ersteAuskunft();
     expect(modul.dbTableRueckfrage('Library')).not.toBeNull();

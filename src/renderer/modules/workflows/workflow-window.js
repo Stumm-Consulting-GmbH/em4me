@@ -15,6 +15,10 @@
 //   - nicht aktives Dokument: der ungespeicherte Stand des Reiters, über
 //     dieselbe Übernahme wie die Aufgaben-Abfrage (`uebernimmInPuffer`).
 // Gespeichert wird nicht: Die ungespeicherte Arbeit bleibt ungespeichert.
+// 4T-002690: Mit der Erweiterung «Datenbank» liest der Hauptprozess den Stand
+// vorher hier (`readBufferText`), urteilt und schickt die Bearbeitung mit dem
+// gelesenen Stand als Erwartung; weicht der Puffer davon ab, wird nichts
+// angewendet (`bufferChanged`).
 //
 // **Fenster-Handgriffe:** `open` über den gewöhnlichen Öffnen-Weg
 // (`openInPane`, mit seinem Zweig für ein bereits geöffnetes Dokument),
@@ -71,20 +75,46 @@ function geaenderterBereich(alt, neu) {
   return { from: anfang, to: alt.length - ende, insert: neu.slice(anfang, neu.length - ende) };
 }
 
+// Der aktuelle Stand eines in diesem Fenster geöffneten Dokuments: der Editor
+// des aktiven Reiters, sonst der ungespeicherte Stand des Reiters.
+function pufferStand(path) {
+  const open = findOpenTab(path);
+  if (!open) return null;
+  const aktiv = state.panes[open.paneIdx].activeIndex === open.tabIdx;
+  const view = aktiv ? paneEditors[open.paneIdx] : null;
+  return { open, view, text: view ? view.state.doc.toString() : String(open.tab.content ?? '') };
+}
+
+/**
+ * 4T-002690: Der Puffer-Stand einer Datei für das Urteil der Datenbank im
+ * Hauptprozess; dieselbe Lesart wie beim Anwenden (`applyBufferEdit`).
+ *
+ * @param {string} path Pfad der Datei.
+ * @returns {{ok: true, text: string}|{ok: false, code: string}}
+ */
+export function readBufferText(path) {
+  const stand = pufferStand(path);
+  return stand ? { ok: true, text: stand.text } : { ok: false, code: 'bufferUnavailable' };
+}
+
 /**
  * Wendet eine Bearbeitung auf den Stand eines in diesem Fenster geöffneten
  * Dokuments an, ohne zu speichern.
  *
  * @param {string} path Pfad der Datei.
  * @param {object} edit Bearbeitung für `applyContentEdit`.
+ * @param {string} [expected] 4T-002690: der Stand, den das Urteil der Datenbank
+ *   gesehen hat; weicht der Puffer davon ab, wird nichts angewendet.
  * @returns {{ok: true, changed: boolean}|{ok: false, code: string}}
  */
-export function applyBufferEdit(path, edit) {
-  const open = findOpenTab(path);
-  if (!open) return { ok: false, code: 'bufferUnavailable' };
-  const aktiv = state.panes[open.paneIdx].activeIndex === open.tabIdx;
-  const view = aktiv ? paneEditors[open.paneIdx] : null;
-  const alt = view ? view.state.doc.toString() : String(open.tab.content ?? '');
+export function applyBufferEdit(path, edit, expected) {
+  const stand = pufferStand(path);
+  if (!stand) return { ok: false, code: 'bufferUnavailable' };
+  const { open, view, text: alt } = stand;
+  // 4T-002690: Zwischen Lesen und Anwenden geändert: kein ungeprüfter Stand.
+  if (typeof expected === 'string' && alt !== expected) {
+    return { ok: false, code: 'bufferChanged' };
+  }
   const ergebnis = applyContentEdit(alt, edit);
   if (!ergebnis.ok) return ergebnis;
   if (!ergebnis.changed) return { ok: true, changed: false };
@@ -142,7 +172,7 @@ export async function runWindowAction(ergebnis) {
   const erfolg = (kind, via) => ({ ok: true, line, keyword, effect: { kind, paths: [pfad], via } });
   const fehlschlag = (code) => ({ ok: false, line, keyword, code, detail: { path: pfad } });
   if (handgriff.action === 'editOwnBuffer') {
-    const res = applyBufferEdit(pfad, handgriff.edit);
+    const res = applyBufferEdit(pfad, handgriff.edit, handgriff.expected);
     if (!res.ok) return fehlschlag(res.code);
     return erfolg(res.changed ? 'edited' : 'unchanged', 'ownBuffer');
   }
@@ -280,24 +310,33 @@ export async function schliesseVorDemLoeschen(relPfad) {
 // einer Datei, die ein Workflow in einem anderen Fenster bearbeitet. Die
 // Antwort trägt dieselbe Kennung; ohne sie endet der Schritt dort nach der
 // Frist mit `bufferUnavailable`.
+//
+// 4T-002690: Ein Auftrag mit `read: true` fragt nur den Stand ab (Antwort mit
+// `text`), damit der Hauptprozess vor dem Anwenden urteilen kann; eine
+// Bearbeitung mit `expected` wird nur auf genau diesen Stand angewendet.
+function fuehreAuftragAus(auftrag) {
+  if (typeof auftrag.path !== 'string') return { ok: false, code: 'invalidStep' };
+  if (auftrag.read === true) return readBufferText(auftrag.path);
+  return applyBufferEdit(auftrag.path, auftrag.edit, auftrag.expected);
+}
+
 async function beantworteAuftrag(auftrag) {
   if (!auftrag || typeof auftrag.requestId !== 'string') return;
   let res;
   try {
-    res =
-      typeof auftrag.path === 'string'
-        ? applyBufferEdit(auftrag.path, auftrag.edit)
-        : { ok: false, code: 'invalidStep' };
+    res = fuehreAuftragAus(auftrag);
   } catch (err) {
     console.error('Workflow-Auftrag im Puffer gescheitert:', err);
     res = { ok: false, code: 'bufferUnavailable' };
   }
-  await api.workflowBufferEditDone({
+  const antwort = {
     requestId: auftrag.requestId,
     ok: res.ok,
     code: res.ok ? null : res.code,
-    changed: res.ok ? res.changed : null,
-  });
+    changed: res.ok && typeof res.changed === 'boolean' ? res.changed : null,
+  };
+  if (res.ok && typeof res.text === 'string') antwort.text = res.text;
+  await api.workflowBufferEditDone(antwort);
 }
 // Am Modulkopf angemeldet wie die Aufträge der Erinnerungen und der
 // Aufgaben-Abfrage.

@@ -106,6 +106,7 @@ I comandi, ordinati secondo il loro oggetto. I percorsi sono relativi alla radic
 - **Cartella di destinazione mancante:** `create`, `copy` e `move` la creano all'interno dell'area.
 - **Spostare e rinominare** seguono la stessa via del pannello dell'area: i collegamenti al file vengono aggiornati, le sottopagine e il file di accompagnamento seguono.
 - `mkdir` su una cartella esistente e `close` su un documento non aperto riescono senza cambiare nulla. `close` su un documento non salvato mostra la consueta richiesta di salvataggio; «Annulla» termina l'esecuzione a quella riga.
+- **Schede della banca dati:** `copy`, `move` e `rename` di una scheda e un file con identificatore di record che finirebbe nella cartella di una tabella a schedario seguono le regole della sezione «Comandi di testo e file della banca dati».
 
 ### Contenuto e intestazione
 
@@ -121,6 +122,7 @@ I comandi, ordinati secondo il loro oggetto. I percorsi sono relativi alla radic
 - `replace` sostituisce ogni occorrenza, come «Sostituisci tutto» nell'editor; se non ne trova nessuna, il passo fallisce.
 - `set-property` e `remove-property` lasciano le altre proprietà nel loro ordine. `remove-property` su una proprietà che non esiste riesce senza modifiche.
 - **File aperti:** se il file di destinazione è aperto in una finestra e non salvato, la modifica va a quella finestra e vi compare come modifica nell'editor; il lavoro non salvato resta. Altrimenti il file viene scritto direttamente.
+- **File della banca dati:** in un file di tabella o in una scheda questi comandi modificano il testo libero e le proprietà che non sono un campo della tabella; non modificano record, campi né la struttura (sezione «Comandi di testo e file della banca dati»).
 
 ### Applicazione e svolgimento
 
@@ -148,7 +150,7 @@ I comandi, ordinati secondo il loro oggetto. I percorsi sono relativi alla radic
 | `complete-task` | spuntare la prima attività aperta che contiene il testo cercato | percorso, testo cercato | `complete-task "Progetti/Piano.md" "Inviare l'offerta"` |
 | `confirm` | porre una domanda con «Sì» e «No» | domanda | `confirm "Archiviare tutte le bozze?"` |
 
-- **`delete`** sposta la destinazione nel cestino, come l'eliminazione nel pannello dell'area; una cartella va per intero. Con un file vanno il suo file di accompagnamento (`.mdd`) con lo stato di esecuzione e i suoi registri delle modifiche (`.mddl`). La radice dell'area non si può eliminare. Una destinazione eliminata si recupera dal cestino.
+- **`delete`** sposta la destinazione nel cestino, come l'eliminazione nel pannello dell'area; una cartella va per intero. Con un file vanno il suo file di accompagnamento (`.mdd`) con lo stato di esecuzione e i suoi registri delle modifiche (`.mddl`). La radice dell'area non si può eliminare. Una destinazione eliminata si recupera dal cestino. Una scheda viene eliminata da `delete` tramite la banca dati (sezione «Comandi di testo e file della banca dati»).
 - **Una conferma per esecuzione:** se un'esecuzione contiene `delete`, **una** conferma prima del primo passo nomina tutte le destinazioni dell'esecuzione con il loro percorso, anche quelle dei workflow richiamati; «No» non lascia eseguire alcun passo, e l'esecuzione conta come inserimento annullato. Se una destinazione è aperta in questa finestra, viene chiusa prima del passo; con modifiche non salvate compare la consueta richiesta di salvataggio, e «Annulla» termina l'esecuzione a quella riga.
 - **`add-tag` e `remove-tag`** modificano solo l'elenco `tags` dell'intestazione; un'etichetta già presente o assente non è un errore. Un `#` iniziale viene tralasciato, e maiuscole e minuscole non contano nel confronto; un'etichetta vuota o con spazi non è valida. Se `remove-tag` toglie l'ultima etichetta, resta l'elenco vuoto `tags: []`. Le etichette nel testo (`#etichetta`) restano intatte; per quelle c'è `replace`.
 - **`complete-task`** cerca tra le attività aperte del file, le stesse che mostra la [query di attività](tasks.md), la prima il cui testo contiene il testo cercato, distinguendo maiuscole e minuscole. La spunta come un clic nella query di attività, con la data di completamento secondo le impostazioni delle attività. Se non ne trova nessuna, il passo fallisce.
@@ -433,6 +435,58 @@ end
 - **Traccia nel registro:** sulla pagina «Esecuzioni dei workflow» il registro indica per ogni passo della banca dati tabella, record e identificatore di operazione, per esempio «Riga 2: db-update – tabella Library, record r-00007, operazione 12». Lo stesso identificatore di operazione portano i [giustificativi di modifica](database.md) di questo passo.
 - **Nessun evento:** ciò che un workflow scrive nella banca dati non fa scattare alcun evento, né sul file di tabella né su una scheda.
 
+### Comandi di testo e file della banca dati
+
+**Un workflow non modifica nulla nei file di una banca dati aggirandone le regole: modifica i record con i comandi della banca dati e non modifica mai la struttura di una tabella; il testo libero resta aperto ai comandi di testo.** I comandi di testo sono i comandi per contenuto e intestazione (`append`, `insert`, `replace`, `set-property`, `remove-property`), i comandi per le etichette `add-tag` e `remove-tag` e `db-query … into` con `under`. Le regole di questa sezione valgono finché l'estensione «Banca dati» è attivata; solo il paragrafo sui documenti divisi vale sempre.
+
+| Ciò che un comando di testo modificherebbe | Ciò che fa il workflow | Invece |
+| --- | --- | --- |
+| i record di un file di tabella: modificare, aggiungere o togliere una riga nel blocco di record | si ferma | `db-create`, `db-update`, `db-delete` |
+| impostare, modificare o togliere un campo della tabella nell'intestazione di una scheda | si ferma | `db-update` |
+| modificare o togliere l'identificatore `db-record` di una scheda | si ferma | `db-create` e `db-delete` |
+| fare di un file nella cartella di una tabella a schedario una scheda con `set-property … db-record` | si ferma | `db-create` |
+| la struttura di una tabella, la scheda della banca dati, o fare di un file una tabella con `set-property … db-table` | si ferma sempre | a mano nell'applicazione |
+| il testo libero di un file di tabella o di una scheda, le proprietà che non sono un campo della tabella e le etichette | li modifica | — |
+
+Se la struttura della tabella a schedario non si può leggere, ogni indicazione nell'intestazione delle sue schede vale per precauzione come campo, e ogni modifica all'intestazione si ferma, anche per le etichette e le proprietà ordinarie, mentre il testo libero sottostante resta modificabile, finché non avrete rimesso in ordine la struttura della tabella.
+
+````markdown
+```workflow
+# Un campo della scheda: db-update invece di set-property
+db-update "Authors" "Umberto Eco" born="1932-01-06"
+# Un record della tabella: db-update invece di replace
+db-update "Library" "Solaris" loanNote="in prestito"
+# Il testo libero della scheda resta aperto ai comandi di testo
+append "Authors/Umberto Eco.md" from-section "Nota"
+```
+````
+
+- **Misurato sul risultato:** l'applicazione confronta il file prima e dopo il passo. Un `append` a un file di tabella mette il suo testo dopo il blocco di record chiuso e viene eseguito; se il file termina in un blocco che nessuno ha chiuso, il testo finisce nei record e il passo si ferma. I campi vengono riconosciuti senza distinguere maiuscole e minuscole. Se la tabella ha un campo `tags`, anche `add-tag` e `remove-tag` si fermano su una delle sue schede.
+- **`complete-task`** spunta attività nel testo libero di un file di tabella o di una scheda; una riga nel blocco di record non è un'attività e non viene trovata.
+- **Un arresto non modifica nulla:** non cambiano né il file né un documento aperto. Il motivo nomina tabella o campo e il comando che porta allo scopo, e compare come ogni interruzione nella barra di stato e nella pagina «Esecuzioni dei workflow», secondo pianificazione e agli eventi in più come notifica del sistema operativo. Senza nessuno presente valgono le stesse regole.
+- **Documenti aperti:** se il file è aperto e non salvato in una finestra, la regola vale per lo stato nell'editor. Se un documento aperto, qualunque esso sia, viene ulteriormente modificato nell'editor durante il passo, il passo non modifica nulla e l'esecuzione si ferma con questo motivo; un nuovo avvio lavora con il nuovo stato.
+
+**Comandi per i file sulle schede.** Una scheda viene eliminata, copiata e collocata come lo consente la banca dati:
+
+| Caso | Ciò che fa il workflow | Invece |
+| --- | --- | --- |
+| `delete` di una scheda | elimina tramite la banca dati come l'eliminazione nel pannello dell'area, con protezione dall'eliminazione e giustificativo; se la banca dati respinge, la scheda resta e l'esecuzione si ferma con il suo motivo | — |
+| `copy` di una scheda nella cartella della sua tabella | crea una nuova scheda tramite la banca dati come la copia nel pannello dell'area: il nome della destinazione come chiave, un nuovo identificatore, un giustificativo di creazione; se la banca dati respinge, non nasce alcuna copia | — |
+| `copy` di una scheda in una cartella senza tabella a schedario | copia il file; lì non nasce alcun record | — |
+| `move` di una scheda fuori dalla cartella della sua tabella | si ferma | `db-delete` e `db-create` |
+| `rename` di una scheda in un nome senza estensione Markdown (`.md`, `.markdown`, `.mdown`, `.mkd`) | si ferma | `db-delete` |
+| portare un file con identificatore di record come file Markdown nella cartella di una tabella a schedario: con `create`, `copy` o `move` al suo interno, o con `rename` a un'estensione Markdown | si ferma | `db-create` |
+| `rename` di una scheda nella cartella della sua tabella, il nuovo nome ha un'estensione Markdown | rinomina il file come a mano; chiave e identificatore restano | — |
+| `move`, `rename` e `delete` di un'intera cartella con una tabella a schedario, comandi per i file su file di tabella e sulla scheda della banca dati | come a mano | — |
+
+`delete` e `copy` di una scheda scrivono con i vostri permessi, come i comandi della banca dati. `delete` resta anche qui «Solo manuale», con l'unica conferma prima del primo passo. I file di risultato di `db-query … into` senza `under` seguono `create`.
+
+**Documenti divisi.** I comandi di testo lavorano in un [documento diviso](document-parts.md) sull'intero documento, anche con la banca dati disattivata: `append` accoda alla fine dell'ultima parte, `insert` e `replace` trovano il loro punto in ogni parte, e un percorso che nomina una parte successiva indica l'intero documento. Anche una fonte `from-file` viene letta per intero. Se manca una parte, il passo non modifica nulla e l'esecuzione si ferma. Se un workflow porta per la prima volta un documento comune oltre la soglia di divisione, continua a scriverlo indiviso, senza domanda e senza fermarsi; viene diviso al successivo salvataggio a mano con la domanda consueta. Un file di tabella lo divide come il salvataggio a mano.
+
+**Avviso anticipato:** se un comando di testo nomina la sua destinazione senza segnaposto e la destinazione è un file di tabella o una scheda, l'indicazione del controllo sopra il blocco mostra un avviso alla riga, con la tabella e i comandi della banca dati. Un avviso non è un rilievo: non colora di rosso l'indicazione e non impedisce né l'avvio né l'attivazione. Se nella destinazione c'è un segnaposto, solo l'esecuzione riconosce il file.
+
+**Workflow esistenti:** l'applicazione non riscrive alcun workflow. Un workflow che vuole modificare record, campi di una scheda o la struttura di una tabella con un comando di testo o per i file si ferma a quella riga con il motivo, anche secondo pianificazione e agli eventi; sostituite la riga con il comando che il motivo nomina.
+
 ## Pianificazione e attivazione
 
 Un workflow con `trigger: schedule` e una riga `schedule` viene eseguito da solo alle scadenze della sua pianificazione non appena è **attivato**:
@@ -626,7 +680,7 @@ Non c'è un annullamento di un'intera esecuzione. Si annulla in modo mirato, con
 ## Supporto nell'editor
 
 - **Evidenziazione:** nelle righe di comando la parola chiave è in grassetto, il testo tra virgolette a colori e i segnaposto in corsivo, nell'editor come nella vista di lettura. Le parole di blocco delle condizioni e dei cicli, `else` ed `end` sono inoltre sottolineate a puntini nell'editor.
-- **Indicazione del controllo:** la modalità live, la vista renderizzata e la vista divisa mostrano sopra il blocco il risultato del controllo: in verde «pronto» o in rosso «Riga N: motivo», con «(+N altri)» in caso di più rilievi. Lì compaiono anche gli avvisi su più blocchi e su un attivatore non ancora supportato, nonché i rilievi della pianificazione con la loro riga nell'intestazione. L'indicazione segue il testo poco dopo ogni modifica e mostra lo stesso rilievo che segnala l'avvio. Nella stampa, in un'esportazione e in un file incorporato la riga d'intestazione non compare.
+- **Indicazione del controllo:** la modalità live, la vista renderizzata e la vista divisa mostrano sopra il blocco il risultato del controllo: in verde «pronto» o in rosso «Riga N: motivo», con «(+N altri)» in caso di più rilievi. Lì compaiono anche gli avvisi su più blocchi e su un attivatore non ancora supportato, nonché i rilievi della pianificazione con la loro riga nell'intestazione. Un **avviso**, per esempio su una destinazione che è un file di tabella o una scheda, segue i rilievi come «Avviso alla riga N: …»; senza rilievi l'indicazione resta verde con «pronto; Avviso alla riga N: …». Un avviso non impedisce né l'avvio né l'attivazione. L'indicazione segue il testo poco dopo ogni modifica e mostra lo stesso rilievo che segnala l'avvio. Nella stampa, in un'esportazione e in un file incorporato la riga d'intestazione non compare.
 - **Pulsante «Attivato»:** con `trigger: schedule` e `trigger: event`, la riga d'intestazione porta accanto ad «Avvia» il pulsante per attivare (sezione «Pianificazione e attivazione»).
 
 Evidenziazione e indicazione non modificano il testo del file.
@@ -638,7 +692,7 @@ Evidenziazione e indicazione non modificano il testo del file.
 - **Nessuna esecuzione senza area aperta:** un workflow pianificato viene eseguito solo finché l'applicazione e la sua area sono aperte; recupera le scadenze perse secondo le regole di `missed`. Anche gli eventi agiscono solo con l'area aperta e non vengono recuperati.
 - **Nessuna catena:** un workflow reagisce a ciò che fate voi o altri programmi, mai a ciò che fa un workflow. Chi vuole una sequenza richiama il workflow successivo con `workflow "Nome"`; contro un ciclo attraverso altri programmi, il freno di emergenza ferma un workflow dopo più di 20 esecuzioni da eventi in 5 minuti (sezione «Eventi»).
 - **Limiti dei blocchi:** al massimo tre livelli di annidamento, nessun ciclo dentro un ciclo e al massimo 500 file o record per ciclo.
-- **Banca dati:** un workflow scrive nella banca dati con i vostri permessi; secondo pianificazione e agli eventi crea e modifica, ma non elimina mai. Se un workflow si interrompe, restano i record che ha già scritto. Ciò che un workflow scrive nella banca dati non fa scattare alcun evento.
+- **Banca dati:** un workflow scrive nella banca dati con i vostri permessi; secondo pianificazione e agli eventi crea e modifica, ma non elimina mai. Se un workflow si interrompe, restano i record che ha già scritto. Ciò che un workflow scrive nella banca dati non fa scattare alcun evento. Modifica i record e i campi di una scheda solo con i comandi della banca dati, e non modifica mai la struttura di una tabella né la scheda della banca dati (sezione «Comandi di testo e file della banca dati»).
 - **Nessun annullamento di un'esecuzione:** i passi eseguiti restano eseguiti; il registro mostra ciò che l'ultima esecuzione ha toccato, e si annulla in modo mirato.
 - **Le macro** restano come sono e si possono richiamare come passo; una macro è una sequenza di comandi nelle impostazioni, un workflow una procedura come documento. **I [blocchi di script](scripts.md)** restano di sola lettura, anche come passo di script; un workflow non è un linguaggio di script generale, ma un catalogo fisso di comandi.
 

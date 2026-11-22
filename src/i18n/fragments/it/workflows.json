@@ -100,6 +100,7 @@
   "workflow.fehlschlag.notAFile": "'{path}' non è un file",
   "workflow.fehlschlag.notAFolder": "'{path}' non è una cartella",
   "workflow.fehlschlag.outsideArea": "Il percorso è al di fuori dell'area",
+  "workflow.fehlschlag.partsMissing": "'{path}' è composto da più parti e non tutte sono presenti (mancanti: {teile}); non è stato scritto nulla",
   "workflow.fehlschlag.runStateNotSaved": "Stato dell'esecuzione non salvato",
   "workflow.fehlschlag.sourceMissing": "Origine non trovata",
   "workflow.fehlschlag.splitDocument": "'{path}' è un documento suddiviso",
@@ -305,5 +306,19 @@
   "workflow.dbCheck.trenner": ", ",
   "workflow.fehlschlag.dbCheckFailed": "Impossibile eseguire il controllo di coerenza",
   "workflow.fehlschlag.dbOpenEditContinued": "La maschera non è stata aperta perché la modifica non salvata continua",
-  "workflow.fehlschlag.dbOpenFormClosed": "La maschera non è stata aperta perché la domanda sulla modifica non salvata è stata chiusa senza risposta"
+  "workflow.fehlschlag.dbCardLeavesTable": "La scheda '{path}' della tabella '{table}' resta nella cartella della sua tabella; per toglierla usare db-delete e db-create",
+  "workflow.fehlschlag.dbRecordIntoTable": "'{path}' porta un identificativo di record e non entra senza controllo nella cartella della tabella '{table}'; per crearlo usare db-create",
+  "workflow.fehlschlag.dbRecordsByText": "Un workflow modifica i record della tabella '{table}' con i comandi della banca dati db-create, db-update e db-delete, non con {command}",
+  "workflow.fehlschlag.dbFieldByText": "Un workflow modifica il campo '{field}' della scheda con db-update, non con {command}",
+  "workflow.fehlschlag.dbRecordIdByText": "Un workflow non modifica l'identificativo di record di una scheda della tabella '{table}' con {command}; crea le schede con db-create e le rimuove con db-delete",
+  "workflow.fehlschlag.dbStructureByText": "Un workflow non modifica la struttura della tabella '{table}'; modificarla a mano nell'applicazione",
+  "workflow.fehlschlag.dbProfileByText": "Un workflow non modifica la scheda della banca dati; modificarla a mano nell'applicazione",
+  "workflow.fehlschlag.bufferChanged": "Il documento è stato ulteriormente modificato nell'editor durante il passo; il passo non ha modificato nulla",
+  "workflow.fehlschlag.dbOpenFormClosed": "La maschera non è stata aperta perché la domanda sulla modifica non salvata è stata chiusa senza risposta",
+  "workflow.pruefung.hinweisZeile": "Avviso alla riga {line}: {grund}",
+  "workflow.pruefung.bereitMitHinweis": "pronto; {hinweis}",
+  "workflow.hinweis.tableFile": "Questo file appartiene alla tabella '{table}': un workflow ne modifica i record con i comandi della banca dati db-create, db-update e db-delete, e non ne modifica affatto la struttura; il testo libero resta possibile",
+  "workflow.hinweis.recordCard": "Questo file è una scheda della tabella '{table}': un workflow ne modifica i campi con db-update e non ne modifica affatto l'identificativo di record; il testo libero resta possibile",
+  "workflow.fehlschlag.dbCardRenamedAway": "La scheda '{path}' della tabella '{table}' resta un file Markdown, perché come '{name}' non sarebbe più un record; per toglierla usare db-delete",
+  "workflow.fehlschlag.dbRecordRenamedIn": "'{path}' porta un identificativo di record e non diventa una scheda nella cartella della tabella '{table}' rinominandolo '{name}'; per crearlo usare db-create"
 }

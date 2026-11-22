@@ -31,9 +31,43 @@ const DIST = path.join(ROOT, 'dist');
 // nicht exportiert wird, und bricht dann ab, statt lokal ein zweites Archiv
 // anzulegen; geladen wird das Modul hier nicht, weil diese Datei exportiert ist.
 const ARCHIV_UMGEBUNG = 'EM4ME_VERSIONS_ARCHIV';
-function archivOrdner() {
-  const ersatz = process.env[ARCHIV_UMGEBUNG];
-  if (ersatz) return path.resolve(ROOT, ersatz);
+
+// 4T-002624: Ein Wert, der weder absolut ist noch als beabsichtigter relativer
+// Pfad gelten kann, wird abgewiesen, statt still aufgelöst zu werden. Anlass ist
+// die Release-Strecke 1.159.0: Der in der Git-Bash gesetzte UNC-Pfad kam mit
+// EINEM führenden Backslash an, `path.resolve` machte daraus einen Ordner auf
+// dem Laufwerk C:, und die Meldung lautete weiter «-> Versions-Archiv».
+// Abgewiesen werden unter Windows ein Pfad mit genau einem führenden Trenner
+// (wurzel-relativ zum aktuellen Laufwerk; ein UNC-Pfad beginnt mit zweien) und
+// ein laufwerks-relativer Pfad wie `C:ordner` (relativ zum Arbeitsordner des
+// Laufwerks); außerhalb von Windows ein Wert mit Backslash, der dort kein
+// Trenner ist und auf einen Windows-Pfad deutet. Ein gewöhnlicher relativer
+// Wert wie `releases` bleibt zugesagt (gegen die Wurzel), ebenso jeder absolute
+// Pfad. Liefert den Grund der Abweisung oder null.
+function pruefeArchivWert(wert, plattform = process.platform) {
+  if (plattform !== 'win32')
+    return wert.includes('\\') ? 'enthält einen Backslash, der hier kein Pfad-Trenner ist' : null;
+  if (/^[\\/](?![\\/])/.test(wert))
+    return 'beginnt mit genau einem Trenner und hängt damit am aktuellen Laufwerk (ein UNC-Pfad beginnt mit zwei Backslashes)';
+  if (/^[A-Za-z]:(?![\\/])/.test(wert))
+    return 'ist laufwerks-relativ (Laufwerks-Buchstabe ohne folgenden Trenner)';
+  return null;
+}
+
+function archivOrdner({ umgebung = process.env, plattform = process.platform } = {}) {
+  const ersatz = umgebung[ARCHIV_UMGEBUNG];
+  if (ersatz) {
+    const aufgeloest = path.resolve(ROOT, ersatz);
+    const grund = pruefeArchivWert(ersatz, plattform);
+    if (grund)
+      throw new Error(
+        `${ARCHIV_UMGEBUNG}=${ersatz} ${grund}; aufgelöst ergäbe er ${aufgeloest}. ` +
+          'Nichts abgelegt. Den Wert als absoluten Pfad setzen (UNC mit zwei führenden ' +
+          'Backslashes; in der Git-Bash in einfachen Anführungszeichen oder mit Schrägstrichen) ' +
+          'oder den Bau über die geführte Release-Vorbereitung starten.',
+      );
+    return aufgeloest;
+  }
   if (fs.existsSync(path.join(__dirname, 'versions-archiv.js'))) {
     throw new Error(
       'Interner Stand: Ein Release-Bau archiviert in das Versions-Archiv am Ablage-Ort. ' +
@@ -106,10 +140,11 @@ function defaultGuardBuildNumber() {
 
 // Verschiebt eine EXE; X-03 (4T-000182): Fehler pro Datei abfangen (typisch:
 // Ziel-EXE laeuft gerade), gesammelt als Exit-Code melden statt halbfertig
-// hart abzubrechen.
-function moveFile(name, _opts) {
-  const from = path.join(DIST, name);
-  const to = path.join(archivOrdner(), name);
+// hart abzubrechen. 4T-002624: Quell- und Ziel-Ordner sind für die Prüffälle
+// injizierbar; die Meldung nennt den aufgelösten Zielpfad.
+function moveFile(name, { von = DIST, nach = archivOrdner() } = {}) {
+  const from = path.join(von, name);
+  const to = path.join(nach, name);
   if (!fs.existsSync(from)) return true;
   try {
     // K-05 (4T-000309): copy-then-delete statt delete-then-rename. Schlaegt der
@@ -118,7 +153,7 @@ function moveFile(name, _opts) {
     // copyFileSync ueberschreibt ein vorhandenes Ziel.
     fs.copyFileSync(from, to);
     fs.rmSync(from);
-    console.log(`archive-build: ${name} -> Versions-Archiv`);
+    console.log(`archive-build: ${name} -> Versions-Archiv ${to}`);
     return true;
   } catch (err) {
     console.error(
@@ -201,7 +236,7 @@ function writeChecksumFiles(names, deps = {}) {
     const lines = [...zeilen.keys()].sort().map((name) => `${zeilen.get(name)}  ${name}`);
     try {
       write(target, `${lines.join('\n')}\n`);
-      console.log(`archive-build: ${path.basename(target)} -> Versions-Archiv`);
+      console.log(`archive-build: ${path.basename(target)} -> Versions-Archiv ${target}`);
     } catch (err) {
       console.error(
         `archive-build: Pruefsummen-Datei fuer ${version} fehlgeschlagen: ${err.message}`,
@@ -358,24 +393,27 @@ function raeumeTemporaere(entries, deps = {}) {
   return { entfernt, gescheitert };
 }
 
+// Kopiert die Release-Hinweise der gebauten Version ins Archiv; Ordner wie bei
+// moveFile injizierbar, die Meldung nennt den aufgelösten Zielpfad (4T-002624).
+function kopiereNotes(name, { von = DIST, nach = archivOrdner() } = {}) {
+  try {
+    const ziel = path.join(nach, name);
+    fs.copyFileSync(path.join(von, name), ziel);
+    console.log(`archive-build: ${name} -> Versions-Archiv ${ziel} (Kopie)`);
+    return true;
+  } catch (err) {
+    console.error(`archive-build: Notes-Kopie ${name} fehlgeschlagen: ${err.message}`);
+    return false;
+  }
+}
+
 // Kern-Logik, testbar: entries = Dateinamen in dist/; deps injizierbar.
 function archiveBuild(entries, deps = {}) {
   const tagExists = deps.tagExists || gitTagExists;
   const move = deps.move || moveFile;
   const guardBuildNumber = deps.guardBuildNumber || defaultGuardBuildNumber;
   const writeChecksums = deps.writeChecksums || writeChecksumFiles;
-  const copyNotes =
-    deps.copyNotes ||
-    ((name) => {
-      try {
-        fs.copyFileSync(path.join(DIST, name), path.join(archivOrdner(), name));
-        console.log(`archive-build: ${name} -> Versions-Archiv (Kopie)`);
-        return true;
-      } catch (err) {
-        console.error(`archive-build: Notes-Kopie ${name} fehlgeschlagen: ${err.message}`);
-        return false;
-      }
-    });
+  const copyNotes = deps.copyNotes || kopiereNotes;
 
   // 4T-001205: alle Release-Artefakte (Windows-EXEs plus vorbereitete Formate).
   const exes = entries.filter((name) => matchArtefakt(name) !== null);
@@ -503,6 +541,11 @@ if (require.main === module) {
 
 module.exports = {
   archiveBuild,
+  // 4T-002624: Abweisung verstümmelter Archiv-Werte und Ablage mit Zielpfad.
+  archivOrdner,
+  pruefeArchivWert,
+  moveFile,
+  kopiereNotes,
   writeChecksumFiles,
   meldeTemporaere,
   raeumeTemporaere,

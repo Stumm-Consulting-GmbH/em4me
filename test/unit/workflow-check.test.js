@@ -417,6 +417,7 @@ describe('Datei-Ebene und Laufzeit-Fragen (O1)', () => {
       armable: false,
       steps: [],
       findings: [],
+      hints: [],
     });
   });
 

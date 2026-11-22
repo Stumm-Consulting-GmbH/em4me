@@ -106,6 +106,7 @@ Die Befehle, nach ihrem Gegenstand geordnet. Die Pfade sind relativ zur Bereichs
 - **Fehlender Ziel-Ordner:** `create`, `copy` und `move` legen ihn innerhalb des Bereichs an.
 - **Verschieben und Umbenennen** gehen denselben Weg wie im Bereichs-Panel: Verweise auf die Datei werden nachgezogen, Unterseiten und die Begleitdatei ziehen mit.
 - `mkdir` auf einen vorhandenen Ordner und `close` auf ein nicht geöffnetes Dokument gelingen, ohne etwas zu ändern. `close` auf ein ungespeichertes Dokument zeigt die gewohnte Speicher-Rückfrage; „Abbrechen" beendet den Lauf an dieser Zeile.
+- **Karteikarten der Datenbank:** `copy`, `move` und `rename` einer Karteikarte und eine Datei mit Datensatz-Kennung, die in den Ordner einer Kartei-Tabelle käme, folgen den Regeln im Abschnitt „Text-Befehle und Dateien der Datenbank".
 
 ### Inhalt und Dateikopf
 
@@ -121,6 +122,7 @@ Die Befehle, nach ihrem Gegenstand geordnet. Die Pfade sind relativ zur Bereichs
 - `replace` ersetzt wie „Alle ersetzen" im Editor jedes Vorkommen; findet er keines, schlägt der Schritt fehl.
 - `set-property` und `remove-property` lassen die übrigen Eigenschaften in ihrer Reihenfolge stehen. `remove-property` auf eine Eigenschaft, die es nicht gibt, gelingt ohne Änderung.
 - **Geöffnete Dateien:** Ist die Ziel-Datei in einem Fenster geöffnet und ungespeichert, geht die Änderung in dieses Fenster und erscheint dort als Änderung im Editor; ungespeicherte Arbeit bleibt erhalten. Sonst wird die Datei direkt geschrieben.
+- **Dateien der Datenbank:** In einer Tabellen-Datei oder Karteikarte ändern diese Befehle freien Text und Eigenschaften, die kein Feld der Tabelle sind; Datensätze, Felder und den Aufbau ändern sie nicht (Abschnitt „Text-Befehle und Dateien der Datenbank").
 
 ### Anwendung und Ablauf
 
@@ -148,7 +150,7 @@ Die Befehle, nach ihrem Gegenstand geordnet. Die Pfade sind relativ zur Bereichs
 | `complete-task` | Aufgabe abhaken: die erste offene Aufgabe mit dem Suchtext | Pfad, Suchtext | `complete-task "Projekte/Plan.md" "Angebot senden"` |
 | `confirm` | Rückfrage: eine Frage mit „Ja" und „Nein" stellen | Frage | `confirm "Alle Entwürfe archivieren?"` |
 
-- **`delete`** legt das Ziel in den Papierkorb, wie das Löschen im Bereichs-Panel; ein Ordner geht als Ganzes. Mit einer Datei gehen ihre Begleitdatei (`.mdd`) samt Lauf-Stand und ihre Änderungsbelege (`.mddl`). Die Wurzel des Bereichs lässt sich nicht löschen. Zurückgeholt wird ein gelöschtes Ziel aus dem Papierkorb.
+- **`delete`** legt das Ziel in den Papierkorb, wie das Löschen im Bereichs-Panel; ein Ordner geht als Ganzes. Mit einer Datei gehen ihre Begleitdatei (`.mdd`) samt Lauf-Stand und ihre Änderungsbelege (`.mddl`). Die Wurzel des Bereichs lässt sich nicht löschen. Zurückgeholt wird ein gelöschtes Ziel aus dem Papierkorb. Eine Karteikarte löscht `delete` über die Datenbank (Abschnitt „Text-Befehle und Dateien der Datenbank").
 - **Eine Bestätigung je Lauf:** Enthält ein Lauf `delete`, nennt vor dem ersten Schritt **eine** Bestätigung alle Ziele des Laufs mit Pfad, auch die der aufgerufenen Workflows; „Nein" lässt keinen Schritt laufen, und der Lauf gilt als abgebrochene Eingabe. Ist ein Ziel in diesem Fenster geöffnet, wird es vor dem Schritt geschlossen; bei ungespeicherten Änderungen erscheint die gewohnte Speicher-Rückfrage, und „Abbrechen" beendet den Lauf an dieser Zeile.
 - **`add-tag` und `remove-tag`** ändern allein die Liste `tags` im Dateikopf; ein schon vorhandenes beziehungsweise fehlendes Schlagwort ist kein Fehler. Ein führendes `#` wird weggelassen, und Groß- und Kleinschreibung zählt beim Vergleich nicht; ein leeres Schlagwort oder eines mit Leerzeichen ist ungültig. Entfernt `remove-tag` das letzte Schlagwort, bleibt die leere Liste `tags: []` stehen. Schlagwörter im Text (`#schlagwort`) bleiben unberührt; dafür gibt es `replace`.
 - **`complete-task`** sucht unter den offenen Aufgaben der Datei, denselben, die die [Aufgaben-Abfrage](tasks.md) zeigt, die erste, deren Text den Suchtext enthält, mit Groß- und Kleinschreibung. Er hakt sie ab wie ein Klick in der Aufgaben-Abfrage, samt Erledigt-Datum nach den Einstellungen der Aufgaben. Findet er keine, schlägt der Schritt fehl.
@@ -433,6 +435,58 @@ end
 - **Spur im Journal:** Auf der Seite „Workflow-Läufe" nennt das Journal je Datenbank-Schritt Tabelle, Datensatz und Vorgangs-Kennung, etwa „Zeile 2: db-update – Tabelle Library, Datensatz r-00007, Vorgang 12". Dieselbe Vorgangs-Kennung tragen die [Änderungsbelege](database.md) dieses Schritts.
 - **Keine Ereignisse:** Was ein Workflow in die Datenbank schreibt, löst kein Ereignis aus, weder an der Tabellen-Datei noch an einer Karteikarte.
 
+### Text-Befehle und Dateien der Datenbank
+
+**Ein Workflow ändert in den Dateien einer Datenbank nichts, was an ihren Regeln vorbeigeht: Datensätze ändert er mit den Datenbank-Befehlen, den Aufbau einer Tabelle gar nicht; freier Text bleibt für die Text-Befehle offen.** Text-Befehle sind die Befehle für Inhalt und Dateikopf (`append`, `insert`, `replace`, `set-property`, `remove-property`), die Schlagwort-Befehle `add-tag` und `remove-tag` und `db-query … into` mit `under`. Die Regeln dieses Abschnitts gelten, solange die Erweiterung „Datenbank" eingeschaltet ist; nur der Absatz zu geteilten Dokumenten gilt immer.
+
+| Was ein Text-Befehl ändern würde | Was der Workflow tut | Stattdessen |
+| --- | --- | --- |
+| Datensätze einer Tabellen-Datei: eine Zeile im Block der Datensätze ändern, hinzufügen oder entfernen | hält an | `db-create`, `db-update`, `db-delete` |
+| ein Feld der Tabelle im Dateikopf einer Karteikarte setzen, ändern oder entfernen | hält an | `db-update` |
+| die Kennung `db-record` einer Karteikarte ändern oder entfernen | hält an | `db-create` und `db-delete` |
+| eine Datei im Ordner einer Kartei-Tabelle mit `set-property … db-record` zur Karteikarte machen | hält an | `db-create` |
+| den Aufbau einer Tabelle, den Steckbrief der Datenbank oder eine Datei mit `set-property … db-table` zur Tabelle machen | hält immer an | von Hand in der Anwendung |
+| freien Text einer Tabellen-Datei oder Karteikarte, Eigenschaften, die kein Feld der Tabelle sind, und Schlagwörter | ändert sie | — |
+
+Lässt sich der Aufbau der Kartei-Tabelle nicht lesen, gilt vorsichtshalber jede Angabe im Dateikopf ihrer Karteikarten als Feld, und jede Änderung am Dateikopf hält an, auch an Schlagwörtern und gewöhnlichen Eigenschaften, während freier Text darunter änderbar bleibt, bis Sie den Aufbau der Tabelle in Ordnung gebracht haben.
+
+````markdown
+```workflow
+# Ein Feld der Karteikarte: db-update statt set-property
+db-update "Authors" "Umberto Eco" born="1932-01-06"
+# Ein Datensatz der Tabelle: db-update statt replace
+db-update "Library" "Solaris" loanNote="verliehen"
+# Freier Text der Karteikarte bleibt für Text-Befehle offen
+append "Authors/Umberto Eco.md" from-section "Notiz"
+```
+````
+
+- **Gemessen am Ergebnis:** Die Anwendung vergleicht die Datei vor und nach dem Schritt. Ein `append` an eine Tabellen-Datei setzt seinen Text hinter den geschlossenen Block der Datensätze und läuft; endet die Datei in einem Block, den niemand geschlossen hat, landet der Text in den Datensätzen, und der Schritt hält an. Felder erkennt sie ohne Rücksicht auf Groß- und Kleinschreibung. Führt die Tabelle ein Feld `tags`, halten auch `add-tag` und `remove-tag` an einer ihrer Karteikarten an.
+- **`complete-task`** hakt Aufgaben im freien Text einer Tabellen-Datei oder Karteikarte ab; eine Zeile im Block der Datensätze ist keine Aufgabe und wird nicht gefunden.
+- **Ein Halt ändert nichts:** Weder die Datei noch ein geöffnetes Dokument ändert sich. Der Grund nennt Tabelle oder Feld und den Befehl, der zum Ziel führt, und erscheint wie jeder Abbruch in der Statusleiste und auf der Seite „Workflow-Läufe", nach Zeitplan und bei Ereignissen zusätzlich als Benachrichtigung des Betriebssystems. Ohne Zuschauer gelten dieselben Regeln.
+- **Geöffnete Dokumente:** Ist die Datei in einem Fenster geöffnet und ungespeichert, gilt die Regel für den Stand im Editor. Wird ein geöffnetes Dokument, gleich welches, während des Schritts im Editor weiter bearbeitet, ändert der Schritt nichts, und der Lauf hält mit diesem Grund an; ein neuer Start arbeitet mit dem neuen Stand.
+
+**Datei-Befehle an Karteikarten.** Gelöscht, kopiert und hineingelegt wird eine Karteikarte so, wie es die Datenbank zulässt:
+
+| Fall | Was der Workflow tut | Stattdessen |
+| --- | --- | --- |
+| `delete` einer Karteikarte | löscht über die Datenbank wie das Löschen im Bereichs-Panel, mit Lösch-Schutz und Änderungsbeleg; weist die Datenbank ab, bleibt die Karteikarte, und der Lauf hält mit ihrem Grund an | — |
+| `copy` einer Karteikarte in den Ordner ihrer Tabelle | legt über die Datenbank eine neue Karteikarte an wie das Kopieren im Bereichs-Panel: der Name des Ziels als Schlüssel, eine neue Kennung, ein Anlege-Beleg; weist die Datenbank ab, entsteht keine Kopie | — |
+| `copy` einer Karteikarte in einen Ordner ohne Kartei-Tabelle | kopiert die Datei; dort entsteht kein Datensatz | — |
+| `move` einer Karteikarte aus dem Ordner ihrer Tabelle | hält an | `db-delete` und `db-create` |
+| `rename` einer Karteikarte auf einen Namen ohne Markdown-Endung (`.md`, `.markdown`, `.mdown`, `.mkd`) | hält an | `db-delete` |
+| eine Datei mit Datensatz-Kennung als Markdown-Datei in den Ordner einer Kartei-Tabelle bringen: mit `create`, `copy` oder `move` hinein oder mit `rename` auf eine Markdown-Endung | hält an | `db-create` |
+| `rename` einer Karteikarte im Ordner ihrer Tabelle, der neue Name hat eine Markdown-Endung | benennt die Datei um wie von Hand; Schlüssel und Kennung bleiben | — |
+| `move`, `rename` und `delete` eines ganzen Ordners mit einer Kartei-Tabelle, Datei-Befehle an Tabellen-Dateien und am Steckbrief | wie von Hand | — |
+
+`delete` und `copy` einer Karteikarte schreiben wie die Datenbank-Befehle mit Ihren Rechten. `delete` bleibt auch hier „Nur von Hand", mit der einen Bestätigung vor dem ersten Schritt. Ergebnis-Dateien von `db-query … into` ohne `under` folgen `create`.
+
+**Geteilte Dokumente.** Text-Befehle arbeiten in einem [geteilten Dokument](document-parts.md) im ganzen Dokument, auch bei ausgeschalteter Datenbank: `append` hängt an das Ende des letzten Teils, `insert` und `replace` finden ihre Stelle in jedem Teil, und ein Pfad, der einen Folgeteil nennt, meint das ganze Dokument. Eine Quelle `from-file` wird ebenso ganz gelesen. Fehlt ein Teil, ändert der Schritt nichts, und der Lauf hält an. Hebt ein Workflow ein gewöhnliches Dokument erstmals über die Teilungs-Schwelle, schreibt er es ungeteilt weiter, ohne Rückfrage und ohne anzuhalten; geteilt wird es beim nächsten Speichern von Hand mit der gewohnten Rückfrage. Eine Tabellen-Datei teilt er wie das Speichern von Hand.
+
+**Früher Hinweis:** Nennt ein Text-Befehl sein Ziel ohne Platzhalter und ist es eine Tabellen-Datei oder eine Karteikarte, zeigt die Prüf-Anzeige über dem Block einen Hinweis an der Zeile, mit der Tabelle und den Datenbank-Befehlen. Ein Hinweis ist kein Befund: Er färbt die Anzeige nicht rot und verhindert weder den Start noch die Scharf-Schaltung. Steht im Ziel ein Platzhalter, erkennt erst der Lauf die Datei.
+
+**Bestehende Workflows:** Die Anwendung schreibt keinen Workflow um. Ein Workflow, der Datensätze, Felder einer Karteikarte oder den Aufbau einer Tabelle mit einem Text- oder Datei-Befehl ändern will, hält an dieser Zeile mit dem Grund an, auch nach Zeitplan und bei Ereignissen; ersetzen Sie die Zeile durch den Befehl, den der Grund nennt.
+
 ## Zeitplan und Scharf-Schaltung
 
 Ein Workflow mit `trigger: schedule` und einer Zeile `schedule` läuft von selbst zu den Terminen seines Zeitplans, sobald er **scharf geschaltet** ist:
@@ -626,7 +680,7 @@ Eine Rücknahme eines ganzen Laufs gibt es nicht. Zurückgenommen wird gezielt, 
 ## Unterstützung im Editor
 
 - **Hervorhebung:** In den Befehls-Zeilen sind das Schlüsselwort fett, Text in Anführungszeichen farbig und Platzhalter kursiv hervorgehoben, im Editor wie in der Darstellung. Die Block-Wörter der Bedingungen und Schleifen, `else` und `end` sind im Editor zusätzlich gepunktet unterstrichen.
-- **Prüf-Anzeige:** Die Live-Ansicht, die gerenderte Ansicht und die geteilte Ansicht zeigen über dem Block das Ergebnis der Prüfung: grün „bereit" oder rot „Zeile N: Grund", bei mehreren Befunden mit „(+N weitere)". Dort stehen auch die Hinweise auf mehrere Blöcke und auf einen noch nicht unterstützten Auslöser sowie die Befunde des Zeitplans mit ihrer Zeile im Dateikopf. Die Anzeige folgt dem Text kurz nach jeder Änderung und zeigt denselben Befund, den der Start meldet. Im Druck, im Export und bei einer eingebetteten Datei erscheint die Kopfzeile nicht.
+- **Prüf-Anzeige:** Die Live-Ansicht, die gerenderte Ansicht und die geteilte Ansicht zeigen über dem Block das Ergebnis der Prüfung: grün „bereit" oder rot „Zeile N: Grund", bei mehreren Befunden mit „(+N weitere)". Dort stehen auch die Hinweise auf mehrere Blöcke und auf einen noch nicht unterstützten Auslöser sowie die Befunde des Zeitplans mit ihrer Zeile im Dateikopf. Ein **Hinweis**, etwa zu einem Ziel, das eine Tabellen-Datei oder Karteikarte ist, folgt den Befunden als „Hinweis zu Zeile N: …"; ohne Befund bleibt die Anzeige grün mit „bereit; Hinweis zu Zeile N: …". Ein Hinweis verhindert weder den Start noch die Scharf-Schaltung. Die Anzeige folgt dem Text kurz nach jeder Änderung und zeigt denselben Befund, den der Start meldet. Im Druck, im Export und bei einer eingebetteten Datei erscheint die Kopfzeile nicht.
 - **Knopf „Scharf":** Bei `trigger: schedule` und `trigger: event` steht in der Kopfzeile neben „Starten" der Knopf zum Scharf-Schalten (Abschnitt „Zeitplan und Scharf-Schaltung").
 
 Hervorhebung und Anzeige ändern den Text der Datei nicht.
@@ -638,7 +692,7 @@ Hervorhebung und Anzeige ändern den Text der Datei nicht.
 - **Kein Lauf ohne geöffneten Bereich:** Ein Workflow nach Zeitplan läuft nur, solange die Anwendung und sein Bereich geöffnet sind; verpasste Termine holt er nach den Regeln von `missed` nach. Ereignisse wirken ebenso nur bei geöffnetem Bereich und werden nicht nachgeholt.
 - **Keine Ketten:** Ein Workflow reagiert auf das, was Sie oder andere Programme tun, nie auf das, was ein Workflow tut. Wer eine Folge will, ruft den nächsten Workflow mit `workflow "Name"` auf; gegen eine Schleife über andere Programme hält die Not-Bremse einen Workflow nach mehr als 20 Läufen durch Ereignisse in 5 Minuten an (Abschnitt „Ereignisse").
 - **Grenzen der Blöcke:** höchstens drei Ebenen Verschachtelung, keine Schleife in einer Schleife und höchstens 500 Dateien oder Datensätze je Schleife.
-- **Datenbank:** Ein Workflow schreibt in die Datenbank mit Ihren Rechten; nach Zeitplan und bei Ereignissen legt er an und ändert, löscht aber nie. Bricht ein Workflow ab, bleiben die Datensätze, die er schon geschrieben hat. Was ein Workflow in die Datenbank schreibt, löst kein Ereignis aus.
+- **Datenbank:** Ein Workflow schreibt in die Datenbank mit Ihren Rechten; nach Zeitplan und bei Ereignissen legt er an und ändert, löscht aber nie. Bricht ein Workflow ab, bleiben die Datensätze, die er schon geschrieben hat. Was ein Workflow in die Datenbank schreibt, löst kein Ereignis aus. Datensätze und die Felder einer Karteikarte ändert er allein mit den Datenbank-Befehlen, den Aufbau einer Tabelle und den Steckbrief gar nicht (Abschnitt „Text-Befehle und Dateien der Datenbank").
 - **Keine Rücknahme eines Laufs:** Ausgeführte Schritte bleiben ausgeführt; das Journal zeigt, was der letzte Lauf berührt hat, und zurückgenommen wird gezielt.
 - **Makros** bleiben, wie sie sind, und sind als Schritt aufrufbar; ein Makro ist eine Folge von Kommandos in den Einstellungen, ein Workflow ein Ablauf als Dokument. **[Skript-Blöcke](scripts.md)** bleiben rein lesend, auch als Skript-Schritt; ein Workflow ist keine allgemeine Skript-Sprache, sondern ein fester Katalog von Befehlen.
 

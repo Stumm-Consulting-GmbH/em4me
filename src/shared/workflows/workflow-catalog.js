@@ -6,11 +6,12 @@
 // Der Katalog führt **alle** Befehle aller Stufen, damit der Prüfer einen
 // unbekannten Befehl von einem Befehl einer späteren Stufe unterscheidet.
 //
-// **Schema nur für entschiedene Stufen** (Entscheidung der Sitzung vom
-// 2026-10-22, O6): Die Befehle der Stufen 3 und D tragen Schlüsselwort und
-// Stufe, aber kein Argument-Schema. Ihre Konzept-Runden sind offen; ein Schema
-// jetzt nähme deren Grammatik vorweg. Für den Befund «spätere Stufe» genügt die
-// Stufe.
+// **Schema nur für entschiedene Befehle** (Entscheidung der Sitzung vom
+// 2026-10-22, O6; Stand berichtigt mit 4T-002692): Alle Befehle aller Stufen
+// tragen ihr Argument-Schema, außer den Austausch-Befehlen `db-export` und
+// `db-import`, die als spätere Ausbaustufe nur Schlüsselwort und Stufe tragen;
+// für den Befund «spätere Stufe» genügt die Stufe. Die Absätze zu den Stufen
+// unten sind die Spur, wie die Schemata dazukamen.
 //
 // **Stufe 2** (4T-002424, Stories 4S-001135 und 4S-001136): Die fünf
 // Pflege-Befehle `delete`, `add-tag`, `remove-tag`, `complete-task` und

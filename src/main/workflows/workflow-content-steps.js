@@ -36,16 +36,35 @@
 // und Lauf-Marke); `db-query` schreibt darüber das Ergebnis einer Abfrage in
 // einen Abschnitt (`replaceSection` in `workflow-edit.js`).
 //
+// **Geteilte Dokumente** (4T-002689, Story 4S-001215): Der Weg auf die Platte
+// liest und schreibt über `workflow-platten-schreibweg.js`, also über den
+// zusammengesetzten Stand aller Teile und mit denselben Bausteinen wie das
+// Speichern von Hand; fehlt ein Teil, hält der Schritt mit `partsMissing` an.
+// Ein Folgeteil als Ziel wird vor der Weiche auf die Kopf-Datei aufgelöst, und
+// eine Quelle `from-file` wird als ganzes Dokument gelesen.
+//
+// **Regeln der Datenbank** (4T-002690, Story 4S-001215): Ist die Erweiterung
+// «Datenbank» an, fällt vor jedem der drei Wege das Urteil
+// `workflow-db-urteil.js` am Stand vor und nach der Bearbeitung. Auf der Platte
+// urteilt der Schreibweg am zusammengesetzten Stand; hält ein Fenster den
+// Stand, liest der Hauptprozess ihn dort, urteilt selbst und schickt die
+// Bearbeitung mit dem gelesenen Stand als Erwartung (`bufferChanged`, wenn der
+// Puffer inzwischen ein anderer ist). Ein Halt lässt Datei und Puffer unverändert.
+//
 // Eigener Zustand: keiner.
 'use strict';
 
 const fs = require('node:fs/promises');
-const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
-const { merkeLaufStand } = require('../documents/self-write');
-const { applyContentEdit } = require('../../shared/workflows/workflow-edit.js');
 const { sectionBody } = require('../../shared/workflows/workflow-core.js');
 const { pufferBesitzer } = require('../ipc/puffer-fenster.js');
 const { resolveAreaPath } = require('./workflow-area-path.js');
+const {
+  createPlattenSchreibweg,
+  kopfPfadVon,
+  liesQuelle,
+} = require('./workflow-platten-schreibweg.js');
+const { createDbUrteil } = require('./workflow-db-urteil.js');
+const { applyContentEdit } = require('../../shared/workflows/workflow-edit.js');
 
 const BOM_RE = new RegExp('^\uFEFF');
 
@@ -102,10 +121,9 @@ async function readStepSource(ctx, source) {
   if (source.kind === 'file') {
     const ort = await resolveAreaPath(ctx.root, source.path);
     if (!ort.ok) return ort;
-    const gelesen = await readCurrentText(ctx.backlinks, ort.abs);
-    return gelesen.ok
-      ? gelesen
-      : fehlschlag('sourceMissing', { path: source.path, fsCode: gelesen.fsCode });
+    // 4T-002689 (Zweitblick, Runde 1): die Quelle als ganzes Dokument, auch wenn
+    // sie geteilt ist; sonst käme allein die Kopf-Datei samt Zuordnungs-Zeile.
+    return liesQuelle(ctx.backlinks, ctx.root, ort.abs, source.path);
   }
   const dokument = await readCurrentText(ctx.backlinks, ctx.workflowAbs);
   if (!dokument.ok) return fehlschlag('sourceMissing', { fsCode: dokument.fsCode });
@@ -138,40 +156,21 @@ async function bearbeitungFuer(ctx, step) {
  * @param {Map} deps.windows Fenster-Register.
  * @param {object} deps.backlinks Bereichs-Index (Puffer-Stand und -Besitzer).
  * @param {Function} deps.resolveHistoryFor Auflösung der Historisierungs-Schaltung.
- * @param {Function} deps.readPreviousTextFor Datei-Stand vor dem Überschreiben.
  * @param {Function} deps.recordMddOnSave Historien-Paket beim Speichern schreiben.
- * @param {{request: Function}} deps.bufferRequests Aufträge an ein fremdes Fenster.
+ * @param {{request: Function, read?: Function}} deps.bufferRequests Aufträge an ein
+ *   Fenster; `read` braucht der Weg mit Urteil (4T-002690).
+ * @param {() => boolean} [deps.datenbankAktiv] 4T-002690: Tor der Erweiterung «Datenbank».
+ * @param {object} [deps.karteiWeichen] 4T-002690: Weiche des Bereichs-Panels.
+ * @param {object} [deps.dbUrteil] 4T-002690: ein fertiges Urteil (Prüffälle).
  * @returns {{runContentStep: Function, runContentEdit: Function}}
  */
 function createWorkflowContentSteps(deps) {
-  const { windows, backlinks, resolveHistoryFor, readPreviousTextFor, recordMddOnSave } = deps;
+  const { windows, backlinks, resolveHistoryFor, recordMddOnSave } = deps;
   const { bufferRequests } = deps;
-
-  async function schreibePlatte(ctx, abs, edit) {
-    let roh;
-    try {
-      roh = await fs.readFile(abs, 'utf8');
-    } catch (err) {
-      return fehlschlag('targetMissing', { fsCode: fsCode(err) });
-    }
-    const ergebnis = applyContentEdit(roh, edit);
-    if (!ergebnis.ok) return fehlschlag(ergebnis.code);
-    if (!ergebnis.changed)
-      return { ok: true, effect: { kind: 'unchanged', paths: [abs], via: 'disk' } };
-    try {
-      const recordHistory = (await resolveHistoryFor(ctx.owner, abs, ergebnis.text)).effective;
-      const previousText = recordHistory ? await readPreviousTextFor(abs) : null;
-      merkeLaufStand(abs, ergebnis.text);
-      await ersetzeDateiOderWirf(abs, ergebnis.text);
-      if (recordHistory) {
-        const neu = ergebnis.text.replace(BOM_RE, '').replace(/\r\n/g, '\n');
-        await recordMddOnSave(ctx.owner, abs, previousText, neu);
-      }
-    } catch (err) {
-      return fehlschlag('writeFailed', { fsCode: fsCode(err) });
-    }
-    return { ok: true, effect: { kind: 'edited', paths: [abs], via: 'disk' } };
-  }
+  // 4T-002689: der Platten-Weg über den Schreibweg geteilter Dokumente.
+  const platte = createPlattenSchreibweg({ resolveHistoryFor, recordMddOnSave });
+  // 4T-002690: das Urteil der Datenbank vor allen drei Wegen.
+  const urteil = deps.dbUrteil || createDbUrteil(deps);
 
   /**
    * Führt einen Inhalts- oder Dateikopf-Schritt aus.
@@ -186,7 +185,7 @@ function createWorkflowContentSteps(deps) {
     if (!ziel.ok) return ziel;
     const gebildet = await bearbeitungFuer({ ...ctx, backlinks }, step);
     if (!gebildet.ok) return gebildet;
-    return wendeAn(ctx, ziel, gebildet.edit);
+    return wendeAn(ctx, ziel, gebildet.edit, step.keyword);
   }
 
   // Das Ziel eines Schritts: im Bereich und eine vorhandene Datei.
@@ -200,7 +199,8 @@ function createWorkflowContentSteps(deps) {
       return fehlschlag('targetMissing', { path: relPfad, fsCode: fsCode(err) });
     }
     if (!stat.isFile()) return fehlschlag('notAFile', { path: relPfad });
-    return ziel;
+    // 4T-002689: der genannte Pfad reist mit, für den Satz eines Halts.
+    return { ...ziel, rel: relPfad };
   }
 
   /**
@@ -215,22 +215,80 @@ function createWorkflowContentSteps(deps) {
   async function runContentEdit(ctx, relPfad, edit) {
     const ziel = await zielDatei(ctx, relPfad);
     if (!ziel.ok) return ziel;
-    return wendeAn(ctx, ziel, edit);
+    // 4T-002690: Der Befehl für den Satz eines Halts kommt aus dem Lauf-Kontext
+    // (`ctx.befehl`, gesetzt im Schritt-Kanal), weil der Aufrufer, etwa
+    // `db-query … into`, nur die fertige Bearbeitung reicht.
+    return wendeAn(ctx, ziel, edit, typeof ctx.befehl === 'string' ? ctx.befehl : edit.op);
+  }
+
+  // 4T-002690: Das Urteil der Datenbank zu einem Stand vor und nach der
+  // Bearbeitung, mit dem Befehl des Schritts und dem Pfad in der Form des Workflows.
+  function pruefeFuer(ctx, ziel, befehl) {
+    return (abs, alt, neu) =>
+      urteil.urteile({ abs, alterText: alt, neuerText: neu, befehl, anzeige: ziel.rel });
   }
 
   // Die Weiche zum Editor-Puffer, sonst die Platte.
-  async function wendeAn(ctx, ziel, edit) {
+  async function wendeAn(ctx, genannt, edit, befehl) {
+    // 4T-002689 (Zweitblick, Runde 1): Ein Folgeteil als Ziel meint das ganze
+    // Dokument. Aufgelöst wird VOR der Weiche, damit alle drei Wege nach
+    // demselben Pfad fragen, unter dem ein Fenster das Dokument führt (der
+    // Kopf-Datei); sonst fände die Weiche einen ungespeicherten Stand nicht, und
+    // die Platte überschriebe ihn.
+    // Sicherheits-Review, Runde 1: Die Auflösung prüft die Grenze selbst und
+    // hält mit outsideArea an, bevor ein Pfad an ein Fenster oder die Platte geht.
+    const aufgeloest = await kopfPfadVon(ctx.root, genannt.abs, genannt.rel);
+    if (!aufgeloest.ok) return aufgeloest;
+    const kopf = aufgeloest.kopf;
+    const ziel = kopf === genannt.abs ? genannt : { ...genannt, abs: kopf };
     const besitzer = pufferBesitzer({ windows, backlinks }, ctx.event, ziel.abs);
+    // 4T-002690: Mit der Erweiterung «Datenbank» fällt das Urteil vor jedem der
+    // drei Wege; ohne sie bleiben die Wege, wie sie waren (Befund 7).
+    const pruefe = urteil.aktiv() ? pruefeFuer(ctx, ziel, befehl) : null;
+    if (pruefe && besitzer.art !== 'keiner') {
+      return fensterMitUrteil(ctx, ziel, edit, besitzer, pruefe);
+    }
     if (besitzer.art === 'absender') {
       return { ok: true, window: { action: 'editOwnBuffer', path: ziel.abs, edit } };
     }
     if (besitzer.art === 'anderes') {
       const antwort = await bufferRequests.request(besitzer.fenster, ziel.abs, edit);
-      if (!antwort.ok) return fehlschlag(antwort.code || 'bufferUnavailable', { path: ziel.abs });
-      const kind = antwort.changed === false ? 'unchanged' : 'edited';
-      return { ok: true, effect: { kind, paths: [ziel.abs], via: 'otherBuffer' } };
+      return antwortDesFensters(antwort, ziel.abs);
     }
-    return schreibePlatte(ctx, ziel.abs, edit);
+    return platte.schreibeBearbeitung(ctx, ziel, edit, pruefe ? { pruefe } : {});
+  }
+
+  function antwortDesFensters(antwort, abs) {
+    if (!antwort.ok) return fehlschlag(antwort.code || 'bufferUnavailable', { path: abs });
+    const kind = antwort.changed === false ? 'unchanged' : 'edited';
+    return { ok: true, effect: { kind, paths: [abs], via: 'otherBuffer' } };
+  }
+
+  // 4T-002690 (Weg (i) des Tasks): Ein Fenster hält den Stand. Der Hauptprozess
+  // liest ihn dort, bildet den neuen Stand mit derselben Regel wie das Fenster,
+  // urteilt und schickt die Bearbeitung erst bei Freigabe, mit dem gelesenen
+  // Stand als Erwartung: Hat sich der Puffer seither geändert, wendet das
+  // Fenster nichts an und meldet `bufferChanged`.
+  async function fensterMitUrteil(ctx, ziel, edit, besitzer, pruefe) {
+    const fenster = besitzer.art === 'absender' ? ctx.owner : besitzer.fenster;
+    if (!fenster || !fenster.webContents)
+      return fehlschlag('bufferUnavailable', { path: ziel.abs });
+    const gelesen = await bufferRequests.read(fenster, ziel.abs);
+    if (!gelesen.ok) return fehlschlag(gelesen.code || 'bufferUnavailable', { path: ziel.abs });
+    const ergebnis = applyContentEdit(gelesen.text, edit);
+    if (!ergebnis.ok) return fehlschlag(ergebnis.code, { path: ziel.abs });
+    if (ergebnis.changed) {
+      const entscheid = await pruefe(ziel.abs, gelesen.text, ergebnis.text);
+      if (!entscheid.ok) return entscheid;
+    }
+    if (besitzer.art === 'absender') {
+      const handgriff = { action: 'editOwnBuffer', path: ziel.abs, edit, expected: gelesen.text };
+      return { ok: true, window: handgriff };
+    }
+    const antwort = await bufferRequests.request(besitzer.fenster, ziel.abs, edit, {
+      expected: gelesen.text,
+    });
+    return antwortDesFensters(antwort, ziel.abs);
   }
 
   return { runContentStep, runContentEdit };

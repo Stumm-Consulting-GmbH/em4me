@@ -12,6 +12,8 @@ The first split of a document is announced. You can decline it: the file then st
 
 If automatic saving runs in the background, nothing is split unasked. The tab simply stays modified until you save manually once and answer the question.
 
+A **workflow** keeps writing an ordinary document that reaches the size for splitting for the first time unsplit, without a question; it is split at the next manual save with the usual announcement (page [Workflows](workflows.md), section "Text commands and files of the database").
+
 **For database tables all of this works slightly differently.** A table file of the [database](database.md) is technical storage and not your text: it is split from roughly 0.7 MB on, the cut lies between two records instead of before a heading, and nothing is announced — the file was never something you work in by hand. Everything else on this page applies to it unchanged, with one exception: a search across the area takes in a table file without its records, no matter which part they sit in.
 
 ## Where the cut is made

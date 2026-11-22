@@ -186,6 +186,7 @@ describe('analyzeWorkflow — der Gesamt-Durchlauf', () => {
       armable: false,
       steps: [],
       findings: [],
+      hints: [],
     });
   });
 

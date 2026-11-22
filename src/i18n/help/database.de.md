@@ -182,6 +182,8 @@ Die Regeln sind knapp gehalten, weil die Datei technische Ablage ist:
 
 **Es geht nie ein Zeichen verloren.** Hat ein Datensatz zu wenige Zellen, bleiben die übrigen Felder leer; hat er zu viele, bleiben die überzähligen unangetastet stehen. Beides wird gemeldet, aber nichts wird stillschweigend weggeschrieben — das ist der eine Fehler, den ein Datenspeicher nicht machen darf.
 
+Ein Workflow ändert diese Zeilen nicht mit seinen Text-Befehlen, sondern allein mit den Datenbank-Befehlen; den Aufbau der Tabelle ändert er gar nicht (Seite [Workflows](workflows.md), Abschnitt «Text-Befehle und Dateien der Datenbank»).
+
 Statt in diesem Block kann eine Tabelle ihre Datensätze auch je in einem eigenen Dokument ablegen, mit den Feldern im Frontmatter und freiem Text darunter. Der Abschnitt «Kartei-Form» beschreibt diese zweite Form und wann sie passt.
 
 ## Prüfregeln
@@ -982,7 +984,7 @@ Zwei Handgriffe führen zwischen Dokument und Maske hin und her:
 
 ### Grenzen der Kartei-Form
 
-Speichern, Löschen, Kopieren und Umbenennen in der Anwendung kennen die Karteikarte. Andere Wege, auf denen ein Dokument geschrieben wird, kennen sie nicht: das Ersetzen über den Bereich, das Fortschreiben von Journal-Einträgen und Ereignissen, das Verschieben von Kapiteln eines Buchs, das Einlesen einer JSON-Canvas-Datei und jede Änderung außerhalb der Anwendung, etwa das Löschen im Dateimanager oder das Bearbeiten mit einem anderen Editor. Was auf diesen Wegen an einer Karteikarte geschieht, prüft niemand im Augenblick der Änderung, es erzeugt keinen Beleg, und gelöscht wird ohne Lösch-Schutz und ohne dass ihre Belege an die Tabelle gehen. Die Folgen findet die Konsistenz-Prüfung, etwa einen Wert gegen eine Regel, einen Verweis, der keinen Datensatz mehr trifft, oder ein Dokument ohne Kennung. Auch das Speichern im Editor der Anwendung meldet nur und erzeugt keinen Beleg; eine Änderung am Frontmatter bemerkt erst die nächste Änderung über die Datenbank und speichert dann zunächst nicht (Abschnitt «Änderungsbelege»).
+Speichern, Löschen, Kopieren und Umbenennen in der Anwendung kennen die Karteikarte. Ebenso kennen sie die Workflows: Ihre Text- und Datei-Befehle ändern die Felder einer Karteikarte nicht, löschen und kopieren sie über die Datenbank und halten an, wo sie an der Datenbank vorbei einen Datensatz anlegen oder entfernen würden (Seite [Workflows](workflows.md), Abschnitt «Text-Befehle und Dateien der Datenbank»). Andere Wege, auf denen ein Dokument geschrieben wird, kennen sie nicht: das Ersetzen über den Bereich, das Fortschreiben von Journal-Einträgen und Ereignissen, das Verschieben von Kapiteln eines Buchs, das Einlesen einer JSON-Canvas-Datei und jede Änderung außerhalb der Anwendung, etwa das Löschen im Dateimanager oder das Bearbeiten mit einem anderen Editor. Was auf diesen Wegen an einer Karteikarte geschieht, prüft niemand im Augenblick der Änderung, es erzeugt keinen Beleg, und gelöscht wird ohne Lösch-Schutz und ohne dass ihre Belege an die Tabelle gehen. Die Folgen findet die Konsistenz-Prüfung, etwa einen Wert gegen eine Regel, einen Verweis, der keinen Datensatz mehr trifft, oder ein Dokument ohne Kennung. Auch das Speichern im Editor der Anwendung meldet nur und erzeugt keinen Beleg; eine Änderung am Frontmatter bemerkt erst die nächste Änderung über die Datenbank und speichert dann zunächst nicht (Abschnitt «Änderungsbelege»).
 
 ## Steckbrief der Datenbank
 

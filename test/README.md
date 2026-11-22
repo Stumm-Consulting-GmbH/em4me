@@ -55,7 +55,7 @@ privaten Arbeitsablagen gehören nicht hinein (Wächter-Befund der Auslieferung
 - **Gemeinsamer Bereich mehrerer Tasks:** gefäß-benannter Unterordner
   `Tests/test-<Epic-Kennung>-<kurz>/`, die Kennung vier- oder sechsstellig.
   Beispiele im Bestand: `Tests/test-3E-000340/`, `Tests/test-3E-000341/`.
-  Er zählt als Material jedes Tasks, der in seiner Metadaten-Zeile «Epic»
+  Er zählt als Material jedes Tasks, der in seinem Kopf-Block-Feld `Epic`
   dieses Epic nennt; ein Ordner ohne das Präfix `test-` zählt nicht.
 - Pro Code-Task entsteht die Datei oder der Unterordner **vor** der
   Test-Aufforderung an den Product Owner. Inhalt: Markdown-Beispiele, die
@@ -172,6 +172,10 @@ sie gesetzt wurde; ein Doppelklick im Explorer startet ohne sie und landet in
 der laufenden produktiven Instanz. Der Smoke-Test der Release-Strecke
 (Kapitel 5) benutzt denselben Mechanismus aus Sicht der Sitzung;
 Prozess-Messung und Aufräumen stehen dort und werden hier nicht wiederholt.
+Die Sitzung startet dafür nichts am Bildschirm des Rechners; solange die
+Tafel im Abschnitt [«Abgeschirmte Wege je Schritt»](#abgeschirmte-wege-je-schritt)
+keinen abgeschirmten Weg nennt, ist der Schritt für sie angehalten und wird
+gemeldet.
 
 ### Einen blockierten Anzeige-Prozess prüfen: die Blockade-Hilfe
 
@@ -211,7 +215,10 @@ geschlossen; gemessen am 2026-09-03 erscheint der Dialog nach 20,3 bis 20,7 s.
 Beendet wird nur der eigene Prozessbaum, nie pauschal nach Prozessname. Was das
 Werkzeug am 2026-09-03 zutage brachte — das Fenster bleibt nach «Trotzdem
 schließen» stehen —, ist als eigener Vorgang im Pflege-Gefäß der
-Fehlerbehebung verortet.
+Fehlerbehebung verortet. Die Sitzung startet dafür nichts am Bildschirm des
+Rechners; solange die Tafel im Abschnitt
+[«Abgeschirmte Wege je Schritt»](#abgeschirmte-wege-je-schritt) keinen
+abgeschirmten Weg nennt, ist der Schritt für sie angehalten und wird gemeldet.
 
 ## Linux-Prüfumgebung im Container
 
@@ -251,7 +258,10 @@ gemeldet. Die Prüfdatei `test/unit/linux-pruefmaterial.test.js` hält beide Ric
 getrennte Dinge. Das Prüfstand-Abbild trägt die **automatisierten** Gates des Linux-Laufs, wird bei
 jedem Lauf neu gestartet und braucht dieses Material nicht; die Prüfumgebung hier dient der
 **manuellen** Abnahme in einer Desktop-Sitzung, überdauert zwischen zwei Releases und trägt
-das Material. Das Werkzeug berührt das Prüfstand-Abbild nicht.
+das Material. Das Werkzeug berührt das Prüfstand-Abbild nicht. Seit dem 2026-11-21 trägt das
+Prüfstand-Abbild zusätzlich den Chromium-Browser von Playwright: Die beiden Browser-Prüffälle
+der Unit-Suite laufen nur dort, und der Diagramm-Schritt des Webseiten-Baus geht unter Windows
+dorthin (Anforderung `4S-001237`, Einzelheiten im Abschnitt «Das Kommando»).
 
 **Sperr-Zustand im Container** (`4T-001692`). Der Container hängt den gemeinsamen Ablage-Ort nicht ein. Läuft das Gate `e2e` mit, liest `scripts/test-linux-docker.js` die Release-Sperre deshalb vor dem Start am Wirt, auf demselben Weg wie die Merge-Queue, und reicht sie als `EM4ME_RELEASE_SPERRE` mit einem der Werte `belegt`, `frei` oder `unbekannt` in den Container; das Protokoll nennt den Wert auf beiden Seiten. `gate-lauf.js` nimmt die Variable vor der Sperrdatei. Ohne Variable und ohne erreichbaren Ablage-Ort meldet die E2E-Warnung «Sperr-Zustand nicht messbar» statt «ausserhalb einer belegten Release-Sperre». Für einen Nachweis lässt sich der Zustand mit `--sperr-zustand <wert>` erzwingen; die Zeile «Sperr-Zustand erzwungen» macht das im Protokoll sichtbar. Die echte Release-Sperre wird für Nachweise nie belegt.
 
@@ -273,10 +283,10 @@ das Material. Das Werkzeug berührt das Prüfstand-Abbild nicht.
 | Kommando | Zweck |
 |---|---|
 | `npm test` | Vitest-Lauf (Unit/Snapshot). Pflicht-Gate zentral in der Merge-Queue vor jeder Integration nach `main`, im Umfang der Änderungsklasse; lokal vor dem Abliefern eines Branches gute Praxis. |
-| `node scripts/gate-lauf.js ausschnitt [--basis <ref>] [--ablauf]` | Prüf-Ausschnitt der Änderungsklasse gegen die Basis des Zweigs (Epic-Zweig gegen seinen Zug-Zweig, sonst gegen `origin/main`), mit derselben Auswahl wie die Merge-Queue; der Werkzeug-Weg für Stufe 2 der Test-Strategie, auch auf Zug- und Epic-Zweigen. Ersetzt das Gate der Queue nicht. Die Umfangs-Zeile nennt die Ablauf-Pflicht der berührten Klassen; `--ablauf` fährt deren Ablauf-Prüfdateien zusätzlich als Gate `e2e (Ausschnitt)`. Ist der Ablauf-Anteil nicht am selben Produkt-Stand grün gelaufen, endet das Gate rot (Abschnitt „Änderungsklassen und Prüf-Ausschnitt", Absatz „Ablauf-Pflicht des Gates ausschnitt"). Unter Linux läuft dasselbe Gate über `node scripts/test-linux-docker.js ausschnitt`, dort ohne Prüfung des Ablauf-Nachweises (Abschnitt „Prüf-Umfang je Plattform", Absatz „Epic-Tor"). |
+| `node scripts/gate-lauf.js ausschnitt [--basis <ref>] [--ablauf]` | Prüf-Ausschnitt der Änderungsklasse gegen die Basis des Zweigs (Epic-Zweig gegen seinen Zug-Zweig, sonst gegen `origin/main`), mit derselben Auswahl wie die Merge-Queue; der Werkzeug-Weg für Stufe 2 der Test-Strategie, auch auf Zug- und Epic-Zweigen. Ersetzt das Gate der Queue nicht. Die Umfangs-Zeile nennt die Ablauf-Pflicht der berührten Klassen; `--ablauf` fährt deren Ablauf-Prüfdateien zusätzlich als Gate `e2e (Ausschnitt)`. Ist der Ablauf-Anteil nicht am selben Produkt-Stand grün gelaufen, endet das Gate rot (Abschnitt „Änderungsklassen und Prüf-Ausschnitt", Absatz „Ablauf-Pflicht des Gates ausschnitt"). Unter Linux läuft dasselbe Gate über `node scripts/test-linux-docker.js ausschnitt`, dort ohne Prüfung des Ablauf-Nachweises (Abschnitt „Prüf-Umfang je Plattform", Absatz „Epic-Tor"). Unter Windows läuft der Ablauf-Anteil nie am Bildschirm des Rechners: Der Aufruf mit `--ablauf` ist für eine Sitzung dort nicht zulässig; den abgeschirmten Weg, den Lauf in der Prüfmaschine mit anschließendem Nachweis, nennt die Tafel im Abschnitt [«Abgeschirmte Wege je Schritt»](#abgeschirmte-wege-je-schritt). |
 | `node scripts/gate-lauf.js test:uhr` | Wanduhr-Wächter: die Unit-Suite mit einer um fünf Jahre verschobenen Uhr, Bericht nach `test-berichte/unit-uhr.json`. Läuft in den vollen Gates von selbst mit (Stabilitätsregel 33). |
 | `npm run test:watch` | Vitest-Watch-Modus; `.only` ist hier erlaubt (`--allowOnly`). |
-| `npm run test:e2e` | Playwright-E2E-Lauf; baut vorher das Renderer-Bundle (`pretest:e2e`). Umfang pro Task nach Änderungsklasse (Abschnitt „Änderungsklassen und Prüf-Ausschnitt"), Voll-Suite im Release-Sammeltask. |
+| `npm run test:e2e` | Playwright-E2E-Lauf; baut vorher das Renderer-Bundle (`pretest:e2e`). Umfang pro Task nach Änderungsklasse (Abschnitt „Änderungsklassen und Prüf-Ausschnitt"), Voll-Suite im Release-Sammeltask. Unter Windows läuft dieser Schritt nie am Bildschirm des Rechners, sondern auf dem abgeschirmten Weg der Tafel im Abschnitt [«Abgeschirmte Wege je Schritt»](#abgeschirmte-wege-je-schritt). |
 | `npm run build:renderer` | Baut das Renderer-Bundle. Vorbedingung jedes direkten Playwright-Aufrufs und eigenes Gate für Renderer-Importe (Abschnitt „E2E-Praxis"). |
 | `node scripts/test-kennzahlen.js` | Schreibt die Zahl der Prüffälle beider Suiten nach `test/lauf-kennzahlen.json`, ermittelt aus deren Auflistung ohne Ausführung (rund eine Minute). Läuft als letzter Schritt der Release-Vorbereitung mit; von Hand jederzeit möglich, weil kein Test-Lauf vorausgehen muss. |
 
@@ -287,6 +297,8 @@ das Material. Das Werkzeug berührt das Prüfstand-Abbild nicht.
 ```bash
 EM4ME_PROGRAMMDATEI="C:\Pfad\zum\Projekt\dist\win-unpacked\EM4me.exe" npm run test:e2e -- test/e2e/funktionen/<prüfdatei>.spec.js
 ```
+
+Die Sitzung startet dafür nichts am Bildschirm des Rechners; solange die Tafel im Abschnitt [«Abgeschirmte Wege je Schritt»](#abgeschirmte-wege-je-schritt) keinen abgeschirmten Weg nennt, ist der Schritt für sie angehalten und wird gemeldet.
 
 ### Drei Regeln zum Umgang mit Läufen in der Release-Strecke
 
@@ -793,7 +805,10 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     `4T-001478` meldete acht grüne Fälle, die den geänderten Code nie berührt
     hatten, und `4T-001410` verbrannte rund fünfzehn Minuten und zwei
     Hypothesen an einem Diagnose-Protokoll, das leer blieb, weil der
-    instrumentierte Quelltext gar nicht lief.
+    instrumentierte Quelltext gar nicht lief. Unter Windows läuft die
+    Iteration an einer Ablauf-Prüfdatei nie am Bildschirm des Rechners,
+    sondern auf dem abgeschirmten Weg der Tafel im Abschnitt
+    [«Abgeschirmte Wege je Schritt»](#abgeschirmte-wege-je-schritt).
 
     **Durchgesetzt wird die Regel am Tor, nicht im Gedächtnis.**
     `scripts/bundle-frische.js` vergleicht die Änderungszeit des Bündels mit
@@ -1255,7 +1270,10 @@ eine Debug-Runde gekostet.
   (Stabilitätsregel 24). Der Hinweis hier bleibt
   trotzdem stehen — er nennt das Symptom, das der Wächter jetzt vorweg
   abfängt, und gilt unverändert für jeden anderen Weg, der die Anwendung
-  ohne den Helfer startet.
+  ohne den Helfer startet. Unter Windows läuft ein direkter
+  Playwright-Aufruf nie am Bildschirm des Rechners, sondern auf dem
+  abgeschirmten Weg der Tafel im Abschnitt
+  [«Abgeschirmte Wege je Schritt»](#abgeschirmte-wege-je-schritt).
 - **Der Renderer-Bau ist ein eigenes Gate.** Vitest löst fehlende
   Named-Exports lax zu `undefined` auf, esbuild bricht hart ab („No
   matching export"). Ein falsch gezogener Import läuft deshalb durch
@@ -1347,7 +1365,10 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   Betrachtung der Ausgabe ist zulässig, **nachdem** der ungekürzte Beleg
   liegt; genau das garantiert der Zugang. Frei bleibt die schnelle
   Entwicklungs-Iteration an einzelnen Prüfdateien, solange ihr Ausgang nicht
-  berichtet wird.
+  berichtet wird. Unter Windows läuft die Iteration an einer
+  Ablauf-Prüfdatei nie am Bildschirm des Rechners, sondern auf dem
+  abgeschirmten Weg der Tafel im Abschnitt
+  [«Abgeschirmte Wege je Schritt»](#abgeschirmte-wege-je-schritt).
 
   **Seit dem 2026-08-30 ist die Pflicht maschinell gedeckt** (4T-001191): Der
   Pflicht-Zugang ist nicht mehr die vorgeschriebene, sondern die **einzige**
@@ -1492,7 +1513,12 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
      Belegungs-Marke `%ProgramData%\em4me-pruefstand\belegt.json`, zählt einen
      laufenden Lauf in der Maschine als Suite-Lauf und ordnet ihn über das Feld
      `arbeitsbereich` der Marke dem eigenen oder einem fremden Arbeitsbereich
-     zu. Für den Blick auf alle Node-Prozesse bleibt
+     zu. Ebenso ist ein Linux-Ablauf-Lauf im Container
+     (`node scripts/test-linux-docker.js`) Last desselben Rechners; die
+     Erkennung fragt dafür die laufenden Container mit dem Kennzeichen
+     `em4me.lauf=linux-ablauf` ab, ordnet sie über das Kennzeichen
+     `em4me.arbeitsbereich` zu und meldet bei nicht antwortendem Docker nichts
+     dazu. Für den Blick auf alle Node-Prozesse bleibt
      als Ergänzung
      `Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -match 'vitest|playwright' }`;
      die Ausgabe nennt über `CommandLine` auch den Clone. Ist ein fremder Lauf
@@ -1503,9 +1529,14 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   2. **Gewachsene eigene Aufräum-Last.** Die Test-Datei hat Fälle bekommen, die
      je eine eigene Wegwerf-Umgebung bauen; dann reicht das voreingestellte
      Zeitlimit nicht mehr, und der Hook braucht ein eigenes (Muster
-     `AUFRAEUM_ZEITLIMIT` in `merge-queue.test.js`, `BAU_ZEITLIMIT` in
+     `hookTimeout: AUFRAEUM_ZEITLIMIT` in `merge-queue.test.js` und
+     `web-inhalte.test.js`; ein Haken, der selbst baut, trägt das Bau-Limit,
+     Muster `BAU_ZEITLIMIT` am `beforeAll` des gemeinsamen Baus in
      `web-inhalte.test.js`). Erkennbar daran, dass der Fehlschlag auch ohne
-     Fremdlast auftritt.
+     Fremdlast auftritt. Gleichwertig und vorzuziehen, wo das Löschen selbst
+     der teure Teil ist: das Aufräumen aus dem Haken nehmen und in einem
+     abgekoppelten Prozess fahren, der auch die Reste früherer Läufe mit
+     derselben Vorsilbe nach einem Tag mitnimmt (Muster `web-llms.test.js`).
 
   In **keinem** der beiden Fälle gehört der Lauf in die Flake-Quarantäne: Kein
   Test flackert, sondern eine Rahmenbedingung fehlt. Belegt am 2026-08-07 mit
@@ -2109,6 +2140,13 @@ steuern: Ein mechanischer Vorgang kann Ä7 auslösen (Umbenennung in einem
 | **Ä7 Geteilte Kern-Module** | `src/shared/**`, `src/renderer/index.html`, `src/demo/**` | **Voll-Suite unverändert** | Smoke plus alle Specs der berührten Funktionsbereiche |
 | **Ä8 Geänderte Prüffälle** | `test/unit/**/*.test.js`, `test/e2e/**/*.spec.js` | der geänderte Prüffall selbst plus `datei-groessen`, `aenderungsklassen`, `quellcode-export-listen` und `e2e-browser-rumpf`; Format und Lint | keine über die geänderte Spec hinaus |
 
+Den Ablauf-Anteil der Spalte «E2E» fährt eine Sitzung unter Windows nie am
+Bildschirm des Rechners, sondern auf dem abgeschirmten Weg der Tafel im
+Abschnitt [«Abgeschirmte Wege je Schritt»](#abgeschirmte-wege-je-schritt).
+Für den EXE-Smoke-Test startet die Sitzung nichts am Bildschirm des Rechners;
+solange die Tafel keinen abgeschirmten Weg nennt, ist der Schritt für sie
+angehalten und wird gemeldet.
+
 **Warum die Auslassungen tragen.** Für Ä1 folgt es aus den
 Ignore-Dateien: `.prettierignore` schließt `*.md` und
 `Projektmanagement/` aus, `eslint.config.js` ignoriert
@@ -2244,9 +2282,13 @@ weil sie Prüfzeit kostet und keine Deckung. Drei Zuschnitts-Entscheidungen:
 Inhalts-Hash je Datei im unversionierten Messstand
 `.git/em4me-zuordnung-messstand.json` (rund anderthalb Sekunden je Messung,
 eine bereits gemessene Fassung kostet nichts); und ein **voller Durchgang**
-(`--alle --bericht test-berichte/zuordnung-messung.json`) als dritter
-Sichtungs-Punkt in Schritt 6 der Release-Strecke, weil ein Umbau an
-Quell-Modulen die Eingaben einer ungeänderten Prüfdatei verschiebt. Außerhalb
+(`--alle --neu --bericht test-berichte/zuordnung-messung.json`) bei Anlass,
+etwa nach einem Umbau an Quell-Modulen, weil er die Eingaben einer
+ungeänderten Prüfdatei verschiebt; bis zum 2026-11-13 war er der dritte
+Sichtungs-Punkt in Schritt 6 der Release-Strecke, gestrichen auf
+Entscheidung des Product Owners vom 2026-10-27 (im Wortlaut «Bei den
+vier Kürzungsvorlagen folge ich deiner Empfehlung.», Empfehlung pauschal
+übernommen). Außerhalb
 bleiben, was kein Datei-Zugriff zeigt (Require-Kette der
 Test-Konfigurationen, Umgebungsvariablen, Wegwerf-Repositorien) und die
 E2E-Specs, deren Messung ein laufendes Programm bräuchte. Die fünf Fälle aus
@@ -2266,7 +2308,10 @@ Ordner halten als einzige fest, was in dieser Umgebung schon einmal
 schiefgegangen ist. Anlass: Beim Konsolidierungs-Release umfassten die
 Task-Ausschnitte durchgängig Smoke- und Funktions-Specs, die beiden Ordner
 aber nie; zwei echte Befunde wurden dadurch erst am E2E-Voll-Lauf der
-Abnahme sichtbar, beide in Revieren, die geschnitten worden waren.
+Abnahme sichtbar, beide in Revieren, die geschnitten worden waren. Unter
+Windows laufen diese Specs nie am Bildschirm des Rechners, sondern auf dem
+abgeschirmten Weg der Tafel im Abschnitt
+[«Abgeschirmte Wege je Schritt»](#abgeschirmte-wege-je-schritt).
 
 Die Regel steht bewusst nur hier und nicht in der Klassen-Karte: Ob ein
 Vorgang ein Struktur-Schnitt ist, ist eine Eigenschaft des Vorgangs und
@@ -2338,13 +2383,24 @@ benannten Rückfall-Fälle oben und der turnusmäßige Voll-Lauf.
 das ohnehin die strengste Stufe fährt, und beim ersten Integrationslauf
 eines Arbeitstages. Der zweite Punkt kostet höchstens 87 s je Tag und
 fängt die Fälle, in denen die Klassen-Zuordnung still veraltet ist. Das
-Release-Gate selbst bleibt unverändert Pflicht: vor Build und Tag ist die
-vollständige Suite (Unit, Snapshot und E2E-Voll-Suite) grün. **Seine
+Release-Gate selbst bleibt Pflicht: vor Build und Tag ist die vollständige
+Suite (Unit, Snapshot und E2E-Voll-Suite) grün, unter Windows seit dem
+2026-11-13 ohne die Unit-Suite, die erst im Release-Lauf der Merge-Queue
+nach dem Tag läuft (Abweichung vom bisherigen Grundsatz, Abschnitt
+„Prüf-Umfang je Plattform" unten und Release-Strecke, Kapitel 2, Schritt
+6). **Seine
 einzige Ausnahme:** Berührt der Änderungs-Umfang seit dem vorangegangenen
 Release-Tag keine Datei unter `src/` außer `src/shared/build-info.json`,
 genügen Smoke-Suite und EXE-Smoke-Test, weil die E2E-Voll-Suite gegen
 unveränderte Anwendungs-Dateien läuft und kein anderes Ergebnis liefern
-kann als beim vorangegangenen Release.
+kann als beim vorangegangenen Release. Die Smoke-Suite läuft unter Windows
+nie am Bildschirm des Rechners, sondern auf dem abgeschirmten Weg der Tafel
+im Abschnitt [«Abgeschirmte Wege je Schritt»](#abgeschirmte-wege-je-schritt);
+für den EXE-Smoke-Test startet die Sitzung nichts am Bildschirm des
+Rechners, und solange die Tafel keinen abgeschirmten Weg nennt, ist der
+Schritt für sie angehalten und wird gemeldet. Ob ein Release ohne den
+Start-Test der Sitzung in die Abnahme geht, entscheidet der
+Steuerungs-Bereich je Release.
 
 **Kein nachträglicher Voll-Lauf nach einem roten Ausschnitt.** Ein roter
 Ausschnitt ist ein Befund und wird behoben; der darauf folgende Lauf ist
@@ -2378,7 +2434,10 @@ die vollen Gates entweder «keine Ablauf-Pflicht der berührten Klassen» oder
 dem Kommando `node scripts/gate-lauf.js ausschnitt --ablauf`; sind die
 berührten Klassen nicht bekannt (Rückfall ohne Klasse, Karte unlesbar),
 heißt sie «Ablauf-Pflicht nicht ermittelbar» mit dem Kommando
-`node scripts/gate-lauf.js e2e`. Der Schalter `--ablauf` fährt den
+`node scripts/gate-lauf.js e2e`. Die Umfangs-Zeile nennt diese Kommandos
+unabhängig vom Ort des Laufs; unter Windows außerhalb der Prüfmaschine gilt
+für eine Sitzung stattdessen der Weg der Tafel im Abschnitt
+[«Abgeschirmte Wege je Schritt»](#abgeschirmte-wege-je-schritt). Der Schalter `--ablauf` fährt den
 Ablauf-Anteil als eigenes Gate `e2e (Ausschnitt)` über `npm run test:e2e`
 mit der Vereinigung der Prüfdateien aller berührten Klassen; ohne bekannte
 Klassen fährt er die vollständige Ablauf-Suite als Gate `e2e`. **Nachweis
@@ -2394,7 +2453,12 @@ herstellt; ohne bekannte Klassen gilt das fail-closed für die vollständige
 Suite. Ohne Ablauf-Pflicht entfällt die Prüfung. Grund ist die Bedingung E1
 der Release-Strecke,
 Kapitel 2: Der Epic-Abschluss-Test gilt erst mit gelaufenen
-Ablauf-Prüfungen am selben Produkt-Stand als grün.
+Ablauf-Prüfungen am selben Produkt-Stand als grün. Unter Windows läuft der
+Ablauf-Anteil nie am Bildschirm des Rechners: Der Aufruf mit `--ablauf` ist
+für eine Sitzung dort nicht zulässig, ebenso `node scripts/gate-lauf.js e2e`;
+den abgeschirmten Weg, den Lauf in der Prüfmaschine mit anschließendem
+Nachweis, nennt die Tafel im Abschnitt
+[«Abgeschirmte Wege je Schritt»](#abgeschirmte-wege-je-schritt).
 
 **Stand der Umsetzung: scharf seit dem 2026-08-14.** Die Karte aus
 Pfad-Mustern liegt als `scripts/aenderungsklassen.json` und ist die
@@ -2466,7 +2530,7 @@ Festgelegt am 2026-08-28 durch den Product Owner (Vorgang 4T-001251), auf der Gr
 
 ### Die vier Größen
 
-1. **Haupt-Plattform ist Windows.** Sie trägt die **vollständige** Suite ohne Ausnahme. Jede Prüfung, die irgendwo läuft, läuft hier. Am Stamm-Rechner fährt ihr Ablauf-Lauf seit dem 2026-10-26 in der virtuellen Maschine des Rechners (Unterabschnitt «Das Kommando», Anforderung `4S-001112`); dieser Lauf **ist** der Windows-Lauf der Release-Abnahme und kein zusätzlicher. Unit-Suite und manueller Test bleiben am Rechner.
+1. **Haupt-Plattform ist Windows.** Sie trägt die **vollständige** Suite ohne Ausnahme. In der Release-Strecke läuft ihre Unit-Suite seit dem 2026-11-13 nicht mehr in Schritt 6, sondern im Release-Lauf der Merge-Queue mit vollen Gates am endgültigen Stand (Entscheidung des Product Owners vom 2026-10-27, im Wortlaut «Bei den vier Kürzungsvorlagen folge ich deiner Empfehlung.», Empfehlung pauschal übernommen); der Umfang bleibt vollständig, nur der Ort wechselt, und weil dieser Lauf nach dem Tag liegt, fällt ein Befund allein der Windows-Unit-Suite erst nach Bau und Test-Iteration auf (Abweichung vom bisherigen Grundsatz «vollständige Suite vor dem Bau»). Jede Prüfung, die irgendwo läuft, läuft hier. Am Stamm-Rechner fährt ihr Ablauf-Lauf seit dem 2026-10-26 in der virtuellen Maschine des Rechners (Unterabschnitt «Das Kommando», Anforderung `4S-001112`); dieser Lauf **ist** der Windows-Lauf der Release-Abnahme und kein zusätzlicher. Unit-Suite und manueller Test bleiben am Rechner.
 2. **Je weiterer freigegebener Plattform läuft der vollständige Ausschnitt**, also Unit-Suite **und** E2E-Suite. Die Beschränkung auf die Unit-Suite ist ausdrücklich **verworfen**: Alle drei Produkt-Befunde des ersten Linux-Laufs am 2026-08-28 lagen in der E2E-Suite, keiner in der Unit-Suite. Wer dort kürzt, prüft genau den Teil, der ohnehin plattformneutral ist.
 3. **Der manuelle Test bleibt für Windows die Regel und findet auf weiteren Plattformen nur bei Anlass statt — und was ein Anlass ist, sagt ein benannter Auslöser-Katalog, nicht das Ermessen der Release-Sitzung** (Entscheidung des Product Owners vom 2026-09-03, Weg 3 aus `4T-001382`; bis dahin stand hier ein Prosa-Urteil, dem die Release-Strecke mit «eine Strecke je ausgelieferter Bezugs-Form» widersprach, und bei `1.125.1` entschied die Anordnung des Product Owners statt des Regelwerks). Ein Anlass liegt vor, sobald **einer** der folgenden Auslöser zutrifft: **(a)** Bau-Ziele und Bau-Konfiguration (`build/**`, `scripts/build-*.js`); **(b)** Datei-Zuordnung (Dateitypen, Protokoll-Registrierung); **(c)** Desktop-Einbindung (Menü- und Start-Einträge, Icons, Autostart); **(d)** Pfad- und Dateisystem-Verhalten des Haupt-Prozesses (plattformgebundene Zweige unter `src/main/**`, Groß-/Kleinschreibung, Symlinks, Berechtigungen); **(e)** jede Änderung am `build`-Block der `package.json`; dazu **(f)** ein Befund des automatisierten Laufs auf der Plattform, der eine Sicht-Prüfung braucht. Trifft keiner zu, genügt die Windows-Strecke, und der Sammeltask hält das mit dem geprüften Katalog fest («kein Auslöser, a bis f geprüft»). Fünf der sechs Auslöser sind am Release-Diff erkennbar; eine maschinelle Stütze ist deshalb möglich und bewusst noch nicht gebaut — erst wenn sich der Katalog an zwei Releases bewährt hat, lohnt ein Werkzeug, das die Auslöser aus dem Diff vorschlägt, und (f) bleibt ohnehin ein Urteil. Grund: Der gründliche manuelle Durchgang vom 2026-08-26 fand drei Befunde und **keinen** der drei, die die automatisierte Suite zwei Tage später fand. Beide Prüf-Arten sehen Verschiedenes; die manuelle ist die teurere und gehört dorthin, wo sie allein etwas leisten kann.
 4. **Ausgelöst wird der Lauf von jedem Release mit Produkt-Code-Anteil.** Ein Release ohne ihn kann die Plattform nicht brechen und löst deshalb keinen Lauf aus.
@@ -2509,16 +2573,18 @@ Das Werkzeug fährt **allein das Gate `e2e`**; ein anderes Gate und ein Aufruf o
 
 **Die Maschine gibt es einmal je Rechner, ein Lauf zur Zeit.** Die Slot-Clones eines Rechners teilen sie. Belegt wird sie über die Marke `%ProgramData%\em4me-pruefstand\belegt.json` mit Arbeitsbereich, Zweig, Beginn und Prozess-Kennung; ein zweiter Aufruf während eines Laufs endet mit der Belegt-Meldung, die den belegenden Bereich nennt, und Rückgabewert 2. Eine Marke, deren Prozess nicht mehr lebt, gilt als verwaist. Der Linux-Lauf im Container ist davon nicht berührt, beide laufen gleichzeitig.
 
+**Zweiter Gebrauch der Maschine: die Abnahme an einer gebauten Programmdatei** (seit dem 2026-11-21). `node scripts/abnahme-maschine.js <kommando> --belege <ordner>` bedient die Maschine von außen, Schritt für Schritt: `beginnen --vorhaben <Kennung>` belegt und setzt zurück, `datei-hinein --quelle <pfad> --pruefsumme <sha256>` bringt eine Programmdatei nur mit übereinstimmender Prüfsumme hinein, `bild` nimmt ein Bildschirmfoto der angemeldeten Sitzung auf, `eingabe` gibt Tasten, Text, Zeiger und Klick hinein, `datei-heraus` holt eine Datei in den Beleg-Ordner, `beenden` gibt frei. Jedes Kommando außer `beginnen` prüft zuerst die eigene gültige Belegung und bricht sonst mit Rückgabewert 2 ab, ohne die Maschine anzufassen. Die Belegung der Abnahme gilt fünfzehn Minuten ab dem letzten Schritt; solange sie gilt, endet `node scripts/test-windows-vm.js e2e` mit der Belegt-Meldung, die Bereich, Vorhaben und Gültigkeit nennt, und umgekehrt beginnt keine Abnahme während eines Ablauf-Laufs (`--anstellen <minuten>` wartet). Am Bildschirm des Rechners erscheint dabei nichts. Der Lauf ist kein Gate.
+
 **Rückgabewert** ist der des Gates in der Maschine, unverfälscht; ohne Urteil des Gates nie 0.
 
 **Woher der Lauf seine Dateien liest, ist nicht überall dasselbe** (seit dem 2026-08-31, Vorgang zum Rechner-Unterschied weiter unten). Die Punkte gelten dem Container, der letzte Punkt dem Lauf in der Maschine:
 
-- Das **E2E-Gate** (`e2e`), das **Unit-Gate** (`test`), das **Sammel-Gate** (`alle`) und seit dem 2026-10-14 das Gate **`ausschnitt`** laufen aus einer **Kopie im Container-Dateisystem**. Sie entsteht je Lauf neu, ohne `node_modules`, `releases`, `dist`, `test-results` und `playwright-report`, mit dem Git-Verzeichnis; `node_modules` hängt als dasselbe Volume auch unter dem Pfad der Kopie. Bevor ein Gate startet, prüft der Lauf die Kopie auf die Bäume, die seine Wächter lesen, also `src`, `test`, `scripts`, `docs`, `web`, `Projektmanagement` und das Git-Verzeichnis, und bricht ab, statt gegen einen halben Baum zu prüfen. Nach dem Lauf wandert der Maschinen-Bericht jedes Gates zurück in den Arbeitsbaum, für `test`, `alle` und `ausschnitt` also `test-berichte/unit.json` und für `e2e` die Datei `test-berichte/e2e.json`, dazu die Rot-Belege, auch nach einem roten Lauf.
+- Das **E2E-Gate** (`e2e`), das **Unit-Gate** (`test`), das **Sammel-Gate** (`alle`) und seit dem 2026-10-14 das Gate **`ausschnitt`** laufen aus einer **Kopie im Container-Dateisystem**. Sie entsteht je Lauf neu, ohne `node_modules`, `releases`, `dist`, `test-results`, `playwright-report` und seit dem 2026-11-21 ohne den nicht versionierten Ordner `Tests` der obersten Ebene (manuelles Test-Material, mitunter Gigabytes und Pfade über 260 Zeichen, von keinem automatischen Prüffall vorausgesetzt; `4T-002787`), mit dem Git-Verzeichnis; `node_modules` hängt als dasselbe Volume auch unter dem Pfad der Kopie. Bevor ein Gate startet, prüft der Lauf die Kopie auf die Bäume, die seine Wächter lesen, also `src`, `test`, `scripts`, `docs`, `web`, `Projektmanagement` und das Git-Verzeichnis, und bricht ab, statt gegen einen halben Baum zu prüfen. Nach dem Lauf wandert der Maschinen-Bericht jedes Gates zurück in den Arbeitsbaum, für `test`, `alle` und `ausschnitt` also `test-berichte/unit.json` und für `e2e` die Datei `test-berichte/e2e.json`, dazu die Rot-Belege, auch nach einem roten Lauf.
 - **Das Unit-Gate ist erst seit dem 2026-09-20 dabei** (`4T-001837`). Bis dahin blieb es auf dem Arbeitsbaum, weil seine Bestands-Wächter ihn samt Git-Verzeichnis nur einmal lesen und eine Kopie dort kein Gewinn gewesen wäre. Diese Rechnung hat das Wachstum des Webseiten-Baus gekippt: Seine vier Bau-Prüfdateien rissen im Container ihre Zeitgrenze, während dieselbe Suite unter Windows grün blieb. Damit war die Schwelle des Absatzes «Die Zeitgrenzen bleiben plattform-einheitlich» erreicht, und dessen Antwort darauf ist genau dieser Weg.
 - **Das Sammel-Gate steht aus einem eigenen Grund dabei.** Es fällt im Container als ein einziger Aufruf und hat deshalb genau einen Arbeitsordner; stünde es nicht in der Menge, liefe das Unit-Gate wieder über die Brücke, sobald jemand die Release-Abnahme mit `alle` fährt statt mit `test`. Format und Lint messen denselben Datei-Bestand, gleich aus welchem Baum sie ihn lesen.
 - **Einzeln gefahren bleiben `format:check` und `lint` auf dem Arbeitsbaum.** Sie lesen wenig und gewönnen nichts, und eine Kopie für sie allein wäre teurer als der Lauf.
 - `--ohne-kopie` stellt den alten Weg her, für alle Gates gleichermaßen. Er ist der schnellere, wenn **ein einzelner** Fall nachzuprüfen ist, weil die Kopie dann teurer wäre als der Fall selbst, und er ist der Ausweg, falls die Kopie einmal nicht trägt.
-- **Der Windows-Ablauf-Lauf in der Maschine liest immer aus einer Kopie** (seit dem 2026-10-26). Sie entsteht je Lauf neu auf der zurückgesetzten Maschine, ohne dieselben fünf Ordner wie beim Container (`node_modules`, `releases`, `dist`, `test-results`, `playwright-report`) und zusätzlich ohne die lokalen Zugangs-Dateien `*.lokal.json` im Wurzelverzeichnis, weil die Platte der Maschine anders als der Container bestehen bleibt; das Git-Verzeichnis kommt mit. Vor dem Gate prüft der Lauf die Kopie auf `package.json`, `playwright.config.js`, `src`, `test`, `scripts`, `docs`, `web`, `Projektmanagement` und das Git-Verzeichnis und bricht ab, statt gegen einen halben Baum zu prüfen. Nach dem Lauf kommen `test-berichte/e2e.json` und die Rot-Belege dieses Laufs zurück in den Arbeitsbaum, auch nach einem roten Lauf; das Protokoll meldet, ob der Bericht frisch angekommen ist. Einen Weg ohne Kopie gibt es hier nicht.
+- **Der Windows-Ablauf-Lauf in der Maschine liest immer aus einer Kopie** (seit dem 2026-10-26). Sie entsteht je Lauf neu auf der zurückgesetzten Maschine, ohne dieselben sechs Ordner wie beim Container (`node_modules`, `releases`, `dist`, `test-results`, `playwright-report` und `Tests`, jeweils nur auf der obersten Ebene) und zusätzlich ohne die lokalen Zugangs-Dateien `*.lokal.json` im Wurzelverzeichnis, weil die Platte der Maschine anders als der Container bestehen bleibt; das Git-Verzeichnis kommt mit. Vor dem Gate prüft der Lauf die Kopie auf `package.json`, `playwright.config.js`, `src`, `test`, `scripts`, `docs`, `web`, `Projektmanagement` und das Git-Verzeichnis und bricht ab, statt gegen einen halben Baum zu prüfen. Nach dem Lauf kommen `test-berichte/e2e.json` und die Rot-Belege dieses Laufs zurück in den Arbeitsbaum, auch nach einem roten Lauf; das Protokoll meldet, ob der Bericht frisch angekommen ist. Einen Weg ohne Kopie gibt es hier nicht.
 
 Wer die Aufteilung ändert, ändert den Prüfstand einer Release-Abnahme; `test/unit/test-linux-docker.test.js` und `test/unit/test-windows-vm.test.js` halten sie deshalb fest.
 
@@ -2528,7 +2594,36 @@ Wer die Aufteilung ändert, ändert den Prüfstand einer Release-Abnahme; `test/
 - **Seit dem 2026-10-11 laufen alle Gates darin, auch die kopflosen** (`4T-002243`). Das Abbild trägt Git aus dem Paket-Archiv der Git-Betreuer (`ppa:git-core/ppa`) und prüft beim Bau, dass die Fassung mindestens 2.36 ist. Grund: Das Referenz-Abbild bringt mit Ubuntu 22.04 Git 2.34.1 mit, Werkzeuge der Integrations-Strecke lesen Zusammenführungs-Commits aber mit `--remerge-diff`, das es erst ab Git 2.36 gibt; im Referenz-Abbild schlugen dadurch Prüffälle fehl, ohne dass am Bestand etwas falsch war. Die Prüfumgebung trägt damit dieselbe Werkzeug-Fassung wie die Arbeitsumgebung. Ohne Tag des Prüfstand-Abbilds startet das Werkzeug keinen Lauf, auch keinen kopflosen.
 - **Das Tag heißt `em4me-pruefstand:<hash>`**, gebildet aus dem Inhalt des Dockerfiles, der Playwright-Version aus `package-lock.json` und der ID des Referenz-Abbilds. Ein Playwright-Sprung, eine Änderung am Rezept oder ein neu gezogenes Referenz-Abbild ergibt damit ein neues Tag und beim nächsten Lauf einen neuen Bau, ohne dass jemand daran denken muss; ein bestehendes Tag wird nie überschrieben.
 - **Größenordnung** (2026-09-23, SC-027, ein einzelner Fall mit `e2e --nur`): mit `--ohne-install --ohne-kopie` 13 s Wanduhr bei 3 s Rüstzeit bis zum ersten Gate; ohne Schalter 20 s Wanduhr bei 16 s Rüstzeit, davon 13 s für die Kopie. Jeder Lauf nennt seine Rüstzeit in der Zeile «Ruestzeit bis zum ersten Gate».
-- **Alte Tags räumt das Werkzeug bewusst nicht auf**, weil die Arbeitsbereiche eines Rechners auf Zweigen mit verschiedenen Playwright-Ständen arbeiten können und ein Bau in einem Bereich das Abbild eines anderen nicht entfernen darf. Ein Tag belegt rund 650 MB über dem Referenz-Abbild. Von Hand: `docker image ls em4me-pruefstand` zeigt die vorhandenen Tags samt Alter (die Playwright-Version steht im Label `em4me.playwright`, sichtbar über `docker image inspect <tag>`), und `docker image rm em4me-pruefstand:<hash>` entfernt ein nicht mehr benötigtes; ein Tag, das gerade ein Container benutzt, lehnt Docker dabei ab.
+- **Alte Tags räumt das Werkzeug bewusst nicht auf**, weil die Arbeitsbereiche eines Rechners auf Zweigen mit verschiedenen Playwright-Ständen arbeiten können und ein Bau in einem Bereich das Abbild eines anderen nicht entfernen darf. Was ein Tag über dem Referenz-Abbild belegt, wächst mit dem Rezept: gemessen am 2026-11-21 mit `docker image inspect` 3,68 GB für das Tag mit Browser gegen 1,60 GB für das Referenz-Abbild, also rund 2,1 GB darüber (das Tag davor ohne Browser 2,72 GB). Von Hand: `docker image ls em4me-pruefstand` zeigt die vorhandenen Tags samt Alter (die Playwright-Version steht im Label `em4me.playwright`, sichtbar über `docker image inspect <tag>`), und `docker image rm em4me-pruefstand:<hash>` entfernt ein nicht mehr benötigtes; ein Tag, das gerade ein Container benutzt, lehnt Docker dabei ab.
+- **Seit dem 2026-11-21 trägt das Abbild den Chromium-Browser von Playwright** (Anforderung `4S-001237`: kein Browser-Start direkt unter Windows, auch nicht ohne Fenster). Er liegt unter `/ms-playwright`, für beide Nutzer lesbar, in der Playwright-Fassung aus `package-lock.json`; die Umgebungsvariable `PLAYWRIGHT_BROWSERS_PATH` des Abbilds lenkt Playwright aus dem `node_modules`-Volume dorthin. Gemessen am 2026-11-21 auf SC-027: Bau des neuen Tags 90 s auf den zwischengespeicherten Schichten; die Browser-Schicht belegt 957 MB (`docker system df -v`, eigener Anteil des Tags), das Abbild wächst damit von 2,72 GB auf 3,68 GB. Damit hängen drei Dinge am Container:
+  - **Die beiden Browser-Prüffälle der Unit-Suite** (echtes Diagramm-Rendern in `test/unit/web-mermaid.test.js`, Suche der Handbuch-Webseite in `test/unit/web-handbuch.test.js`) laufen nur, wo die Sperre `scripts/start-sperre.js` den Browser-Start erlaubt: im Container und in der Windows-Prüfmaschine (im öffentlichen Quellcode-Export ist die Sperre aus, beide Prüfdateien gehören dort aber nicht dazu). Am Windows-Rechner werden sie übersprungen; gelaufen sind sie erst im Bericht eines Container-Laufs (`node scripts/test-linux-docker.js test`). In der Integrations-Schlange laufen sie damit nicht mehr.
+  - **Der Diagramm-Schritt des Webseiten-Baus** (`npm run web:build`, Auslieferung) fährt unter Windows außerhalb der Prüfmaschine seinen Kindprozess `node scripts/web-mermaid.js --rendere` im Prüfstand-Abbild, den Arbeitsbaum und das `node_modules`-Volume des Prüfstands nur lesend eingehängt; das Diagramm-Bündel entsteht vorher am Rechner. Der Webseiten-Bau braucht unter Windows deshalb den Container-Dienst. Ist er nicht erreichbar, endet der Bau mit Meldung samt Handgriff; einen Rückfall auf den Browser am Rechner gibt es nicht. Größenordnung am 2026-11-21: 20 Diagramme in rund 7 s, davon rund 2 s Container-Start.
+  - **Passt das `node_modules`-Volume nicht mehr zum Stand** (etwa nach einem Playwright-Sprung), scheitert der Diagramm-Schritt mit der Ursache aus dem Container; ein Lauf von `node scripts/test-linux-docker.js test` bringt das Volume auf Stand, weil der Diagramm-Schritt selbst nichts installiert.
+
+### Abgeschirmte Wege je Schritt
+
+Keine Sitzung und kein Hilfsagent startet am Bildschirm eines Arbeitsrechners die Anwendung, eine Ablauf-Prüfung, einen Browser oder ein anderes Werkzeug, das ein Fenster öffnet oder Maus und Tastatur berührt (Regel «Nichts am Bildschirm des Rechners» in der [Leitdatei](../CLAUDE.md#automatisierte-tests), Abschnitt «Automatisierte Tests», Anforderung `4S-001237`). Die Tafel sagt je Schritt, welcher abgeschirmte Weg ihn trägt; Stand 2026-11-21. Wer einen Weg baut oder ändert, zieht die Tafel im selben Vorgang nach.
+
+| Schritt | Abgeschirmter Weg | Stand |
+|---|---|---|
+| Vollständige Ablauf-Suite unter Windows | `node scripts/test-windows-vm.js e2e` | besteht |
+| Einzelne Ablauf-Prüfdatei unter Windows | `node scripts/test-windows-vm.js e2e --nur <muster>`, ein Muster je Lauf | besteht |
+| Ablauf-Suite oder einzelne Ablauf-Prüfdatei unter Linux | `node scripts/test-linux-docker.js e2e`, mit `--nur <muster>` für einen Fall | besteht |
+| Ausschnitt eines Vorhabens unter Linux (Abschluss-Test am Epic-Tor) | `node scripts/test-linux-docker.js ausschnitt`; den Ablauf-Nachweis prüft der Container nicht | besteht |
+| Ablauf-Anteil des Ausschnitts unter Windows mit Nachweis (Abschluss-Test eines Vorhabens) | vollständiger Lauf in der Prüfmaschine (`node scripts/test-windows-vm.js e2e`), danach `node scripts/gate-lauf.js ausschnitt` am Rechner, das den Nachweis aus dem Bericht dieses Laufs liest; der Produkt-Stand darf sich zwischen beiden nicht ändern | besteht als Übergang, im Betrieb noch nicht belegt; erkennt das Gate den Lauf nicht an, ist der Schritt angehalten und wird gemeldet. Wer den Übergang zuerst geht, hält das Ergebnis im Vorgang fest |
+| Prüfung gegen die gebaute Programmdatei und Start-Test nach dem Bau | keiner | angehalten; ob ein Release ohne den Start-Test der Sitzung in die Abnahme geht, entscheidet der Steuerungs-Bereich je Release. Die Abnahme an der gebauten Programmdatei selbst ist nicht berührt |
+| Bildschirmfotos der Webseite | keiner | angehalten; die Auslieferung fährt bis dahin mit `--ohne-fotos`, ein Release mit Bedarf an neuen Bildschirmfotos wird dem Steuerungs-Bereich vorab gemeldet |
+| Hilfe für einen blockierten Anzeige-Prozess | keiner | angehalten |
+| Prüffälle mit Browser ohne Fenster | `node scripts/test-linux-docker.js test`; am Windows-Rechner werden sie übersprungen | besteht |
+| Diagramm-Schritt des Webseiten-Baus | der Bau gibt den Schritt unter Windows selbst in den Container | besteht |
+| Start der Anwendung durch eine Sitzung (`npm start`, `npm run dev`, Doppelklick auf eine Programmdatei) | keiner vorgesehen | nicht zulässig |
+| Bau der Programmdateien, Einzel-Prüfungen ohne Browser, Format, Lint | am Rechner | nicht betroffen |
+
+Ein Schritt mit dem Stand «angehalten» wird nicht ausgeführt: Die Sitzung meldet ihn dem Steuerungs-Bereich und arbeitet an etwas anderem weiter; sie startet nichts am Rechner.
+
+Die Prüfmaschine eines Rechners steht jedem Arbeitsbereich dieses Rechners offen, nicht nur dem Stamm-Clone. Sie fährt einen Lauf zur Zeit; ein zweiter Aufruf nennt den belegenden Bereich, und wer sie belegt findet, arbeitet an etwas anderem weiter, statt zu warten oder auf den Rechner auszuweichen (Festlegung des Steuerungs-Bereichs vom 2026-11-21 in seinen Aufträgen an die Arbeitsbereiche).
+
+Nicht berührt ist, was der Auftraggeber selbst an seinem Bildschirm startet und prüft.
 
 ### Gemessene Größenordnungen (2026-08-28, SC-027 Slot B)
 

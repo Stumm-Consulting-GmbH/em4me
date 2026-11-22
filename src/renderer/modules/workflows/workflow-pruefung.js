@@ -17,7 +17,14 @@
 // Registrierung entfällt die jeweilige Prüfung, wie der Kern es vorsieht.
 // Seit 4T-002544 ebenso die Rückfragen `dbTable` und `dbQuery` nach Tabellen,
 // Feldern und Abfrage-Dateien (`workflow-db-rueckfrage.js`), dazu der
-// Schalter der Erweiterung «Datenbank» als `databaseEnabled`.
+// Schalter der Erweiterung «Datenbank» als `databaseEnabled`. Seit 4T-002692
+// kommt die Rückfrage `dbFile` hinzu (Tabellen-Datei oder Karteikarte).
+//
+// **Hinweise** (4T-002692): Die Stufe «Hinweis» des Prüfers (`analyse.hints`)
+// zeigt die Kopfzeile nach den Befunden, mit eigenem Vorspann «Hinweis zu
+// Zeile N» statt «Zeile N». Ohne Befund bleibt die Aussage `ok` und damit grün,
+// beginnt mit «bereit» und trägt `hinweis: true`; ein Hinweis macht die
+// Kopfzeile nie rot, weil er nichts sperrt. Texte unter `workflow.hinweis.<code>`.
 //
 // **Texte:** Der Kern liefert Codes, die Texte liegen im Fragment
 // `src/i18n/fragments/<code>/workflows.json` unter `workflow.befund.<code>`.
@@ -31,18 +38,27 @@ import { t } from '../../i18n.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { isPerspectiveScriptsEnabled } from '../query/perspective-script-view.js';
 
-const RUECKFRAGEN = ['isKnownCommand', 'isKnownMacro', 'isKnownWorkflow', 'dbTable', 'dbQuery'];
+const RUECKFRAGEN = [
+  'isKnownCommand',
+  'isKnownMacro',
+  'isKnownWorkflow',
+  'dbTable',
+  'dbQuery',
+  // 4T-002692: Tabellen-Datei oder Karteikarte für die Stufe «Hinweis».
+  'dbFile',
+];
 // Die Kommando-Kennungen liest die Prüfung selbst aus der Registry (ein
 // prozess-neutrales Modul, kein Zyklus); dynamische Kommandos stehen dort mit.
 const kommandoBekannt = (id) => COMMANDS.some((c) => c.id === id);
 const rueckfragen = { isKnownCommand: kommandoBekannt };
 
 /**
- * Nimmt Rückfragen des Kerns entgegen; nur Funktionen unter den drei
- * bekannten Namen werden übernommen, eine fehlende bleibt unverändert.
+ * Nimmt Rückfragen des Kerns entgegen; nur Funktionen unter den bekannten
+ * Namen aus `RUECKFRAGEN` werden übernommen, eine fehlende bleibt unverändert.
  *
  * @param {{isKnownCommand?: Function, isKnownMacro?: Function,
- *   isKnownWorkflow?: Function}} fragen
+ *   isKnownWorkflow?: Function, dbTable?: Function, dbQuery?: Function,
+ *   dbFile?: Function}} fragen
  */
 export function registriereRueckfragen(fragen) {
   for (const name of RUECKFRAGEN) {
@@ -150,6 +166,21 @@ export function befundZeile(befund) {
 }
 
 /**
+ * Eine Zeile der Prüf-Anzeige zu einem Hinweis (4T-002692): «Hinweis zu Zeile
+ * N» und der Text unter `workflow.hinweis.<code>`.
+ *
+ * @param {{code: string, line: number, detail?: object}} hinweis
+ * @returns {string}
+ */
+export function hinweisZeile(hinweis) {
+  const vorlage = text(`workflow.hinweis.${hinweis.code}`);
+  if (vorlage === null)
+    console.warn(`[Workflows] Kein Text für den Hinweis-Code '${hinweis.code}'.`);
+  const grund = vorlage === null ? hinweis.code : einsetzen(vorlage, hinweis.detail || {});
+  return einsetzen(t('workflow.pruefung.hinweisZeile'), { line: hinweis.line, grund });
+}
+
+/**
  * Die Befunde, die über dem Block mit dieser Zaun-Zeile stehen: Der Hinweis auf
  * mehrere Blöcke nur über seinem eigenen Block, alle übrigen über jedem.
  *
@@ -166,19 +197,26 @@ export function befundeFuerBlock(analyse, zaunZeile) {
 /**
  * Was die Kopfzeile über einem Block sagt (Entscheidung der Sitzung vom
  * 2026-10-23, E5): «bereit» oder der erste Befund mit «(+N weitere)», dazu die
- * vollständige Liste für den Hinweis beim Darüberfahren.
+ * vollständige Liste für den Hinweis beim Darüberfahren. Seit 4T-002692 folgen
+ * die Hinweise des Prüfers den Befunden in der Liste; ohne Befund heißt es
+ * «bereit; Hinweis zu Zeile N: …», und die Aussage bleibt `ok`.
  *
  * @param {object} analyse Ergebnis von `pruefeWorkflow`.
  * @param {number} zaunZeile Zeile der öffnenden Zaun-Zeile im Dokument.
- * @returns {{ok: boolean, text: string, liste: string[]}}
+ * @returns {{ok: boolean, text: string, liste: string[], hinweis?: boolean}}
  */
 export function kopfAussage(analyse, zaunZeile) {
   const befunde = befundeFuerBlock(analyse, zaunZeile);
-  if (befunde.length === 0) return { ok: true, text: t('workflow.pruefung.bereit'), liste: [] };
-  const liste = befunde.map(befundZeile);
+  const hinweise = (analyse.hints || []).map(hinweisZeile);
+  if (befunde.length === 0 && hinweise.length === 0) {
+    return { ok: true, text: t('workflow.pruefung.bereit'), liste: [] };
+  }
+  const liste = [...befunde.map(befundZeile), ...hinweise];
   const weitere =
-    befunde.length > 1
-      ? ` ${einsetzen(t('workflow.pruefung.weitere'), { n: befunde.length - 1 })}`
+    liste.length > 1
+      ? ` ${einsetzen(t('workflow.pruefung.weitere'), { n: liste.length - 1 })}`
       : '';
-  return { ok: false, text: `${liste[0]}${weitere}`, liste };
+  if (befunde.length > 0) return { ok: false, text: `${liste[0]}${weitere}`, liste };
+  const bereit = einsetzen(t('workflow.pruefung.bereitMitHinweis'), { hinweis: liste[0] });
+  return { ok: true, hinweis: true, text: `${bereit}${weitere}`, liste };
 }

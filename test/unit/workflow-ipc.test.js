@@ -446,7 +446,7 @@ describe('Pflege-Befehle über workflow:step', () => {
 // Abfrage-Dateien für die Rückfrage des Prüfers.
 describe('workflow:dbCatalog', () => {
   const FENCE = '```';
-  function datenbankWelt({ an = true, bereit = true } = {}) {
+  function datenbankWelt({ an = true, bereit = true, kartei = false } = {}) {
     return welt({
       extra: (root) => {
         const tabelle = path.join(root, 'Daten', 'Rechnungen.md');
@@ -475,6 +475,23 @@ describe('workflow:dbCatalog', () => {
           ]),
           files: new Map(),
         };
+        // 4T-002692: eine Kartei-Tabelle mit einer Karteikarte, wie der Index sie
+        // führt (`recordsPerFile` mit `kartei`, karteikarten-erfassung.js).
+        if (kartei) {
+          const karteiTabelle = path.join(root, 'Authors', 'Authors.md');
+          fs.mkdirSync(path.dirname(karteiTabelle), { recursive: true });
+          fs.writeFileSync(
+            karteiTabelle,
+            '---\ndb-table:\n  storage: cards\n  fields:\n    - name: born\n      type: string\n---\n',
+          );
+          sicht.dbKindsPerFile.set(karteiTabelle, ['table']);
+          sicht.recordsPerFile = new Map([
+            [
+              path.join(root, 'Authors', 'Umberto Eco.md'),
+              [{ id: 'r-00001', kartei: karteiTabelle }],
+            ],
+          ]);
+        }
         return {
           datenbankAktiv: () => an,
           backlinks: {
@@ -493,7 +510,14 @@ describe('workflow:dbCatalog', () => {
     expect(res).toEqual({
       ok: true,
       enabled: true,
-      tables: [{ name: 'Rechnungen', path: 'Daten/Rechnungen.md', fields: ['nummer', 'status'] }],
+      tables: [
+        {
+          name: 'Rechnungen',
+          path: 'Daten/Rechnungen.md',
+          fields: ['nummer', 'status'],
+          storage: 'table',
+        },
+      ],
       queries: [
         { path: 'Abfragen/Kaputt.md', state: 'invalid' },
         {
@@ -505,6 +529,26 @@ describe('workflow:dbCatalog', () => {
         },
       ],
     });
+  });
+
+  // 4T-002692: Ablage-Form und Karteikarten je Tabelle für den Hinweis des Prüfers (AK7).
+  it('nennt je Tabelle die Ablage-Form und bei einer Kartei-Tabelle ihre Karteikarten', async () => {
+    const res = await datenbankWelt({ kartei: true }).rufe('workflow:dbCatalog');
+    expect(res.tables).toEqual([
+      {
+        name: 'Authors',
+        path: 'Authors/Authors.md',
+        fields: ['born'],
+        storage: 'cards',
+        cards: ['Umberto Eco.md'],
+      },
+      {
+        name: 'Rechnungen',
+        path: 'Daten/Rechnungen.md',
+        fields: ['nummer', 'status'],
+        storage: 'table',
+      },
+    ]);
   });
 
   it('antwortet bei ausgeschalteter Datenbank mit leeren Listen', async () => {

@@ -32,6 +32,11 @@ const { pruefregelnRegel } = require('../../src/main/database/record-regel-pruef
 const { berechtigungRegel } = require('../../src/main/database/record-regel-berechtigung.js');
 const { liesDatensatz } = require('../../src/main/database/datensatz-auskunft.js');
 const { runWorkflow } = require('../../src/shared/workflows/workflow-runner.js');
+// 4T-002690: der Text-Befehl auf dasselbe Feld, mit dem Urteil der Datenbank.
+const {
+  createWorkflowContentSteps,
+} = require('../../src/main/workflows/workflow-content-steps.js');
+const { erzeugeKarteiWeichen } = require('../../src/main/database/kartei-weichen.js');
 
 let tmpDirs = [];
 let verwaltungen = [];
@@ -657,5 +662,68 @@ describe('Index auf dem Stand der eigenen Schreibvorgänge (4T-002545, Nachtrag 
     expect(w.trageDateienNach.mock.calls[1][1].map((p) => path.resolve(p))).toEqual([
       path.resolve(w.library),
     ]);
+  });
+});
+
+// 4T-002690 (Befund 23, AK6): `db-update` ändert ein Feld einer Karteikarte
+// über die geprüfte Schreib-Schnittstelle — mit Prüfregel und Änderungsbeleg —,
+// während `set-property` auf dasselbe Feld als Text-Befehl anhält. Damit steht
+// der Ersatz-Befehl, den der Halt-Satz nennt, belegt fest.
+describe('db-update an einer Karteikarte statt set-property (4T-002690, AK6)', () => {
+  const MIT_REGEL = AUTOREN.replace(
+    '    - name: ort\n      required: true',
+    '    - name: ort\n      required: true\n      check:\n        rule: \'value != "Nirgends"\'\n        message: Kein Ort.',
+  );
+
+  it('ändert das Feld mit Beleg, weist eine verletzte Prüfregel ab; set-property hält', async () => {
+    const w = welt({ tabellen: { 'Autoren/Autoren.md': MIT_REGEL } });
+    expect((await w.lauf(anlegen('Autoren', { name: 'Alan', ort: 'Wilmslow' }))).ok).toBe(true);
+    const karte = path.join(w.wurzel, 'Autoren', 'Alan.md');
+    const vorher = dateienUnter(w.wurzel);
+    const geaendert = await w.lauf(aendern('Autoren', 'r-00001', { ort: 'Manchester' }));
+    expect(geaendert).toMatchObject({ ok: true, record: 'r-00001', effect: { table: 'Autoren' } });
+    expect(lies(karte)).toContain('ort: Manchester');
+    const nachher = dateienUnter(w.wurzel);
+    const beleg = path.join('Autoren', 'Alan.mddl');
+    expect(nachher[beleg]).not.toBe(vorher[beleg]);
+    expect(nachher[beleg]).toContain('Manchester');
+    // Die Prüfregel der Schnittstelle wirkt: abgewiesen, Karte unverändert.
+    const abgewiesen = await w.lauf(aendern('Autoren', 'r-00001', { ort: 'Nirgends' }));
+    expect(abgewiesen).toMatchObject({ ok: false, code: 'dbRejected' });
+    expect(abgewiesen.detail.lagen[0].naht).toMatchObject({
+      code: 'regelPruefregelVerletzt',
+      feld: 'ort',
+    });
+    expect(lies(karte)).toContain('ort: Manchester');
+    // Derselbe Wunsch als Text-Befehl hält und nennt das Feld.
+    const textBefehle = createWorkflowContentSteps({
+      windows: new Map(),
+      backlinks: { bufferTextFor: () => null, bufferOwnerFor: () => null },
+      resolveHistoryFor: async () => ({ effective: false }),
+      recordMddOnSave: async () => {},
+      bufferRequests: { request: async () => ({ ok: false, code: 'bufferUnavailable' }) },
+      datenbankAktiv: () => true,
+      karteiWeichen: erzeugeKarteiWeichen({
+        schreibSchnittstelle: { fuehreAuftragAus: async () => ({ ok: false }) },
+        erweiterungAktiv: () => true,
+        fsp,
+      }),
+    });
+    const halt = await textBefehle.runContentStep(
+      { root: w.wurzel, owner: {}, event: { sender: { id: 7 } }, workflowAbs: karte },
+      {
+        line: 5,
+        keyword: 'set-property',
+        args: ['Autoren/Alan.md', 'ort', 'Leeds'],
+        source: null,
+        position: null,
+      },
+    );
+    expect(halt).toMatchObject({
+      ok: false,
+      code: 'dbFieldByText',
+      detail: { field: 'ort', table: 'Autoren', command: 'set-property' },
+    });
+    expect(lies(karte)).toContain('ort: Manchester');
   });
 });

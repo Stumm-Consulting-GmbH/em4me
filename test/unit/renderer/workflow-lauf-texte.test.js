@@ -44,6 +44,10 @@ const QUELLEN = [
   'src/main/ipc/workflows.js',
   'src/main/workflows/workflow-file-steps.js',
   'src/main/workflows/workflow-content-steps.js',
+  // 4T-002689: der Schreibweg geteilter Dokumente (partsMissing).
+  'src/main/workflows/workflow-platten-schreibweg.js',
+  // 4T-002690: das Urteil der Datenbank vor den Schreibwegen der Text-Befehle.
+  'src/main/workflows/workflow-db-urteil.js',
   // 4T-002424: die Pflege-Befehle delete und complete-task.
   'src/main/workflows/workflow-maintenance-steps.js',
   'src/main/workflows/workflow-buffer-requests.js',
@@ -165,6 +169,25 @@ describe('Texte des Hinweises (AK7)', () => {
     );
   });
 
+  // 4T-002689 (AK7): Fehlt ein Teil eines geteilten Dokuments, nennt der Halt
+  // Pfad und Position und sagt, dass nichts geschrieben wurde.
+  it('fehlender Teil mit Pfad und Position', () => {
+    const e = {
+      status: 'failed',
+      workflow: 'Teil-Probe',
+      line: 2,
+      code: 'partsMissing',
+      detail: { path: 'Notizen.md', teile: '2' },
+    };
+    // 4T-002692 (Teil c): für einen und für mehrere Teile derselbe Satz.
+    expect(abbruchText(e)).toBe(
+      "Workflow ‹Teil-Probe› abgebrochen in Zeile 2: 'Notizen.md' besteht aus mehreren Teilen, von denen nicht alle vorhanden sind (fehlend: 2); nichts geschrieben",
+    );
+    expect(grundText({ code: 'partsMissing', detail: { path: 'Notizen.md', teile: '2, 3' } })).toBe(
+      "'Notizen.md' besteht aus mehreren Teilen, von denen nicht alle vorhanden sind (fehlend: 2, 3); nichts geschrieben",
+    );
+  });
+
   it('Abbruch ohne Zeile', () => {
     expect(abbruchText({ status: 'failed', workflow: 'X', line: null, code: 'notWorkflow' })).toBe(
       'Workflow ‹X› abgebrochen: Kein Workflow; im Dateikopf fehlt workflow: true',
@@ -283,5 +306,109 @@ describe('Ereignis in Worten und Herkunft «Ereignis»', () => {
     expect(ereignisHerkunft({ type: 'area-opened' })).toBe('Ereignis: Bereich geöffnet');
     expect(ereignisHerkunft(null)).toBe('Ereignis');
     expect(ereignisHerkunft({ type: 'unbekannt', file: 'a.md' })).toBe('Ereignis');
+  });
+});
+
+// 4T-002692 (Teil c, Te der Konzept-Runde 4T-002673): die Halt-Sätze der
+// Text- und Datei-Befehle in Dateien der Datenbank, gegengelesen in allen fünf
+// Sprachen. Die Sätze zu Datensätzen und Feldern nennen Tabelle bzw. Feld und
+// den Befehl, der zum Ziel führt; der Aufbau-Satz verweist auf die Änderung von
+// Hand und nennt kein Recht.
+describe('Halt-Sätze der Datenbank-Regeln (4T-002692)', () => {
+  const SPRACHEN = [
+    ['de', de],
+    ['en', en],
+    ['fr', fr],
+    ['es', es],
+    ['it', it_],
+  ];
+  const satz = (katalog, code) => katalog[`workflow.fehlschlag.${code}`];
+
+  it('Datensätze: Tabelle, die drei Datenbank-Befehle und der auslösende Befehl', () => {
+    expect(
+      grundText({ code: 'dbRecordsByText', detail: { table: 'Library', command: 'append' } }),
+    ).toBe(
+      "Die Datensätze der Tabelle 'Library' ändert ein Workflow mit den Datenbank-Befehlen db-create, db-update und db-delete, nicht mit append",
+    );
+  });
+
+  it('Feld und Kennung einer Karteikarte: Feld bzw. Tabelle und der passende Befehl', () => {
+    expect(
+      grundText({ code: 'dbFieldByText', detail: { field: 'born', command: 'set-property' } }),
+    ).toBe(
+      "Das Feld 'born' der Karteikarte ändert ein Workflow mit db-update, nicht mit set-property",
+    );
+    expect(
+      grundText({ code: 'dbRecordIdByText', detail: { table: 'Authors', command: 'replace' } }),
+    ).toContain("Tabelle 'Authors'");
+  });
+
+  it.each(SPRACHEN)('%s: jeder Satz trägt seine Platzhalter und seinen Befehl', (_, k) => {
+    const erwartet = {
+      dbRecordsByText: ['{table}', '{command}', 'db-create', 'db-update', 'db-delete'],
+      dbFieldByText: ['{field}', '{command}', 'db-update'],
+      dbRecordIdByText: ['{table}', '{command}', 'db-create', 'db-delete'],
+      dbStructureByText: ['{table}'],
+      dbCardLeavesTable: ['{path}', '{table}', 'db-delete', 'db-create'],
+      dbRecordIntoTable: ['{path}', '{table}', 'db-create'],
+      dbCardRenamedAway: ['{path}', '{table}', '{name}', 'db-delete'],
+      dbRecordRenamedIn: ['{path}', '{table}', '{name}', 'db-create'],
+      partsMissing: ['{path}', '{teile}'],
+    };
+    for (const [code, teile] of Object.entries(erwartet)) {
+      for (const teil of teile) expect(satz(k, code), `${code}: ${teil}`).toContain(teil);
+      // Namen in einfachen Anführungszeichen, ohne Punkt am Ende wie die Nachbarn.
+      expect(satz(k, code), code).not.toMatch(/"|\.$/);
+    }
+  });
+
+  it.each(SPRACHEN)(
+    '%s: Aufbau und Steckbrief verweisen auf Hand, ohne Rolle und Recht',
+    (l, k) => {
+      const HAND = { de: 'von Hand', en: 'by hand', fr: 'à la main', es: 'a mano', it: 'a mano' };
+      const RECHT = {
+        de: /Rolle|Recht|Erlaubnis/,
+        en: /role|permission|right/i,
+        fr: /rôle|autorisation|droit/i,
+        es: /rol|permiso|derecho/i,
+        it: /ruolo|autorizzazione|diritto/i,
+      };
+      for (const code of ['dbStructureByText', 'dbProfileByText']) {
+        expect(satz(k, code), code).toContain(HAND[l]);
+        expect(satz(k, code), code).not.toMatch(RECHT[l]);
+      }
+    },
+  );
+
+  // Zweitblick Runde 1, Nr. 1, und Runde 2, Nr. 1: Der Hinweis zur Karteikarte
+  // nennt db-update für die Felder und sagt in jeder Sprache, dass ein Workflow
+  // die Kennung gar nicht ändert, wie der Halt-Satz dbRecordIdByText.
+  const KENNUNG_NICHT = {
+    de: 'ihre Datensatz-Kennung gar nicht',
+    en: 'does not change its record identifier at all',
+    fr: 'ne modifie pas du tout son identifiant',
+    es: 'no cambia en absoluto su identificador',
+    it: "non ne modifica affatto l'identificativo",
+  };
+  const stimmtMitKennung = (l, satz) =>
+    typeof satz === 'string' && satz.includes('db-update') && satz.includes(KENNUNG_NICHT[l]);
+  // Rot-Probe: der Wortlaut der Runde 1 («Felder und Kennung mit db-update»).
+  const ALT_RUNDE_1 = {
+    de: "Diese Datei ist eine Karteikarte der Tabelle '{table}': Ihre Felder und ihre Kennung ändert ein Workflow mit db-update statt mit einem Text-Befehl; freier Text bleibt möglich",
+    en: "This file is a card of the table '{table}': a workflow changes its fields and its identifier with db-update instead of a text command; free text remains possible",
+    fr: "Ce fichier est une fiche de la table '{table}' : un workflow modifie ses champs et son identifiant avec db-update plutôt qu'avec une commande de texte ; le texte libre reste possible",
+    es: "Este archivo es una ficha de la tabla '{table}': un workflow cambia sus campos y su identificador con db-update en lugar de con un comando de texto; el texto libre sigue siendo posible",
+    it: "Questo file è una scheda della tabella '{table}': un workflow ne modifica campi e identificativo con db-update invece che con un comando di testo; il testo libero resta possibile",
+  };
+
+  it.each(SPRACHEN)('%s: die Hinweise stimmen mit den Halt-Sätzen überein', (l, k) => {
+    const karte = k['workflow.hinweis.recordCard'];
+    expect(stimmtMitKennung(l, karte), karte).toBe(true);
+    expect(stimmtMitKennung(l, ALT_RUNDE_1[l]), 'Rot-Probe Runde 1').toBe(false);
+    const tabelle = k['workflow.hinweis.tableFile'];
+    for (const teil of ['{table}', 'db-create', 'db-update', 'db-delete']) {
+      expect(tabelle, teil).toContain(teil);
+    }
+    for (const satz of [karte, tabelle]) expect(satz).not.toMatch(/"|\.$/);
   });
 });

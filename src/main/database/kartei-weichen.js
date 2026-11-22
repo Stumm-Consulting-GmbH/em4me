@@ -117,7 +117,7 @@ function abgewiesen(ergebnis) {
  * @param {() => boolean} deps.erweiterungAktiv Schalter der Erweiterung «Datenbank».
  * @param {object} deps.fsp Dateizugriff (`readFile`).
  * @returns {{karteikarteVon: Function, loescheKarteikarte: Function,
- *   kopierHandlung: Function}}
+ *   kopierHandlung: Function, karteiTabelleIn: Function}}
  */
 function erzeugeKarteiWeichen({ schreibSchnittstelle, erweiterungAktiv, fsp }) {
   if (!schreibSchnittstelle || typeof schreibSchnittstelle.fuehreAuftragAus !== 'function')
@@ -126,6 +126,17 @@ function erzeugeKarteiWeichen({ schreibSchnittstelle, erweiterungAktiv, fsp }) {
     throw new TypeError('erzeugeKarteiWeichen: erweiterungAktiv ist Pflicht');
   if (!fsp || typeof fsp.readFile !== 'function')
     throw new TypeError('erzeugeKarteiWeichen: fsp ist Pflicht und muss readFile tragen');
+
+  // 4T-002691 (Epic 3E-000415, Tc a): die optionale Naht der Lauf-Marke. Ein
+  // Workflow reicht `vorSchreiben` mit, damit eine Karte, die er über die Weiche
+  // anlegt, keinen Ereignis-Workflow auslöst. Ohne Angabe ruft die Weiche die
+  // Schnittstelle wie bisher mit zwei Argumenten; für das Panel ändert sich nichts.
+  function fuehreAus(bereichsWurzel, auftrag, optionen) {
+    const vorSchreiben = optionen ? optionen.vorSchreiben : undefined;
+    if (typeof vorSchreiben !== 'function')
+      return schreibSchnittstelle.fuehreAuftragAus(bereichsWurzel, auftrag);
+    return schreibSchnittstelle.fuehreAuftragAus(bereichsWurzel, auftrag, { vorSchreiben });
+  }
 
   /**
    * Die Karteikarte zu einem Pfad, oder null für jede andere Datei und im
@@ -163,13 +174,21 @@ function erzeugeKarteiWeichen({ schreibSchnittstelle, erweiterungAktiv, fsp }) {
    *
    * @param {{pfad: string, tabelle: string, kennung: string}} karte Ergebnis von `karteikarteVon`.
    * @param {string} bereichsWurzel Wurzel des Bereichs.
+   * @param {{vorSchreiben?: Function}} [optionen] 4T-002691: Naht der Lauf-Marke
+   *   eines Workflows; ohne Angabe unverändert.
    * @returns {Promise<object>} `{ok: true, path, datenbank: true}` oder die
    *   Abweisung `{ok: false, error: 'database', datenbank}`; dann ist nichts geschehen.
    */
-  async function loescheKarteikarte(karte, bereichsWurzel) {
-    const ergebnis = await schreibSchnittstelle.fuehreAuftragAus(bereichsWurzel, {
-      anweisungen: [{ tabelle: karte.tabelle, art: ART_LOESCHEN, id: karte.kennung, erwartet: {} }],
-    });
+  async function loescheKarteikarte(karte, bereichsWurzel, optionen) {
+    const ergebnis = await fuehreAus(
+      bereichsWurzel,
+      {
+        anweisungen: [
+          { tabelle: karte.tabelle, art: ART_LOESCHEN, id: karte.kennung, erwartet: {} },
+        ],
+      },
+      optionen,
+    );
     if (ergebnis && ergebnis.ok === true) return { ok: true, path: karte.pfad, datenbank: true };
     return abgewiesen(ergebnis);
   }
@@ -183,7 +202,8 @@ function erzeugeKarteiWeichen({ schreibSchnittstelle, erweiterungAktiv, fsp }) {
    * die Kennung, übernimmt übrige Felder und Freitext und schreibt den
    * Anlege-Beleg. Ist der Name belegt, wirft sie `EEXIST`, und die
    * Namensfindung nimmt die nächste Nummer; jede andere Abweisung bricht ab und
-   * steht danach in `abweisung()`.
+   * steht danach in `abweisung()`. 4T-002691: `kopiere(ziel, optionen)` nimmt
+   * dieselbe optionale Naht der Lauf-Marke wie `loescheKarteikarte`.
    *
    * @param {string} quelle Pfad der Vorlage.
    * @param {string} bereichsWurzel Wurzel des Bereichs.
@@ -194,19 +214,23 @@ function erzeugeKarteiWeichen({ schreibSchnittstelle, erweiterungAktiv, fsp }) {
     if (karte === null) return null;
     let letzte = null;
     return {
-      async kopiere(ziel) {
-        const ergebnis = await schreibSchnittstelle.fuehreAuftragAus(bereichsWurzel, {
-          anweisungen: [
-            {
-              tabelle: karte.tabelle,
-              art: ART_ANLEGEN,
-              karteikarte: { name: path.parse(ziel).name, vorlage: karte.pfad },
-              // 4T-002545 (Epic 3E-000368): Die Kopie behält die Ausnahme von
-              // der Pflicht-Prüfung, die sie vor dieser Änderung stillschweigend hatte.
-              pflichtAussetzen: true,
-            },
-          ],
-        });
+      async kopiere(ziel, optionen) {
+        const ergebnis = await fuehreAus(
+          bereichsWurzel,
+          {
+            anweisungen: [
+              {
+                tabelle: karte.tabelle,
+                art: ART_ANLEGEN,
+                karteikarte: { name: path.parse(ziel).name, vorlage: karte.pfad },
+                // 4T-002545 (Epic 3E-000368): Die Kopie behält die Ausnahme von
+                // der Pflicht-Prüfung, die sie vor dieser Änderung stillschweigend hatte.
+                pflichtAussetzen: true,
+              },
+            ],
+          },
+          optionen,
+        );
         if (ergebnis && ergebnis.ok === true) return;
         if (nameBelegt(ergebnis)) {
           const belegt = new Error('EEXIST');
@@ -220,7 +244,23 @@ function erzeugeKarteiWeichen({ schreibSchnittstelle, erweiterungAktiv, fsp }) {
     };
   }
 
-  return { karteikarteVon, loescheKarteikarte, kopierHandlung };
+  /**
+   * 4T-002691 (Epic 3E-000415, Tc a): Die Kartei-Tabelle eines Ordners, nur
+   * lesend, mit derselben Erkennung wie `karteikarteVon` (`karteiTabelleIm`).
+   * Ein Workflow fragt sie, bevor er eine Datei mit Kennung in einen Ordner
+   * legt; ein eigener Nachbau wäre ein zweiter Maßstab für denselben Ordner.
+   *
+   * @param {string} ordner Pfad des Ordners.
+   * @returns {Promise<string|null>} Pfad der einen Kartei-Tabelle, sonst null
+   *   (keine oder zwei, und immer im Aus-Zustand der Erweiterung).
+   */
+  async function karteiTabelleIn(ordner) {
+    if (!erweiterungAktiv()) return null;
+    if (typeof ordner !== 'string' || ordner === '') return null;
+    return karteiTabelleIm(fsp, path.resolve(ordner), null);
+  }
+
+  return { karteikarteVon, loescheKarteikarte, kopierHandlung, karteiTabelleIn };
 }
 
 module.exports = { KARTEI_FEHLER, erzeugeKarteiWeichen };

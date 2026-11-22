@@ -37,6 +37,9 @@ const i18n = await import('../../../src/renderer/i18n.js');
 await i18n.loadTranslations('de');
 const { t } = i18n;
 const scharf = await import('../../../src/renderer/modules/workflows/workflow-scharf.js');
+const { pruefeWorkflow, registriereRueckfragen, rueckfragenZuruecksetzen } =
+  await import('../../../src/renderer/modules/workflows/workflow-pruefung.js');
+const { createDbLookup } = await import('../../../src/shared/workflows/workflow-db-lookup.js');
 
 const W = (kopf, ...zeilen) =>
   [
@@ -109,6 +112,36 @@ describe('schalteScharf', () => {
     expect(hinweis.error).toBe(true);
     expect(hinweis.text).toContain('7');
     expect(hinweis.text).toContain('confirm');
+  });
+
+  // 4T-002692: Ein Hinweis des Prüfers sperrt die Scharf-Schaltung nicht (AK4).
+  it('schaltet mit einem Hinweis zur Karteikarte scharf, ohne Abweisung', async () => {
+    registriereRueckfragen(
+      createDbLookup({
+        tables: [
+          {
+            name: 'Authors',
+            path: 'Authors/Authors.md',
+            fields: [],
+            storage: 'cards',
+            cards: ['Umberto Eco.md'],
+          },
+        ],
+        queries: [],
+      }),
+    );
+    try {
+      const text = W(ZEITPLAN, 'set-property "Authors/Umberto Eco.md" born "1932-01-06"');
+      const analyse = pruefeWorkflow(text, { fileName: 'C:/b/Plan.md' });
+      expect(analyse.hints).toHaveLength(1);
+      expect(analyse.armable).toBe(true);
+      const res = await scharf.schalteScharf('C:/b/Plan.md', true, { name: 'Plan', text });
+      expect(res).toMatchObject({ ok: true, status: 'armed' });
+      expect(aufrufe).toEqual([['C:/b/Plan.md', true]]);
+      expect(letzterHinweis().error).toBeUndefined();
+    } finally {
+      rueckfragenZuruecksetzen();
+    }
   });
 
   it('nennt den Grund einer Abweisung ohne Befund, etwa beim verknüpften Bereich', async () => {

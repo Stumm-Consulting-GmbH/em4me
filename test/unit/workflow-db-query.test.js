@@ -27,6 +27,8 @@ const {
 } = require('../../src/main/workflows/workflow-content-steps.js');
 const { createWorkflowFileSteps } = require('../../src/main/workflows/workflow-file-steps.js');
 const { hatLaufMarke, _laufLeeren } = require('../../src/main/documents/self-write.js');
+// 4T-002689: ein in Teile zerlegtes Ziel-Dokument.
+const { writePartLine, PART_SEP, PART_INFIX } = require('../../src/shared/document-parts.js');
 // Die Texte des Fensters, gestellt: Der Baustein setzt allein ein, was die
 // Übersetzung liefert; die fünf Sprachfassungen prüft der i18n-Wächter.
 const de = {
@@ -218,12 +220,114 @@ describe('db-query: Abschnitt ersetzen und Datei anlegen (4T-002546, AK1)', () =
     ).toHaveLength(1);
   });
 
+  // 4T-002689 (AK3): Steht der Abschnitt im zweiten Teil eines geteilten
+  // Dokuments, wird er dort ersetzt; die Kopf-Datei bleibt zeichengleich.
+  it('ersetzt den Abschnitt im zweiten Teil eines geteilten Dokuments', async () => {
+    const w = await welt();
+    const kopf = lege(
+      w.wurzel,
+      'Geteilt.md',
+      writePartLine('# Übersicht\n', { index: 1, base: 'Geteilt' }).text,
+    );
+    const zweiter = lege(
+      w.wurzel,
+      `Geteilt${PART_SEP}${PART_INFIX}00002.md`,
+      writePartLine(UEBERSICHT.replace('# Übersicht\n', ''), { index: 2, base: 'Geteilt' }).text,
+    );
+    const kopfVorher = lies(kopf);
+    const ergebnis = await w.lauf('Long Books.md', 'Geteilt.md', 'Lange Bücher');
+    expect(ergebnis).toEqual({ ok: true, effect: { kind: 'edited', paths: [kopf], via: 'disk' } });
+    expect(lies(kopf)).toBe(kopfVorher);
+    expect(lies(zweiter)).toContain(`## Lange Bücher\n\n${TABELLE_500}\n## Danach\nbleibt auch.\n`);
+    expect(hatLaufMarke(zweiter)).toBe(true);
+  });
+
   it('ohne under legt der Befehl die Datei mit der Tabelle an, wie create', async () => {
     const w = await welt();
     const ergebnis = await w.lauf('Long Books.md', 'Berichte/Neu.md');
     const neu = path.join(w.wurzel, 'Berichte', 'Neu.md');
     expect(ergebnis).toMatchObject({ ok: true, effect: { kind: 'created', paths: [neu] } });
     expect(lies(neu)).toBe(TABELLE_500);
+  });
+
+  // 4T-002691 (Review Runde 1, Nr. 5): ohne under in den Ordner einer
+  // Kartei-Tabelle, über runDbQueryStep mit der Weiche des Panels in den
+  // Datei-Befehlen. Das Ergebnis einer Abfrage trägt keinen Dateikopf mit
+  // Kennung: Der Schritt läuft durch, und die Datei ist keine Karteikarte.
+  // Ein Fehlschlag von create (hier das vorhandene Ziel) kommt unverändert an.
+  it('ohne under in den Ordner einer Kartei-Tabelle: läuft durch, keine Karteikarte; Fehlschlag von create unverändert', async () => {
+    const w = await welt();
+    lege(
+      w.wurzel,
+      'Autoren/Autoren.md',
+      [
+        '---',
+        'db-table:',
+        '  storage: cards',
+        '  fields:',
+        '    - name: name',
+        '  key: name',
+        '  lastId: 0',
+        '---',
+        '',
+      ].join('\n'),
+    );
+    const { erzeugeKarteiWeichen } = require('../../src/main/database/kartei-weichen.js');
+    const karteiWeichen = erzeugeKarteiWeichen({
+      schreibSchnittstelle: { fuehreAuftragAus: async () => ({ ok: false, lagen: [] }) },
+      erweiterungAktiv: () => true,
+      fsp: fs.promises,
+    });
+    const deps = {
+      backlinks,
+      windows: new Map(),
+      resolveHistoryFor: async () => ({ effective: false }),
+      readPreviousTextFor: async () => null,
+      recordMddOnSave: async () => {},
+      bufferRequests: { request: async () => ({ ok: false, code: 'bufferUnavailable' }) },
+    };
+    const modul = createWorkflowDbQuery({
+      backlinks,
+      datenbankAktiv: () => true,
+      schreibStand: w.schreibStand,
+      inhaltsSchritte: createWorkflowContentSteps(deps),
+      dateiSchritte: createWorkflowFileSteps({
+        ...deps,
+        isMarkdownPath: (p) => /\.md$/i.test(p),
+        karteiWeichen,
+      }),
+      tForWindow: (_win, key) => (key in de ? de[key] : key),
+      resolveQueryTemplatesFolder: async () => null,
+    });
+    const ctx = {
+      root: w.wurzel,
+      owner: { id: 'Fenster' },
+      event: { sender: { id: 7 } },
+      workflowAbs: path.join(w.wurzel, 'Workflows', 'Probe.md'),
+      backlinks,
+    };
+    const schritt = {
+      line: 7,
+      blockLine: 1,
+      keyword: 'db-query',
+      args: ['Long Books.md'],
+      source: null,
+      position: null,
+      target: 'Autoren/Bericht.md',
+    };
+    const neu = path.join(w.wurzel, 'Autoren', 'Bericht.md');
+
+    const erst = await modul.runDbQueryStep(ctx, schritt);
+    expect(erst).toMatchObject({ ok: true, effect: { kind: 'created', paths: [neu] } });
+    expect(lies(neu)).toBe(TABELLE_500);
+    expect(await karteiWeichen.karteikarteVon(neu)).toBeNull();
+
+    const zweit = await modul.runDbQueryStep(ctx, schritt);
+    expect(zweit).toEqual({
+      ok: false,
+      code: 'targetExists',
+      detail: { path: 'Autoren/Bericht.md' },
+    });
   });
 });
 
