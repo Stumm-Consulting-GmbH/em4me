@@ -14,6 +14,125 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.161.2.5690] - 2026-11-23 — Workflows: Abfrage-Ergebnis als Text in die Notiz
+
+Zug 3E-000433
+mit einem Mitglied: das Abfrage-Ergebnis als Text in der Notiz
+(3E-000431).
+Der Workflow-Befehl `db-query … into` schreibt jeden Wert aus der Datenbank als
+Text in die Tabelle der Notiz, so wie die Abfrage-Ansicht ihn zeigt: Ein Wert
+bettet keine Datei mehr ein, löst keinen Verweis, kein Bild und keine
+Hervorhebung aus und macht keinen privaten Kommentar der Notiz sichtbar; was die
+Abfrage selbst als Verweis führt, bleibt Verweis. Dazu bleibt in jeder Tabelle
+ein maskiertes Dach-Zeichen am Ende einer Zelle Text. **Sichtbare Änderung:**
+Ein Wert wie `**wichtig**` erscheint in der erzeugten Tabelle mit seinen
+Sternchen statt fett, und ein maskiertes Dach-Zeichen am Ende einer
+Tabellen-Zelle (`Seite \^2`) bleibt in jeder Tabelle Text, statt mit dem Ende
+der Zelle zu verschwinden. Herkunft: Die Berichtigung hat der Auftraggeber am
+2026-11-14 entschieden, im Wortlaut «Ja, Weg A»; Lösungsweg, benannte Grenzen
+und Umfang (jede Stelle, die Daten in die Tabelle trägt) sind Empfehlung der
+Steuerung vom 2026-11-21, pauschal übernommen vom Auftraggeber am 2026-11-22
+(Wortlaut: «Ich folge bei allen deinen Empfehlungen.»); ebenso der Zug-Start. Der
+Abschluss-Anteil in
+4T-002780.
+
+### Behoben
+
+- **Werte aus der Datenbank als Text in der Notiz** (`4T-002734`).
+  `src/shared/query/result-set-markdown.js` übernahm Text-Werte unverändert in
+  die Tabelle, sodass ein Feld-Wert in der Notiz Dokument-Text wurde:
+  `![[Privat]]` bettete beim Öffnen die Datei «Privat» ein, `[[Geheim]]` wurde
+  ein Verweis, ein Wert in Bild-Schreibweise ein Bild, ein Wert mit Sternchen
+  fett, und ein einzelner Backtick konnte mit einem Backtick an anderer Stelle
+  einen privaten Kommentar der Notiz sichtbar machen. Der neue Helfer
+  `datenText` setzt jeden Text aus Daten als Text, an jeder Stelle, die Daten
+  trägt (Wert, Gruppen-Wert, Spalten-Überschrift, Überschrift der
+  Gruppen-Spalten, Aufgaben-Zeile): Rückstrich verdoppelt, ein Rückstrich vor
+  jedem Zeichen in der Lage, in der eine Regel der Zeichen-Pipeline es
+  auswertet, Backtick als `&#96;` und Raute als `&#35;`, damit weder der
+  Abtaster der privaten Kommentare noch die Schlagwort-Erkennung des Index sie
+  sieht, und der senkrechte Strich als `&#124;`, damit die Tabellen-Werkzeuge
+  des Editors die Zeile wie die Anzeige zerlegen; ein einzelner Wagenrücklauf wird Leerzeichen. Bindestrich, Punkt,
+  Doppelpunkt, öffnende Klammer, Frage- und Ausrufezeichen, Komma und
+  Schrägstrich werden nur in ihrer auslösenden Lage maskiert, damit der
+  Quelltext der Notiz lesbar bleibt; jede Verengung ist an der Bibliothek
+  belegt. Ein Verweis-Stück, ein Datensatz-Verweis oder ein Treffer der Spalte
+  Datei, Block oder Datensatz, dessen Datei- oder Tabellen-Name die
+  Verweis-Schreibweise aufbräche (eckige Klammer, senkrechter Strich,
+  Zeilenumbruch, Wagenrücklauf, Rückstrich, Raute, doppeltes Prozentzeichen,
+  Backtick, At-Zeichen am Anfang mit Doppelpunkt, ein Schema wie
+  `javascript:`), steht als Text da; ein gewöhnlicher Name bleibt Verweis. Der
+  Anzeigetext eines Datensatz-Verweises entfällt jetzt auch bei Backtick und
+  doppeltem Prozentzeichen. Ein maskierter Verweis in einem Wert ist kein
+  Rückverweis des Index mehr, eine maskierte Raute kein Schlagwort. **Benannte
+  Grenzen** (Empfehlung pauschal übernommen, Wortlaut des Auftraggebers vom
+  2026-11-22): Ein Wort, für das die Ziel-Notiz eine Abkürzung
+  definiert, bekommt deren Kurzinfo; ob Regeln externer Erweiterungen die
+  Maskierung achten, lässt sich nicht zusichern; Leerraum am Rand eines Werts
+  schneidet die Tabellen-Schreibweise ab. Eine früher erzeugte Tabelle bleibt,
+  wie sie ist, bis der Workflow erneut läuft.
+- **Maskierter Block-Anker am Ende einer Tabellen-Zelle bleibt Text**
+  (`4T-002778`). Endete eine Zelle mit Leerraum, maskiertem Dach-Zeichen und
+  Kennung (`foo \^anker`, `foo &#94;anker`), setzte die Anzeige die Kennung als
+  `id` an die Zelle und verschluckte den Text, weil die Kern-Regel der
+  Block-Anker (`src/shared/markdown/plugins/block-anker.js`) nach dem
+  Zusammenfügen der Text-Stücke läuft und eine Zelle keine Quellzeile hat.
+  Jetzt zählt ein Anker am Ende einer Kopf- oder Daten-Zelle nur, wenn auch der
+  rohe Quelltext der Zelle ihn nach `BLOCK_ANCHOR_RE` trägt, wie im Absatz über
+  die Quellzeile. In jeder Tabelle bleibt ein maskiertes Dach-Zeichen am
+  Zellende damit Text, und ein Wert wie `Seite ^2` erscheint in der erzeugten
+  Tabelle eines Workflows vollständig. Unverändert: ein unmaskierter Anker am
+  Zellende, eine Kennung hinter dem letzten Strich einer Tabellen-Zeile und
+  eine Zelle nur aus `^x`. Index, Verweis-Auflösung und Einbettungs-Schnitt
+  sind nicht berührt; sie kannten einen Anker in einer Zelle nie.
+
+### i18n
+
+- **Handbuch** (`4T-002779`), in allen fünf Sprachfassungen: Die Handbuch-Seite
+  «Workflows» trägt im Unter-Abschnitt «Abfrage in eine Datei» des Abschnitts
+  «Datenbank-Befehle» einen neuen Punkt: Werte aus der Datenbank stehen in der
+  Tabelle als Text, so wie die Abfrage-Ansicht sie zeigt, ein Wert wie
+  `**wichtig**` behält seine Sternchen, Leerraum am Rand eines Werts entfällt,
+  und ein Verweis, dessen Datei- oder Tabellen-Name die Verweis-Schreibweise
+  aufbricht, steht als Text da. Funktions-Katalog und Demo-Area sind
+  unverändert. **Zählung nach Kapitel 13 der Entwicklungsrichtlinien**, erhoben
+  am 2026-11-21 im Vergleich mit dem Start des Zuges: keine neuen, keine
+  geänderten und keine entfernten Schlüssel; kein Fragment unter
+  `src/i18n/fragments/` ist berührt.
+
+### Intern
+
+- **Prüfdateien** (`4T-002734`, `4T-002778`): `test/unit/result-set-markdown.test.js`
+  und `test/unit/workflow-db-query.test.js` mit Fällen je Regel der
+  Zeichen-Pipeline, Erweiterungen an und aus, dazu Verweis-Namen,
+  Gruppen-Werte, Überschriften, Aufgaben-Zeilen, der private Kommentar über den
+  ganzen Befehl und im portablen Export und kein Schlagwort im Index aus einem
+  Wert, je mit Rot-Probe (401 Fälle in beiden Dateien); beide Prüfdateien
+  stehen jetzt im Prüf-Ausschnitt der Sprach-Klasse der Klassen-Karte
+  (`scripts/aenderungsklassen.json`). `test/unit/render/block-anker-zeile.test.js`
+  mit dem Block «Maskierter Anker am Ende einer Tabellen-Zelle bleibt Text»
+  (26 Fälle), der das Verhalten des unmaskierten Ankers in einer Zelle
+  erstmals festhält.
+- **Architektur und Abschluss-Anteil** (`4T-002779`, `4T-002780`): Zeile
+  «Workflow-Befehle der Datenbank» im Bedrohungsmodell mit Annahme, Schutz,
+  drei bekannten Grenzen und ergänzter Prüf-Frage, vor dem Sicherheits-Review
+  nachgezogen; Modul-Karte von `query/result-set-markdown.js`; die
+  Designentscheidung «Ergebnismenge als Markdown-Tabelle (Stufe D)» um die
+  Maskierung und die Regel der Block-Anker um die Gegenprobe am rohen
+  Zell-Text fortgeschrieben; die strategische Entscheidung «Daten statt
+  Dokument-Text auch beim Schreiben eines Abfrage-Ergebnisses in eine Notiz» in
+  «Erkenntnisse und Entscheidungen» verankert. Ergebnis des
+  Epic-Abschluss-Tests: grün, Einzel-Prüfungen im Linux-Container und die
+  Ablauf-Prüfungen der berührten Bereiche unter Windows in der Prüfmaschine
+  (Datenbank-Befehle der Workflows, Tabellen-Kontextmenü, Diagramme,
+  Block-Anker).
+- **Befund-Eingang der laufenden Fehlerbehebung** (`3E-000161`): Die Commits zu
+  `4T-002734` und `4T-002778` tragen je eine Zeile in den Befund-Eingang des
+  Vorhabens 3E-000161 ein, zu zwei weiteren Stellen, die Werte aus der
+  Datenbank als Markdown schreiben, und zum maskierten Anker am Ende einer
+  Überschrift; ihr Betreff nennt es deshalb. Programm-Code dieses Vorhabens
+  liefert der Zug nicht mit.
+
 ## [1.161.1.5658] - 2026-11-22 — Private Kommentare bleiben privat
 
 Fehler-Release mit einem Vorhaben,

@@ -9,6 +9,8 @@
 // während Index und Diagramm-Kern sie als Anker lasen. In einem Absatz zählt
 // ein Anker zudem nur, wenn auch seine Quellzeile ihn nach demselben Muster
 // trägt; ein maskiertes `\^x` oder `&#94;x` bleibt damit Text wie im Index.
+// Seit 4T-002778 (Epic 3E-000431) gilt dasselbe am Ende einer Tabellen-Zelle,
+// geprüft am rohen Quelltext der Zelle, weil sie keine Quellzeile trägt.
 //
 // **Wohin die Kennung kommt.** Die erste Kennung eines Blocks wird dessen
 // `id`, am nächsten sichtbaren Block davor, wie bisher. Jede weitere bleibt als
@@ -134,10 +136,19 @@ function quellZeile(quelle, id) {
 // Nimmt die Anker am Ende der Zeilen eines inline-Tokens heraus und setzt an
 // ihre Stelle je ein Sprungziel. Ein Treffer ohne Leerraum vor dem
 // Dach-Zeichen zählt nur am Anfang einer Zeile eines Absatzes (`[[Ziel]]^x`
-// ist kein Anker, eine Tabellen-Zelle bleibt wie bisher). Eine Zeile, die
+// ist kein Anker, eine Zelle nur aus `^x` bleibt Text). Eine Zeile, die
 // danach leer ist, fällt samt Trenner weg; ihre Ziele rücken an die Zeile
 // davor. Rückgabe: die Funde in Textreihenfolge.
-function nimmZeilenAnker(state, inline, quelle) {
+//
+// 4T-002778 (Epic 3E-000431): `zelle` ist der rohe Quelltext einer
+// Tabellen-Zelle, sonst `null`. Ein Anker am Zellende zählt nur, wenn auch
+// dieser rohe Text ihn mit derselben Kennung nach demselben Muster trägt, wie
+// im Absatz die Quellzeile: Das Text-Stück hat ein `\^` oder `&#94;` schon zu
+// `^` aufgelöst, der rohe Text nicht; dort steht vor dem Dach-Zeichen der
+// Rückstrich statt Leerraum, oder es steht gar keines da. Ein eigenes Argument
+// statt einer `quelle` für die Zelle, weil `quelle` zugleich die Kennung am
+// Zeilenanfang zulässt; eine Zelle nur aus `^x` bliebe dann nicht mehr Text.
+function nimmZeilenAnker(state, inline, quelle, zelle = null) {
   const kinder = inline.children;
   const schluss =
     kinder.length > 0 && istDurchlaessig(kinder, kinder.length - 1) ? kinder.pop() : null;
@@ -151,6 +162,7 @@ function nimmZeilenAnker(state, inline, quelle) {
     const treffer = inhalt[j].content.match(BLOCK_ANCHOR_RE);
     if (!treffer) continue;
     if (!/^\s/.test(treffer[0]) && (!quelle || j > 0)) continue;
+    if (zelle !== null && (zelle.match(BLOCK_ANCHOR_RE) || [])[1] !== treffer[1]) continue;
     const quellIndex = quelle ? quellZeile(quelle, treffer[1]) : null;
     if (quelle && quellIndex === null) continue;
     inhalt[j].content = inhalt[j].content.slice(0, treffer.index);
@@ -371,7 +383,11 @@ function blockAnchorsPlugin(mdInstance) {
         imAbsatz && token.map
           ? { zeilen, von: token.map[0], bis: token.map[1], naechste: token.map[0] }
           : null;
-      const funde = nimmZeilenAnker(state, token, quelle);
+      // 4T-002778: Eine Tabellen-Zelle trägt kein `map`, wohl aber ihren
+      // rohen, getrimmten Quelltext in `content`.
+      const inZelle =
+        i > 0 && (tokens[i - 1].type === 'td_open' || tokens[i - 1].type === 'th_open');
+      const funde = nimmZeilenAnker(state, token, quelle, inZelle ? token.content : null);
       if (funde.length === 0) continue;
       if (imAbsatz && gleicheKennungWieTabelle(tokens, i, funde[0], quelle)) {
         token.children = token.children.filter((k) => k !== funde[0].ziel);

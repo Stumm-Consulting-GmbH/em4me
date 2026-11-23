@@ -437,3 +437,73 @@ describe('db-query: this.<Angabe>, leere Menge und eigene Schreibvorgänge (4T-0
     ).toEqual(['| [[Alt]] | alt |', '| [[Neu]] | neu |']);
   });
 });
+
+// 4T-002734 (Epic 3E-000431, Story 4S-001197, AK8 der Story): Ein Feld-Wert
+// wird in der Ziel-Notiz kein Dokument-Text. Über den ganzen Befehl, mit dem
+// echten Index und der Zeichen-Pipeline der Anwendung.
+describe('db-query: Werte bleiben Text in der Ziel-Notiz (4T-002734, AK5, AK9)', () => {
+  const {
+    renderMarkdown,
+    convertMarkdownPortable,
+  } = require('../../src/shared/markdown/markdown.js');
+  const SONDER = [
+    '---',
+    'db-table:',
+    '  fields:',
+    '    - name: title',
+    '      label: Title',
+    '    - name: note',
+    '      label: Note',
+    '  display: title',
+    '  lastId: 2',
+    '---',
+    '',
+    `${FENCE}perspective-records`,
+    '|- id="r-00001"',
+    '| Eins',
+    '| ![[Privat]]',
+    '|- id="r-00002"',
+    '| Zwei',
+    '| a`b',
+    FENCE,
+    '',
+  ].join('\n');
+
+  async function sonderWelt(ziel) {
+    const w = await welt();
+    const pfade = [
+      lege(w.wurzel, 'Daten/Sonder.md', SONDER),
+      lege(
+        w.wurzel,
+        'Sonder-Abfrage.md',
+        abfrage(0, 'TABLE RECORDS note\nFROM "Sonder"\nSORT title'),
+      ),
+      lege(w.wurzel, 'Privat.md', '# Privat\n\ngeheimer Inhalt\n'),
+    ];
+    w.schreibStand.merkeGeschrieben(w.wurzel, pfade);
+    const bericht = lege(w.wurzel, 'Bericht.md', ziel);
+    return { ...w, bericht };
+  }
+
+  it('ein Wert mit einer Einbettung steht als Text in der Notiz, die gezeichnete Notiz bettet nichts ein (AK5)', async () => {
+    const w = await sonderWelt('# Bericht\n\n## Daten\nalt\n');
+    const ergebnis = await w.lauf('Sonder-Abfrage.md', 'Bericht.md', 'Daten');
+    expect(ergebnis).toMatchObject({ ok: true });
+    const text = lies(w.bericht);
+    expect(text).toContain('| [[Sonder#^r-00001\\|Eins]] | !\\[\\[Privat\\]\\] |');
+    const html = renderMarkdown(text, 'de');
+    expect(html).not.toContain('wiki-embed');
+    expect(html).not.toContain('geheimer Inhalt');
+    expect(html).toContain('![[Privat]]');
+  });
+
+  it('ein Wert mit einzelnem Backtick lässt den privaten Kommentar verborgen, auch mit einzelnem Backtick davor (AK9, P4)', async () => {
+    const w = await sonderWelt('# Bericht\n\nVorher ` offen %%privat2%%\n\n## Daten\nalt\n');
+    const ergebnis = await w.lauf('Sonder-Abfrage.md', 'Bericht.md', 'Daten');
+    expect(ergebnis).toMatchObject({ ok: true });
+    const text = lies(w.bericht);
+    expect(text).toContain('| a&#96;b |');
+    expect(renderMarkdown(text, 'de')).not.toContain('privat2');
+    expect(convertMarkdownPortable(text)).not.toContain('privat2');
+  });
+});

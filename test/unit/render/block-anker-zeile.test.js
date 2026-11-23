@@ -19,6 +19,19 @@ import { blockAnchorForLine, extractBlockAnchors } from '../../../src/shared/blo
 // 4T-002072, Nachbesserung F2: der Ausschnitt einer Einbettung, durch die
 // Render-Pipeline gegeben.
 import { extractEmbedSnippet } from '../../../src/main/index/embed.js';
+// 4T-002778: alle Erweiterungen aus, und die erzeugte Tabelle des
+// Workflow-Befehls, nur lesend verwendet.
+import { internalExtensions } from '../../../src/shared/extensions/extensions.js';
+import { resultSetMarkdown } from '../../../src/shared/query/result-set-markdown.js';
+import {
+  makeColumn,
+  fileOrigin,
+  makeRow,
+  makeWishes,
+  makeState,
+  makeResultSet,
+  validateResultSet,
+} from '../../../src/shared/query/result-set.js';
 
 afterEach(() => {
   configureExtensions([]);
@@ -243,6 +256,137 @@ describe('Nachbesserung: maskierter Anker bleibt Text (F4)', () => {
     expect(sichtbar(html)).toContain('Text ^y');
     expect(sichtbar(html)).toContain('Text ^z');
     expect(sichtbar(html)).toContain('^m');
+  });
+});
+
+// 4T-002778 (Epic 3E-000431, Story 4S-000205, AK7): Auch am Ende einer
+// Tabellen-Zelle bleibt ein maskiertes Dach-Zeichen Text. Bis dahin nahm die
+// Anzeige es als Kennung der Zelle und verschluckte das Ende des Texts, weil
+// das Text-Stück den Rückstrich schon aufgelöst hatte und eine Zelle keine
+// Quellzeile trägt. Je Fall mit allen Erweiterungen an (Vorgabe) und aus;
+// `afterEach` oben stellt die Vorgabe wieder her.
+describe('Maskierter Anker am Ende einer Tabellen-Zelle bleibt Text (4T-002778)', () => {
+  const ALLE_AUS = internalExtensions().map((e) => e.id);
+  const SCHALTER = [
+    ['an', []],
+    ['aus', ALLE_AUS],
+  ];
+  const NACHSATZ = 'Nachsatz bleibt.';
+  const ids = (html) => [...html.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]);
+  const entitaeten = (s) =>
+    s
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+      .replace(/&amp;/g, '&');
+  // Die Zellen einer Art (`th` oder `td`) mit Attributen und sichtbarem Text;
+  // `<thead` ist keine Kopf-Zelle.
+  const zellen = (html, tag) =>
+    [...html.matchAll(new RegExp(`<${tag}((?:\\s[^>]*)?)>([\\s\\S]*?)</${tag}>`, 'g'))].map(
+      (m) => ({
+        attr: m[1],
+        text: entitaeten(sichtbar(m[2])),
+      }),
+    );
+  const tabelle = (kopf, zeile) => `| ${kopf} |\n| --- |\n| ${zeile} |\n\n${NACHSATZ}\n`;
+
+  for (const [schalter, aus] of SCHALTER) {
+    describe(`Erweiterungen ${schalter}`, () => {
+      const MASKIERT = {
+        Rückstrich: ['foo \\^anker', 'foo ^anker'],
+        'Zeichen-Entität': ['foo &#94;anker', 'foo ^anker'],
+        'Fett davor': ['**fett** \\^anker', 'fett ^anker'],
+        'Kennung aus Ziffern': ['Seite \\^2', 'Seite ^2'],
+      };
+      for (const [name, [quelle, text]] of Object.entries(MASKIERT)) {
+        it(`Daten-Zelle, ${name}: Text vollständig, keine Kennung`, () => {
+          configureExtensions(aus);
+          const html = render(tabelle('H', quelle));
+          expect(zellen(html, 'td')).toEqual([{ attr: '', text }]);
+          expect(ids(html)).toEqual([]);
+          expect(sichtbar(html)).toContain(NACHSATZ);
+        });
+
+        it(`Kopf-Zelle, ${name}: Text vollständig, keine Kennung`, () => {
+          configureExtensions(aus);
+          const html = render(tabelle(quelle, 'x'));
+          expect(zellen(html, 'th')).toEqual([{ attr: '', text }]);
+          expect(ids(html)).toEqual([]);
+        });
+      }
+
+      it('die erzeugte Tabelle des Workflow-Befehls mit einem Wert «Seite ^2» erscheint vollständig', () => {
+        configureExtensions(aus);
+        const rs = makeResultSet({
+          state: makeState('ready'),
+          scope: 'files',
+          type: 'table',
+          columns: [makeColumn({ name: 'wert', label: 'Wert', source: 'wert' })],
+          rows: [makeRow(['Seite ^2'], fileOrigin('C:/b/N.md', 'N'))],
+          wishes: makeWishes({ withoutId: true }),
+        });
+        expect(validateResultSet(rs)).toEqual([]);
+        const markdown = resultSetMarkdown(rs, { t: (key) => key });
+        const html = render(`${markdown}\n${NACHSATZ}\n`);
+        expect(zellen(html, 'td')).toEqual([{ attr: '', text: 'Seite ^2' }]);
+        expect(ids(html)).toEqual([]);
+      });
+
+      it('Gegenprobe Absatz: ein maskierter Anker bleibt Text wie bisher', () => {
+        configureExtensions(aus);
+        const html = render('Text \\^z\n\nText &#94;y\n');
+        expect(ids(html)).toEqual([]);
+        expect(sichtbar(html)).toContain('Text ^z');
+        expect(entitaeten(sichtbar(html))).toContain('Text ^y');
+      });
+    });
+  }
+
+  // Unverändert (AK2 der Aufgabe): hält das bisherige Verhalten erstmals fest.
+  // Ein unmaskierter Anker am Zellende wird die Kennung der Zelle, ohne Text;
+  // dass der Index ihn nicht kennt, ist ein eigener Nebenbefund.
+  it('unmaskierter Anker am Ende einer Daten-Zelle: Kennung an der Zelle wie bisher', () => {
+    const html = render(tabelle('H', 'foo ^anker'));
+    expect(zellen(html, 'td')).toEqual([{ attr: ' id="anker"', text: 'foo' }]);
+    expect(ids(html)).toEqual(['anker']);
+  });
+
+  it('unmaskierter Anker am Ende einer Kopf-Zelle: Kennung an der Zelle wie bisher', () => {
+    const html = render(tabelle('Kopf ^k', 'x'));
+    expect(zellen(html, 'th')).toEqual([{ attr: ' id="k"', text: 'Kopf' }]);
+  });
+
+  it('unmaskierter Anker hinter Fett am Zellende: Kennung an der Zelle wie bisher', () => {
+    const html = render(tabelle('H', '**fett** ^anker'));
+    expect(zellen(html, 'td')).toEqual([{ attr: ' id="anker"', text: 'fett' }]);
+  });
+
+  it('Kennung hinter dem letzten Strich: an der Tabellen-Zeile wie bisher', () => {
+    const html = render('| A | B |\n| --- | --- |\n| a | b | ^zeile\n');
+    expect(html.replace(/\n/g, '')).toContain(
+      '<tr data-source-line="3" id="zeile"><td>a</td><td>b</td></tr>',
+    );
+    expect(ids(html)).toEqual(['zeile']);
+    expect(sichtbar(html)).not.toContain('^zeile');
+  });
+
+  it('eine Zelle nur aus einem Anker bleibt Text wie bisher', () => {
+    const html = render(tabelle('H', '^x'));
+    expect(zellen(html, 'td')).toEqual([{ attr: '', text: '^x' }]);
+  });
+
+  // Gleichlauf: Index, Panel und Einbettungs-Schnitt kennen einen Anker in
+  // einer Zelle nicht, maskiert wie unmaskiert; die Anzeige kennt den
+  // maskierten jetzt ebenso wenig.
+  it('Gleichlauf mit der Heimat der Kennungen: der maskierte Zell-Anker zählt nirgends', () => {
+    for (const quelle of ['foo \\^anker', 'foo &#94;anker']) {
+      const text = tabelle('H', quelle);
+      expect(extractBlockAnchors(text).order, quelle).toEqual([]);
+      expect(blockAnchorForLine(text, 3), quelle).toBe(null);
+      expect(extractEmbedSnippet(text, '^anker'), quelle).toBe(null);
+      expect(ids(render(text)), quelle).toEqual([]);
+    }
   });
 });
 
