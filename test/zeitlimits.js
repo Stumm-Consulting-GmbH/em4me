@@ -105,6 +105,15 @@ export const VOLLBAU_ZEITLIMIT = 120000;
 // Tests erzeugt, also das am schwersten zu deutende Fehlerbild.
 export const AUFRAEUM_ZEITLIMIT = 60000;
 
+// Warten auf echte Meldungen des Betriebssystems über Datei-Änderungen
+// (4T-002829, Epic 3E-000446): Die gemeinsame Bereichs-Beobachtung sammelt
+// Meldungen 50 ms und meldet eine Datei erst nach 200 ms ohne Änderung; ein
+// Fall wartet nacheinander auf mehrere solcher Meldungen, und unter der Last
+// eines Voll-Laufs kommen sie verzögert. Isoliert liegen die Fälle bei 0,3 bis
+// 1,5 s. Die Prüfdateien warten je Meldung höchstens ein Drittel davon.
+// Obergrenze, kein Laufzeit-Ziel.
+export const BEOBACHTUNG_ZEITLIMIT = 15000;
+
 // 4T-001283: Hier stand vom 2026-08-29 bis zum 2026-08-30 ein
 // BESTAND_CONTAINER_ZEITLIMIT von 180 s. Es war die ausdrücklich benannte
 // Sofort-Maßnahme zu einem Fall, der im Container die 60-s-Grenze riss, und ist

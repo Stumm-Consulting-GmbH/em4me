@@ -30,7 +30,12 @@ const {
 const { schreibReihenfolge } = require('../../shared/document-split.js');
 const { normalizeForCompare } = require('./save-guard');
 // 4T-001292: Lesen und Schreiben der Zuordnungs-Zeile für die Umbenennen-Kaskade.
-const { readPartLine, writePartLine, FIRST_PART_INDEX } = require('../../shared/document-parts.js');
+const {
+  readPartLine,
+  writePartLine,
+  isBlankPartBase,
+  FIRST_PART_INDEX,
+} = require('../../shared/document-parts.js');
 const mddStore = require('./mdd-store');
 
 // Endungs-Liste wie im übrigen Bestand (src/main/area/area-path.js u.a.).
@@ -42,6 +47,17 @@ const MD_EXTENSION_RE = /\.(md|markdown|mdown|mkd)$/i;
 function mddPathFor(mdPath) {
   const parsed = path.parse(mdPath);
   return path.join(parsed.dir, `${parsed.name}.mdd`);
+}
+
+// 4T-002811 (Epic 3E-000161): Liegt der Pfad unmittelbar im Ordner `dir`?
+// Die Teile eines Dokuments liegen immer im Ordner seiner Kopf-Datei
+// (Ablage-Regel der Teilung); ein Pfad anderswohin kann nur aus einer
+// präparierten Zuordnungs-Zeile stammen. Verglichen wird über pathCompareKey,
+// damit die Schreibung auf Windows und macOS keine Rolle spielt. Verglichen
+// werden allein die Pfad-Texte; eine symbolische Verknüpfung im Ordner wird
+// nicht aufgelöst (bekannte Grenze der Kanäle, Bedrohungsmodell der Architektur).
+function isInFolder(pfad, dir) {
+  return pathCompareKey(path.dirname(path.resolve(pfad))) === pathCompareKey(path.resolve(dir));
 }
 
 // Ergebnis für ein Dokument, das gar nicht geteilt ist. Der schnelle Weg:
@@ -148,6 +164,14 @@ async function scanPartFiles(dir) {
 async function readAssembledDocument(absolute, content, opts = {}) {
   const info = partInfoOf(content);
   if (!info) return ungeteilt(absolute, content);
+  // 4T-002811 (Epic 3E-000161): Der Grundname ist Dokument-Inhalt und damit
+  // fremd kontrollierbar. Bis 1.161.0 wurde aus ihm ungeprüft der Pfad der
+  // Kopf-Datei gebildet; eine präparierte Zeile wie «v1|2|../../Privat/Geheim»
+  // führte das Öffnen auf eine Datei außerhalb des Bereichs und das Speichern
+  // in sie hinein. Taugt er nicht als blanker Datei-Name, ist die Zeile kein
+  // gültiger Verweis, und die Datei öffnet als das, was sie ist: ein
+  // ungeteiltes Dokument mit einer unverständlichen Zeile im Frontmatter.
+  if (!isBlankPartBase(info.base)) return ungeteilt(absolute, content);
 
   const dir = path.dirname(absolute);
   const ext = path.extname(absolute) || '.md';
@@ -171,6 +195,9 @@ async function readAssembledDocument(absolute, content, opts = {}) {
     : headName
       ? headName.replace(MD_EXTENSION_RE, '')
       : info.base;
+  // Zweite Linie hinter der Namens-Prüfung: Die Kopf-Datei liegt im Ordner der
+  // geöffneten Datei, sonst ist der Verweis ungültig (4T-002811).
+  if (!isInFolder(headPath, dir)) return ungeteilt(absolute, content);
 
   const geordnet = orderPartFiles(headBasename, basenames, pathCompareKey);
   const katalog = await readCatalog(headPath);
@@ -185,6 +212,8 @@ async function readAssembledDocument(absolute, content, opts = {}) {
   for (const part of geordnet.parts) {
     const datei = dateien.get(pathCompareKey(part.basename));
     const pfad = path.join(dir, datei || `${part.basename}${ext}`);
+    // 4T-002811: Auch kein Teil wird außerhalb des Ordners gelesen.
+    if (!isInFolder(pfad, dir)) return ungeteilt(absolute, content);
     if (pathCompareKey(pfad) === pathCompareKey(absolute)) {
       // Die bereits gelesene Datei nicht ein zweites Mal von der Platte holen.
       inhalte.push({ index: part.index, basename: part.basename, pfad, content });
@@ -303,14 +332,25 @@ async function readStateForSave(absolute) {
  *
  * Liefert { ok:true, geschrieben } oder { ok:false, error, geschrieben } mit
  * den Pfaden, die bis zum Fehler geschrieben wurden.
+ *
+ * 4T-002811 (Epic 3E-000161): Jeder Teil liegt im Ordner der Kopf-Datei. Liegt
+ * auch nur einer anderswo, wird gar nichts geschrieben und
+ * { ok:false, error:'outside-folder', geschrieben:[] } geliefert; geprüft wird
+ * vor dem ersten Schreiben, damit kein halbes Dokument entsteht.
  */
 async function writeDocumentParts(headPath, teile, opts = {}) {
   const dir = path.dirname(headPath);
   const ext = path.extname(headPath) || '.md';
   const geschrieben = [];
+  const pfadVon = (teil) => teil.pfad || path.join(dir, `${teil.basename}${ext}`);
+  for (const teil of teile) {
+    if (teil.geaendert && !isInFolder(pfadVon(teil), dir)) {
+      return { ok: false, error: 'outside-folder', geschrieben };
+    }
+  }
   for (const teil of schreibReihenfolge(teile)) {
     if (!teil.geaendert) continue;
-    const pfad = teil.pfad || path.join(dir, `${teil.basename}${ext}`);
+    const pfad = pfadVon(teil);
     try {
       await ersetzeDateiOderWirf(pfad, teil.text, { markSelfWriting: opts.markSelfWriting });
       geschrieben.push(pfad);
@@ -426,6 +466,13 @@ async function rejoinDocument(absolute, opts = {}) {
   if (!vereint.ok) return { ok: false, error: vereint.error };
 
   const kopf = stand.headPath;
+  // 4T-002811: Zweite Linie hinter dem Lese-Weg. Kopf-Datei und jeder Teil, der
+  // gleich gelöscht wird, liegen im Ordner der genannten Datei; sonst wird
+  // weder geschrieben noch gelöscht.
+  const dir = path.dirname(path.resolve(absolute));
+  if (!isInFolder(kopf, dir) || stand.teile.some((teil) => !isInFolder(teil.pfad, dir))) {
+    return { ok: false, error: 'outside-folder', code: 'outside-folder' };
+  }
   try {
     await ersetzeDateiOderWirf(kopf, vereint.text, { markSelfWriting: opts.markSelfWriting });
   } catch (err) {
@@ -451,6 +498,7 @@ async function rejoinDocument(absolute, opts = {}) {
 module.exports = {
   MD_EXTENSION_RE,
   mddPathFor,
+  isInFolder,
   readAssembledDocument,
   readStateForSave,
   writeDocumentParts,

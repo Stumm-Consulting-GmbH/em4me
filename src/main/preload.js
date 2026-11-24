@@ -387,11 +387,16 @@ contextBridge.exposeInMainWorld('api', {
   // Editor-Einfaerbung, Tafel und Quelltext-Export rufen den Scanner im
   // Renderer; ob ein Marker in einem Code-Stueck liegt, entscheidet aber der
   // Zerleger der Anzeige, und der lebt hier und nicht im Renderer (derselbe
-  // Weg wie buildMindmap). Der Renderer legt ein Absatz-Stueck mit einem oder
-  // mehreren Platzhaltern vor (dazu, ob das Dokument die Portable-Kennzeichnung
-  // traegt) und bekommt ja (alle Platzhalter liegen in Code-Stuecken), nein oder
-  // keine Antwort (null). Rein lesend, ohne Datei-Zugriff; alles ausser einer
-  // Zeichenkette bleibt ohne Antwort, die Laenge begrenzt der Kern.
+  // Weg wie buildMindmap). 4T-002802: Der Renderer legt das ganze Dokument
+  // oder einen Abschnitt vor, jeder zu beurteilende Marker durch eine Kennung
+  // ersetzt, dazu das Leit-Zeichen der Kennungen, ob das Dokument die
+  // Portable-Kennzeichnung traegt, und als Optionen die Definitionen des ganzen
+  // Dokuments (Verweise und Fussnoten, fuer einen Abschnitt). Er bekommt die
+  // Nummern der Kennungen in Code und der unsicheren, die Anfangs-Zeilen der
+  // obersten Bloecke und die Definitionen des Textes, oder keine Antwort
+  // (null). Rein lesend, ohne Datei-Zugriff; der Kern liest von den Optionen
+  // nur Zeichenketten in Tafeln ohne Prototyp, alles ausser Zeichenketten als
+  // Text bleibt ohne Antwort, die Laenge begrenzt der Kern.
   kommentarImCode: require('../shared/markdown/plugins/comments.js').kommentarImCode,
   // 4T-001045 (Epic 3E-000151): Knoten-Baum fuer die Mindmap-Ansicht, derselbe
   // Weg wie renderMarkdown. Die Anordnung rechnet bewusst der Renderer, weil

@@ -13,6 +13,7 @@
 // `tag-colors`, `date-format`); ihre Inhalte sind erfunden.
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import {
   TAFEL_EINSTELLUNGEN,
@@ -22,6 +23,13 @@ import {
   setzeTafelEinstellung,
 } from '../../src/shared/kanban/kanban-einstellungen.js';
 import { leseTafel, schreibeTafel } from '../../src/shared/kanban/kanban-core.js';
+
+// 4T-002802: Die Erkennung der privaten Kommentare fragt für jedes Dokument, das
+// Code tragen kann, den Zerleger der Anzeige; ohne ihn gilt ab dem ersten
+// Marker alles als privat, auch der Einstellungs-Block der Tafel. Wie im
+// Programm steht der Kern dahinter: Er meldet seinen Zerleger beim Laden an der
+// Instanz an, die der Tafel-Kern liest.
+createRequire(import.meta.url)('../../src/shared/markdown/markdown.js');
 
 function fixture(name) {
   return readFileSync(

@@ -1,6 +1,6 @@
 // 4T-000977 (Epic 3E-000196): Index-Aufbau und -Pflege, herausgelöst aus
 // src/main/backlinks.js. Dieses Modul schreibt die Index-Maps eines Eintrags:
-// asynchroner Initial-Aufbau samt chokidar-Watcher (buildIndexAsync), das
+// asynchroner Initial-Aufbau samt Beobachtung der Wurzel (buildIndexAsync), das
 // Ein- und Austragen einzelner Dateien (applyParsedFile, removeFileFromIndex)
 // mit der Pflege der inversen Namens-, Alias- und Tag-Maps sowie der
 // Watcher-Pfad (onWatcherChange, markOversized). Mutierende Funktionen auf
@@ -11,7 +11,8 @@
 
 const path = require('node:path');
 const fs = require('node:fs');
-const chokidar = require('chokidar');
+// 4T-002830 (Epic 3E-000446): gemeinsame Beobachtung je Wurzel statt chokidar.
+const { beobachteWurzel, istAusgeschlossen } = require('../area/bereichs-beobachtung.js');
 const { pathCompareKey } = require('../../shared/platform.js');
 const { MD_EXT_RE, normalizeNameKey } = require('../../shared/markdown/link-scan.js');
 const { MDDA_CACHE_FILENAME } = require('../documents/mdd-store.js');
@@ -28,7 +29,6 @@ const {
   MAX_FILES,
   MAX_BYTES,
   BUILD_BATCH_SIZE,
-  isIgnoredDirName,
   collectMarkdownFiles,
 } = require('./scan.js');
 const { parseFile, parseFileAsync } = require('./parse.js');
@@ -206,53 +206,45 @@ async function buildIndexAsync(rootPath, entry) {
 
   entry.status = 'ready';
 
-  // Watcher starten. ignoreInitial: true, weil wir gerade selbst geparst
-  // haben. Markdown-Filter via ignored-Funktion.
-  entry.watcher = chokidar.watch(rootPath, {
-    // 4T-000347 (Epic 3E-000062): Bereichs-Wurzeln ohne Tiefen-Grenze (chokidar
-    // depth: undefined = unbegrenzt).
-    depth: entry.isArea ? undefined : SCAN_DEPTH,
-    ignoreInitial: true,
-    awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 50 },
-    // B-12 (4T-000175): Symlink-/Junction-Verzeichnissen nicht folgen — der
-    // Initial-Scan (readdir mit Dirents) folgt ihnen auch nicht.
-    followSymlinks: false,
-    ignored: (p) => {
-      // B-03 (4T-000175): gleiche Ignore-Regel wie der Initial-Scan
-      // (node_modules und alle Punkt-Ordner, nicht nur .git*).
-      const base = path.basename(p);
-      try {
-        const stat = fs.statSync(p);
-        if (stat.isDirectory()) return isIgnoredDirName(base);
-      } catch {
-        return false;
-      }
-      if (isIgnoredDirName(base)) return true;
-      // 4T-001494 (Epic 3E-000199): Nicht-Markdown-Dateien werden mit
-      // beobachtet, damit ihre Namens-Zuordnung nachzieht. Sie werden
-      // weiterhin nicht geparst und nicht gelesen (siehe onWatcherChange).
-      return false;
+  // Beobachtung starten. Was vor ihr geschah, hat der Aufbau eben selbst
+  // gelesen; gemeldet wird erst, was danach geschieht.
+  //
+  // 4T-002830 (Epic 3E-000446): An die Stelle von chokidar tritt die
+  // gemeinsame Beobachtung je Wurzel (src/main/area/bereichs-beobachtung.js):
+  // eine Überwachung des Betriebssystems je Wurzel statt einer je Datei und
+  // Ordner, geteilt mit der Datei-Liste des Bereichs, Schreib-Ende 200 ms wie
+  // bisher, auf Netz-Freigaben dazu der Abgleich im Takt. Die Ignorier-Regel
+  // urteilt allein am Pfad; der frühere `fs.statSync` je Pfad entfällt, der
+  // über ein Netzlaufwerk je Pfad den Haupt-Prozess blockierte.
+  entry.watcher = beobachteWurzel(rootPath, {
+    // 4T-000347 (Epic 3E-000062): Bereichs-Wurzeln ohne Tiefen-Grenze.
+    tiefe: entry.isArea ? undefined : SCAN_DEPTH,
+    // B-03 (4T-000175): gleiche Ignore-Regel wie der Initial-Scan
+    // (node_modules und alle Punkt-Ordner). 4T-001494 (Epic 3E-000199):
+    // Nicht-Markdown-Dateien werden mit beobachtet, damit ihre
+    // Namens-Zuordnung nachzieht; geparst und gelesen werden sie nicht.
+    ignoriert: (p) => istAusgeschlossen(rootPath, p),
+    melde: (art, p) => {
+      if (art === 'add' || art === 'change' || art === 'unlink')
+        beobachtet(rootPath, entry, p, art);
     },
-  });
-  entry.watcher.on('add', (p) => beobachtet(rootPath, entry, p, 'add'));
-  entry.watcher.on('change', (p) => beobachtet(rootPath, entry, p, 'change'));
-  entry.watcher.on('unlink', (p) => beobachtet(rootPath, entry, p, 'unlink'));
-  entry.watcher.on('error', (err) => {
-    // B-21 (4T-000187): Fehler-Status mit Backoff statt Force-Teardown mit
-    // Sofort-Rebuild — ein dauerhaft kaputter Watcher (z.B. geloeschtes
-    // Netzlaufwerk) loeste sonst eine Scan-Schleife aus. Die Panels
-    // zeigen den 'error'-Status; nach Ablauf des Backoffs baut der
-    // naechste Bedarf neu auf (ensureIndex).
-    console.warn('Backlinks-Watcher-Fehler:', rootPath, err && err.message);
-    try {
-      if (entry.watcher) entry.watcher.close();
-    } catch {
-      /* ignore */
-    }
-    entry.watcher = null;
-    entry.status = 'error';
-    entry.errorUntil = Date.now() + WATCHER_ERROR_BACKOFF_MS;
-    broadcast('backlinks:invalidated', { wurzel: rootPath });
+    fehler: (err) => {
+      // B-21 (4T-000187): Fehler-Status mit Backoff statt Force-Teardown mit
+      // Sofort-Rebuild — ein dauerhaft kaputter Watcher (z.B. geloeschtes
+      // Netzlaufwerk) loeste sonst eine Scan-Schleife aus. Die Panels
+      // zeigen den 'error'-Status; nach Ablauf des Backoffs baut der
+      // naechste Bedarf neu auf (ensureIndex).
+      console.warn('Backlinks-Watcher-Fehler:', rootPath, err && err.message);
+      try {
+        if (entry.watcher) entry.watcher.close();
+      } catch {
+        /* ignore */
+      }
+      entry.watcher = null;
+      entry.status = 'error';
+      entry.errorUntil = Date.now() + WATCHER_ERROR_BACKOFF_MS;
+      broadcast('backlinks:invalidated', { wurzel: rootPath });
+    },
   });
 
   // 4T-000348 (Epic 3E-000062): den nach dem Warmstart aktualisierten Stand (neue,

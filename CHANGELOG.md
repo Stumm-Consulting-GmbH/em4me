@@ -14,6 +14,159 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.161.3.5788] - 2026-11-24 — Sicherheit, Netzlaufwerke und private Kommentare
+
+Fehler-Release mit mehreren Vorhaben, gebündelt auf Auftrag der Steuerung vom
+2026-11-24.
+
+**Große Bereiche auf Netzlaufwerken**, Vorhaben
+3E-000446,
+auf Anordnung des Auftraggebers vom 2026-11-23 mit Vorrang vor jeder anderen
+Arbeit. Ein geöffneter Bereich hielt je Datei und je Ordner einen Zugriff auf
+seinen Datenträger offen; ein Bereich mit rund 18.000 Dateien und Ordnern auf
+einem Netzwerk-Speicher hielt am 2026-11-22 6.588 Zugriffe und legte die
+Verbindung des Rechners zum Speicher lahm. Seither teilen Datei-Liste und
+Verweis-Bestand eines Bereichs eine Überwachung je Bereich
+(4T-002829,
+4T-002830);
+Nachweis an der gebauten Programmdatei in
+4T-002831,
+Abschluss-Anteil in
+4T-002832.
+
+**Geteilte Dokumente bleiben in ihrem Ordner**, Behebung
+4T-002811
+im Pflege-Gefäß
+3E-000161:
+Die Anwendung liest und schreibt die Teile eines geteilten Dokuments nur noch im
+Ordner der geöffneten Datei. Damit ist ein blockierender Sicherheits-Befund
+geschlossen, der seit 1.126.0 bestand. Den Hinweis an Anwender samt dem
+Schließen des Befunds mit der Veröffentlichung hat der Auftraggeber am
+2026-11-24 freigegeben («1: A. 2: A. 3: A.», Punkt 2).
+
+**Private Kommentare: eine Erkennung mit der Anzeige**, Vorhaben
+3E-000447.
+Die Kommentar-Erkennung führt keine eigene Gliederung
+mehr: Über Code entscheidet für das ganze Dokument die Anzeige
+(4T-002802,
+darin aufgegangen
+4T-002801).
+Damit sind eingerückte Code-Blöcke Code wie Blöcke mit Zaun, und die offenen
+Fälle des Fehler-Releases 1.161.1 sind geschlossen: Code-Block in einem
+Behälter hinter einer Leerzeile, einzelnes Wagenrücklauf-Zeichen in
+eingebetteten Ansichten, E-Mail-Adresse in spitzen Klammern. Die Lese-Ansicht
+großer Dokumente liegt wieder auf dem Stand von 1.160.0. Der blockierende
+Sicherheits-Befund S1 der ersten Fassung ist behoben und auf das Wort des
+Auftraggebers vom 2026-11-23 zu Tor 8 geschlossen (Empfehlung übernommen, Tor
+ausdrücklich genannt); mit demselben Wort gilt, dass zwei Prozentzeichen in
+einem eingerückten Code-Block künftig gewöhnlicher Text sind und der Hinweis an
+Anwender das an erster Stelle nennt. Offen und benannt: Sonder-Blöcke mit
+eigener Darstellung
+(4T-002838,
+Datentabelle und Karte der Canvas-Fläche in
+4T-002797),
+einzelne sehr große Tabellen und Zitate auf der sicheren Seite
+(4T-002837),
+eine konstruierte Grenze an Tabellen-Trennzeilen im Bedrohungsmodell.
+
+Hinweis an Anwender im Wortlaut, bestätigt vom Auftraggeber am 2026-11-24 um
+etwa 09:25 («Zum Tor 9: Da machen wir A, wie deine Empfehlung ist.»,
+Empfehlung übernommen, Tor ausdrücklich genannt):
+
+> **Private Kommentare: eine Erkennung mit der Anzeige.** Zwei Prozentzeichen in einem eingerückten Code-Block, also in Zeilen mit vier Leerzeichen am Anfang, sind ab dieser Version gewöhnlicher Text und kein privater Kommentar mehr: Wer dort Text zwischen zwei Prozentzeichen-Paaren stehen hat, sieht ihn jetzt in der Lese-Ansicht und in exportierten Dateien. Diese Version erkennt private Kommentare außerdem genau dort, wo auch die Anzeige Code sieht, schließt damit die noch offenen Fälle der Version 1.161.1 und macht große Dokumente in der Lese-Ansicht wieder so schnell wie vor ihr. Neue Funktionen bringt sie nicht.
+>
+> **Geändert: Eingerückte Code-Blöcke zeigen zwei Prozentzeichen als Text.** Ein eingerückter Code-Block, also Zeilen mit vier Leerzeichen am Anfang, wird jetzt behandelt wie ein Code-Block zwischen Zeilen aus drei Backticks: Zwei Prozentzeichen darin bleiben als Text stehen und beginnen keinen privaten Kommentar. Text, der bisher dort zwischen zwei Prozentzeichen-Paaren verborgen war, ist jetzt in der Lese-Ansicht, in der Präsentation und in exportierten Dateien sichtbar. Prüfen Sie vor dem nächsten Export Dokumente, in denen Sie private Kommentare in eingerückten Code geschrieben haben, und schreiben Sie solche Kommentare außerhalb des Code-Blocks.
+>
+> **Behoben: Private Kommentare bleiben auch in den bisher offenen Fällen verborgen.** Private Kommentare bleiben jetzt auch verborgen nach einem Code-Block, der in einem Container oder einer Definitionsliste hinter einer Leerzeile steht, in eingebetteten Ansichten einer Datei, deren Zeilen allein mit einem Wagenrücklauf-Zeichen enden, wie in älteren Mac-Formaten, und in Dokumenten mit einer E-Mail-Adresse in spitzen Klammern. Das Programm entscheidet dabei an einer einzigen Stelle, was Code ist, nämlich dort, wo es das Dokument auch anzeigt. Ebenso bleiben sie verborgen in einem Dokument mit Eigenschaften-Kopf, auf den nach einer Leerzeile direkt ein Code-Block folgt; dort meldete der Editor seit der Version 1.161.1 «Unpaariger Kommentar-Marker», und die Lese-Ansicht blendete den Rest des Dokuments ab dem ersten privaten Kommentar aus.
+>
+> **Behoben: Große Dokumente sind wieder schnell.** Große Dokumente mit vielen privaten Kommentaren bauen sich in der Lese-Ansicht wieder so schnell auf wie vor der Version 1.161.1. Lange Dokumente mit Code-Blöcken und vielen privaten Kommentaren werden nicht mehr vorzeitig an einem privaten Kommentar abgeschnitten; diese Grenze bleibt nur für einzelne sehr große Tabellen und Zitate (siehe «Noch offen»).
+>
+> **Noch offen.** Noch sichtbar werden kann ein privater Kommentar in Sonder-Blöcken mit eigener Darstellung, etwa in einer Datentabelle, einer Perspective Table, einem Datenblock, einem Dashboard, einem Diagramm, einem Workflow-Block, einer Journal-Zeitleiste, einem Ereignis-Block und auf einer Karte der Canvas-Fläche in der Vorschau der Lese-Ansicht. In einer einzelnen sehr großen Tabelle oder einem sehr großen Zitat mit vielen privaten Kommentaren baut sich die Lese-Ansicht langsamer auf, und ab einer Grenze blendet das Programm den Rest des Dokuments ab dem ersten Kommentar aus, bei dem es nicht sicher entscheiden kann: Es zeigt dann zu wenig, nie zu viel, und die Datei selbst bleibt unverändert. In sehr ungewöhnlich gebauten Tabellen, in denen eine Zeile erst durch das Entfernen eines Kommentars zur Trennzeile wird, kann Text eines privaten Kommentars sichtbar bleiben.
+>
+> **Was Sie bis dahin tun.** Bis dahin gehören private Kommentare nicht in solche Sonder-Blöcke. Sehr große Tabellen und Zitate mit vielen privaten Kommentaren lassen sich in mehrere kleinere teilen.
+>
+> **Dokumentation: Das Handbuch nennt eingerückte Code-Blöcke.** Die Handbuch-Seite «Inline-Konstrukte», Abschnitt «Kommentare», und die Beschreibung der Funktion nennen in allen fünf Sprachen auch eingerückte Code-Blöcke als Stelle, an der zwei Prozentzeichen gewöhnlicher Text bleiben.
+>
+> **Dokumentation: Berichtigte Namen im Hinweis der Version 1.161.1.** Der Hinweis der Version 1.161.1 nennt die Sonder-Blöcke jetzt mit ihren Namen in Programm und Handbuch: Datenblock, Workflow-Block und Journal-Zeitleiste.
+
+### Behoben
+
+- **Sicherheit: Geteilte Dokumente bleiben in ihrem Ordner** (`4T-002811`). Die
+  Anwendung bindet die Teile eines geteilten Dokuments an den Ordner der
+  geöffneten Datei, auf dem Lese-Weg und an den Kanälen des Hauptprozesses wie
+  bisher schon auf den Wegen der Workflows.
+- **Ein geöffneter Bereich hält eine kleine, feste Zahl offener Zugriffe**
+  (`4T-002829`, `4T-002830`). Index und Datei-Liste melden sich an einer
+  gemeinsamen Beobachtung je Bereichs-Wurzel an statt je eines eigenen
+  chokidar-Beobachters, der je Datei und je Ordner eine Überwachung des
+  Betriebssystems einrichtete. Unter Windows ist es eine Überwachung für den
+  ganzen Baum, unter Linux eine je Ordner, nie eine je Datei. Ein
+  Bestandsabbild ordnet die Meldungen ein; Schreib-Ende 200 ms wie bisher;
+  Puffer-Überlauf und Fehler führen zu einem vollständigen Abgleich, ein
+  dauerhafter Fehler nach drei Neustarts zum Abgleich im Takt. Ordner ohne
+  Bereich (Tiefe 2) sind eingeschlossen.
+- **Kein blockierender Datei-Aufruf je Pfad in der Ignorier-Regel des Index**
+  (`4T-002830`): Sie urteilt allein am Pfad.
+- **Eine Code-Erkennung für Anzeige und private Kommentare** (`4T-002802`,
+  `4T-002801`). Die Erkennung fragt nach jedem Kommentar die Anzeige neu und
+  legt ihr nur den Abschnitt um den Kommentar vor, vom obersten Block davor bis
+  zum zweiten Block danach; Neustart-Stellen sind oberste Blöcke und Einträge
+  oberster Listen. Stimmen an beiden Rändern Block-Anfänge und Antworten nicht
+  mit der bisherigen Zerlegung überein, wird der Abschnitt verdoppelt, zuletzt
+  bis zum ganzen Dokument; eine Verweis-Definition im Abschnitt lässt das ganze
+  Dokument fragen. Jede Frage prüft die Treue der Kennung mit den echten
+  Markern, die Schluss-Prüfung vergleicht in beiden Richtungen, und die sichere
+  Seite beginnt am frühesten ungeprüften Marker. Ein einzelnes
+  Wagenrücklauf-Zeichen gilt als Zeilenende.
+
+### Geändert
+
+- **Abgleich im Takt auf Netzlaufwerken** (`4T-002829`): Weil Windows Änderungen
+  auf Netz-Freigaben nicht verlässlich meldet, gleicht die Anwendung einen
+  Bereich dort zusätzlich regelmäßig ab, frühestens alle 30 Sekunden und nie
+  öfter als das Zehnfache der Dauer des letzten Abgleichs zulässt. Eine
+  Änderung von außen kann dort deshalb bis zum nächsten Abgleich brauchen, bis
+  sie in Datei-Liste und Suche erscheint.
+- **Eingerückte Code-Blöcke sind Code** (`4T-002802`, Wort des Auftraggebers
+  zu Tor 8, Frage 2): Zwei Prozentzeichen in einem um vier Leerzeichen
+  eingerückten Code-Block bleiben Text wie in jedem anderen Code.
+
+### Dokumentation
+
+- **Handbuch und Hilfetext der privaten Kommentare** (`4T-002802`), fünf
+  Sprachen, dazu das README: Code-Blöcke zwischen Zeilen aus mindestens drei
+  Backticks oder Tilden oder um vier Leerzeichen eingerückt.
+- **Block-Namen im Hinweis des Releases 1.161.1 berichtigt** (`4T-002835`):
+  Datenblock, Workflow-Block und Journal-Zeitleiste in allen fünf Sprachen der
+  Versions-Seite und im Änderungsprotokoll.
+
+### Intern
+
+- **Prüffälle und Wächter** (`4T-002829`, `4T-002830`): Zahl der Überwachungen
+  an kleinem und großem Baum auf beiden Plattform-Wegen, Ereignis-Arten bei
+  beiden Verbrauchern an echten Ordnern, Abgleich auf Netz-Freigaben ohne
+  Meldung, je eine Prüfung der fünf Auflagen der Plan-Freigabe, Wächter gegen
+  den Rückfall auf chokidar an einer Bereichs-Wurzel; Zeitgrenze
+  `BEOBACHTUNG_ZEITLIMIT` in `test/zeitlimits.js`; Zuordnung der neuen
+  Prüfdateien in `scripts/aenderungsklassen.json`; Modul nach Fachlichkeit in
+  drei Dateien geschnitten.
+- **Architektur** um die Designentscheidung «Beobachtung einer Wurzel» und die
+  Modul-Karte fortgeschrieben; Fehler-Retrospektive im Vorhaben.
+- **Prüffälle** (`4T-002802`): Fälle aller fünf Review-Runden, eingerückte
+  Code-Blöcke, Sonder-Zeilenende und Treue der Kennung in den Unit-Prüfdateien
+  der privaten Kommentare, Paritäts-Wächter der Code-Erkennung erweitert;
+  Ablauf-Prüfdatei der privaten Kommentare in der Prüfmaschine grün; dazu das
+  Dokument mit Eigenschaften-Kopf, null bis zwei Leerzeilen und Code-Block vor
+  einer Listenzeile mit Kommentar, vom Auftraggeber am 2026-11-24 gemeldet.
+- **Architektur** (`4T-002802`): Designentscheidung der Kommentar-Erkennung,
+  Brücken-Modul und Zeile «Private Kommentare» im Bedrohungsmodell
+  fortgeschrieben.
+- **Prüffälle und Architektur** (`4T-002811`): neue Prüfdatei
+  `test/unit/document-parts-ausbruch.test.js` an den echten Kanälen, Fälle in
+  der Prüfdatei der geteilten Dokumente im Workflow, Zuordnung in
+  `scripts/aenderungsklassen.json`; Bedrohungsmodell, Zeile «Workflow-Befehle der
+  Datenbank», und Abschnitt «Workflow-Schritte» nachgezogen.
+
 ## [1.161.2.5690] - 2026-11-23 — Workflows: Abfrage-Ergebnis als Text in die Notiz
 
 Zug 3E-000433
@@ -173,7 +326,7 @@ Empfehlung übernommen):
 
 > **Behoben.** Private Kommentare konnten in der Anzeige und in exportierten Dateien erscheinen, wenn im selben Dokument an anderer Stelle Backticks standen oder ein Code-Block in einem Aufzählungspunkt, einem Zitat, einem Container oder einer Definitionsliste. Das ist für diese Fälle behoben.
 >
-> **Noch offen.** Noch sichtbar werden kann ein privater Kommentar in Sonder-Blöcken mit eigener Darstellung, etwa in einer Datentabelle, einer Perspective Table, einem Datensatz, einem Dashboard, einem Diagramm, einem Workflow, einer Zeitleiste, einem Ereignis-Block und auf einer Karte der Canvas-Fläche in der Vorschau der Lese-Ansicht; nach einem Code-Block, der in einem Container oder einer Definitionsliste hinter einer Leerzeile steht; nach zwei einzelnen Prozentzeichen in einem eingerückten Code-Block, also in Zeilen mit vier Leerzeichen am Anfang statt zwischen Zeilen aus Backticks; und in eingebetteten Ansichten einer Datei, deren Zeilen allein mit einem Wagenrücklauf-Zeichen enden, wie in älteren Mac-Formaten. In sehr ungewöhnlich gebauten Dokumenten, etwa mit einem privaten Kommentar innerhalb einer E-Mail-Adresse, kann Text eines privaten Kommentars ebenfalls sichtbar bleiben. In sehr langen Dokumenten mit einem Code-Block und vielen privaten Kommentaren, ab rund 200 Seiten schon mit einem einzigen Kommentar weit hinter dem Code-Block, kann die Anzeige an einem privaten Kommentar enden: Der Rest des Dokuments fehlt dann in der Lese-Ansicht und in exportierten Dateien, die Datei selbst bleibt unverändert. In langen Dokumenten mit vielen privaten Kommentaren hinter einem Code-Block baut sich die Lese-Ansicht bis dahin langsamer auf. Eine vollständige Lösung ist in Arbeit.
+> **Noch offen.** Noch sichtbar werden kann ein privater Kommentar in Sonder-Blöcken mit eigener Darstellung, etwa in einer Datentabelle, einer Perspective Table, einem Datenblock, einem Dashboard, einem Diagramm, einem Workflow-Block, einer Journal-Zeitleiste, einem Ereignis-Block und auf einer Karte der Canvas-Fläche in der Vorschau der Lese-Ansicht; nach einem Code-Block, der in einem Container oder einer Definitionsliste hinter einer Leerzeile steht; nach zwei einzelnen Prozentzeichen in einem eingerückten Code-Block, also in Zeilen mit vier Leerzeichen am Anfang statt zwischen Zeilen aus Backticks; und in eingebetteten Ansichten einer Datei, deren Zeilen allein mit einem Wagenrücklauf-Zeichen enden, wie in älteren Mac-Formaten. In sehr ungewöhnlich gebauten Dokumenten, etwa mit einem privaten Kommentar innerhalb einer E-Mail-Adresse, kann Text eines privaten Kommentars ebenfalls sichtbar bleiben. In sehr langen Dokumenten mit einem Code-Block und vielen privaten Kommentaren, ab rund 200 Seiten schon mit einem einzigen Kommentar weit hinter dem Code-Block, kann die Anzeige an einem privaten Kommentar enden: Der Rest des Dokuments fehlt dann in der Lese-Ansicht und in exportierten Dateien, die Datei selbst bleibt unverändert. In langen Dokumenten mit vielen privaten Kommentaren hinter einem Code-Block baut sich die Lese-Ansicht bis dahin langsamer auf. Eine vollständige Lösung ist in Arbeit.
 >
 > **Was Sie bis dahin tun.** Bis dahin gehören private Kommentare nicht in solche Sonder-Blöcke, und Code mit zwei Prozentzeichen gehört zwischen Zeilen aus drei Backticks. Sehr lange Dokumente mit Code-Blöcken und privaten Kommentaren lassen sich bis dahin in mehrere Dateien teilen. Wer Dokumente mit privaten Kommentaren mit einer früheren Fassung exportiert und weitergegeben hat, sollte die exportierten Dateien prüfen.
 

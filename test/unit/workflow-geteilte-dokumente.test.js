@@ -762,6 +762,19 @@ describe('Grenze: Zuordnungs-Zeile mit Pfad-Ausbruch (Sicherheits-Review, Runde 
     l.unberuehrt();
   });
 
+  // 4T-002811, Zweitblick Runde 2: Die Workflows prüfen den Grundnamen mit der
+  // gemeinsamen Regel isBlankPartBase. Ein Steuerzeichen im Grundnamen weist
+  // nur diese Regel ab; bekäme der Workflow-Weg wieder eine eigene, weitere
+  // Fassung, liefe der Schritt bis zum fehlenden Teil statt an der Grenze.
+  it('ein Steuerzeichen im Grundnamen hält an der Grenze an (gemeinsame Regel)', async () => {
+    const l = lage();
+    l.notiz('Ziel\u0007');
+    const vorher = lies(path.join(l.w.root, 'Notiz.md'));
+    expect(await l.w.lauf('append', ['Notiz.md'], VORLAGE('- neu'))).toEqual(AUSSERHALB);
+    expect(lies(path.join(l.w.root, 'Notiz.md'))).toBe(vorher);
+    l.unberuehrt();
+  });
+
   // Ein Verweis im Ordner des Dokuments, der aus dem Bereich führt. Unter
   // Windows ohne Entwickler-Modus darf ein Prozess keine Datei-Verweise anlegen;
   // dann entfällt der Fall, die Prüfung des echten Orts deckt ihn trotzdem ab.

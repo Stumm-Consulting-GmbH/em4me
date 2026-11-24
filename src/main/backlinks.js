@@ -1,9 +1,10 @@
 // 4T-000015: Backlinks-Indexierung pro Wurzel.
 // Eine Wurzel ist der Ordner einer aktiven Datei. Suchraum = Wurzel + 2
-// zusaetzliche Unterordner-Ebenen (chokidar depth: 2). Pro Wurzel haelt
+// zusaetzliche Unterordner-Ebenen (Tiefe 2). Pro Wurzel haelt
 // dieses Subsystem einen Index aller Markdown-Dateien mit allen darin
-// gefundenen Wiki-Links und relativen Markdown-Links plus chokidar-Watcher
-// fuer inkrementelle Updates. Reference-Counting plus 60-s-Soft-Timer
+// gefundenen Wiki-Links und relativen Markdown-Links plus eine Anmeldung an
+// der gemeinsamen Beobachtung der Wurzel (src/main/area/bereichs-beobachtung.js,
+// seit 4T-002830 statt chokidar) fuer inkrementelle Updates. Reference-Counting plus 60-s-Soft-Timer
 // steuert, wann der Watcher abgebaut wird (letzter Tab in der Wurzel ist zu).
 //
 // 4T-000977 (Epic 3E-000196): Fassade der Index-API (bewusste Subsystem-API,

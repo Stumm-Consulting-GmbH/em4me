@@ -66,8 +66,8 @@ const apiVorher = {
 // Die Anmeldung von kommentar-code-frage.js, an der Instanz des Editors.
 function brueckeAnmelden() {
   editorAbtaster.setzeCodeFrage(
-    (stueck) => kommentarCodeFrage(stueck, false),
-    (stueck) => kommentarCodeFrage(stueck, true),
+    (text, leit) => kommentarCodeFrage(text, leit, false),
+    (text, leit) => kommentarCodeFrage(text, leit, true),
   );
 }
 
@@ -89,8 +89,10 @@ describe('Zwischenspeicher der Kommentar-Bereiche im Editor (AK1)', () => {
   it('gleiche Dokument-Fassung: wechselt die Antwort der Bruecke mit dem Umschalten, liefert computeCommentRanges die neuen Bereiche', async () => {
     // Attrappe der Bruecke; der Kern bleibt aussen vor, sonst meldete sein
     // Neuaufbau an der Instanz des Editors wieder den eigenen Zerleger an.
+    // 4T-002802: Die Antwort nennt die Nummern der Marker in Code; das
+    // Code-Stueck traegt zwei Marker (0 und 1).
     let imCode = false;
-    api.kommentarImCode = () => imCode;
+    api.kommentarImCode = () => (imCode ? [0, 1] : []);
     api.configureExtensions = () => {};
     brueckeAnmelden();
     const fassung = doc(CODE_STUECK);
@@ -116,12 +118,32 @@ describe('Zwischenspeicher der Kommentar-Bereiche im Editor (AK1)', () => {
   });
 });
 
+// 4T-002802, gemeldet am 2026-11-24 (Zweitblick Runde 6, Z1): Der Editor
+// schneidet den Eigenschaften-Kopf selbst ab; geprüft wird dieser echte Weg,
+// nicht ein nachgebautes Abschneiden.
+describe('Editor-Weg: Eigenschaften-Kopf, Leerzeilen, Code-Block, Kommentar in einer Listenzeile', () => {
+  const KOMMENTAR = '%% (jeden Donnerstag ist Wochenwechsel) %%';
+  for (const leer of [0, 1, 2]) {
+    it(`${leer} Leerzeile(n): zwei geschlossene Kommentare an ihrer Stelle im Dokument`, () => {
+      const text =
+        '---\ntitel: Journal\n---\n' +
+        '\n'.repeat(leer) +
+        '```perspective-journal-nav\nzurueck: [[KW47]]\n```\n\n' +
+        `- x Wochen und x Tage ${KOMMENTAR}\n- zweite Zeile %% noch privat %%\n`;
+      const bereiche = computeCommentRanges(doc(text));
+      expect(bereiche).toHaveLength(2);
+      expect(bereiche.every((b) => b.closed)).toBe(true);
+      expect(text.slice(bereiche[0].from, bereiche[0].to)).toBe(KOMMENTAR);
+    });
+  }
+});
+
 describe('Dokument mit Portable-Kennzeichnung im Fenster-Teil', () => {
   function mitschreibendeBruecke() {
     const aufrufe = [];
-    api.kommentarImCode = (stueck, portabel) => {
+    api.kommentarImCode = (_text, _leit, portabel) => {
       aufrufe.push(portabel);
-      return false;
+      return [];
     };
     return aufrufe;
   }
@@ -140,14 +162,29 @@ describe('Dokument mit Portable-Kennzeichnung im Fenster-Teil', () => {
     expect(aufrufe.every((p) => p === false)).toBe(true);
   });
 
+  // 4T-002802, Variante B: Jede Frage verlangt die Gliederung der Anzeige
+  // (Block-Anfaenge, Definitionen, unsichere Kennungen) und prueft damit stets
+  // die Treue der Kennung.
+  it('reicht die Optionen der Frage durch: jede Frage mit Gliederung', () => {
+    const optionen = [];
+    api.kommentarImCode = (_text, _leit, _portabel, o) => {
+      optionen.push(o);
+      return { code: [0, 1], unsicher: [], bloecke: [0], definitionen: null };
+    };
+    findPercentCommentRanges(CODE_STUECK);
+    expect(optionen.length).toBeGreaterThan(1);
+    expect(optionen.every((o) => o && o.gliederung === true)).toBe(true);
+  });
+
   it('der Editor fragt fuer ein solches Dokument ebenso die portable Fassung', () => {
     const aufrufe = mitschreibendeBruecke();
     brueckeAnmelden();
     computeCommentRanges(doc(PORTABEL + CODE_STUECK));
     computeCommentRanges(doc(CODE_STUECK));
-    // Je Dokument eine Frage: Die Attrappe verneint, der erste Marker beginnt
-    // damit einen Kommentar, der den zweiten einschliesst.
-    expect(aufrufe).toEqual([true, false]);
+    // Je Dokument zwei Fragen: Die Attrappe verneint, der erste Marker beginnt
+    // damit einen Kommentar, der den zweiten einschliesst; die Schluss-Pruefung
+    // fragt in der zweiten Richtung nach (Variante B).
+    expect(aufrufe).toEqual([true, true, false, false]);
   });
 
   it('der Quelltext-Export entfernt den Kommentar im gemeldeten Fall 2', () => {

@@ -806,12 +806,14 @@ function rebuildPipelines() {
   }
   md = built.md;
   mdPortable = built.mdPortable;
-  // 4T-002792 (Epic 3E-000434): Ueber Code im Fliesstext entscheidet beim
-  // Entfernen der %%-Kommentare die Anzeige selbst, nicht mehr eine eigene
-  // Regel des Scanners. Er fragt die Instanz, die das Dokument zeichnet: die
+  // 4T-002792 (Epic 3E-000434), seit 4T-002802 fuer das ganze Dokument: Ob ein
+  // %%-Marker in Code liegt, entscheidet allein die Anzeige, ohne eigene Regel
+  // der Erkennung. Sie fragt die Instanz, die das Dokument zeichnet: die
   // portable bei einem Dokument mit Portable-Kennzeichnung, sonst die
   // gewoehnliche (auch im portablen Export, der genau das entfernt, was die
-  // Anwendung verbirgt). Beide werden hier nach jedem Neuaufbau angemeldet.
+  // Anwendung verbirgt). Beide werden hier nach jedem Neuaufbau angemeldet,
+  // samt eingehaengten externen Erweiterungen; ob deren Regeln die Kennung
+  // anders lesen als den Marker, prueft die Code-Frage an der Instanz selbst.
   meldeZerlegerAn(md, mdPortable);
   zellHtmlPortabel = built.zellHtmlPortabel;
   // Exporte nachfuehren: perspective-table.js greift lazy per

@@ -13,6 +13,7 @@
 'use strict';
 
 const { extractFrontmatter, writeFrontmatter } = require('./markdown/frontmatter.js');
+const { isWindowsPlatform } = require('./platform.js');
 
 // U+2022 BULLET (F3). Bewusst ein anderes Zeichen als das Unterseiten-
 // Trennzeichen U+2215 und bewusst kein Homoglyph dazu: Bei gleichem oder
@@ -158,6 +159,35 @@ function parsePartValue(value) {
   return { schemaVersion: Number(versionField.slice(1)), index, base };
 }
 
+// 4T-002811 (Epic 3E-000161): Taugt der Grundname aus der Zuordnungs-Zeile als
+// Datei-Name im Ordner des Dokuments? Der Grundname ist Dokument-Inhalt und
+// damit fremd kontrollierbar; wer aus ihm einen Pfad bildet, prüft ihn vorher
+// hier. Gültig ist nur ein blanker Datei-Name: kein leerer Wert, kein «.» und
+// kein «..», kein Pfad-Trenner beider Schreibweisen, kein Laufwerk am Anfang,
+// keine Steuerzeichen und unter Windows kein Doppelpunkt (Laufwerk oder
+// Neben-Datenstrom). parsePartValue prüft das bewusst nicht: Die Erkennung
+// einer Zuordnungs-Zeile bleibt davon getrennt, damit ein Aufrufer eine
+// präparierte Zeile erkennen und abweisen kann, statt sie zu übersehen.
+// Unter Windows ist auch ein reservierter Geräte-Name kein Datei-Name (CON,
+// PRN, AUX, NUL, CONIN$, CONOUT$, COM1 bis COM9, LPT1 bis LPT9, dazu COM und
+// LPT mit hochgestellter Ziffer 1 bis 3, jeweils auch mit Leerzeichen am Ende
+// oder vor der Endung und mit Endung): Ein Pfad darauf adressiert ein Gerät
+// statt einer Datei im Ordner.
+// Dieselbe Regel trägt die Grenzprüfung der Workflows
+// (src/main/workflows/workflow-platten-schreibweg.js, blankerName).
+const WINDOWS_GERAETENAME =
+  /^(con|prn|aux|nul|conin\$|conout\$|com[1-9¹²³]|lpt[1-9¹²³]) *(\..*)?$/i;
+function isBlankPartBase(name) {
+  if (typeof name !== 'string' || name === '' || name === '.' || name === '..') return false;
+  if (/[\\/]/.test(name) || /^[A-Za-z]:/.test(name)) return false;
+  for (let i = 0; i < name.length; i += 1) {
+    const code = name.charCodeAt(i);
+    if (code < 32 || code === 127) return false;
+  }
+  if (!isWindowsPlatform()) return true;
+  return !name.includes(':') && !WINDOWS_GERAETENAME.test(name);
+}
+
 // Liest die Zuordnungs-Zeile aus dem Datei-Inhalt.
 // Liefert { schemaVersion, index, base } oder null, wenn die Datei keinen
 // lesbaren Frontmatter, keine Zeile oder eine unlesbare Zeile trägt.
@@ -215,6 +245,7 @@ module.exports = {
   partPrefix,
   formatPartValue,
   parsePartValue,
+  isBlankPartBase,
   readPartLine,
   writePartLine,
 };

@@ -108,4 +108,41 @@ async function beziehSperrOrdnerNeu(eintraege, leseWirksamenNamen, rootPath) {
   }
 }
 
-module.exports = { istImSperrOrdner, baueIgnorierRegel, beziehSperrOrdnerNeu };
+// 4T-002830 (Epic 3E-000446): Arten, die die Struktur des Bereichs-Baums
+// ändern. Inhalts-Änderungen (`change`) sind für die Datei-Liste ohne
+// Belang und würden bei jedem Speichern feuern.
+const STRUKTUR_ARTEN = new Set(['add', 'addDir', 'unlink', 'unlinkDir']);
+
+/**
+ * Baut den Verbraucher der Datei-Liste für die gemeinsame Beobachtung einer
+ * Bereichs-Wurzel (src/main/area/bereichs-beobachtung.js).
+ *
+ * Er reicht allein Struktur-Meldungen an `benachrichtige` weiter, nach der
+ * Ignorier-Regel dieses Moduls; entprellt wird beim Empfänger. Ein Fehler der
+ * Beobachtung wird protokolliert: Die Datei-Liste liest beim nächsten Anlass
+ * ohnehin vollständig neu.
+ *
+ * @param {{rootPath: string, sperrOrdner: string}} eintrag Watcher-Eintrag.
+ * @param {(p: string) => boolean} isMddPath Erkennung der Markdown-Data-Dateien.
+ * @param {() => void} benachrichtige Meldung an die Fenster des Bereichs.
+ * @returns {{ignoriert: Function, melde: Function, fehler: Function}} Verbraucher.
+ */
+function baueStrukturVerbraucher(eintrag, isMddPath, benachrichtige) {
+  return {
+    ignoriert: baueIgnorierRegel(eintrag, isMddPath),
+    melde: (art) => {
+      if (STRUKTUR_ARTEN.has(art)) benachrichtige();
+    },
+    fehler: (err) => {
+      console.warn('Bereichs-Watcher-Fehler:', eintrag.rootPath, err && err.message);
+    },
+  };
+}
+
+module.exports = {
+  istImSperrOrdner,
+  baueIgnorierRegel,
+  beziehSperrOrdnerNeu,
+  baueStrukturVerbraucher,
+  STRUKTUR_ARTEN,
+};

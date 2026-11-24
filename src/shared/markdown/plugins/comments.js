@@ -1,185 +1,116 @@
 // 4T-000985 (Epic 3E-000196): aus src/shared/markdown/plugins.js geschnitten.
-// Kommentar-Gruppe: der code-bewusste Scanner der %%-Kommentare und das
-// zeilentreue Strippen. Electron-frei; aufgerufen wird beides direkt aus
-// markdown.js (Quelltext-Vorverarbeitung, keine markdown-it-Regel).
+// Kommentar-Gruppe: die Erkennung der %%-Kommentare und das zeilentreue
+// Entfernen. Electron-frei; aufgerufen wird beides direkt aus markdown.js
+// (Quelltext-Vorverarbeitung, keine markdown-it-Regel).
 'use strict';
 
 // ---------------------------------------------------------------------------
-// 4T-000479 (Epic 3E-000089): %%-Kommentare. Text zwischen %%-Markern (inline
-// und mehrzeilig) erscheint in keiner gerenderten Ansicht und keinem Export,
-// bleibt aber im Quelltext. Als code-bewusste Quelltext-Vorverarbeitung
-// statt markdown-it-Regel, weil die Kombination "block-uebergreifend,
-// unpaarig bis Dokument-Ende, Code bleibt Literal" von Inline-/Block-Regeln
-// strukturell nicht leistbar ist (Inline-Regeln enden am Block-Kontext).
-// findPercentCommentRanges ist die gemeinsame Quelle fuer das Strippen
-// (renderMarkdown/convertMarkdownPortable in markdown.js) UND die Editor-
-// Einfaerbung bzw. Live-Ausblendung (live-deco.js/live-widgets.js) —
-// garantierte Paritaet aller Ansichten.
+// 4T-000479 (Epic 3E-000089): %%-Kommentare. Text zwischen %%-Markern (im
+// Fließtext und über Zeilen) erscheint in keiner gezeichneten Ansicht und
+// keinem Export, bleibt aber im Quelltext. Als Quelltext-Vorverarbeitung statt
+// markdown-it-Regel, weil ein Kommentar über Block-Grenzen reicht, auch über
+// einen Code-Zaun hinweg, unpaarig bis zum Dokument-Ende wirkt und Code
+// trotzdem wörtlich bleiben muss: Eine Regel müsste vor der Block-Gliederung
+// paaren, die Code-Stücke im Fließtext aber erst nach ihr kennen.
+// findPercentCommentRanges ist die gemeinsame Quelle für das Entfernen
+// (renderMarkdown/convertMarkdownPortable in markdown.js) und für Einfärbung
+// und Ausblendung im Editor.
+//
+// 4T-002802 (Epic 3E-000161): eine Code-Erkennung für Anzeige und Kommentare.
+// Ob ein Marker in Code liegt, entscheidet allein der Zerleger der Anzeige; die
+// Erkennung führt keine eigene Regel für Code-Zäune, eingerückte Code-Blöcke,
+// Code-Stücke oder Roh-Blöcke. Die frühere Erkennung (Weg (a) der Steuerung im
+// Sicherheits-Review zu 3E-000434) legte dem Zerleger Absatz-Stücke vor und
+// gliederte selbst; jede eigene Gliederung entschied an einem Behälter, den sie
+// nicht kannte, anders als die Anzeige, und das Fragen je Marker kostete am
+// großen Dokument ein Vielfaches der Zeichenzeit.
+//
+// Verfahren:
+// - Kandidaten sind alle nicht maskierten Marker `%%`, gierig von links. Ein
+//   Rückstrich vor `%` oder `\` maskiert; Masken gelten auch im Kommentar.
+// - Der Zerleger liest das ganze Dokument, jeder zu beurteilende Marker durch
+//   eine eindeutige Kennung aus dem privaten Zeichen-Bereich ersetzt (kennung).
+//   Als Code zählen Code-Blöcke mit Zaun, eingerückte Code-Blöcke und
+//   Code-Stücke im Fließtext (baueCodeFrage). Jede Frage prüft auch, ob die
+//   Kennung so zerlegt wird wie der Marker: Die Anzeige zerlegt den Text
+//   zusätzlich mit den Markern und vergleicht je Absatz. Weicht ein Absatz ab
+//   und ist Code beteiligt, sind seine Kennungen unsicher (belegt: die
+//   E-Mail-Erkennung in spitzen Klammern nimmt `%` an, das Zeichen der
+//   Kennung nicht). Die Antwort nennt außerdem die Neustart-Stellen (Anfänge
+//   der obersten Blöcke und der Einträge oberster Listen) und die Definitionen von Verweisen und Fußnoten.
+// - Entschieden wird der Reihe nach: Ein Marker wird so beurteilt, wie die
+//   Anzeige ihn sähe, wenn die Kommentare vor ihm entfernt sind und der Text ab
+//   ihm unverändert folgt. Ein Marker in Code bleibt wörtlich, ein unsicherer
+//   führt auf die sichere Seite, jeder andere öffnet einen Kommentar, und der
+//   nächste Marker schließt ihn.
+// - Nach jedem Kommentar fragt die Erkennung die Anzeige neu, aber nur für
+//   den Abschnitt um ihn (Variante B, nach Runde 1 des Sicherheits-Reviews;
+//   die frühere eigene Regel, wann das Entfernen nichts ändert, ließ sich mit
+//   einem Verweis täuschen). Eine Neustart-Stelle beginnt in der Anzeige mit
+//   frischem Zustand: Stimmen im Block vor und im Block nach dem Kommentar die
+//   Block-Anfänge und die Antworten mit der bisherigen Zerlegung überein,
+//   zerlegt die Anzeige alles außerhalb des Abschnitts wie bisher. Sonst wird
+//   der Abschnitt verdoppelt, zuletzt bis zum ganzen Dokument. Verweis- und
+//   Fußnoten-Definitionen wirken im ganzen Dokument: Der Abschnitt bekommt die
+//   bisherigen mit, und steht `]:` im Kommentar oder im Abschnitt, wird das
+//   ganze Dokument gefragt.
+// - Schluss-Prüfung am fertigen Text in beiden Richtungen: Jeder wörtlich
+//   gelassene Marker liegt dort in Code (der erste, der es nicht tut, öffnet
+//   einen Kommentar, und ab ihm wird neu entschieden), und kein öffnender
+//   Marker liegt dort in Code (ein Verdacht der gemeinsamen Gegenprobe wird
+//   mit dem eigenen Kommentar einzeln nachgeprüft).
+// - Sichere Seite: Ohne Antwort des Zerlegers, über den Grenzen, bei einem
+//   unsicheren Marker oder nach MAX_DURCHGAENGE Durchgängen ohne stimmiges
+//   Ergebnis ist alles privat bis zum Dokument-Ende, beginnend am frühesten
+//   ungeprüften Marker: am ersten wörtlich gelassenen des Durchgangs, sonst am
+//   offenen (ein wörtlich gelassener Marker gilt erst nach der
+//   Schluss-Prüfung als geprüft).
+// - Ohne Backtick, Tilde, Tabulator und vier Leerzeichen in Folge gibt es
+//   keinen Code; dann wird ohne Zerleger gepaart.
+// - Zeilenenden liest die Erkennung wie der Zerleger: Ein einzelnes
+//   Wagenrücklauf-Zeichen ist ein Zeilenende (4T-002801). Die Angleichung ist
+//   längengleich, die Bereiche bleiben Stellen des Originals.
 //
 // Festlegungen:
-// - %% in Fenced-Code-Bloecken (```/~~~) bleibt Literal. Ob eine Stelle in
-//   einem solchen Block liegt, entscheidet allein die Anzeige: Jede Zeile mit
-//   drei Backticks oder Tilden an beliebiger Stelle ist eine unsichere Stelle
-//   (unten), ab der der Scanner fuer jeden Marker die Anzeige fragt. Eine
-//   eigene Zaun-Erkennung fuehrt er nicht mehr, weil jede eigene Regel an
-//   einem Behaelter, den sie nicht kannte, anders entschied als die Anzeige
-//   (Sicherheits-Review zu 3E-000434, Runden 3 bis 5; Weg (a) der Steuerung).
-//   Eingerueckte Code-Bloecke (4-Spaces-Form) sind bewusst nicht geschuetzt.
-// - %% in einem Code-Stueck im Fliesstext bleibt Literal, und zwar genau dort,
-//   wo die Anzeige ein Code-Stueck zeigt (4T-002792, Epic 3E-000434). Der
-//   Scanner entscheidet das nicht mehr selbst: Er legt das Absatz-Stueck des
-//   Markers (von der vorigen bis zur naechsten Leerzeile) der Code-Frage vor,
-//   hinter der der Zerleger der Anzeige steht (baueCodeFrage). Die fruehere
-//   eigene Regel — alles zwischen einem Backtick und dem naechsten gleich
-//   langen Lauf im ganzen restlichen Dokument gilt als Code, ein Rueckstrich
-//   vor dem Backtick zaehlt nicht — liess einen privaten Kommentar stehen,
-//   sobald ein einzelner Backtick vor und einer nach ihm stand, auch ueber
-//   Absaetze, Listenpunkte und Tabellen-Zellen hinweg.
-// - Laesst sich die Code-Frage fuer einen Marker mit Backtick davor und danach
-//   nicht stellen (kein Zerleger erreichbar, Aufwands-Grenze, Platzhalter-
-//   Zeichen im Dokument), ist ab ihm alles privat bis zum Dokument-Ende. Ist
-//   das Aufwands-Budget des Durchlaufs erschoepft, gilt das fuer jeden
-//   weiteren Marker, auch ohne Backtick in seiner Naehe.
-// - Unsichere Stellen sind eine Zeile mit drei Backticks oder Tilden, im
-//   Quelltext oder erst ohne ihre Kommentare, eine Zeile, die erst ohne ihre
-//   Kommentare einen Roh-Block beginnt, und ein Kommentar, der ueber ein
-//   Zeilenende reicht (er kann eine Zeile verdecken, die einen Block beginnt).
-//   Ab der ersten fragt der Scanner fuer den Rest des Dokuments fuer jeden
-//   Marker die Anzeige, mit dem Stueck ab dem Anfang des Blocks um diese
-//   Stelle; einen Rueckweg in die eigene Gliederung gibt es nicht (Weg (a) der
-//   Steuerung nach Runde 5 des Sicherheits-Reviews zu 3E-000434: jeder
-//   Rueckweg liess sich an einem Block taeuschen, den die Code-Frage nicht
-//   sieht). Einen Marker bloss als Kommentar-Beginn zu nehmen, verschoebe die
-//   Paarung der Marker, wenn er in Wahrheit in einem Code-Stueck liegt
-//   (Sicherheits-Review zu 3E-000434, Befund 1).
-// - Escape \%% ergibt literales %% im Fliesstext (der Scanner ueberspringt
-//   \%; die fruehe markdown-it-escape-Rule rendert \% als %). Jeder Marker
-//   ist einzeln zu escapen; Escapes gelten auch innerhalb eines Kommentars.
-// - Unpaariges oeffnendes %% wirkt bis zum Dokument-Ende (kein
-//   Ueber-Rendern privater Inhalte).
-// - Innerhalb eines Kommentars hat Markdown keine Bedeutung (auch keine
-//   Code-Zaeune); der naechste nicht escapte %%-Marker schliesst.
+// - %% in Code bleibt wörtlich, genau dort, wo die Anzeige Code zeigt, auch in
+//   einem eingerückten Code-Block (bis 4T-002802 nicht geschützt; die Ausnahme
+//   aus 4T-000479 hatte die Erkennung ohne Zerleger als zu unsicher begründet).
+// - In Roh-HTML und Formel-Blöcken ist ein Marker nie Code.
+// - Escape \%% ergibt wörtliches %% im Fließtext (die frühe Escape-Regel der
+//   Anzeige zeichnet \% als %). Jeder Marker ist einzeln zu maskieren.
+// - Ein unpaariger öffnender Marker wirkt bis zum Dokument-Ende.
+// - Innerhalb eines Kommentars hat Markdown keine Bedeutung, auch kein
+//   Code-Zaun; der nächste nicht maskierte Marker schließt.
 
-// Drei Backticks oder Tilden an beliebiger Stelle einer Zeile: Die Zeile kann
-// fuer die Anzeige einen Code-Block mit Zaun beginnen, gleich hinter welchem
-// Vorspann (Zitat, Listenpunkt, Definitionsliste, eigener Container) und wie
-// weit eingerueckt. Die Obermenge ist Absicht: Eine Zeile zu viel kostet nur
-// Rueckfragen, eine zu wenig liesse einen Kommentar sichtbar.
-const ZAUN_LAUF_RE = /[`~]{3}/;
+// Höchstzahl der Durchgänge: Jeder Durchgang nach dem ersten beginnt an einem
+// Marker, den die Schluss-Prüfung als nicht in Code erkannt hat.
+const MAX_DURCHGAENGE = 6;
+// Längste Eingabe, die dem Zerleger vorgelegt wird; darüber sichere Seite.
+const MAX_LAENGE = 4000000;
+// Aufwand eines Aufrufs: Summe der vorgelegten Zeichen über alle Zerlegungen,
+// jede Vorlage zweimal zerlegt (mit Kennungen und mit Markern). Ein Dokument
+// mit Kommentaren und wörtlich gelassenen Markern braucht drei Vorlagen des
+// ganzen Textes (erste Zerlegung, beide Richtungen der Schluss-Prüfung) und
+// dazu je Kommentar einen Abschnitt; ab etwa 2,5 MB gilt für es die sichere
+// Seite. Ein Dokument üblicher Größe verbraucht einen kleinen Bruchteil.
+const MAX_AUFWAND_ZEICHEN = 8000000;
+// Höchstzahl der Marker, die eine Kennung tragen können (zwei Zeichen zu je
+// 2048 und 4096 Werten).
+const MAX_MARKER = 2048 * 4096;
+// Leit-Zeichen der Kennungen: das erste Zeichen dieses Bereichs, das im
+// Dokument nicht vorkommt. Kommt keines frei vor, gilt die sichere Seite.
+const LEIT_VON = 0xe000;
+const LEIT_BIS = 0xe100;
 
-// Roh-Bloecke der Anzeige (Sicherheits-Review zu 3E-000434, Befund 3): Ein
-// Block, dessen Inhalt die Anzeige ohne Markdown-Bedeutung zeigt oder
-// ausgibt, und der ueber Leerzeilen reichen kann — Roh-HTML in der portablen
-// Fassung (die gewoehnliche zeichnet kein Roh-HTML) und der Formel-Block `$$`.
-// Darin ist ein Marker nie Code, auch nicht zwischen zwei Backticks und nicht
-// hinter einer Zaun-Zeile. Der Scanner erkennt die Bloecke grosszuegig an der
-// Anfangs-Zeile; ein zu frueh angenommener Roh-Block verlaengert nur das Stueck
-// der Code-Frage, die Anzeige entscheidet trotzdem. Eine Zaun-Zeile darin
-// ueberspringt er nicht als Code-Block, nimmt sie aber auch nicht als sicher
-// gewoehnlichen Text: Ab ihr fragt er fuer jeden Marker die Anzeige, denn ob
-// sie einen Code-Block beginnt, weiss nur die Anzeige (der Roh-Block kann
-// angenommen sein, wo die Anzeige keinen hat, etwa bei ausgeschalteter Formel,
-// am Ende eines Zitats oder Listenpunkts oder bei einem Inline-Tag).
-// [Anfang, Schluss]; Schluss null: endet an der naechsten Leerzeile.
-const ROH_HTML_ARTEN = [
-  [/^<(script|pre|style|textarea)(?=(\s|>|$))/i, /<\/(script|pre|style|textarea)>/i],
-  [/^<!--/, /-->/],
-  [/^<\?/, /\?>/],
-  [/^<!\[CDATA\[/, /\]\]>/],
-  [/^<![A-Za-z]/, />/],
-  [/^<\/?[A-Za-z][A-Za-z0-9-]*(?=[\s/>]|$)/, null],
-];
-const ROH_FORMEL = [/^\$\$/, /\$\$/];
-// Vorspann einer Zeile vor einem Block-Anfang: Einrueckung, Zitat-Zeichen,
-// Listen-Marker.
-const ROH_VORSPANN_RE = /^[ \t>]*(?:(?:[-*+]|\d{1,9}[.)])[ \t]+)?[ \t>]*/;
-
-// Anfang des Blocks, in dem die Zeile ab pos steht: die letzte Zeile ohne
-// Einrueckung, vor der eine Leerzeile steht, fruehestens am Text-Anfang. Ab
-// dort liest die Anzeige Zitat, Listenpunkt und Container um die Stelle mit.
-// Ueber der Laengen-Grenze endet die Suche dort, wo sie steht.
-function blockAnfang(src, pos) {
-  let z = pos;
-  for (;;) {
-    const zeilenEnde = src.indexOf('\n', z);
-    const ende = zeilenEnde === -1 ? src.length : zeilenEnde;
-    const c = src[z];
-    if (z === 0) return z;
-    if (!istLeerzeile(src, z, ende) && c !== ' ' && c !== '\t') {
-      const vorAnfang = z >= 2 ? src.lastIndexOf('\n', z - 2) + 1 : 0;
-      if (istLeerzeile(src, vorAnfang, z - 1)) return z;
-    }
-    if (pos - z > MAX_ABSATZ_LAENGE) return z;
-    z = z >= 2 ? src.lastIndexOf('\n', z - 2) + 1 : 0;
-  }
-}
-
-// Erkennt den Anfang eines Roh-Blocks in einer Zeile ab zeilenAnfang. Liefert
-// { anfang, schluss, suchAb } oder null; suchAb ist die Stelle, ab der in der
-// Anfangs-Zeile nach dem Schluss gesucht wird.
-function rohBlockAnfang(zeile, zeilenAnfang, portabel) {
-  const vorspann = zeile.match(ROH_VORSPANN_RE)[0].length;
-  const rest = zeile.slice(vorspann);
-  const arten = portabel ? [ROH_FORMEL, ...ROH_HTML_ARTEN] : [ROH_FORMEL];
-  for (const [anfangRe, schluss] of arten) {
-    const m = rest.match(anfangRe);
-    if (m) return { anfang: zeilenAnfang, schluss, suchAb: zeilenAnfang + vorspann + m[0].length };
-  }
-  return null;
-}
-
-// Sichtbarer Text von [von, bis): ohne die schon gefundenen Kommentare.
-function sichtbarerText(src, von, bis, ranges) {
-  // Nur die letzten Bereiche koennen die Zeile beruehren (aufsteigend sortiert).
-  let k = ranges.length;
-  while (k > 0 && ranges[k - 1].to > von) k--;
-  let out = '';
-  let p = von;
-  for (let n = k; n < ranges.length; n++) {
-    const r = ranges[n];
-    if (r.to <= p || r.from >= bis) continue;
-    if (r.from > p) out += src.slice(p, r.from);
-    p = Math.max(p, r.to);
-  }
-  if (p < bis) out += src.slice(p, bis);
-  return out;
-}
-
-// Platzhalter fuer den befragten Marker im Absatz-Stueck: ein Zeichen aus dem
-// privaten Unicode-Bereich, das keine Markdown-Regel deutet. Bekannte Grenze:
-// Eine Regel, die vor den Code-Stuecken greift und `%` annimmt, das Zeichen
-// aber nicht, zerlegt mit ihm anders als mit dem Marker; belegt ist das fuer
-// eine E-Mail-Adresse in spitzen Klammern mit Backtick und Marker im lokalen
-// Teil (konstruiert, im Bedrohungsmodell gefuehrt).
-const CODE_FRAGE_PLATZHALTER = '';
-
-// Aufwands-Grenze (4T-002792): Ein Dokument fremder Herkunft kann sehr viele
-// Marker mit Backticks in einem sehr langen Absatz tragen. Ueber der Grenze
-// ist ab dem naechsten Marker alles privat (sichere Seite). Eine gemischte
-// Tabelle mit je einem Marker in Code und einem Kommentar je Zeile kostet drei
-// Rueckfragen je Zeile; die Grenze reicht damit fuer rund 170 solche Zeilen.
-const MAX_CODE_FRAGEN_JE_ABSATZ = 512;
-// Laenge eines Absatz-Stuecks, das noch vorgelegt wird. Grosszuegig, weil eine
-// Tabelle ohne Leerzeile ein einziges Stueck ist: Die Gruppen-Tabellen der
-// Funktions-Seite des Handbuchs tragen ueber 20.000 Zeichen und zeigen den
-// Marker in Code-Stuecken.
-const MAX_ABSATZ_LAENGE = 500000;
-// Gesamt-Aufwand eines Durchlaufs in Zeichen, gelesene und vorgelegte Stuecke
-// zusammen. Schuetzt den Editor vor einem Dokument, das sehr viele Marker in
-// sehr langen Stuecken traegt.
-const MAX_AUFWAND_JE_DURCHLAUF = 8000000;
-
-// Die Anzeige zeichnet ein Dokument mit dieser Kennzeichnung am Anfang des
-// Rumpfs mit ihrer portablen Fassung (dieselbe Erkennung wie in
-// renderMarkdown); der Scanner fragt dann deren Zerleger.
 const PORTABEL_KENNZEICHNUNG_RE = /^\s*<!--\s*perspective-portable\s*-->/;
 
-// Die Code-Fragen dieser Laufzeit-Welt: markdown.js meldet sie nach jedem
-// Aufbau seiner Instanzen an (Preload und Pruefungen), der Fenster-Teil meldet
-// die Bruecke an. Fehlt die Frage der portablen Fassung, gilt die gewoehnliche.
 let angemeldeteCodeFrage = null;
 let angemeldeteCodeFragePortabel = null;
 
+// Meldet die Code-Fragen der Laufzeit-Welt an: eine für die gewöhnliche und
+// eine für die portable Fassung der Anzeige. Eine Code-Frage bekommt den Text
+// mit Kennungen und das Leit-Zeichen und liefert die Nummern der Marker, deren
+// Kennung in Code liegt, als Feld, oder null ohne Antwort.
 function setzeCodeFrage(frage, fragePortabel) {
   angemeldeteCodeFrage = typeof frage === 'function' ? frage : null;
   angemeldeteCodeFragePortabel = typeof fragePortabel === 'function' ? fragePortabel : null;
@@ -189,65 +120,211 @@ function codeFrageFuer(portabel) {
   return (portabel && angemeldeteCodeFragePortabel) || angemeldeteCodeFrage;
 }
 
-// Gemeinsame Einrueckung abziehen: Ein Fortsetzungs-Absatz in einer Liste soll
-// als Absatz gelesen werden, nicht als eingerueckter Code-Block.
-function ohneGemeinsameEinrueckung(stueck) {
-  const zeilen = stueck.split('\n');
-  let min = Infinity;
-  for (const z of zeilen) {
-    if (z.trim() === '') continue;
-    const e = z.length - z.replace(/^ +/, '').length;
-    if (e < min) min = e;
+// Kennung des Markers n: Leit-Zeichen und zwei Zeichen aus dem privaten Bereich.
+function kennung(leit, n) {
+  return leit + String.fromCharCode(0xe100 + (n >> 12)) + String.fromCharCode(0xe900 + (n & 4095));
+}
+
+function liesKennungen(text, leit, treffer) {
+  let p = text.indexOf(leit);
+  while (p !== -1) {
+    const hoch = text.charCodeAt(p + 1) - 0xe100;
+    const tief = text.charCodeAt(p + 2) - 0xe900;
+    if (hoch >= 0 && hoch < 2048 && tief >= 0 && tief < 4096) treffer.add((hoch << 12) | tief);
+    p = text.indexOf(leit, p + 1);
   }
-  if (min === 0 || min === Infinity) return stueck;
-  return zeilen.map((z) => z.slice(Math.min(min, z.length))).join('\n');
 }
 
-function zaehlePlatzhalter(text) {
-  return text.split(CODE_FRAGE_PLATZHALTER).length - 1;
+// Der Text mit jeder Kennung wieder als Marker.
+function alsMarker(text, leit) {
+  let aus = '';
+  let pos = 0;
+  let p = text.indexOf(leit);
+  while (p !== -1) {
+    aus += `${text.slice(pos, p)}%%`;
+    pos = p + 3;
+    p = text.indexOf(leit, pos);
+  }
+  return aus + text.slice(pos);
 }
 
-// Baut die Code-Frage aus einer markdown-it-Instanz: Liegen alle Platzhalter
-// des vorgelegten Absatz-Stuecks im Inhalt von Code-Stuecken im Fliesstext
-// oder von Code-Bloecken mit Zaun?
-// Mit einem Platzhalter ist das die Frage nach diesem einen Marker; mit
-// mehreren fragt der Scanner die Marker eines Stuecks gemeinsam (eine grosse
-// Tabelle mit vielen Markern in Code-Stuecken braucht so eine Rueckfrage statt
-// einer je Marker). Gefragt wird die Block- und Zeilen-Zerlegung der Anzeige;
-// Tabellen-Zellen, Ueberschriften, Listen, Formeln und Wiki-Verweise
-// entscheidet sie damit selbst, in ihrem aktuellen Schalt-Zustand.
+const IST_CODE = new Set(['fence', 'code_block', 'code_inline']);
+
+// Gleiche Gliederung zweier Token-Folgen: Art, Schachtelung, bei Code der
+// Inhalt (mit Kennungen als Marker gelesen) und bei obersten Blöcken und
+// Einträgen oberster Listen die Anfangs-Zeile.
+function gleichGegliedert(a, b, leit) {
+  if (a.length !== b.length) return false;
+  let eltern = null;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i].type !== b[i].type || a[i].nesting !== b[i].nesting) return false;
+    if (IST_CODE.has(a[i].type) && alsMarker(a[i].content, leit) !== b[i].content) return false;
+    if (a[i].level === 0 && a[i].nesting === 1) eltern = a[i].type;
+    const anfang = a[i].level === 0 || istListenEintrag(a[i], eltern);
+    if (anfang && (a[i].map ? a[i].map[0] : -1) !== (b[i].map ? b[i].map[0] : -1)) return false;
+  }
+  return true;
+}
+
+// Inhalte der Code-Stücke einer Token-Folge, Kennungen als Marker gelesen.
+function codeInhalte(liste, leit) {
+  const aus = [];
+  for (const tok of liste) if (IST_CODE.has(tok.type)) aus.push(alsMarker(tok.content, leit));
+  return aus.join('\u0000');
+}
+
+// Ein Eintrag einer obersten Liste. Er beginnt in der Anzeige so frisch wie ein
+// oberster Block: Er hängt allein an seinen eigenen Zeilen und seinem
+// Listen-Zeichen, nicht an den Einträgen davor (die Dichte der Liste ändert nur
+// das Zeichnen der Absätze, nie Code). Blöcke in Zitaten und Zeilen von
+// Tabellen sind bewusst keine Neustart-Stellen: Eine Folgezeile eines Zitats
+// darf vor `>` beliebig weit eingerückt sein und wäre für sich gelesen ein
+// eingerückter Code-Block (Zweitblick Runde 3, Befund 1); lange Zitate und
+// Tabellen bleiben deshalb auf der sicheren Seite (Entscheidung der Steuerung).
+const LISTE = new Set(['bullet_list_open', 'ordered_list_open']);
+function istListenEintrag(tok, eltern) {
+  return tok.level === 1 && tok.type === 'list_item_open' && LISTE.has(eltern);
+}
+
+// Zeilen, an denen ein Eintrag einer obersten Liste für sich gelesen wieder so
+// beginnt: höchstens drei Leerzeichen, kein Tabulator, dann das Listen-Zeichen.
+// Der Zerleger erlaubt einem obersten Eintrag ohnehin nicht mehr; die Prüfung
+// ist eine zweite Sicherung. Ein Wagenrücklauf vor dem Zeilenende zählt wie
+// das Zeilenende, damit ein leerer Eintrag mit Windows-Zeilenende Neustart-Stelle
+// bleibt (Zweitblick, gezielte Nachprüfung).
+const NEUSTART_LISTE_RE = /^ {0,3}(?:[-+*]|\d{1,9}[.)])(?:[ \t\r]|$)/;
+
+// Anfangs-Zeilen der obersten Blöcke und der Einträge oberster Listen,
+// aufsteigend. An jeder lässt sich ein Abschnitt neu fragen. Ein Eintrag zählt
+// nur, wenn seine Zeile in `text` für sich gelesen wieder so beginnt
+// (NEUSTART_LISTE_RE).
+function blockAnfaenge(tokens, text) {
+  const aus = [];
+  let eltern = null;
+  let zeilen = null;
+  const zeile = (n) => {
+    if (!zeilen) {
+      zeilen = [0];
+      for (let p = text.indexOf('\n'); p !== -1; p = text.indexOf('\n', p + 1)) zeilen.push(p + 1);
+    }
+    if (n >= zeilen.length) return '';
+    const ende = text.indexOf('\n', zeilen[n]);
+    return text.slice(zeilen[n], ende === -1 ? text.length : ende);
+  };
+  for (const tok of tokens) {
+    if (tok.level === 0 && tok.nesting === 1) eltern = tok.type;
+    const oben = tok.level === 0 && tok.nesting !== -1;
+    if (!oben && !istListenEintrag(tok, eltern)) continue;
+    if (!tok.map) continue;
+    if (!oben && !NEUSTART_LISTE_RE.test(zeile(tok.map[0]))) continue;
+    if (aus.length === 0 || aus[aus.length - 1] < tok.map[0]) aus.push(tok.map[0]);
+  }
+  return aus;
+}
+
+// Umgebung des Zerlegers mit den Definitionen des ganzen Dokuments, die ein
+// Abschnitt allein nicht kennt: Verweis-Definitionen und Fußnoten. Nur
+// Zeichenketten werden übernommen, die Tafeln haben keinen Prototyp.
+function umgebungAus(definitionen) {
+  const env = {};
+  if (!definitionen || typeof definitionen !== 'object') return env;
+  const verweise = definitionen.verweise;
+  if (verweise && typeof verweise === 'object') {
+    env.references = Object.create(null);
+    for (const name of Object.keys(verweise)) {
+      const v = verweise[name];
+      if (typeof name !== 'string' || !v || typeof v.href !== 'string') continue;
+      env.references[name] = { href: v.href, title: typeof v.title === 'string' ? v.title : '' };
+    }
+  }
+  if (Array.isArray(definitionen.fussnoten)) {
+    const refs = Object.create(null);
+    for (const name of definitionen.fussnoten) if (typeof name === 'string') refs[name] = -1;
+    env.footnotes = { refs, list: [] };
+  }
+  return env;
+}
+
+// Definitionen einer Zerlegung in der Form, die umgebungAus wieder liest.
+function definitionenAus(env) {
+  const verweise = {};
+  if (env.references) {
+    for (const name of Object.keys(env.references)) {
+      const v = env.references[name];
+      verweise[name] = { href: String(v.href), title: v.title == null ? '' : String(v.title) };
+    }
+  }
+  const fussnoten = env.footnotes && env.footnotes.refs ? Object.keys(env.footnotes.refs) : [];
+  return { verweise, fussnoten };
+}
+
+// Code-Frage aus einer markdown-it-Instanz der Anzeige.
+//
+// Mit `optionen` als Objekt (die Erkennung fragt so): Zerlegt den Text mit
+// Kennungen und denselben Text mit Markern und vergleicht beide. Weicht die
+// Block-Gliederung ab, gibt es keine Antwort. Weicht ein Absatz ab, liegt
+// keine seiner Kennungen sicher in Code oder sicher außerhalb: Sie gelten als
+// unsicher, es sei denn, in keiner der beiden Fassungen liegt ein Marker darin
+// in Code (dann außerhalb, belegt: die E-Mail-Erkennung in spitzen Klammern
+// nimmt `%` an, das Zeichen der Kennung nicht). So prüft die Anzeige die Treue
+// der Kennung in beiden Richtungen. Die Antwort ist
+// `{ code, unsicher, bloecke, definitionen }`: Nummern der Kennungen in Code,
+// Nummern der unsicheren, Neustart-Stellen (blockAnfaenge) und die
+// Definitionen des Textes. `optionen.definitionen` gibt einem Abschnitt die
+// Definitionen des ganzen Dokuments mit.
+//
+// Ohne Objekt (frühere Form, für Prüfungen): Feld der Nummern in Code; mit
+// `true` ohne Vergleich, sonst mit Vergleich, unsichere Kennungen außerhalb.
 function baueCodeFrage(mdInstanz) {
-  return function imCodeStueck(stueck) {
-    // Ohne Antwort (null) gilt der Marker beim Aufrufer als unklar.
-    const text = String(stueck == null ? '' : stueck);
-    if (text.length > MAX_ABSATZ_LAENGE + 16) return null;
-    const gesamt = zaehlePlatzhalter(text);
-    if (gesamt === 0) return false;
+  return function kennungenImCode(text, leit, optionen) {
+    if (typeof text !== 'string' || typeof leit !== 'string' || leit.length !== 1) return null;
+    // Eine Kennung ist drei Zeichen lang, ein Marker zwei: Die Vorlage ist
+    // höchstens anderthalbmal so lang wie das Dokument.
+    if (text.length > MAX_LAENGE * 1.5) return null;
+    const gliederung = optionen !== null && typeof optionen === 'object';
+    const treu = gliederung || optionen !== true;
+    const definitionen = gliederung ? optionen.definitionen : null;
+    const env = umgebungAus(definitionen);
     let tokens;
+    let woertlich;
     try {
-      tokens = mdInstanz.parse(ohneGemeinsameEinrueckung(text), {});
+      tokens = mdInstanz.parse(text, env);
+      woertlich = treu ? mdInstanz.parse(alsMarker(text, leit), umgebungAus(definitionen)) : null;
     } catch {
       return null;
     }
-    let imCode = 0;
-    for (const tok of tokens) {
-      // Ein Code-Block mit Zaun ist Code, in jeder Rueckfrage. Vorgelegt wird
-      // ein Stueck in einem solchen Block nur, wo der Scanner seiner eigenen
-      // Zaun-Erkennung nicht sicher ist; dort beginnt es ohne Einrueckung oder
-      // mit einem neutralen Absatz davor, sodass das Abziehen der Einrueckung
-      // keinen eingerueckten Code-Block zum Code-Block mit Zaun macht. Ein
-      // eingerueckter Code-Block (code_block) zaehlt bewusst nicht.
-      if (tok.type === 'fence') {
-        imCode += zaehlePlatzhalter(tok.content);
-        continue;
+    if (treu && !gleichGegliedert(tokens, woertlich, leit)) return null;
+    const treffer = new Set();
+    const besuche = (liste, ziel) => {
+      for (const tok of liste) {
+        if (IST_CODE.has(tok.type)) liesKennungen(tok.content, leit, ziel);
+        if (tok.children) besuche(tok.children, ziel);
       }
-      const kinder = tok.children;
-      if (!kinder) continue;
-      for (const k of kinder) {
-        if (k.type === 'code_inline') imCode += zaehlePlatzhalter(k.content);
+    };
+    const unsicher = new Set();
+    for (let i = 0; i < tokens.length; i++) {
+      const tok = tokens[i];
+      if (treu && tok.children) {
+        const andere = woertlich[i].children || [];
+        if (!gleichGegliedert(tok.children, andere, leit)) {
+          const imCode = new Set();
+          besuche(tok.children, imCode);
+          const ruhig =
+            imCode.size === 0 && codeInhalte(tok.children, leit) === codeInhalte(andere, leit);
+          if (!ruhig) liesKennungen(tok.content, leit, unsicher);
+          continue;
+        }
       }
+      besuche([tok], treffer);
     }
-    return imCode === gesamt;
+    for (const n of unsicher) treffer.delete(n);
+    if (!gliederung) return Array.from(treffer);
+    return {
+      code: Array.from(treffer),
+      unsicher: Array.from(unsicher),
+      bloecke: blockAnfaenge(tokens, text),
+      definitionen: definitionenAus(env),
+    };
   };
 }
 
@@ -256,370 +333,379 @@ function meldeZerlegerAn(mdInstanz, mdPortabelInstanz) {
   setzeCodeFrage(baueCodeFrage(mdInstanz), baueCodeFrage(mdPortabelInstanz));
 }
 
-// Antwort der angemeldeten Code-Frage fuer Aufrufer ohne eigenen Zerleger
-// (Bruecke zum Fenster-Teil). Nimmt allein eine Zeichenkette; alles andere ist
-// ohne Antwort (null), und der befragte Marker gilt beim Aufrufer als unklar.
-function kommentarImCode(stueck, portabel) {
+// Prüft die Form einer Antwort; liefert sie oder null.
+function antwortInForm(antwort) {
+  if (Array.isArray(antwort)) return antwort;
+  if (
+    antwort &&
+    typeof antwort === 'object' &&
+    Array.isArray(antwort.code) &&
+    Array.isArray(antwort.unsicher) &&
+    Array.isArray(antwort.bloecke)
+  )
+    return antwort;
+  return null;
+}
+
+// Antwort der angemeldeten Code-Frage für Aufrufer ohne eigenen Zerleger (die
+// Brücke des Vorab-Skripts). `optionen` wie bei baueCodeFrage; ein Objekt wird
+// auf seine bekannten Felder beschränkt. Liefert die Antwort oder null.
+function kommentarImCode(text, leit, portabel, optionen) {
   const frage = codeFrageFuer(portabel === true);
-  if (typeof stueck !== 'string' || !frage) return null;
-  const antwort = frage(stueck);
-  return antwort === true || antwort === false ? antwort : null;
+  if (!frage) return null;
+  const opt =
+    optionen !== null && typeof optionen === 'object'
+      ? { gliederung: true, definitionen: optionen.definitionen }
+      : optionen === true;
+  return antwortInForm(frage(text, leit, opt));
 }
 
-// Der Text des Absatz-Stuecks vor pos, in der Sicht der Anzeige: schon
-// gefundene Kommentare sind entfernt (Zeichen weg, Umbrueche bleiben), und
-// das Stueck beginnt nach der letzten Leerzeile dieser Sicht, fruehestens bei
-// grenze (dem Ende des letzten Code-Blocks mit Zaun). Liegt pos in einem
-// Roh-Block, der bei rohAnfang beginnt, endet das Stueck nicht an Leerzeilen
-// darin, sondern erst an der letzten Leerzeile vor seiner Anfangs-Zeile: Die
-// Anzeige sieht den Block nur mit seinem Anfang. Liefert null, wenn das Stueck
-// die Aufwands-Grenze ueberschreitet.
-function absatzKopf(src, pos, ranges, grenze, rohAnfang) {
-  const leerzeileGilt = rohAnfang == null ? Infinity : rohAnfang;
-  const teile = [];
-  let laenge = 0;
-  let zeilenEnde = pos;
-  let r = ranges.length - 1;
-  for (;;) {
-    const zeilenAnfang = Math.max(src.lastIndexOf('\n', zeilenEnde - 1) + 1, grenze);
-    let stueck = '';
-    let p = zeilenEnde;
-    while (r >= 0 && ranges[r].to > zeilenAnfang) {
-      const bis = Math.min(ranges[r].to, p);
-      if (bis < p) stueck = src.slice(bis, p) + stueck;
-      p = Math.min(p, Math.max(ranges[r].from, zeilenAnfang));
-      if (ranges[r].from >= zeilenAnfang) r--;
-      else break;
-    }
-    if (p > zeilenAnfang) stueck = src.slice(zeilenAnfang, p) + stueck;
-    if (zeilenEnde !== pos && stueck.trim() === '' && zeilenAnfang < leerzeileGilt) break;
-    teile.push(stueck);
-    laenge += stueck.length + 1;
-    if (laenge > MAX_ABSATZ_LAENGE) return null;
-    if (zeilenAnfang <= grenze) break;
-    zeilenEnde = zeilenAnfang - 1;
-  }
-  return teile.reverse().join('\n');
-}
-
-function istLeerzeile(src, von, bis) {
-  for (let i = von; i < bis; i++) {
-    const c = src[i];
-    if (c !== ' ' && c !== '\t' && c !== '\r') return false;
-  }
-  return true;
-}
-
-// Ende des Absatz-Stuecks ab pos: der Zeilenumbruch vor der naechsten
-// Leerzeile, sonst das Text-Ende.
-function absatzEnde(src, pos) {
-  const len = src.length;
-  let zeilenEnde = src.indexOf('\n', pos);
-  while (zeilenEnde !== -1) {
-    const naechste = zeilenEnde + 1;
-    let ende = src.indexOf('\n', naechste);
-    if (ende === -1) ende = len;
-    if (istLeerzeile(src, naechste, ende)) return zeilenEnde;
-    if (ende === len) return len;
-    zeilenEnde = ende;
-  }
-  return len;
-}
-
-// Liefert die Kommentar-Bereiche als [{ from, to, closed }] in Quelltext-
-// Offsets, inklusive der %%-Marker. closed=false markiert einen unpaarigen
-// Kommentar (wirkt bis Text-Ende; Grundlage des Linter-Hinweises, 4T-000533).
-// Einziger Scanner — Render-Strip und Editor-Dekoration arbeiten auf
-// identischen Bereichen.
-//
-// optionen.imCode: Code-Frage fuer diesen Aufruf; ohne Angabe gilt die
-// angemeldete Code-Frage, bei einem Text mit Portable-Kennzeichnung am Anfang
-// die der portablen Fassung.
-function findPercentCommentRanges(text, optionen) {
-  const src = String(text || '');
-  const len = src.length;
-  const ranges = [];
-  const portabel = PORTABEL_KENNZEICHNUNG_RE.test(src);
-  const imCode =
-    optionen && typeof optionen.imCode === 'function' ? optionen.imCode : codeFrageFuer(portabel);
-  let i = 0;
-  let atLineStart = true;
-  // Offener Roh-Block ({ anfang, schluss, suchAb }) und Anfang der laufenden
-  // Zeile; der Schluss eines Roh-Blocks wird am Zeilen-Ende im sichtbaren
-  // Text gesucht, damit ein Schluss-Tag in einem Kommentar nicht zaehlt.
-  let roh = null;
-  let zeilenStart = 0;
-  const rohSchlussPruefen = (bis) => {
-    if (!roh || !roh.schluss) return;
-    const von = Math.max(zeilenStart, roh.suchAb);
-    if (von < bis && roh.schluss.test(sichtbarerText(src, von, bis, ranges))) roh = null;
-  };
-  // Seit Weg (a) gliedert der Scanner keine Code-Bloecke mehr selbst; ein
-  // Absatz-Stueck beginnt deshalb fruehestens am Text-Anfang.
-  const nachZaun = 0;
-  // Anfang der Stelle, ab der die eigene Block-Gliederung nicht mehr sicher
-  // ist (null: sicher). Ab dort fragt der Scanner fuer jeden Marker bis zum
-  // Dokument-Ende die Anzeige, mit dem Stueck ab dieser Stelle, und erkennt
-  // Roh-Bloecke nicht mehr selbst. Die Stelle ist der Anfang des Blocks, in
-  // dem die unsichere Zeile steht, damit die Anzeige Zitat, Listenpunkt und
-  // Container um sie herum mitliest; in einem offenen Roh-Block der Anfang des
-  // Roh-Blocks, weil die Anzeige ihn nur mit seinem Anfang sieht. Einen
-  // Rueckweg gibt es nicht (Weg (a), Kopf-Kommentar).
-  let zweifel = null;
-  const setzeZweifel = (pos) => {
-    if (zweifel === null) zweifel = blockAnfang(src, roh ? Math.min(pos, roh.anfang) : pos);
-  };
-  // Ein Stueck ab der Stelle beginnt eingerueckt nur am Text-Anfang, also
-  // ausserhalb jedes Zitats und Listenpunkts. Damit die Code-Frage dort keine
-  // Einrueckung abzieht (ein eingerueckter Code-Block wuerde sonst zum
-  // Code-Block mit Zaun), steht ein neutraler Absatz davor.
-  const mitKontext = (kopf) => (zweifel !== null && /^[ \t]/.test(kopf) ? `.\n\n${kopf}` : kopf);
-  // Prueft am Ende einer Zeile, die einen Kommentar beruehrt, ob sie erst ohne
-  // ihn einen Code-Block oder Roh-Block beginnt (etwa ein Kommentar vor drei
-  // Backticks oder vor <pre>): Die Anzeige saehe den Block, der Scanner nicht.
-  const zeilenendePruefen = (bis) => {
-    if (!ranges.length || zweifel !== null) return;
-    const von = src.lastIndexOf('\n', bis - 1) + 1;
-    if (ranges[ranges.length - 1].to <= von) return;
-    const sichtbar = sichtbarerText(src, von, bis, ranges);
-    if (ZAUN_LAUF_RE.test(sichtbar) || rohBlockAnfang(sichtbar, von, portabel) !== null) {
-      setzeZweifel(von);
-    }
-  };
-  // Rueckfragen im laufenden Absatz-Stueck, gezaehlt je Stueck-Ende.
-  let fragenAbsatzEnde = -1;
-  let fragenImAbsatz = 0;
-  let aufwand = 0;
-  // Marker des laufenden Absatz-Stuecks, die mit einer gemeinsamen Frage
-  // schon als Code beantwortet sind. Sie liegen alle vor dem ersten Marker,
-  // der kein Code ist; ein Kommentar ab dort aendert ihre Antwort in aller
-  // Regel nicht. Bekannte Grenze: Entfernt er Zeichen so, dass die Folgezeile
-  // zur Trennzeile einer Tabelle wird, teilt die Anzeige die Zeile davor auch
-  // an einem senkrechten Strich in einem Code-Stueck (konstruiert, im
-  // Bedrohungsmodell gefuehrt). Dasselbe gilt fuer die einzelne Rueckfrage.
-  const literalImAbsatz = new Set();
-  // Hat im laufenden Absatz-Stueck die gemeinsame Frage nach allen Markern
-  // schon «nein» ergeben, entfaellt sie fuer die weiteren Marker.
-  let alleNeinImAbsatz = false;
-  const frage = (stueck) => {
-    if (fragenImAbsatz >= MAX_CODE_FRAGEN_JE_ABSATZ || aufwand >= MAX_AUFWAND_JE_DURCHLAUF) {
-      return null;
-    }
-    fragenImAbsatz++;
-    aufwand += stueck.length;
-    const antwort = imCode(stueck);
-    return antwort === true || antwort === false ? antwort : null;
-  };
-  // Antwort fuer den Marker bei pos (true Code, false kein Code, null unklar).
-  // Zuerst der Marker allein; ist er Code, fragt der Scanner die weiteren
-  // Marker des Stuecks gemeinsam und, wenn nicht alle Code sind, den
-  // laengsten Anfang, der es ist: von vorn verdoppelnd, dann halbierend, damit
-  // ein kurzer Lauf wenig kostet (4T-002792, Nachbesserung fuer grosse und
-  // gemischte Tabellen). Ein Platzhalter statt eines Markers aendert die
-  // Zerlegung in aller Regel nicht, weil Code-Stuecke an den Backticks haengen
-  // (bekannte Grenze am Platzhalter-Zeichen oben).
-  const codeAntwort = (pos, ende, kopf) => {
-    const marker = [pos];
-    for (let p = pos + 2; p < ende; p++) {
-      const c = src[p];
-      if (c === '\\' && (src[p + 1] === '%' || src[p + 1] === '\\')) p++;
-      else if (c === '%' && src[p + 1] === '%') {
-        marker.push(p);
-        p++;
-      }
-    }
-    const mit = (k) => {
-      let s = kopf + CODE_FRAGE_PLATZHALTER;
-      let p = pos + 2;
-      for (let n = 1; n < k; n++) {
-        s += src.slice(p, marker[n]) + CODE_FRAGE_PLATZHALTER;
-        p = marker[n] + 2;
-      }
-      return s + src.slice(p, ende);
-    };
-    const erste = frage(mit(1));
-    if (erste !== true || marker.length === 1) return erste;
-    let bisCode = 1;
-    const alle = alleNeinImAbsatz ? false : frage(mit(marker.length));
-    if (alle === true) bisCode = marker.length;
-    else if (alle === false) {
-      alleNeinImAbsatz = true;
-      let nein = marker.length;
-      // Verdoppeln, bis ein Anfang kein Code mehr ist.
-      let k = 2;
-      while (k < nein) {
-        const a = frage(mit(k));
-        if (a === null) {
-          nein = bisCode + 1;
-          break;
-        }
-        if (a) {
-          bisCode = k;
-          k *= 2;
-        } else {
-          nein = k;
-          break;
-        }
-      }
-      while (nein - bisCode > 1) {
-        const mitte = (bisCode + nein) >> 1;
-        const a = frage(mit(mitte));
-        if (a === null) break;
-        if (a) bisCode = mitte;
-        else nein = mitte;
-      }
-    }
-    for (let n = 1; n < bisCode; n++) literalImAbsatz.add(marker[n]);
-    return true;
-  };
-  const ohneBacktick = !src.includes('`');
-  while (i < len) {
-    if (atLineStart) {
-      const lineEnd = src.indexOf('\n', i);
-      const end = lineEnd === -1 ? len : lineEnd;
-      const line = src.slice(i, end);
-      const leer = line.trim() === '';
-      zeilenStart = i;
-      if (zweifel !== null) {
-        // Die Anzeige entscheidet ab hier allein; keine eigene Gliederung.
-        atLineStart = false;
-        continue;
-      }
-      if (roh && !roh.schluss && leer) roh = null;
-      // Eine Zeile, die einen Code-Block mit Zaun beginnen kann, gleich wo und
-      // in welchem Behaelter, auch in einem angenommenen Roh-Block: Ab ihr
-      // fragt der Scanner die Anzeige.
-      if (ZAUN_LAUF_RE.test(line)) {
-        setzeZweifel(i);
-        atLineStart = false;
-        continue;
-      }
-      if (!roh) roh = rohBlockAnfang(line, i, portabel);
-      atLineStart = false;
-    }
-    const ch = src[i];
-    if (ch === '\n') {
-      zeilenendePruefen(i);
-      rohSchlussPruefen(i);
+// Stellen der nicht maskierten Marker, gierig von links.
+function kandidaten(src) {
+  const marker = [];
+  for (let i = 0; i < src.length; i++) {
+    const c = src.charCodeAt(i);
+    if (c === 92 && (src.charCodeAt(i + 1) === 37 || src.charCodeAt(i + 1) === 92)) i++;
+    else if (c === 37 && src.charCodeAt(i + 1) === 37) {
+      marker.push(i);
       i++;
-      atLineStart = true;
-      continue;
     }
-    if (ch === '\\' && (src[i + 1] === '%' || src[i + 1] === '\\')) {
-      i += 2;
-      continue;
-    }
-    if (ch === '%' && src[i + 1] === '%') {
-      // Liegt der Marker in einem Code-Stueck der Anzeige? Drei Ausgaenge:
-      // sicher kein Code (kein Backtick davor oder danach im Absatz-Stueck),
-      // gefragt (die Anzeige antwortet ja oder nein) oder unklar (die Frage
-      // laesst sich nicht stellen oder bleibt ohne Antwort). Unklar heisst: Ab
-      // hier ist alles privat bis zum Dokument-Ende. Den Marker bloss als
-      // Kommentar-Beginn zu nehmen, waere nicht die sichere Seite: Liegt er in
-      // Wahrheit in einem Code-Stueck, verschoebe sich die Paarung, und der
-      // Text eines echten Kommentars dahinter bliebe stehen.
-      let literal = false;
-      let unklar = false;
-      if (ohneBacktick && zweifel === null) {
-        // Ohne einen einzigen Backtick im Text gibt es kein Code-Stueck.
-      } else if (literalImAbsatz.has(i)) {
-        // Mit den Markern davor schon als Code beantwortet; ohne neues Lesen.
-        literal = true;
-      } else if (aufwand >= MAX_AUFWAND_JE_DURCHLAUF) {
-        unklar = true;
-      } else {
-        const ende = absatzEnde(src, i + 2);
-        aufwand += ende - i;
-        const rest = src.slice(i + 2, ende);
-        if (ende !== fragenAbsatzEnde) {
-          fragenAbsatzEnde = ende;
-          fragenImAbsatz = 0;
-          literalImAbsatz.clear();
-          alleNeinImAbsatz = false;
-        }
-        if (zweifel !== null || rest.includes('`')) {
-          const anker = zweifel !== null ? zweifel : roh ? roh.anfang : null;
-          const gelesen = absatzKopf(src, i, ranges, nachZaun, anker);
-          const kopf = gelesen === null ? null : mitKontext(gelesen);
-          // Auch ein Stueck ueber der Laengen-Grenze ist bis dorthin gelesen.
-          aufwand += kopf === null ? MAX_ABSATZ_LAENGE : kopf.length;
-          if (kopf === null) {
-            unklar = true;
-          } else if (zweifel !== null || kopf.includes('`')) {
-            if (
-              !imCode ||
-              // Traegt das Dokument das Platzhalter-Zeichen selbst, waere die
-              // Antwort nicht mehr eindeutig.
-              kopf.includes(CODE_FRAGE_PLATZHALTER) ||
-              rest.includes(CODE_FRAGE_PLATZHALTER) ||
-              kopf.length + rest.length > MAX_ABSATZ_LAENGE ||
-              fragenImAbsatz >= MAX_CODE_FRAGEN_JE_ABSATZ
-            ) {
-              unklar = true;
-            } else {
-              const antwort = codeAntwort(i, ende, kopf);
-              if (antwort === true) literal = true;
-              else if (antwort !== false) unklar = true;
-            }
-          }
-        }
-      }
-      if (literal) {
-        i += 2;
-        continue;
-      }
-      if (unklar) {
-        ranges.push({ from: i, to: len, closed: false });
-        break;
-      }
-      const from = i;
-      let j = i + 2;
-      let close = -1;
-      while (j < len) {
-        const c = src[j];
-        if (c === '\\' && (src[j + 1] === '%' || src[j + 1] === '\\')) {
-          j += 2;
-          continue;
-        }
-        if (c === '%' && src[j + 1] === '%') {
-          close = j;
-          break;
-        }
-        j++;
-      }
-      const to = close === -1 ? len : close + 2;
-      ranges.push({ from, to, closed: close !== -1 });
-      // Ein Kommentar ueber ein Zeilenende verdeckt das Ende einer Zeile und
-      // den Anfang der naechsten; was die Anzeige dort ohne ihn als Block
-      // sieht, prueft keine Zeilen-Pruefung mehr. Ab hier entscheidet sie
-      // (Sicherheits-Review zu 3E-000434, Runde 5, Befund 1).
-      if (close !== -1 && src.indexOf('\n', from) !== -1 && src.indexOf('\n', from) < to) {
-        setzeZweifel(zeilenStart);
-      }
-      i = to;
-      continue;
-    }
-    i++;
+  }
+  return marker;
+}
+
+// Paarung ohne Code: jeder Marker öffnet oder schließt.
+function paareOhneCode(marker, len) {
+  const ranges = [];
+  for (let k = 0; k < marker.length; k += 2) {
+    if (k + 1 < marker.length)
+      ranges.push({ from: marker[k], to: marker[k + 1] + 2, closed: true });
+    else ranges.push({ from: marker[k], to: len, closed: false });
   }
   return ranges;
 }
 
-// Entfernt die Kommentar-Bereiche zeilentreu: enthaltene Newlines bleiben
-// stehen, damit data-source-line (Scroll-Sync, Checkbox-Toggle) fuer
-// nachfolgende Bloecke weiter die Editor-Zeile des vollen Dokuments trifft.
+// Erste Stelle eines aufsteigenden Feldes mit Wert ab `wert`.
+function ersterAb(feld, wert) {
+  let lo = 0;
+  let hi = feld.length;
+  while (lo < hi) {
+    const m = (lo + hi) >> 1;
+    if (feld[m] < wert) lo = m + 1;
+    else hi = m;
+  }
+  return lo;
+}
+
+// Erste Stelle eines aufsteigenden Feldes mit Wert über `wert`.
+function ersterUeber(feld, wert) {
+  return ersterAb(feld, wert + 1);
+}
+
+// Text in der Sicht der Anzeige, Ausschnitt [a, b) des Originals: die Bereiche
+// ohne Zeichen (Umbrüche bleiben), die Marker mit istKennung(n) als Kennung,
+// übrige Marker wörtlich. Bereiche sind aufsteigend und überlappungsfrei, kein
+// Marker als Kennung liegt in einem Bereich, und a und b sind Zeilen-Anfänge
+// oder Text-Ende (kein Marker liegt über ihnen).
+function sicht(src, marker, ranges, istKennung, leit, a, b) {
+  const teile = [];
+  let pos = a;
+  let lo = 0;
+  let hi = ranges.length;
+  while (lo < hi) {
+    const m = (lo + hi) >> 1;
+    if (ranges[m].to <= a) lo = m + 1;
+    else hi = m;
+  }
+  let r = lo;
+  let j = ersterAb(marker, a);
+  for (;;) {
+    while (j < marker.length && marker[j] < b && !istKennung(j)) j++;
+    const mStelle = j < marker.length && marker[j] < b ? marker[j] : Infinity;
+    const rStelle =
+      r < ranges.length && ranges[r].from < b ? Math.max(ranges[r].from, a) : Infinity;
+    if (mStelle === Infinity && rStelle === Infinity) break;
+    if (rStelle <= mStelle) {
+      const ende = Math.min(ranges[r].to, b);
+      teile.push(src.slice(pos, rStelle), src.slice(rStelle, ende).replace(/[^\n]+/g, ''));
+      pos = ende;
+      r++;
+    } else {
+      teile.push(src.slice(pos, mStelle), kennung(leit, j));
+      pos = mStelle + 2;
+      j++;
+    }
+  }
+  teile.push(src.slice(pos, b));
+  return teile.join('');
+}
+
+function waehleLeit(src) {
+  for (let c = LEIT_VON; c < LEIT_BIS; c++) {
+    const z = String.fromCharCode(c);
+    if (!src.includes(z)) return z;
+  }
+  return null;
+}
+
+// Findet die Kommentar-Bereiche als [{ from, to, closed }], aufsteigend und
+// überlappungsfrei, in Stellen des übergebenen Textes. `to` schließt den
+// schließenden Marker ein; ein unpaariger Kommentar reicht bis zum Ende und
+// trägt closed: false. optionen.imCode ersetzt die angemeldete Code-Frage (für
+// Prüfungen), mit derselben Form.
+function findPercentCommentRanges(text, optionen) {
+  // Zeilenenden wie der Zerleger: ein einzelnes Wagenrücklauf-Zeichen wird
+  // längengleich zum Zeilenvorschub, ein Paar bleibt (der Zerleger gleicht es
+  // selbst an).
+  const src = String(text == null ? '' : text).replace(/\r(?!\n)/g, '\n');
+  const len = src.length;
+  const marker = kandidaten(src);
+  if (marker.length === 0) return [];
+  if (!/[`~\t]| {4}/.test(src)) return paareOhneCode(marker, len);
+
+  const sichereSeite = (ranges, ab) =>
+    ranges.filter((b) => b.to <= ab).concat([{ from: ab, to: len, closed: false }]);
+
+  const portabel = PORTABEL_KENNZEICHNUNG_RE.test(src);
+  const frageRoh =
+    optionen && typeof optionen.imCode === 'function' ? optionen.imCode : codeFrageFuer(portabel);
+  if (!frageRoh || len > MAX_LAENGE || marker.length > MAX_MARKER)
+    return sichereSeite([], marker[0]);
+  const leit = waehleLeit(src);
+  if (!leit) return sichereSeite([], marker[0]);
+
+  // Zeilen-Anfänge; die Sicht behält jeden Umbruch, die Zeilen-Nummern der
+  // Anzeige sind also Zeilen des Originals.
+  const zeilen = [0];
+  for (let p = src.indexOf('\n'); p !== -1; p = src.indexOf('\n', p + 1)) zeilen.push(p + 1);
+  const nZeilen = zeilen.length;
+  const zeileVon = (stelle) => ersterUeber(zeilen, stelle) - 1;
+  const stelleVon = (zeile) => (zeile >= nZeilen ? len : zeilen[zeile]);
+
+  let aufwand = 0;
+  // Legt der Anzeige eine Vorlage vor. Liefert { code, unsicher, bloecke,
+  // definitionen } oder null (keine Antwort, Aufwand erschöpft). Eine Antwort
+  // als Feld (frühere Form) trägt keine Block-Grenzen; dann wird nach jedem
+  // Kommentar das ganze Dokument gefragt.
+  const frage = (vorlage, definitionen) => {
+    aufwand += vorlage.length;
+    if (aufwand > MAX_AUFWAND_ZEICHEN) return null;
+    let antwort;
+    try {
+      antwort = antwortInForm(frageRoh(vorlage, leit, { gliederung: true, definitionen }));
+    } catch {
+      return null;
+    }
+    if (!antwort) return null;
+    if (Array.isArray(antwort))
+      return { code: new Set(antwort), unsicher: new Set(), bloecke: null, definitionen: null };
+    const bl = antwort.bloecke;
+    const geordnet = bl.every(
+      (z, i) => Number.isInteger(z) && z >= 0 && (i === 0 || bl[i - 1] < z),
+    );
+    return {
+      code: new Set(antwort.code),
+      unsicher: new Set(antwort.unsicher),
+      bloecke: geordnet ? bl.slice() : null,
+      definitionen: antwort.definitionen || null,
+    };
+  };
+
+  // Das ganze Dokument ohne die Bereiche, Marker ab Nummer k und die wörtlich
+  // gelassenen als Kennung.
+  const ganz = (ranges, k, woertlich) =>
+    frage(
+      sicht(src, marker, ranges, (j) => j >= k || woertlich.has(j), leit, 0, len),
+      null,
+    );
+
+  const gleicheAnfaenge = (alt, neu, von, bis) => {
+    const a = alt.slice(ersterAb(alt, von), ersterAb(alt, bis));
+    const n = neu.slice(ersterAb(neu, von), ersterAb(neu, bis));
+    return a.length === n.length && a.every((z, i) => z === n[i]);
+  };
+
+  // Neue Antwort nach dem Entfernen des Kommentars `bereich`, für die Marker ab
+  // Nummer k. Vorgelegt wird der Abschnitt um den Kommentar: vom Anfang des
+  // Blocks vor dem, in dem er beginnt, bis zum Anfang des zweiten Blocks nach
+  // seinem Ende. Block heißt hier ein oberster Block oder ein Eintrag
+  // einer obersten Liste; beide beginnen in der Anzeige mit frischem Zustand (blockAnfaenge). Stimmen die
+  // Block-Anfänge im Block davor und im Block danach mit der bisherigen
+  // Zerlegung überein, zerlegt die Anzeige das ganze
+  // Dokument davor und danach wie bisher. Sonst wird der Abschnitt verdoppelt,
+  // zuletzt bis zum ganzen Dokument. Definitionen (`]:`) wirken im ganzen
+  // Dokument: Steht eine im Kommentar oder im Abschnitt, wird das ganze
+  // Dokument gefragt; sonst bekommt der Abschnitt die bisherigen mit.
+  const nachKommentar = (stand, bereich, ranges, k, woertlich) => {
+    const bl = stand.bloecke;
+    if (!bl || src.slice(bereich.from, bereich.to).includes(']:'))
+      return ganz(ranges, k, woertlich);
+    const istKennung = (j) => j >= k || woertlich.has(j);
+    const bi = ersterUeber(bl, zeileVon(bereich.from)) - 1;
+    const fi = ersterUeber(bl, zeileVon(bereich.to - 1));
+    const anfang = bi >= 0 ? bl[bi] : 0;
+    const folge = fi < bl.length ? bl[fi] : nZeilen;
+    for (let weite = 1; ; weite *= 2) {
+      const s = bi - weite >= 0 ? bl[bi - weite] : 0;
+      const e = fi + weite < bl.length ? bl[fi + weite] : nZeilen;
+      if (s === 0 && e === nZeilen) return ganz(ranges, k, woertlich);
+      const a = stelleVon(s);
+      const b = stelleVon(e);
+      const vorlage = sicht(src, marker, ranges, istKennung, leit, a, b);
+      if (vorlage.includes(']:')) return ganz(ranges, k, woertlich);
+      const antwort = frage(vorlage, stand.definitionen);
+      if (!antwort || !antwort.bloecke) return null;
+      const neu = antwort.bloecke.map((z) => z + s);
+      if (!gleicheAnfaenge(bl, neu, s, anfang) || !gleicheAnfaenge(bl, neu, folge, e)) continue;
+      // Auch die Antworten im Block danach stimmen mit den bisherigen überein.
+      const ersterMarker = Math.max(k, ersterAb(marker, a));
+      let gleich = true;
+      for (let j = Math.max(k, ersterAb(marker, stelleVon(folge))); j < marker.length; j++) {
+        if (marker[j] >= b) break;
+        if (
+          antwort.code.has(j) !== stand.code.has(j) ||
+          antwort.unsicher.has(j) !== stand.unsicher.has(j)
+        ) {
+          gleich = false;
+          break;
+        }
+      }
+      if (!gleich) continue;
+      for (let j = ersterMarker; j < marker.length && marker[j] < b; j++) {
+        stand.code.delete(j);
+        stand.unsicher.delete(j);
+        if (antwort.code.has(j)) stand.code.add(j);
+        if (antwort.unsicher.has(j)) stand.unsicher.add(j);
+      }
+      stand.bloecke = bl.slice(0, ersterAb(bl, s)).concat(neu, bl.slice(ersterAb(bl, e)));
+      return stand;
+    }
+  };
+
+  // Sichere Seite ab dem frühesten ungeprüften Marker: dem ersten wörtlich
+  // gelassenen, sonst dem aktuellen. Ein wörtlich gelassener Marker gilt erst
+  // nach der Schluss-Prüfung am fertigen Text als geprüft.
+  const fruehester = (woertlich, k) => marker[woertlich.length ? woertlich[0] : k];
+
+  const erzwungen = new Set();
+  let start = { ranges: [], oeffner: [], woertlich: [], k: 0 };
+  for (let durchgang = 0; durchgang < MAX_DURCHGAENGE; durchgang++) {
+    const ranges = start.ranges.slice();
+    const oeffner = start.oeffner.slice();
+    const woertlich = start.woertlich.slice();
+    const woertlichMenge = new Set(woertlich);
+    let k = start.k;
+    let stand = ganz(ranges, k, woertlichMenge);
+    if (!stand) return sichereSeite(ranges, fruehester(woertlich, k));
+    while (k < marker.length) {
+      if (stand.unsicher.has(k)) return sichereSeite(ranges, fruehester(woertlich, k));
+      if (stand.code.has(k) && !erzwungen.has(k)) {
+        woertlich.push(k);
+        woertlichMenge.add(k);
+        k++;
+        continue;
+      }
+      oeffner.push(k);
+      if (k + 1 >= marker.length) {
+        ranges.push({ from: marker[k], to: len, closed: false });
+        break;
+      }
+      const bereich = { from: marker[k], to: marker[k + 1] + 2, closed: true };
+      ranges.push(bereich);
+      k += 2;
+      if (k < marker.length) {
+        stand = nachKommentar(stand, bereich, ranges, k, woertlichMenge);
+        if (!stand) return sichereSeite(ranges, fruehester(woertlich, k));
+      }
+    }
+
+    // Schluss-Prüfung, erste Richtung: Jeder wörtlich gelassene Marker liegt
+    // im fertigen Text in Code. Der erste, der es nicht tut, öffnet einen
+    // Kommentar, und ab ihm wird neu entschieden; ist er unsicher, gilt ab ihm
+    // die sichere Seite.
+    if (woertlich.length) {
+      const pruefung = frage(
+        sicht(src, marker, ranges, (j) => woertlichMenge.has(j), leit, 0, len),
+        null,
+      );
+      if (!pruefung) return sichereSeite(ranges, marker[woertlich[0]]);
+      const fehlt = woertlich.find((w) => !pruefung.code.has(w));
+      if (fehlt !== undefined) {
+        if (pruefung.unsicher.has(fehlt)) return sichereSeite(ranges, marker[fehlt]);
+        erzwungen.add(fehlt);
+        const bleiben = ranges.filter((b) => b.to <= marker[fehlt]).length;
+        start = {
+          ranges: ranges.slice(0, bleiben),
+          oeffner: oeffner.slice(0, bleiben),
+          woertlich: woertlich.filter((w) => w < fehlt),
+          k: fehlt,
+        };
+        continue;
+      }
+    }
+    if (ranges.length === 0) return ranges;
+    // Schluss-Prüfung, zweite Richtung: Kein öffnender Marker liegt im fertigen
+    // Text in Code. Die Gegenprobe zeigt alle öffnenden Marker auf einmal als
+    // Kennung, ihre Kommentare sind entfernt. Eine Kennung kann dabei Zeichen
+    // trennen, die erst das Entfernen zusammenführt (zwei Backticks vor und
+    // einer nach dem Kommentar ergeben einen Zaun); ein Treffer ist deshalb nur
+    // ein Verdacht. Jeder verdächtige Marker wird einzeln nachgeprüft: der
+    // fertige Text mit seinem eigenen Kommentar, er und sein schließender
+    // Marker als Kennung. Liegt er dort in Code, ist er unsicher oder bleibt
+    // die Antwort aus, gilt ab ihm die sichere Seite.
+    const oeffnerMenge = new Set(oeffner);
+    const ohneOeffner = ranges.map((b) => ({ from: b.from + 2, to: b.to }));
+    const gegenprobe = frage(
+      sicht(
+        src,
+        marker,
+        ohneOeffner,
+        (j) => woertlichMenge.has(j) || oeffnerMenge.has(j),
+        leit,
+        0,
+        len,
+      ),
+      null,
+    );
+    if (!gegenprobe) return sichereSeite(ranges, marker[oeffner[0]]);
+    for (let i = 0; i < oeffner.length; i++) {
+      const o = oeffner[i];
+      if (!gegenprobe.code.has(o) && !gegenprobe.unsicher.has(o)) continue;
+      const andere = ranges.slice(0, i).concat(ranges.slice(i + 1));
+      const probe = frage(
+        sicht(
+          src,
+          marker,
+          andere,
+          (j) => woertlichMenge.has(j) || j === o || j === o + 1,
+          leit,
+          0,
+          len,
+        ),
+        null,
+      );
+      if (!probe || probe.code.has(o) || probe.unsicher.has(o)) {
+        return sichereSeite(ranges, marker[o]);
+      }
+    }
+    return ranges;
+  }
+  return sichereSeite(start.ranges, fruehester(start.woertlich, start.k));
+}
+
+// Entfernt die Kommentare zeilentreu: Zeichen weg, Zeilenumbrüche bleiben.
 function stripPercentComments(text, optionen) {
-  const src = String(text || '');
+  const src = String(text == null ? '' : text);
   const ranges = findPercentCommentRanges(src, optionen);
   if (!ranges.length) return src;
-  let out = '';
+  const teile = [];
   let pos = 0;
-  for (const r of ranges) {
-    out += src.slice(pos, r.from);
-    out += src.slice(r.from, r.to).replace(/[^\n]+/g, '');
-    pos = r.to;
+  for (const b of ranges) {
+    teile.push(src.slice(pos, b.from), src.slice(b.from, b.to).replace(/[^\n\r]+/g, ''));
+    pos = b.to;
   }
-  out += src.slice(pos);
-  return out;
+  teile.push(src.slice(pos));
+  return teile.join('');
 }
 
 module.exports = {
@@ -629,8 +715,7 @@ module.exports = {
   baueCodeFrage,
   meldeZerlegerAn,
   kommentarImCode,
-  CODE_FRAGE_PLATZHALTER,
-  MAX_CODE_FRAGEN_JE_ABSATZ,
-  MAX_ABSATZ_LAENGE,
-  MAX_AUFWAND_JE_DURCHLAUF,
+  MAX_DURCHGAENGE,
+  MAX_LAENGE,
+  MAX_AUFWAND_ZEICHEN,
 };

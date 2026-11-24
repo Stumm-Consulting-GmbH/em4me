@@ -50,7 +50,7 @@ Change tracking with five forms: insertion, deletion, substitution, highlight, c
 
 ## Comments
 
-Text between `%%` markers is a private comment: it stays in the source but appears in no rendered view and no export. Comments work within a line and across several lines; an opening `%%` without a closing one takes effect until the end of the document. In fenced code blocks and inline code `%%` remains ordinary text; `\%%` yields a literal `%%` in running text (each marker is escaped individually). In the editor, comment areas are subtly coloured (source and live view). The visible Critic Markup comment `{>>…<<}` from the section above is independent of this: it serves review and is rendered, while the `%%` comment stays private.
+Text between `%%` markers is a private comment: it stays in the source but appears in no rendered view and no export. Comments work within a line and across several lines; an opening `%%` without a closing one takes effect until the end of the document. In code blocks, fenced or indented, and in inline code `%%` remains ordinary text; `\%%` yields a literal `%%` in running text (each marker is escaped individually). In the editor, comment areas are subtly coloured (source and live view). The visible Critic Markup comment `{>>…<<}` from the section above is independent of this: it serves review and is rendered, while the `%%` comment stays private.
 
 ```markdown
 Visible text %%private comment%% and on with the sentence.

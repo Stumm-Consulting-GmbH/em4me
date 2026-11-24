@@ -2381,8 +2381,16 @@ benannten Rückfall-Fälle oben und der turnusmäßige Voll-Lauf.
 
 **Turnusmäßiger Voll-Lauf**, unabhängig von der Klasse: vor jedem Release,
 das ohnehin die strengste Stufe fährt, und beim ersten Integrationslauf
-eines Arbeitstages. Der zweite Punkt kostet höchstens 87 s je Tag und
-fängt die Fälle, in denen die Klassen-Zuordnung still veraltet ist. Das
+eines Kalendertages, seit dem 2026-11-22 einmal je Tag für das ganze
+Projekt statt je Arbeitsbereich (Empfehlung pauschal übernommen,
+Wortlaut des Auftraggebers vom 2026-11-22). Der zweite Punkt fängt die Fälle, in denen die
+Klassen-Zuordnung still veraltet ist, und ist teuer: Gemessen am
+2026-11-21 an den Prüfberichten auf SC-027 (Angabe der Steuerung) laufen
+die Einzel-Prüfungen rund 3,5 Minuten auf ruhiger Maschine und 14 bis 16
+Minuten unter Last, der Lauf mit verschobener Uhr 7,5 beziehungsweise 18
+Minuten; ein grüner Voll-Lauf hält die Integrations-Sperre damit rund 12
+bis 40 Minuten. Die frühere Angabe von höchstens 87 s je Tag stammte vom
+2026-07-25 und gilt nicht mehr. Das
 Release-Gate selbst bleibt Pflicht: vor Build und Tag ist die vollständige
 Suite (Unit, Snapshot und E2E-Voll-Suite) grün, unter Windows seit dem
 2026-11-13 ohne die Unit-Suite, die erst im Release-Lauf der Merge-Queue
@@ -2515,8 +2523,27 @@ Kalendertages fährt unabhängig von der Klasse die vollen Gates; ebenso
 jede Release-Integration (`--release`). Verglichen werden Kalendertage und
 nicht Datei-Zeiten gegen die Uhr, weil ein mtime-Vergleich gegen
 `Date.now()` unter Windows nachweislich brüchig ist (Befund aus 4T-000729).
-Der Vermerk liegt unversioniert im `.git`-Verzeichnis des
-Integrations-Clones; ist er nicht lesbar, gilt der Voll-Lauf als fällig.
+Seit dem 2026-11-22 gilt der Tageslauf für das ganze Projekt (4T-002799,
+Empfehlung pauschal übernommen, Wortlaut des Auftraggebers vom 2026-11-22): Die Marke
+`voll-lauf-tag.json` liegt am gemeinsamen Ablage-Ort neben der
+Integrations-Sperre und nennt Kalendertag in UTC, geprüften Stand,
+Rechner, Bereich und Zeitpunkt. Gesetzt wird sie nur nach einem grünen
+vollen Lauf, und zwar erst nach dem erfolgreichen Push, nachdem die
+Eigentums-Prüfung bestätigt hat, dass dieser Lauf die Integrations-Sperre
+hält, und vor deren Freigabe, atomar über eine Zwischendatei und
+Umbenennen. Ein roter Lauf setzt sie nie, ebenso wenig einer, der nach
+grünen Gates abbricht (Sperre übernommen, Nachholen abgewiesen, Push
+gescheitert); der nächste Lauf fährt dann erneut voll. Ist der Ablage-Ort nicht
+erreichbar oder die Marke unlesbar, gilt der Voll-Lauf als fällig (fail
+closed). Release-Integration, Rückfall und Not-Aus fahren unabhängig von
+ihr voll. Das Protokoll der Auswahl nennt in jedem Lauf, ob die Marke für
+heute gesetzt ist und von wem. Allein die Merge-Queue liest und schreibt
+sie; der lokale Gate-Weg liest und schreibt sie nicht. Die frühere Marke im
+`.git`-Verzeichnis jedes Integrations-Clones wird nicht mehr gelesen.
+Prüffälle legen ihre Marke neben ihrer eigenen Sperre im Wegwerf-Ordner
+ab (`test/unit/voll-lauf-marke.test.js`); ein Prüffall mit eingespeisten
+Gates, der weder Sperre noch Marke umlenkt, bekommt keinen Ort und
+berührt die gemeinsame Marke nicht.
 Seit dem 2026-10-02 gehört zu den vollen Gates als letztes der
 Wanduhr-Wächter `test:uhr` (Stabilitätsregel 33): ein zweiter Lauf der
 Unit-Suite mit verschobener Uhr, gemessen rund drei Minuten; der Not-Aus

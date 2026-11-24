@@ -10,7 +10,8 @@
 //
 // **Quellen** (alle über `meldeWorkflowEreignis`, die Sammelstelle unten):
 //   file-created, file-changed  Index-Beobachter des Bereichs (index/build.js,
-//                               chokidar `add`/`change`, Schreib-Abschluss
+//                               Meldungen `add`/`change` der gemeinsamen
+//                               Bereichs-Beobachtung, Schreib-Abschluss
 //                               200 ms); `unlink` hebt ein noch entprelltes
 //                               Ereignis derselben Datei auf.
 //   file-moved                  Umbenennen und Verschieben in der Anwendung

@@ -48,6 +48,13 @@ function pathSeparator() {
   return plattform === 'win32' ? '\\' : '/';
 }
 
+// 4T-002811 (Epic 3E-000161): Läuft die Anwendung unter Windows? Für Regeln,
+// die allein dort gelten, etwa den Doppelpunkt in Datei-Namen, der unter
+// Windows ein Laufwerk oder einen Neben-Datenstrom adressiert.
+function isWindowsPlatform() {
+  return plattform === 'win32';
+}
+
 // Nur fuer Tests: Plattform injizieren bzw. mit undefined zuruecksetzen.
 function setPlatformForTests(p) {
   plattform = p === undefined ? ermitteltePlattform() : p;
@@ -57,5 +64,6 @@ module.exports = {
   isFilesystemCaseInsensitive,
   pathCompareKey,
   pathSeparator,
+  isWindowsPlatform,
   setPlatformForTests,
 };

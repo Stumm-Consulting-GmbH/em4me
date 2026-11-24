@@ -303,9 +303,13 @@ test.describe('DB-MAS-12: Positions-Bereich mit gemeinsamem Speichern (4T-002253
       await maske.locator('.db-form-field[data-field="title"] .db-form-input').fill('Neues Buch');
       await merkeNeueZeileVor(bereich, { borrower: 'Paul', lent: '2026-10-01', due: '2026-10-15' });
       await maske.locator('.db-form-save').click();
-      await expect
-        .poll(() => datensaetze(library), { timeout: 20000 })
-        .toContain('|- id="r-00003"\n| Neues Buch');
+      // Gespeichert meldet die Maske erst, wenn der Auftrag beide Dateien
+      // geschrieben hat; erst danach werden beide gelesen (4T-002836).
+      // Bewusst ohne expect.poll: Anders als bei der Kaskade der Merkregel
+      // in test/README.md ist die Rückkehr ins Lesen hier das Ende des
+      // Auftrags; eine Wiederholung würde eine zu frühe Meldung verdecken.
+      await expect(maske.locator('.db-form-edit')).toHaveCount(1, { timeout: 20000 });
+      expect(datensaetze(library)).toContain('|- id="r-00003"\n| Neues Buch');
       expect(datensaetze(loans)).toMatch(/\| r-00003\n\| Paul\n/);
     } finally {
       await closeApp(app, userData, { force: true });

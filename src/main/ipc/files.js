@@ -23,6 +23,7 @@ const {
   readStateForSave,
   writeDocumentParts,
   rejoinDocument,
+  isInFolder, // 4T-002811: Bindung an den Ordner der geöffneten Datei
 } = require('../documents/document-parts-io');
 const { planeZerlegung, ueberSchwelle } = require('../../shared/document-split');
 // 4T-001550: Schwelle, Lese-Hilfe und Ankuendigung je nach Art der Datei.
@@ -209,6 +210,14 @@ function registerFilesIpc(handle, deps) {
       // Reiter auf einem Bruchstueck waere das Gegenteil der Zusicherung.
       const docPath = doc.path;
       const docText = doc.text;
+      // 4T-002811 (Epic 3E-000161): Die Kopf-Datei liegt immer im Ordner der
+      // geöffneten Datei. Der Lese-Weg sichert das bereits selbst, bevor er
+      // liest oder den Katalog schreibt; diese Prüfung kommt erst danach und
+      // verhindert nur, dass ein abweichender docPath an den Editor geht, denn
+      // geprüft wurde oben allein der genannte Pfad, nicht docPath.
+      if (!isInFolder(docPath, path.dirname(absolute))) {
+        return { ok: false, error: 'outside-area' };
+      }
       // Kein pushRecent hier — file:read deckt auch passive Pfade ab
       // (Sitzungs-Restore, Auto-Reload). Aktives Oeffnen meldet sich separat
       // ueber recent:push aus dem Renderer.
@@ -355,6 +364,14 @@ function registerFilesIpc(handle, deps) {
       const abweisung = await pruefeDefinition(owner, absolute, previousText, normalized);
       if (abweisung) return abweisung;
       const zielPfad = stand.ok && stand.headPath ? stand.headPath : absolute;
+      // 4T-002811 (Epic 3E-000161): Geschrieben wird nur in den Ordner der
+      // genannten Datei. Der Ziel-Pfad stammt aus der Zuordnungs-Zeile, also aus
+      // Dokument-Inhalt; ohne diese Bindung schrieb eine präparierte Zeile das
+      // Speichern in eine Datei außerhalb des Bereichs (Releases 1.126.0 bis
+      // 1.161.0). Der Lese-Weg sichert das bereits selbst; dies ist die zweite Linie.
+      if (!isInFolder(zielPfad, path.dirname(absolute))) {
+        return { ok: false, error: 'outside-folder' };
+      }
       const teilung = teilungsOptionen(normalized); // 4T-001550: dreifach gebraucht
       const plan = planeZerlegung({
         text: normalized,

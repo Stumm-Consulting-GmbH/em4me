@@ -55,6 +55,7 @@ const {
   readPartLine,
   writePartLine,
   baseBasenameOf,
+  isBlankPartBase,
   FIRST_PART_INDEX,
 } = require('../../shared/document-parts');
 const path = require('node:path');
@@ -90,15 +91,12 @@ function fehlerCode(err) {
 // dem Lesen werden die gelieferten Pfade erneut gegen den Ordner gehalten, vor
 // dem Schreiben jeder Ziel-Pfad. Fehlschlag ist `outsideArea`.
 
-// Ein blanker Datei-Name: kein Trenner, kein Laufwerk, kein Punkt-Segment. Der
-// Doppelpunkt ist unter Windows ganz gesperrt (Laufwerk, Neben-Datenstrom); auf
-// den übrigen Plattformen ist er ein gewöhnliches Zeichen eines Datei-Namens
-// und nur als Laufwerks-Angabe am Anfang gesperrt, wie bei einem Schritt-Pfad.
-function blankerName(name) {
-  if (typeof name !== 'string' || name === '' || name === '.' || name === '..') return false;
-  if (/[\\/]/.test(name) || /^[A-Za-z]:/.test(name)) return false;
-  return process.platform !== 'win32' || !name.includes(':');
-}
+// Ein blanker Datei-Name nach der Regel des Lese-Wegs der Teile
+// (`isBlankPartBase` in src/shared/document-parts.js, 4T-002811): kein Trenner,
+// kein Laufwerk, kein Punkt-Segment, keine Steuerzeichen, kein reservierter
+// Geräte-Name, unter Windows kein Doppelpunkt. Bis 4T-002811 stand hier eine
+// eigene, etwas weitere Fassung; beide Wege prüfen seither nach einer Regel.
+const blankerName = isBlankPartBase;
 
 function gleicherOrdner(a, b) {
   return pathCompareKey(path.dirname(path.resolve(a))) === pathCompareKey(path.resolve(b));

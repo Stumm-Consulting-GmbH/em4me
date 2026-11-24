@@ -2,12 +2,19 @@
 // Renderer.
 //
 // Der Scanner (shared/markdown/plugins/comments.js) entscheidet nicht selbst,
-// ob ein Marker in einem Code-Stueck im Fliesstext liegt; er fragt die
-// Anzeige. Deren Zerleger lebt im Preload und nicht im Renderer-Bundle. Dieses
-// Modul meldet deshalb beim Laden die Bruecke `kommentarImCode` als Code-Frage
-// dieser Laufzeit-Welt an. Jeder Verwender des Scanners im Renderer fuehrt es
-// ein (Kommentar-Bereiche des Editors, Tags der Tafel, Quelltext-Export),
-// damit die Anmeldung nicht an einer Lade-Reihenfolge haengt.
+// ob ein Marker in Code liegt; er fragt die Anzeige. Deren Zerleger lebt im
+// Preload und nicht im Renderer-Bundle. Dieses Modul meldet deshalb beim Laden
+// die Bruecke `kommentarImCode` als Code-Frage dieser Laufzeit-Welt an. Jeder
+// Verwender des Scanners im Renderer fuehrt es ein (Kommentar-Bereiche des
+// Editors, Tags der Tafel, Quelltext-Export), damit die Anmeldung nicht an
+// einer Lade-Reihenfolge haengt.
+//
+// 4T-002802: Vorgelegt wird der Text mit Kennungen an Stelle der Marker samt
+// Leit-Zeichen, das ganze Dokument oder ein Abschnitt davon. Die Antwort ist
+// ein Objekt mit den Nummern der Kennungen in Code, den unsicheren Nummern,
+// den Anfangs-Zeilen der obersten Bloecke und den Definitionen (Form in
+// comments.js, baueCodeFrage); die fruehere Form, ein Feld von Nummern, bleibt
+// fuer Pruefungen gueltig.
 //
 // Bewusst ohne Import von api.js: Die Bruecke wird erst beim Aufruf gelesen.
 // So bleibt das Modul ladbar, wo es kein Fenster gibt (Pruefungen), und fehlt
@@ -19,14 +26,17 @@ import { setzeCodeFrage } from '../../../shared/markdown/plugins/comments.js';
 
 // portabel: ob das Dokument die Portable-Kennzeichnung traegt; die Bruecke fragt
 // dann die portable Fassung der Anzeige.
-export function kommentarCodeFrage(stueck, portabel) {
+// optionen: wie bei der Code-Frage in comments.js, ein Objekt oder true.
+export function kommentarCodeFrage(text, leit, portabel, optionen) {
   const bruecke = typeof window !== 'undefined' && window ? window.api : null;
   if (!bruecke || typeof bruecke.kommentarImCode !== 'function') return null;
-  const antwort = bruecke.kommentarImCode(stueck, portabel === true);
-  return antwort === true || antwort === false ? antwort : null;
+  const opt = optionen !== null && typeof optionen === 'object' ? optionen : optionen === true;
+  const antwort = bruecke.kommentarImCode(text, leit, portabel === true, opt);
+  if (Array.isArray(antwort)) return antwort;
+  return antwort && typeof antwort === 'object' ? antwort : null;
 }
 
 setzeCodeFrage(
-  (stueck) => kommentarCodeFrage(stueck, false),
-  (stueck) => kommentarCodeFrage(stueck, true),
+  (text, leit, optionen) => kommentarCodeFrage(text, leit, false, optionen),
+  (text, leit, optionen) => kommentarCodeFrage(text, leit, true, optionen),
 );

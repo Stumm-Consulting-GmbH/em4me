@@ -50,7 +50,7 @@ Tracciamento delle modifiche con cinque forme: inserimento, cancellazione, sosti
 
 ## Commenti
 
-Il testo tra i marcatori `%%` è un commento privato: resta nel sorgente, ma non appare in nessuna vista renderizzata né in alcuna esportazione. I commenti funzionano all'interno di una riga e su più righe; un `%%` di apertura senza chiusura agisce fino alla fine del documento. Nei blocchi di codice delimitati e nel codice in linea, `%%` resta testo ordinario; `\%%` produce un `%%` letterale nel testo corrente (ogni marcatore si escapa singolarmente). Nell'editor, le zone di commento sono colorate con discrezione (viste sorgente e live). Il commento Critic Markup visibile `{>>…<<}` della sezione precedente è indipendente da questo: serve alla concertazione e viene renderizzato, mentre il commento `%%` resta privato.
+Il testo tra i marcatori `%%` è un commento privato: resta nel sorgente, ma non appare in nessuna vista renderizzata né in alcuna esportazione. I commenti funzionano all'interno di una riga e su più righe; un `%%` di apertura senza chiusura agisce fino alla fine del documento. Nei blocchi di codice, delimitati o rientrati, e nel codice in linea, `%%` resta testo ordinario; `\%%` produce un `%%` letterale nel testo corrente (ogni marcatore si escapa singolarmente). Nell'editor, le zone di commento sono colorate con discrezione (viste sorgente e live). Il commento Critic Markup visibile `{>>…<<}` della sezione precedente è indipendente da questo: serve alla concertazione e viene renderizzato, mentre il commento `%%` resta privato.
 
 ```markdown
 Testo visibile %%commento privato%% e la frase continua.

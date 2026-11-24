@@ -13,7 +13,7 @@
 // Erledigt-Kennzeichen, Archiv nach der Trennlinie, Einstellungs-Block mit
 // Code-Zaun und JSON-Zeile, Kopf-Werte `list` und `board`, Tafel nur aus dem
 // Kopf); ihre Inhalte sind erfunden.
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -27,8 +27,23 @@ import {
   ersterVerweis,
   ersterVerweisDerKarte,
 } from '../../src/shared/kanban/kanban-core.js';
-import { findPercentCommentRanges } from '../../src/shared/markdown/plugins/comments.js';
 import { findCalendarValues } from '../../src/shared/calendar/calendar-core.js';
+
+// 4T-002802: Die Erkennung der privaten Kommentare fragt für jedes Dokument, das
+// Code tragen kann, den Zerleger der Anzeige; ohne ihn gilt ab dem ersten
+// Marker alles als privat, auch der Einstellungs-Block samt Rest der Tafel. Wie
+// im Programm steht deshalb für die ganze Datei der Kern dahinter, angemeldet
+// vor dem Einsammeln der Fälle, weil einige Gruppen die Tafel schon dabei lesen.
+const cjsRequireDatei = createRequire(import.meta.url);
+// Unter vitest ist der direkte Import eine andere Instanz als die, die der
+// Tafel-Kern liest; geprüft wird an dieser.
+const { findPercentCommentRanges, meldeZerlegerAn } = cjsRequireDatei(
+  '../../src/shared/markdown/plugins/comments.js',
+);
+{
+  const kern = cjsRequireDatei('../../src/shared/markdown/markdown.js');
+  meldeZerlegerAn(kern.md, kern.mdPortable);
+}
 
 function fixture(name) {
   return readFileSync(
@@ -211,20 +226,9 @@ describe('kanban-core — Code-Zaun innerhalb eines %%-Kommentars (AK10)', () =>
 // 4T-002793 (Epic 3E-000434): Ueber Code im Fliesstext entscheidet die Anzeige
 // (4T-002792). Im Programm liest der Fenster-Teil die Tafel und fragt ueber die
 // Bruecke; hier steht derselbe Kern als Code-Frage dahinter (markdown.js meldet
-// seinen Zerleger beim Laden an). Danach wird die Frage wieder abgemeldet, damit
-// die uebrigen Faelle der Datei in ihrer Welt bleiben.
+// seinen Zerleger beim Laden an). Seit 4T-002802 gilt das für die ganze Datei
+// (Anmeldung am Datei-Kopf).
 describe('kanban-core — Einstellungs-Block nach Karten mit einzelnen Backticks (4T-002793, AK5)', () => {
-  const cjsRequire = createRequire(import.meta.url);
-  let abtaster;
-  beforeAll(() => {
-    abtaster = cjsRequire('../../src/shared/markdown/plugins/comments.js');
-    const kern = cjsRequire('../../src/shared/markdown/markdown.js');
-    abtaster.meldeZerlegerAn(kern.md, kern.mdPortable);
-  });
-  afterAll(() => {
-    abtaster.setzeCodeFrage(null);
-  });
-
   // Gemeldete Faelle 2 und 3 als Karten: ein einzelner Backtick in einer Karte
   // vor und einer nach einer Karte mit privatem Kommentar, einmal maskiert.
   it.each([
@@ -246,7 +250,7 @@ describe('kanban-core — Einstellungs-Block nach Karten mit einzelnen Backticks
     expect(model.spalten.map((s) => s.titel)).toEqual(['Planung', 'Umsetzung', 'Leer', 'Fertig']);
     expect(schreibeTafel(model)).toBe(text);
     // Der Kommentar der mittleren Karte bleibt ein Kommentar.
-    const bereiche = abtaster.findPercentCommentRanges(text);
+    const bereiche = findPercentCommentRanges(text);
     expect(bereiche.some((b) => text.slice(b.from, b.to) === '%%GEHEIMVERMERK%%')).toBe(true);
   });
 });

@@ -19,12 +19,13 @@
 
 const fs = require('node:fs/promises');
 const { dialog, nativeTheme } = require('electron');
-const chokidar = require('chokidar');
 const backlinks = require('../backlinks');
 const { isSamePath, areaFromRootPath, updatedRecentAreas } = require('./area-path');
 // 4T-001787 (Epic 3E-000255, E9): Ausschluss des Sperr-Ordners aus der
 // Beobachtung und der Nachzug seines Namens.
-const { baueIgnorierRegel, beziehSperrOrdnerNeu } = require('./area-watch-ignore');
+const { baueStrukturVerbraucher, beziehSperrOrdnerNeu } = require('./area-watch-ignore');
+// 4T-002830 (Epic 3E-000446): gemeinsame Beobachtung je Wurzel statt chokidar.
+const { beobachteWurzel } = require('./bereichs-beobachtung');
 const { DEFAULT_LOCK_FOLDER_NAME } = require('../../shared/database/lock-folder-name');
 // 4T-001453 (Epic 3E-000190): Befund-Einordnung der Verknuepfungen.
 const { pruefeVerknuepfungen } = require('./area-link-resolve');
@@ -482,17 +483,6 @@ function createAreaApps(deps) {
       rootPath: area.rootPath,
       sperrOrdner: DEFAULT_LOCK_FOLDER_NAME,
     };
-    const watcher = chokidar.watch(area.rootPath, {
-      ignoreInitial: true,
-      // 4T-000348 (Epic 3E-000062): Markdown-Data-Dateien (.mdd/.mdda/.mddb) sind
-      // Bereichs-Infrastruktur (Historie, Einstellungen, Index-Cache), keine
-      // Nutzer-Struktur; ihr Anlegen/Schreiben soll kein Panel-Refresh ausloesen.
-      // Sie erscheinen ohnehin nicht in der Datei-Liste (kein Markdown-Name).
-      // 4T-001787: dazu der Sperr-Ordner der Bereichs-Wurzel und alles darunter.
-      ignored: baueIgnorierRegel(entry, isMddPath),
-    });
-    entry.watcher = watcher;
-    void beziehSperrOrdnerNeu([entry], leseWirksamenSperrOrdner);
     const notify = () => {
       if (entry.timer) clearTimeout(entry.timer);
       entry.timer = setTimeout(() => {
@@ -503,14 +493,21 @@ function createAreaApps(deps) {
         }
       }, 300);
     };
-    // Nur Struktur-Ereignisse; Inhalts-Aenderungen ('change') sind fuer das
-    // Panel irrelevant und wuerden bei jedem Speichern feuern.
-    for (const eventName of ['add', 'addDir', 'unlink', 'unlinkDir']) {
-      watcher.on(eventName, notify);
-    }
-    watcher.on('error', (err) => {
-      console.warn('Bereichs-Watcher-Fehler:', area.rootPath, err && err.message);
-    });
+    // 4T-002830 (Epic 3E-000446): Anmeldung an der gemeinsamen Beobachtung
+    // der Wurzel statt eines eigenen chokidar-Watchers. Sie teilt sich mit dem
+    // Bereichs-Index eine Überwachung des Betriebssystems je Wurzel, statt je
+    // Datei und Ordner eine zu halten. Gemeldet werden nur Struktur-Ereignisse
+    // (angelegt, gelöscht, umbenannt); Inhalts-Änderungen würden bei jedem
+    // Speichern feuern.
+    // 4T-000348 (Epic 3E-000062): Markdown-Data-Dateien (.mdd/.mdda/.mddb) sind
+    // Bereichs-Infrastruktur (Historie, Einstellungen, Index-Cache), keine
+    // Nutzer-Struktur; ihr Anlegen/Schreiben soll kein Panel-Refresh ausloesen.
+    // 4T-001787: dazu der Sperr-Ordner der Bereichs-Wurzel und alles darunter.
+    entry.watcher = beobachteWurzel(
+      area.rootPath,
+      baueStrukturVerbraucher(entry, isMddPath, notify),
+    );
+    void beziehSperrOrdnerNeu([entry], leseWirksamenSperrOrdner);
     areaWatchers.set(appId, entry);
   }
 
