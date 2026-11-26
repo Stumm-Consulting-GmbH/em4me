@@ -44,6 +44,10 @@ const markSelfWriting = selbstSchreib.merke;
  * @param {Function} deps.writeAreaCalendarConfig Kalender-Sektion der Bereichsdatei schreiben.
  * @param {Function} deps.readAreaSidebarVariantsConfig Varianten-Sektion der Bereichsdatei lesen.
  * @param {Function} deps.readAreaBookmarksConfig Lesezeichen-Sektion der Bereichsdatei lesen.
+ * @param {() => object|null} deps.getStore Einstellungs-Speicher (4T-002737).
+ * @param {Function} deps.resolveHistoryFor Aufloesung der Historisierungs-Schaltung.
+ * @param {Function} deps.readPreviousTextFor Datei-Stand vor dem Ueberschreiben.
+ * @param {Function} deps.recordMddOnSave Historien-Paket beim Speichern schreiben.
  */
 function registerAreaFeaturesIpc(handle, deps) {
   const {
@@ -56,16 +60,26 @@ function registerAreaFeaturesIpc(handle, deps) {
     writeAreaCalendarConfig,
     readAreaSidebarVariantsConfig,
     readAreaBookmarksConfig,
+    getStore,
+    resolveHistoryFor,
+    readPreviousTextFor,
+    recordMddOnSave,
   } = deps;
 
   // 4T-001407 (Epic 3E-000244): Journal-Kanaele aus dem Nachbar-Modul; die
-  // Abhaengigkeiten gehen unveraendert weiter.
+  // Abhaengigkeiten gehen unveraendert weiter. 4T-002737 (Epic 3E-000396): Der
+  // Übertrag offener Aufgaben braucht dazu die Einstellungen des Programms
+  // (Erweiterungs-Zustand, Aufgaben-Umgebung) und die Dokument-Historie.
   registerJournalIpc(handle, {
     senderWindow,
     areaOfWindow,
     broadcast,
     mddStore,
     readAreaJournalsConfig,
+    getStore,
+    resolveHistoryFor,
+    readPreviousTextFor,
+    recordMddOnSave,
   });
 
   // --- 4T-000543 (Epic 3E-000097): Kalender-Systeme (calendarSystems-Sektion) -----

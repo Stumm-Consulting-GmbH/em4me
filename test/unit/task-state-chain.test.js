@@ -73,12 +73,29 @@ describe('taskToggleTarget (4T-000497)', () => {
 
 describe('TASK_STATE_DEFAULTS sind verhaltensneutral (4T-000497)', () => {
   it('alle Folge-Symbole x, Typen wie spezifiziert', () => {
-    expect(TASK_STATE_DEFAULTS.every((s) => s.next === 'x')).toBe(true);
+    // 4T-002737: ausgenommen der Status «Übertragen», dessen Klick die
+    // Aufgabe wieder öffnet (eigener Fall unten).
+    const bestand = TASK_STATE_DEFAULTS.filter((s) => s.name !== 'migrated');
+    expect(bestand.every((s) => s.next === 'x')).toBe(true);
     const byChar = new Map(TASK_STATE_DEFAULTS.map((s) => [s.char, s]));
     expect(byChar.get('/').type).toBe('IN_PROGRESS');
     expect(byChar.get('-').type).toBe('CANCELLED');
     for (const ch of ['>', '?', '!', '*']) {
       expect(byChar.get(ch).type).toBe('TODO');
     }
+  });
+
+  it('4T-002737: «Übertragen» ist »/NON_TASK mit Folge-Symbol Leerzeichen, am Ende der Liste', () => {
+    const letzter = TASK_STATE_DEFAULTS[TASK_STATE_DEFAULTS.length - 1];
+    expect(letzter).toMatchObject({
+      char: '»',
+      name: 'migrated',
+      type: 'NON_TASK',
+      next: ' ',
+      enabled: true,
+      builtin: true,
+    });
+    expect(taskStatusType('»')).toBe('NON_TASK');
+    expect(taskToggleTarget('»')).toBe(' ');
   });
 });

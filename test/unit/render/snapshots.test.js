@@ -166,6 +166,16 @@ describe('Render-Pipeline-Snapshots (Viewer-Pfad)', () => {
     expect(html).toMatchSnapshot();
   });
 
+  // 4T-002630 (Epic 3E-000395): Das Titelbild entsteht nur mit der Option der
+  // Vollansicht; die Schleife oben friert titelbild.md ohne sie ein (kein
+  // Kopf-Bereich), dieser Fall mit ihr (Kopf-Bereich vor der Frontmatter-Zeile).
+  it('rendert titelbild.md mit der Option der Vollansicht (4T-002630)', () => {
+    const src = fs.readFileSync(path.join(FIXTURE_DIR, 'titelbild.md'), 'utf8');
+    const html = renderMarkdown(src, 'de', { titelbild: true });
+    expect(html.startsWith('<figure class="titelbild"')).toBe(true);
+    expect(html).toMatchSnapshot();
+  });
+
   it('Determinismus: drei Laeufe identisch (Stichprobe)', () => {
     const src = fs.readFileSync(path.join(FIXTURE_DIR, 'commonmark-basis.md'), 'utf8');
     const a = renderMarkdown(src, 'de');

@@ -89,7 +89,8 @@ export async function activateLink(paneIdx, href, isWikilink, baseOverride, opti
     const hilfe = { anker, datensatz: isWikilink ? () => datensatzZiel(ziel, anker) : null };
     if (abfangen && (await abfangen(ziel, hilfe))) return;
     if (isWikilink && anker && openRecordHit(await datensatzZiel(ziel, anker))) return;
-    const realPane = await openInPane(paneIdx, [ziel], { inheritGroup: true });
+    // 4T-002641: Mit Anker geht das Ziel der gemerkten Lese-Stelle vor.
+    const realPane = await openInPane(paneIdx, [ziel], { inheritGroup: true, zielFolgt: !!anker });
     if (anker) scrollToAnchorAfterOpen(realPane, anker);
   };
   activatePane(paneIdx);
@@ -147,6 +148,7 @@ export async function activateLink(paneIdx, href, isWikilink, baseOverride, opti
     const zielPane = await openInPane(paneIdx, [treffer.path], {
       inheritGroup: true,
       ausserhalbErlaubt: true,
+      zielFolgt: !!anchorPart,
     });
     if (anchorPart) scrollToAnchorAfterOpen(zielPane, anchorPart);
     return;
@@ -387,7 +389,10 @@ export async function handleRenderedClick(e, paneIdx) {
     // Öffnen springt der modusbewusste Zeilen-Sprung dorthin.
     const fmLine = parseInt(fmItem.dataset.fmLine || '', 10);
     // 4T-000631 (Epic 3E-000102): Abfrage-Treffer-Klick im Dokument erbt die Gruppe.
-    const realPane = await openInPane(paneIdx, [fmItem.dataset.fmPath], { inheritGroup: true });
+    const realPane = await openInPane(paneIdx, [fmItem.dataset.fmPath], {
+      inheritGroup: true,
+      zielFolgt: !!fmAnchor || Number.isFinite(fmLine),
+    });
     if (fmAnchor) scrollToAnchorAfterOpen(realPane, normalizedAnchorId(fmAnchor));
     else if (Number.isFinite(fmLine)) scrollToLineAfterOpen(realPane, fmLine);
     return;

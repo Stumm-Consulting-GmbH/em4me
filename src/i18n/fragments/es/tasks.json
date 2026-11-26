@@ -13,6 +13,7 @@
   "taskState.inProgress.label": "En curso",
   "taskState.cancelled.label": "Cancelado",
   "taskState.forwarded.label": "Delegado",
+  "taskState.migrated.label": "Trasladado",
   "taskState.question.label": "Pregunta",
   "taskState.important.label": "Importante",
   "taskState.star.label": "Marcado",

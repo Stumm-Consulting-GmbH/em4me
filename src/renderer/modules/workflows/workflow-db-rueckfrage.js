@@ -16,6 +16,14 @@
 // nächste Frage holt sie neu. Kommt eine neue Auskunft an, rechnen die
 // Kopfzeilen der Live-Ansicht neu (`liveRebuildEffect`), damit ein Befund nicht
 // erst mit dem nächsten Tastendruck erscheint.
+//
+// **Nach «noch nicht bereit» sofort nachholen (4T-002816):** Antwortet der
+// Hauptprozess mit `ok: false` (Index im Aufbau, kein Bereich), holt die
+// nächste Index-Meldung die Auskunft sofort neu, statt nur auf die nächste
+// Frage zu warten. Der Index-Aufbau endet in jedem Fall mit dieser Meldung;
+// ein eigenes Signal «Datenbank bereit» braucht es deshalb nicht. Geholt wird
+// je Meldung höchstens einmal, nie im Takt; ohne vorheriges «noch nicht bereit»
+// bleibt es beim trägen Holen.
 'use strict';
 
 import { api } from '../app/api.js';
@@ -29,6 +37,10 @@ let nachschlagen = null;
 let stand = null;
 let alt = true;
 let laufend = null;
+// Die letzte Antwort war «noch nicht bereit» (4T-002816).
+let wartetAufBereit = false;
+// Eine Index-Meldung kam, während eine Auskunft unterwegs war.
+let meldungWaehrendLauf = false;
 
 function neuRechnen() {
   for (const view of paneEditors) {
@@ -45,8 +57,12 @@ async function hole() {
   }
   const neu = antwort && antwort.ok && antwort.enabled ? JSON.stringify(antwort) : null;
   if (antwort && !antwort.ok) {
-    // Index noch im Aufbau oder kein Bereich: beim nächsten Fragen erneut.
+    // Index noch im Aufbau oder kein Bereich: beim nächsten Fragen erneut,
+    // und mit der nächsten Index-Meldung sofort.
     alt = true;
+    wartetAufBereit = true;
+  } else if (antwort) {
+    wartetAufBereit = false;
   }
   if (neu === stand) return;
   stand = neu;
@@ -57,7 +73,26 @@ async function hole() {
 function auffrischen() {
   if (!alt || laufend) return;
   alt = false;
-  laufend = hole().finally(() => (laufend = null));
+  laufend = hole().finally(() => {
+    laufend = null;
+    // Kam die Meldung, während die Auskunft unterwegs war, gilt sie jetzt:
+    // einmal nachholen, nie in einer Schleife.
+    if (meldungWaehrendLauf) {
+      meldungWaehrendLauf = false;
+      if (wartetAufBereit) auffrischen();
+    }
+  });
+}
+
+// Eine Index-Meldung: Die Auskunft ist alt. Stand zuletzt «noch nicht bereit»
+// aus, wird sofort neu geholt, damit die Befunde ohne Tastendruck erscheinen.
+function aufIndexMeldung() {
+  alt = true;
+  if (laufend) {
+    meldungWaehrendLauf = true;
+    return;
+  }
+  if (wartetAufBereit) auffrischen();
 }
 
 /**
@@ -102,7 +137,7 @@ export function initWorkflowDbRueckfrage() {
     dbFile: dbFileRueckfrage,
   });
   if (typeof api.onBacklinksInvalidated === 'function') {
-    api.onBacklinksInvalidated(() => (alt = true));
+    api.onBacklinksInvalidated(aufIndexMeldung);
   }
   document.addEventListener('scg:extensions-changed', () => (alt = true));
 }

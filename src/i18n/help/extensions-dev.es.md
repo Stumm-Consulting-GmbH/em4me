@@ -56,6 +56,8 @@ El archivo `manifest.json` describe el paquete:
 
 «Desactivar» retira todas las contribuciones de inmediato (la confirmación queda guardada; reactivar la misma versión no vuelve a preguntar). «Eliminar…» borra definitivamente la carpeta del paquete tras su propia confirmación.
 
+EM4me gestiona por sí mismo la confirmación, el estado activado o desactivado y el estado de error de un paquete. El código de una extensión no puede escribir estas entradas, ni los demás ajustes protegidos como «Ejecutar bloques de script» o las carpetas de plantillas y de workflows; el intento se rechaza. El almacenamiento propio `ctx.storage` no se ve afectado.
+
 ## Modificar un paquete instalado
 
 El código modificado de un paquete ya instalado solo se ejecuta **tras reiniciar la aplicación**. Esto vale por igual para ambas vías de contribución, tanto el punto de entrada de la interfaz como la contribución al renderizado.

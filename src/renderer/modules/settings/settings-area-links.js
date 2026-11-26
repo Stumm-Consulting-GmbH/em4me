@@ -30,6 +30,7 @@ import { renderActiveSection } from './settings-mount.js';
 import { kontextSchluessel } from './settings-kontext.js';
 import { buildSettingsRow, jsonEqual } from './settings-shared.js';
 import { refreshWorkflowFolderList } from '../workflows/workflow-folder-list.js';
+import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { isValidAreaPrefix, normalizeAreaPrefix } from '../../../shared/area-link-syntax.js';
 
 // Eine eigene Kopie eines Eintrags in der Form des Entwurfs.
@@ -205,21 +206,33 @@ function baueZeile(container, values, eintrag, idx) {
     }
   });
 
-  const vorlagen = schalter({
-    id: `settings-area-links-templates-${idx}`,
-    labelKey: 'settings.areaLinks.templatesLabel',
-    hintKey: 'settings.areaLinks.templatesHint',
-    eintrag,
-    feld: 'templates',
-  });
+  // 4T-002440 (Epic 3E-000445): Ein Schalter erscheint nur, solange seine
+  // Erweiterung an ist; ausgeschaltet wäre die Zustimmung wirkungslos. Die
+  // gespeicherte Wahl bleibt dabei im Entwurf stehen und wird beim Speichern
+  // unverändert zurückgeschrieben (`normalisierteEintraege`), sodass sie nach
+  // dem Wiedereinschalten wieder gilt. Maßgeblich ist der angewandte Zustand
+  // der Erweiterungen wie bei den übrigen erweiterungsgebundenen Teilen der
+  // Seite; das Umschalten zeichnet die offene Seite neu (`settings-page.js`,
+  // Empfänger von `scg:extensions-changed`).
+  const vorlagen = isExtensionActive('templates')
+    ? schalter({
+        id: `settings-area-links-templates-${idx}`,
+        labelKey: 'settings.areaLinks.templatesLabel',
+        hintKey: 'settings.areaLinks.templatesHint',
+        eintrag,
+        feld: 'templates',
+      })
+    : null;
   // 4T-002426: die Zustimmung zu den Workflows des verknüpften Bereichs.
-  const workflows = schalter({
-    id: `settings-area-links-workflows-${idx}`,
-    labelKey: 'settings.areaLinks.workflowsLabel',
-    hintKey: 'settings.areaLinks.workflowsHint',
-    eintrag,
-    feld: 'workflows',
-  });
+  const workflows = isExtensionActive('workflows')
+    ? schalter({
+        id: `settings-area-links-workflows-${idx}`,
+        labelKey: 'settings.areaLinks.workflowsLabel',
+        hintKey: 'settings.areaLinks.workflowsHint',
+        eintrag,
+        feld: 'workflows',
+      })
+    : null;
 
   const entfernen = document.createElement('button');
   entfernen.type = 'button';
@@ -231,7 +244,9 @@ function baueZeile(container, values, eintrag, idx) {
     renderActiveSection();
   });
 
-  zeile.append(prefixInput, pfadInput, waehlen, vorlagen, workflows, entfernen);
+  zeile.append(
+    ...[prefixInput, pfadInput, waehlen, vorlagen, workflows, entfernen].filter(Boolean),
+  );
   container.appendChild(zeile);
 }
 

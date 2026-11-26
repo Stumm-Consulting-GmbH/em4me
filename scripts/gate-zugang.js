@@ -139,7 +139,7 @@ function pruefeZugang(argv, env, zugangswegVorhanden = true) {
     `Voll-Lauf ohne Pflicht-Zugang — abgewiesen.\n` +
     `Ein Lauf mit Befund-Charakter geht über den Gate-Weg:\n` +
     `    node scripts/gate-lauf.js test      (Unit- und Snapshot-Suite)\n` +
-    `    node scripts/gate-lauf.js e2e       (E2E-Suite)\n` +
+    `    node scripts/gate-lauf.js e2e       (E2E-Suite; am Rechner abgewiesen, nur in Prüfmaschine oder Container)\n` +
     `    node scripts/gate-lauf.js alle      (alle Gates)\n` +
     `Er fährt dasselbe Kommando wie das gleichnamige Gate der Merge-Queue, reicht ` +
     `den Rückgabewert unverfälscht weiter und sichert im roten Fall den ungekürzten ` +

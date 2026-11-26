@@ -19,7 +19,7 @@
 // von app-init.js angehängt; bis dahin gilt der schlanke api-Fallback.
 'use strict';
 
-import { api } from '../app/api.js';
+import { api, settingWriteAccepted } from '../app/api.js';
 import { EXTENSIONS_DISABLED_KEY, isExtensionId } from '../../../shared/extensions/extensions.js';
 // 4T-000993: Ableitungen aus der Disabled-Liste.
 import {
@@ -31,14 +31,16 @@ import {
 // das Modul ist prozess-neutral und lädt nichts aus der App.
 import { setDisabledFunctionExtensions } from '../../../shared/query/query-functions.js';
 
+// 4T-002650: eine Abweisung des Hauptprozesses meldet settingWriteAccepted.
 let persistFn = async (key, value) => {
+  let antwort;
   try {
-    await api.setSetting(key, value);
-    return true;
+    antwort = await api.setSetting(key, value);
   } catch (err) {
     console.warn('setSetting fehlgeschlagen:', key, err);
     return false;
   }
+  return settingWriteAccepted(key, antwort);
 };
 
 export function attachExtensionPersistence(fn) {

@@ -56,6 +56,8 @@ Le fichier `manifest.json` décrit le paquet :
 
 « Désactiver » retire immédiatement toutes les contributions (la confirmation reste enregistrée ; réactiver la même version ne redemande pas). « Supprimer… » efface définitivement le dossier du paquet après sa propre confirmation.
 
+EM4me gère lui-même la confirmation, l'état activé ou désactivé et l'état d'erreur d'un paquet. Le code d'une extension ne peut pas écrire ces entrées, ni les autres paramètres protégés comme « Exécuter les blocs de script » ou les dossiers des modèles et des workflows ; une telle tentative est refusée. Le stockage propre `ctx.storage` n'est pas concerné.
+
 ## Modification d'un paquet installé
 
 Le code modifié d'un paquet déjà installé ne s'exécute qu'**après un redémarrage de l'application**. Cela vaut de la même manière pour les deux voies de contribution, le point d'entrée de l'interface comme la contribution au rendu.

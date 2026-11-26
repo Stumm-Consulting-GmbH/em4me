@@ -100,6 +100,22 @@ const TASK_STATE_DEFAULTS = [
     type: 'TODO',
     next: 'x',
   },
+  // 4T-002737 (Epic 3E-000396): Status «Übertragen» für Aufgaben, die der
+  // Übertrag offener Aufgaben in einen späteren Journal-Eintrag mitgenommen
+  // hat. Typ «Keine Aufgabe», damit die gekennzeichnete Zeile nicht als
+  // Aufgabe zählt; Folge-Symbol Leerzeichen, damit ein Klick auf das Kästchen
+  // die Aufgabe wieder öffnet. Das Zeichen muss dem Vorgabe-Zeichen des Kerns
+  // (VORGABE_ZEICHEN in src/shared/journal-uebertrag.js) gleichen.
+  {
+    char: '»',
+    name: 'migrated',
+    label: 'Übertragen',
+    color: '#17a2b8',
+    enabled: true,
+    builtin: true,
+    type: 'NON_TASK',
+    next: ' ',
+  },
 ];
 
 // Zeichen, die als Status-Marker ausscheiden: Basis-Zustaende und

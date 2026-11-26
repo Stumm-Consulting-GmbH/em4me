@@ -14,6 +14,8 @@ En el primer inicio, EM4me crea la carpeta `Data` junto al archivo del programa.
 
 **Por eso, no borre ni cambie el nombre de la carpeta `Data`.** Si falta al iniciarse, EM4me la vuelve a crear vacía y comienza como en el primer inicio; lo que había en la carpeta anterior no se usa entonces.
 
+**Los documentos no van en la carpeta `Data`.** Contiene la configuración y las extensiones con las que trabaja EM4me. Por eso EM4me no guarda ni exporta documentos allí: si elige una ubicación dentro de ella en el diálogo de guardar, EM4me informa de un error y no escribe nada. Lo que hay allí se puede seguir abriendo y leyendo. Lo mismo vale en la versión instalada para su carpeta de datos en el perfil de usuario y para la carpeta del programa.
+
 Llevarla consigo significa copiar el archivo del programa junto con la carpeta `Data`, lo más sencillo copiando la carpeta en la que están ambos, por ejemplo a una memoria USB o a otro ordenador. La configuración y la sesión viajan con ella.
 
 ## Dónde están los datos

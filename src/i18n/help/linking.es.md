@@ -63,6 +63,28 @@ Los destinos de ancla rotos los marca el [linter Markdown](tools.md) en el edito
 
 En un archivo de tabla de la [base de datos](database.md), `#^` señala además el identificador de un registro concreto: `[[Personen#^r-00042]]`. Un enlace así vale si la tabla lleva ese registro; un ancla de bloque del mismo nombre conserva la preferencia.
 
+## Atrás y adelante
+
+Como en un navegador, «Atrás» lleva al lugar donde estaba antes, y «Adelante» vuelve a avanzar. Así regresa a su punto de partida después de seguir un enlace, sin tener que buscarlo.
+
+**Uso:**
+
+- `Alt+←` y `Alt+→`; los atajos se cambian en Archivo → Configuración… → Atajos de teclado.
+- Los botones laterales del ratón.
+- Ver → Atrás y Ver → Adelante.
+- Los comandos «Atrás» y «Adelante» de la paleta de comandos.
+- Los dos botones de flecha de la barra de estado. Aparecen atenuados mientras no sea posible ningún paso en su dirección y se pueden ocultar como cualquier botón predeterminado, véase [Colocación de comandos](command-placement.md).
+
+En la vista de código y en el modo en vivo, `Alt+←` y `Alt+→` no mueven el cursor, sino que también retroceden y avanzan. Solo en el índice de un libro, con una fila de capítulo enfocada, desanidan y anidan el capítulo, `Alt+←` desanida y `Alt+→` anida; `Alt+↑` y `Alt+↓` lo mueven dentro de su nivel, véase [Libros](books.md).
+
+**Qué cuenta como visita.** Cada cambio del documento mostrado, ya sea mediante una pestaña, `Ctrl+Tab`, un enlace o la apertura de un documento. Además, los saltos dentro de un documento: un enlace a un encabezado o a un bloque, un clic en el panel «Índice» o en un bloque de índice, una entrada del panel «Retroenlaces» y un salto desde la lista de resultados de la búsqueda. Buscar el siguiente resultado en la barra de búsqueda y desplazarse no cuentan. Si dos lugares del mismo documento distan menos de diez líneas, cuentan como uno solo.
+
+**Historial.** Si retrocede y desde allí salta a un lugar nuevo, desaparece la parte a la que habría llevado «Adelante». Cada ventana tiene su propio historial con 100 entradas como máximo; empieza vacío con la ventana y termina con ella. Si hay dos columnas abiertas, el paso también vuelve a la columna en la que estaba.
+
+**Documentos cerrados y eliminados.** «Atrás» vuelve a abrir un documento cerrado entretanto, en el lugar donde lo dejó. Un documento que ya no existe se omite, salvo que siga abierto en una pestaña, y la barra de estado indica cuántos lugares se han omitido. Si ya no es posible ningún paso, muestra «No hay ningún lugar anterior» o «No hay ningún lugar posterior».
+
+Dónde se sitúa un documento al abrirlo sin un destino concreto se describe en la sección «Posición de lectura» de la página [Aplicaciones, ventanas y áreas](apps-windows.md).
+
 ## Enlaces Markdown a archivos
 
 También los enlaces Markdown clásicos abren destinos `.md` como pestaña; las anclas funcionan igual. Los enlaces de ancla internos saltan dentro de la página — en vivo aquí: [al capítulo Etiquetas](#etiquetas).
@@ -127,9 +149,9 @@ El destino se busca primero en la ruta indicada y, si allí no hay nada, por su 
 
 **Incrustar** desde un área vinculada no es posible: `![[@zt:Nota]]` muestra en su lugar un aviso que lo dice exactamente, estén activados o no los vínculos entre áreas. El vínculo `[[@zt:Nota]]` al mismo destino lo abre como se describe.
 
-**Las plantillas del área vinculada** pueden ofrecerse junto a las propias; hay un interruptor por vínculo. La selección de plantillas muestra entonces ambos conjuntos, y cada entrada ajena indica su procedencia. Sin ese interruptor, un vínculo no cambia el conjunto de plantillas.
+**Las plantillas del área vinculada** pueden ofrecerse junto a las propias; hay un interruptor por vínculo. La selección de plantillas muestra entonces ambos conjuntos, y cada entrada ajena indica su procedencia. Sin ese interruptor, un vínculo no cambia el conjunto de plantillas. Si la extensión «Plantillas» está desactivada, el interruptor no aparece; la elección guardada se conserva y vuelve a aplicarse en cuanto se activa la extensión.
 
-**Los workflows del área vinculada** pueden ofrecerse del mismo modo, con un interruptor «Workflows» propio por vínculo. Aparecen en el menú, en la paleta de comandos y en la página de ejecuciones de workflows con el prefijo del vínculo, solo se inician a mano y actúan en el área propia; en el área vinculada no se escribe nada. Detalles en la página [Workflows](workflows.md).
+**Los workflows del área vinculada** pueden ofrecerse del mismo modo, con un interruptor «Workflows» propio por vínculo. Aparecen en el menú, en la paleta de comandos y en la página de ejecuciones de workflows con el prefijo del vínculo, solo se inician a mano y actúan en el área propia; en el área vinculada no se escribe nada. Si la extensión «Workflows» está desactivada, tampoco aparece este interruptor, y su elección guardada se conserva. Detalles en la página [Workflows](workflows.md).
 
 ### Cuando un área vinculada no se encuentra
 

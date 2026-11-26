@@ -114,6 +114,34 @@ Ein Bereichswechsel in den Einstellungen speichert nichts, ein begonnener Entwur
 
 In Pipe-Tabellen springt `Tab` zur nächsten und `Umschalt+Tab` zur vorherigen Zelle. Am Ende der letzten Zeile erzeugen `Tab` oder `Enter` eine neue Tabellenzeile mit derselben Spalten-Anzahl; zweimal `Enter` in einer leeren Zeile verlässt die Tabelle. Auch randlose Tabellen (ohne äußere Pipes) werden erkannt. Struktur-Operationen (Zeilen und Spalten verschieben, einfügen und löschen, Ausrichtung, Transponieren) bietet das Untermenü **Tabelle** im [Editor-Kontextmenü](context-menu.md).
 
+## Tabellen aus einer Tabellenkalkulation
+
+Ein in einer Tabellenkalkulation kopierter Zellbereich wird mit `Strg+V` zur Pipe-Tabelle, ebenso mit **Einfügen** im [Editor-Kontextmenü](context-menu.md). Die erste Zeile des Bereichs wird die Kopfzeile, und die Statusleiste meldet die Umwandlung.
+
+Umgewandelt wird, wenn die Zwischenablage die Tabellen-Form einer Tabellenkalkulation trägt und der Bereich mindestens zwei Zeilen und zwei Spalten mit gleich vielen Zellen je Zeile hat. Ein Zeilenumbruch in einer Zelle wird zum Leerzeichen, ein senkrechter Strich wird als `\|` geschützt, damit er die Zelle nicht teilt, und eine leere Zelle bleibt leer. Steht die Schreibmarke mitten in einer Zeile, kommt die Tabelle auf eigene Zeilen, mit einer Leerzeile zum Text davor und danach; in einem Zitat oder einem Hinweisblock trägt jede Tabellenzeile das Präfix der Zeile, in der eingefügt wird. In Quelltext-Bereichen, im Frontmatter, in einer bestehenden Tabelle und bei mehreren Schreibmarken bleibt es beim reinen Text; ein Bild der Zellen, das die Tabellenkalkulation mitliefert, wird nicht als [Anlage](attachments.md) abgelegt.
+
+### Rückgängig in zwei Stufen
+
+Das erste `Strg+Z` nach der Umwandlung stellt den eingefügten reinen Text her, mit Tabulatoren zwischen den Zellen; das zweite nimmt auch ihn zurück.
+
+### Als reinen Text einfügen
+
+`Strg+Umschalt+V` und der Befehl **Als reinen Text einfügen** im Editor-Kontextmenü und in der Kommando-Palette setzen die Zwischenablage immer unverändert ein, ohne Tabelle, Link oder Anlage.
+
+### Als Tabelle einfügen
+
+Der Befehl **Als Tabelle einfügen** im Editor-Kontextmenü und in der Kommando-Palette wandelt auch Text um, der nicht aus einer Tabellenkalkulation kommt: Zellen getrennt durch Tabulator oder Semikolon, je Zeile ein Datensatz. Als Trennzeichen gilt das häufigere der beiden. Verlangt sind wieder mindestens zwei Zeilen und zwei Spalten mit gleich vielen Zellen; zusätzlich darf keine Zeile mit dem Trennzeichen beginnen, damit eingerückter Quelltext Text bleibt. Erfüllt die Zwischenablage das nicht, meldet die Statusleiste es, und nichts wird eingefügt. Rückgängig wirkt wie oben in zwei Stufen.
+
+```text
+Artikel;Menge;Preis
+Kaffee;2;8,00
+Tee;1;3,50
+```
+
+### Erweiterung
+
+Die Umwandlung gehört zur schaltbaren Erweiterung „Tabellen-Werkzeuge" (Einstellungen → Erweiterungen). Ist sie ausgeschaltet, fügt `Strg+V` einen kopierten Zellbereich als reinen Text ein, und **Als Tabelle einfügen** fehlt in Kontextmenü und Kommando-Palette; **Als reinen Text einfügen** bleibt.
+
 ## Drucken
 
 „Datei → Weitere Datei-Funktionen → Drucken…" (Standard `Strg+P`) druckt den Inhalt des aktiven Tabs unmittelbar auf einem Drucker — ohne den Umweg über eine PDF-Datei, die danach in einem zweiten Programm geöffnet werden müsste. Es öffnet sich der Druckdialog des Betriebssystems: Drucker, Seitenbereich, Anzahl der Kopien, Duplex und alles Weitere wählen Sie dort, in der Oberfläche, die Sie aus jedem anderen Programm kennen. Aus dem Einstellungs-Bereich „Export" sind Papierformat, Ausrichtung und Ränder vorbelegt.

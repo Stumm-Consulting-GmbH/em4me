@@ -99,7 +99,7 @@ export function erzeugeDokumentHandgriff({ openInPane, scrollToAnchorAfterOpen, 
   async function zeige(tabellenPfad, kennung) {
     if (!tabellenPfad || !kennung) return;
     const spalte = state.activePaneIndex;
-    const ziel = await openInPane(spalte, [tabellenPfad]);
+    const ziel = await openInPane(spalte, [tabellenPfad], { zielFolgt: true }); // 4T-002641
     scrollToAnchorAfterOpen(Number.isInteger(ziel) ? ziel : spalte, kennung);
   }
 

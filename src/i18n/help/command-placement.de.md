@@ -12,7 +12,7 @@ Buttons, deren Kommando zu einer deaktivierten Erweiterung gehört, erscheinen n
 
 ## Standard-Buttons ausblenden
 
-Jedes Standard-Element der Statusleiste lässt sich einzeln ausblenden: die Panel-Schalter, die drei Editor-Schalter (Gliederung, Zeilennummern, Zeilenumbruch), die vier Ansichts-Buttons und die Elemente der rechten Seite (Wort-Statistik, Zoom-Anzeige, Bearbeiten, Scroll-Synchronisation, Dokument-Historie, Theme, Sprache). Nur die Hinweis-Zeile bleibt immer sichtbar — sie ist der einzige Kanal für kurze Meldungen wie den Speicher-Status.
+Jedes Standard-Element der Statusleiste lässt sich einzeln ausblenden: die Panel-Schalter, die beiden Pfeil-Knöpfe „Zurück“ und „Vor“ am Anfang der Kommando-Buttons, die drei Editor-Schalter (Gliederung, Zeilennummern, Zeilenumbruch), die vier Ansichts-Buttons und die Elemente der rechten Seite (Wort-Statistik, Zoom-Anzeige, Bearbeiten, Scroll-Synchronisation, Dokument-Historie, Theme, Sprache). Nur die Hinweis-Zeile bleibt immer sichtbar — sie ist der einzige Kanal für kurze Meldungen wie den Speicher-Status.
 
 Ausblenden räumt nur den Zugang auf, die Funktion bleibt erhalten: alles Ausgeblendete ist weiter über das Menü, die Kommando-Palette und Tastenkürzel erreichbar. Der Knopf „Alle einblenden" stellt die Standard-Statusleiste wieder her. Das Ausblenden hier ist dauerhaft und unabhängig davon, ob eine Schaltfläche gerade benutzbar wäre; wie die Leiste mit Schaltflächen umgeht, die im Augenblick nichts tun können, beschreibt [Ansichten und Darstellung](views-display.md).
 

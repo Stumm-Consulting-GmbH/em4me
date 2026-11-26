@@ -271,5 +271,60 @@ export function buildJournalEditor(container, values, journal, idx, snapshotById
       journal.endProp = v;
     },
   );
+  buildCarryOverGroup(group, journal, idx);
   container.appendChild(group);
+}
+
+// 4T-002738 (Epic 3E-000396): Gruppe «Offene Aufgaben übertragen» des
+// Journals — Schalter für den selbsttätigen Übertrag beim Anlegen (Vorgabe
+// aus), Umgang mit der Aufgabe im alten Eintrag und Beschränkung auf einen
+// Abschnitt. Die Werte gelten je Journal und landen im Entwurf des Journals.
+function buildCarryOverGroup(group, journal, idx) {
+  const heading = document.createElement('h5');
+  heading.className = 'settings-export-group-title settings-journals-carryover-title';
+  heading.textContent = t('settings.journals.carryOverGroup');
+  group.appendChild(heading);
+
+  const auto = document.createElement('input');
+  auto.type = 'checkbox';
+  auto.id = `settings-journals-carryover-auto-${idx}`;
+  auto.checked = journal.carryOverAuto === true;
+  auto.addEventListener('change', () => {
+    journal.carryOverAuto = auto.checked;
+  });
+  group.appendChild(buildSettingsRow('settings.journals.carryOverAutoLabel', auto));
+
+  const mode = document.createElement('select');
+  mode.id = `settings-journals-carryover-mode-${idx}`;
+  mode.className = 'settings-input';
+  for (const [value, key] of [
+    ['mark', 'settings.journals.carryOverModeMark'],
+    ['remove', 'settings.journals.carryOverModeRemove'],
+  ]) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = t(key);
+    mode.appendChild(option);
+  }
+  mode.value = journal.carryOverMode === 'remove' ? 'remove' : 'mark';
+  mode.addEventListener('change', () => {
+    journal.carryOverMode = mode.value;
+  });
+  group.appendChild(buildSettingsRow('settings.journals.carryOverModeLabel', mode));
+
+  buildJournalInputRow(
+    group,
+    'settings.journals.carryOverSectionLabel',
+    `settings-journals-carryover-section-${idx}`,
+    journal.carryOverSection,
+    '',
+    (v) => {
+      journal.carryOverSection = v;
+    },
+  );
+  const hint = document.createElement('p');
+  hint.className = 'settings-row-hint';
+  hint.id = `settings-journals-carryover-section-hint-${idx}`;
+  hint.textContent = t('settings.journals.carryOverSectionHint');
+  group.appendChild(hint);
 }

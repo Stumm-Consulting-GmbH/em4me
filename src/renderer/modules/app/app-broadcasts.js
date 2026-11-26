@@ -63,6 +63,10 @@ import { applyExtensionButtonVisibility, applyPanelButtonOrder } from './app-ext
 import { uebernimmOffeneZellEingabe } from '../live/live-table-zelle.js';
 // 4T-002355 (Epic 3E-000184): Der Workflow-Ordner hängt am Bereich des Fensters.
 import { refreshWorkflowFolderList } from '../workflows/workflow-folder-list.js';
+// 4T-002641 (Epic 3E-000397): Lese-Positionen der aktiven Reiter beim Schließen.
+import { merkeAlleSpalten } from '../views/lese-position.js';
+// 4T-002642 (Epic 3E-000397): Die Rückfrage beim Schließen besucht keinen Ort.
+import { ohneVerlauf } from '../views/navigation-verlauf-bedienung.js';
 
 // 4T-001001: Flag und Warteschlangen gehoeren app-init.js; eine Zuweisung an ein
 // importiertes Binding waere in ESM ein TypeError, deshalb kommen Lesezugriff
@@ -277,8 +281,10 @@ export function registerAppBroadcasts(deps) {
         }
       }
       for (const d of dirty) {
-        activatePane(d.paneIdx);
-        activateTab(d.paneIdx, d.tabIdx);
+        ohneVerlauf(() => {
+          activatePane(d.paneIdx);
+          activateTab(d.paneIdx, d.tabIdx);
+        });
         const detail = d.tab.path || tabDisplayName(d.tab);
         const result = await api.confirmCloseDirty({ detail });
         if (result === 'cancel') {
@@ -298,6 +304,7 @@ export function registerAppBroadcasts(deps) {
         }
         // 'discard': fortfahren ohne Speichern
       }
+      await merkeAlleSpalten();
       api.confirmClose();
     });
   });

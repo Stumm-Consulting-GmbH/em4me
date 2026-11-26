@@ -47,6 +47,37 @@ La commutazione tramite la barra di stato o il menu Visualizza scrive il nuovo v
 
 Casi particolari: nelle destinazioni di sola lettura (come le pagine del manuale) e con YAML errato l'interruttore agisce solo in modo temporaneo per la sessione in corso. Nelle schede Senza titolo è anch'esso temporaneo; al primo salvataggio l'app riporta nel frontmatter del nuovo file i valori che differiscono dal valore predefinito.
 
+## Immagine di copertina
+
+La proprietà `cover` pone un'immagine in cima al documento: a tutta larghezza del contenuto, ritagliata a un'altezza regolabile e mai deformata. Altre due proprietà stabiliscono altezza e inquadratura:
+
+```markdown
+---
+cover: immagini/spiaggia.jpg
+cover-height: 240
+cover-position: top
+---
+```
+
+L'immagine si indica in due modi:
+
+- **come percorso relativo al documento**, come per un'immagine normale: `cover: immagini/spiaggia.jpg`. Valgono lo stesso confine, gli stessi formati e lo stesso limite di 20 MB della pagina [Immagini](images.md).
+- **come nome tra doppie parentesi quadre, tra virgolette**: `cover: "[[spiaggia.jpg]]"`. Così l'applicazione trova l'immagine per nome, in qualunque cartella dell'area si trovi.
+
+Se l'immagine viene rinominata, l'applicazione non adegua il valore di `cover`; il nuovo nome va inserito a mano.
+
+`cover-height` è l'altezza in pixel, predefinita 200; i valori sotto 80 o sopra 600 vengono portati al limite più vicino. `cover-position` sceglie la parte visibile dell'immagine: un numero da 0 a 100, misurato dall'alto (0 mostra il bordo superiore, 100 quello inferiore), oppure una delle parole `top`, `center` e `bottom`; il valore predefinito è il centro. Ciò che non viene compreso ricade in silenzio sul valore predefinito.
+
+L'immagine di copertina compare nella vista renderizzata, nella sua metà della vista divisa e in modalità Live, sotto la [riga del titolo](tools.md) con il nome del file e sopra la riga del frontmatter. In modalità Live resta al suo posto anche mentre il cursore si trova nelle righe YAML, e una modifica di `cover` mostra subito la nuova immagine. L'immagine di copertina non dipende dalla visualizzazione del frontmatter e compare anche quando questa è disattivata; un blocco con un errore di sintassi YAML non produce alcuna immagine di copertina.
+
+La stampa, l'esportazione PDF e l'esportazione HTML contengono l'immagine di copertina così come la mostra la vista renderizzata. La [presentazione](presentation.md), i documenti incorporati, le schede e le anteprime non mostrano alcuna immagine di copertina.
+
+Se l'applicazione non trova l'immagine — il file manca, si trova fuori dal confine, non è un file immagine o supera i 20 MB —, al suo posto compare l'avviso discreto «Immagine di copertina non trovata», senza messaggio di errore. Lo stesso vale per un documento mai salvato, finché non viene salvato. Un indirizzo da Internet (`http:` o `https:`) non viene caricato; al suo posto un avviso invita a mettere l'immagine come file nell'area. Stampa ed esportazione tralasciano gli avvisi; un'immagine di copertina senza immagine lì scompare del tutto.
+
+I file del libro e della libreria portano la loro immagine di copertina nella stessa proprietà `cover` (vedi [Libri](books.md)); aprendo un tale file come documento, l'immagine compare anche in cima, sopra il suo contenuto.
+
+L'immagine di copertina fa parte dell'[estensione interna](extensions.md) «Immagine di copertina», attiva a partire dalla modalità di lavoro **Avanzata**. Se è disattivata, non compaiono né immagine né avviso; le proprietà restano invariate nel documento e nella barra Proprietà e, dopo la riattivazione, l'immagine di copertina torna a comparire.
+
 ## Mappa mentale per documento
 
 La chiave `mindmap` stabilisce come la [vista mappa mentale](mindmap.md) disegna proprio questo documento e sostituisce così il valore predefinito in File → Impostazioni… → Mappa mentale:

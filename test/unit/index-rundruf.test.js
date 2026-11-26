@@ -105,6 +105,24 @@ describe('Rundruf der Puffer-Overlay-Schicht (4T-002023, «Beide folgen»)', () 
     expect(meldungen).toEqual([]);
   });
 
+  // 4T-002812 (Zweitblick des Epics 3E-000444, Runde 2, Hinweis 3): Folgt ein
+  // unveränderter Eintrag dem geschriebenen Stand der Platte, erfahren es alle
+  // Fenster wie bei jeder anderen Änderung der Schicht; ein ungespeicherter
+  // Eintrag folgt nicht und meldet nichts.
+  it('Folgen eines unveränderten Eintrags meldet an alle Fenster, mit dem neuen Stand', () => {
+    const { folgePlattenStand } = require('../../src/main/index/overlay.js');
+    backlinks.setBufferOverlay(DATEI, 'ALT', 7, false);
+    zeichneAuf();
+    expect(folgePlattenStand(DATEI, 'NEU')).toBe(true);
+    expect(meldungen).toEqual([
+      { kanal: 'index:overlayChanged', nutzlast: { filePath: DATEI }, puffer: 'NEU' },
+    ]);
+    backlinks.setBufferOverlay(DATEI, 'GETIPPT', 7, true);
+    zeichneAuf();
+    expect(folgePlattenStand(DATEI, 'NEUER')).toBe(false);
+    expect(meldungen).toEqual([]);
+  });
+
   it('die Meldung zählt nicht als Invalidierung des Verzeichnisses', () => {
     zeichneAuf();
     const vorher = store.indexStand(DATEI);
@@ -273,9 +291,12 @@ describe('Brücke der Puffer-Overlay-Schicht im Preload (4T-002023)', () => {
     ]);
     await bruecke.setIndexOverlay('/a.md', 'x');
     await bruecke.clearIndexOverlay('/a.md');
+    // 4T-002812: das Merkmal «ungespeichert» reist mit.
+    await bruecke.setIndexOverlay('/a.md', 'y', false);
     expect(aufrufe).toEqual([
       ['index:overlay', { filePath: '/a.md', content: 'x' }],
       ['index:overlay', { filePath: '/a.md', content: null }],
+      ['index:overlay', { filePath: '/a.md', content: 'y', ungespeichert: false }],
     ]);
     const empfangen = [];
     bruecke.onIndexOverlayChanged((nutzlast) => empfangen.push(nutzlast));

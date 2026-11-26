@@ -40,7 +40,8 @@ function kopfDateiFuer(filePath) {
 }
 
 // Vergleichs-Schlüssel eines Pfades: Trenner vereinheitlicht, NFC wie die
-// Datei-Schlüssel des Index, Schreibung nach dem Dateisystem.
+// Datei-Schlüssel des Index, Schreibung nach dem Dateisystem. 4T-002783:
+// exportiert, damit die Bereichs-Statistik dieselbe Bildung nutzt statt einer Kopie.
 function pfadSchluessel(p) {
   return pathCompareKey(path.normalize(String(p).normalize('NFC')));
 }
@@ -99,4 +100,5 @@ function ohneVerdeckteFolgeteile(bestand, pufferPfade, leer = () => []) {
 module.exports = {
   kopfDateiFuer,
   ohneVerdeckteFolgeteile,
+  pfadSchluessel,
 };

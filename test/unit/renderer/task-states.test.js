@@ -19,7 +19,22 @@ describe('resolveStoredTaskStates: Typ/Folge-Symbol-Migration (4T-000497)', () =
     const slash = list.find((s) => s.char === '/');
     expect(slash.type).toBe('IN_PROGRESS');
     expect(slash.next).toBe('x');
-    expect(list.every((s) => s.next === 'x')).toBe(true);
+    // 4T-002737: ausgenommen «Übertragen», dessen Klick die Aufgabe wieder öffnet.
+    expect(list.filter((s) => s.name !== 'migrated').every((s) => s.next === 'x')).toBe(true);
+    const uebertragen = list.find((s) => s.char === '»');
+    expect(uebertragen).toMatchObject({ name: 'migrated', type: 'NON_TASK', next: ' ' });
+  });
+
+  it('ein vorbelegter Status ohne gespeichertes Folge-Symbol bekommt das der Vorgabe (4T-002737)', () => {
+    // Gespeicherter Stand einer älteren Programmfassung: «Übertragen» fehlt,
+    // «In Arbeit» steht ohne Folge-Symbol darin.
+    const list = taskStates.resolveStoredTaskStates([
+      { name: 'inProgress', builtin: true, enabled: true },
+      { name: 'forwarded', builtin: true, enabled: true, next: '/' },
+    ]);
+    expect(list.find((s) => s.name === 'inProgress').next).toBe('x');
+    expect(list.find((s) => s.name === 'forwarded').next).toBe('/');
+    expect(list.find((s) => s.name === 'migrated').next).toBe(' ');
   });
 
   it('custom-Eintrag ohne Typ/Folge-Symbol bekommt TODO und x', () => {

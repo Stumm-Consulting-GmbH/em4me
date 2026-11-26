@@ -78,8 +78,12 @@ const LAGE_BELEGUNGEN = [
   [false, true],
   [true, true],
 ];
+// 4T-002642 (Epic 3E-000397): Die beiden Verlaufs-Felder bleiben aus demselben
+// Grund aus der Voll-Aufzählung wie die Lage-Felder; ihre beiden eigenen Fälle
+// stehen weiter unten. In KONTEXTE stehen beide auf false.
+const VERLAUF_FELDER = ['kannZurueck', 'kannVor'];
 const BOOL_FIELDS = AVAILABILITY_CONTEXT_FIELDS.filter(
-  (f) => f !== 'viewMode' && !LAGE_FELDER.includes(f),
+  (f) => f !== 'viewMode' && !LAGE_FELDER.includes(f) && !VERLAUF_FELDER.includes(f),
 );
 // Die acht realen Ansichts-Modi plus null (kein Reiter). 'mindmap' ist seit
 // 4T-001047 dabei, 'canvas' seit 4T-001697 (Modus aus 4T-001653), 'kanban' seit
@@ -172,7 +176,7 @@ function kontext(teil) {
 }
 
 describe('Kontext-Vertrag (4T-001635)', () => {
-  it('nennt die fünfzehn gemeinsamen und die zwei renderer-eigenen Felder', () => {
+  it('nennt die siebzehn gemeinsamen und die drei renderer-eigenen Felder', () => {
     expect(SHARED_CONTEXT_FIELDS).toEqual([
       'hasTab',
       'manualTab',
@@ -203,6 +207,9 @@ describe('Kontext-Vertrag (4T-001635)', () => {
       // ausgewählt. Beide Seiten lesen sie aus lageFuer (charts/chart-lage.js).
       'inDatentabelle',
       'diagrammGewaehlt',
+      // 4T-002642 (Epic 3E-000397): «Zurück» und «Vor» im Verlauf möglich.
+      'kannZurueck',
+      'kannVor',
     ]);
     // 4T-002406 (Epic 3E-000266): `karteikarteTab`, ob das aktive Dokument eine
     // Karteikarte ist; renderer-eigen, weil der Menü-Zustand den Überblick der
@@ -311,6 +318,9 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
       // 4T-002406 (Epic 3E-000266): «In der Maske öffnen» an einer Karteikarte;
       // menüfrei, weil sie das renderer-eigene Feld karteikarteTab liest.
       'karteikarte',
+      // 4T-002642 (Epic 3E-000397): «Zurück» und «Vor», je ein Verlaufs-Feld.
+      'navZurueck',
+      'navVor',
     ]);
     expect(new Set(AVAILABILITY_NAMES).size).toBe(AVAILABILITY_NAMES.length);
   });
@@ -477,6 +487,51 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
     }
     expect([...new Set(befunde)]).toEqual([]);
     expect(KONTEXTE.some((c) => c.inDatentabelle || c.diagrammGewaehlt)).toBe(false);
+  });
+
+  // 4T-002642 (Epic 3E-000397): Die beiden Verlaufs-Felder stehen in KONTEXTE
+  // fest auf false. Die zwei Fälle hier sind nach dem Muster der Lage-Fälle
+  // darüber gebaut und zählen wie sie die volle Grundgesamtheit auf. Erstens:
+  // Jede Bedingung ohne Verlaufs-Feld antwortet bei jeder Belegung beider
+  // Felder wie bei beiden auf false. Zweitens: Die beiden Verlaufs-Bedingungen
+  // lesen genau ihr Feld.
+  function verlaufEmpfindlich(pruefe) {
+    return KONTEXTE.some((ctx) => {
+      const grund = pruefe({ ...ctx, kannZurueck: false, kannVor: false });
+      return LAGE_BELEGUNGEN.some(
+        ([z, v]) => pruefe({ ...ctx, kannZurueck: z, kannVor: v }) !== grund,
+      );
+    });
+  }
+
+  it('Bedingungen ohne Verlaufs-Feld sind gegen beide Verlaufs-Felder unempfindlich', () => {
+    const ohne = AVAILABILITY_CATALOG.filter(
+      (b) => !b.felder.some((f) => VERLAUF_FELDER.includes(f)),
+    );
+    expect(ohne.length).toBe(AVAILABILITY_CATALOG.length - 2);
+    const befunde = ohne.filter((b) => verlaufEmpfindlich(b.pruefe)).map((b) => b.name);
+    expect(befunde, 'Bedingungen, die still ein Verlaufs-Feld lesen').toEqual([]);
+    // Gegenprobe: eine Bedingung, die still ein Verlaufs-Feld liest, fällt auf.
+    expect(verlaufEmpfindlich((c) => !!c.hasTab && !c.kannVor)).toBe(true);
+  });
+
+  it('die beiden Verlaufs-Bedingungen lesen genau ihr Feld', () => {
+    const mit = AVAILABILITY_CATALOG.filter((b) =>
+      b.felder.some((f) => VERLAUF_FELDER.includes(f)),
+    );
+    expect(mit.map((b) => [b.name, b.felder])).toEqual([
+      ['navZurueck', ['kannZurueck']],
+      ['navVor', ['kannVor']],
+    ]);
+    let falsch = 0;
+    for (const ctx of KONTEXTE) {
+      for (const [z, v] of LAGE_BELEGUNGEN) {
+        const c = { ...ctx, kannZurueck: z, kannVor: v };
+        if (isAvailable('navZurueck', c) !== z) falsch += 1;
+        if (isAvailable('navVor', c) !== v) falsch += 1;
+      }
+    }
+    expect(falsch, 'Verlaufs-Bedingungen lesen mehr als ihr Feld').toBe(0);
   });
 
   it('wertet jede Bedingung an ihrer freigebenden und ihrer sperrenden Lage aus', () => {
@@ -830,6 +885,10 @@ const MENUE_BASISLINIE = new Map([
   ['file.updateLocale', 'immer'],
   ['journal.openToday', 'area'],
   ['journal.openForDate', 'area'],
+  // 4T-002738 (Epic 3E-000396): «Offene Aufgaben in den aktuellen Journal-Eintrag
+  // übertragen» entsteht erst hier; seine Basislinie ist die Bedingung, mit der
+  // es eingehängt wird, dieselbe wie bei den beiden Journal-Nachbarn.
+  ['journal.carryOver', 'area'],
   ['area.open', 'immer'],
   ['area.close', 'areaOhneBuchUndRegal'],
   ['area.createDemo', 'immer'],
@@ -976,6 +1035,11 @@ const MENUE_BASISLINIE = new Map([
   ['help.open', 'immer'],
   ['help.tour', 'immer'],
   ['app.commandPalette', 'immer'],
+  // 4T-002642 (Epic 3E-000397): «Zurück» und «Vor» entstehen erst hier; ihre
+  // Basislinie ist die Bedingung, mit der sie über der Palette eingehängt
+  // werden: ein Schritt im Verlauf des Fensters ist möglich.
+  ['nav.back', 'navZurueck'],
+  ['nav.forward', 'navVor'],
   ['file.toggleAutoSave', 'immer'],
   ['app.toggleRestoreSession', 'immer'],
   ['view.toggleScrollSync', 'anyTab'],

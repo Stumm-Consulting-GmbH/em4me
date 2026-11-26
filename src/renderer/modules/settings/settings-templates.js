@@ -6,7 +6,7 @@
 import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { state } from '../app/app-state.js';
-import { persistSetting, showStatusbarHint } from '../views/views.js';
+import { showStatusbarHint } from '../views/views.js';
 import { refreshSettingsButtons, renderActiveSection } from './settings-mount.js';
 import { kontextSchluessel } from './settings-kontext.js';
 import { buildSettingsRow, jsonEqual } from './settings-shared.js';
@@ -289,10 +289,22 @@ export async function applyTemplatesSection(draft) {
   const values = draft.templates;
   if (!values) return;
   const snap = draft.templatesSnapshot || {};
-  const globalOut = normalizedTemplatesPart(values.global);
+  let globalOut = normalizedTemplatesPart(values.global);
   if (JSON.stringify(globalOut) !== JSON.stringify(snap.global)) {
-    await persistSetting('templates.folder', globalOut.folder);
-    await persistSetting('templates.rules', globalOut.rules);
+    // 4T-002649 (Epic 3E-000416): eigener Kanal statt des allgemeinen
+    // Einstellungs-Wegs, der Ordner und Regeln seither abweist. Der
+    // Hauptprozess prüft Form und geschützte Ordner; bei Abweisung bleibt der
+    // alte Stand der Vergleich, die Änderung also offen und sichtbar.
+    let result;
+    try {
+      result = await api.templatesSetGlobalConfig(globalOut);
+    } catch {
+      result = null;
+    }
+    if (!result || !result.ok) {
+      showStatusbarHint('statusbar.persistFailed', { duration: 4000, error: true });
+      globalOut = snap.global;
+    }
   }
   let areaOut = snap.area === undefined ? null : snap.area;
   if (values.hasArea) {

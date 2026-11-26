@@ -61,7 +61,11 @@ import { bildDoppelklickDurchlassen, liveBlockCacheGet, liveBlockCacheSet } from
 // 4T-002023 (Epic 3E-000192): Höhen-Meldung der Widgets, die nach dem Einhängen
 // asynchron nachladen (Diagramm zu einem anderen Dokument, Einbettung).
 import { beobachteWidgetHoehe, loeseWidgetHoehenBeobachtung } from './live-widget-hoehe.js';
-import { bindDatentabellenVerweisKlicks, bindFrontmatterQueryClicks } from './live-interaction.js';
+import {
+  bindDatentabellenVerweisKlicks,
+  bindFrontmatterQueryClicks,
+  bindTocKlicks,
+} from './live-interaction.js';
 
 // 4T-000084 (Epic 3E-000014): Bilder-Widget. Inline-Replace eines
 // `![alt](url)`-Ranges durch ein `<img>`-Element. Pfad-Aufloesung
@@ -328,7 +332,12 @@ export class MarkdownBlockWidget extends WidgetType {
   // Gleichheit ein: Ein neuer Stand der Treffer baut das Widget neu, eine
   // veraltete Hervorhebung bleibt damit nie stehen. Gezeichnet werden sie auf
   // dem eingehängten Baum, nie im Zwischenspeicher der Tabelle.
-  constructor(source, basePath, cacheKey, docPrefix, dokumentText, dokLaenge, treffer) {
+  //
+  // 4T-002558 (Epic 3E-000390): `tocQuelle` sind die Überschriften des Dokuments
+  // für den Inhaltsverzeichnis-Block (live-toc.js), `null` bei jedem anderen
+  // Block. Sie geht als Option an die Pipeline (plugins/toc.js) und nicht in den
+  // gerenderten Text; ihr Stand steckt im Schlüssel.
+  constructor(source, basePath, cacheKey, docPrefix, dokumentText, dokLaenge, treffer, tocQuelle) {
     super();
     this.source = source;
     this.basePath = basePath || '';
@@ -338,6 +347,7 @@ export class MarkdownBlockWidget extends WidgetType {
     this.dokLaenge = dokLaenge ?? String(source).length;
     this.treffer = treffer || [];
     this.trefferSchluessel = trefferSchluessel(this.treffer);
+    this.tocQuelle = tocQuelle ?? null;
   }
   eq(other) {
     return (
@@ -348,7 +358,8 @@ export class MarkdownBlockWidget extends WidgetType {
       other.docPrefix === this.docPrefix &&
       other.dokumentText === this.dokumentText &&
       other.dokLaenge === this.dokLaenge &&
-      other.trefferSchluessel === this.trefferSchluessel
+      other.trefferSchluessel === this.trefferSchluessel &&
+      other.tocQuelle === this.tocQuelle
     );
   }
   toDOM() {
@@ -367,11 +378,14 @@ export class MarkdownBlockWidget extends WidgetType {
       // 4T-001547: Mit Vorspann rendert die Pipeline denselben Block mit dem
       // Wissen seiner Datei; der Frontmatter-Block selbst bleibt unsichtbar,
       // sonst stuende er in jedem Widget noch einmal.
-      const html = this.docPrefix
-        ? api.renderMarkdown(this.docPrefix + this.source, this.basePath, {
-            frontmatterBlock: false,
-          })
-        : api.renderMarkdown(this.source, this.basePath);
+      // 4T-002558: Der Inhaltsverzeichnis-Block bekommt dazu die Überschriften.
+      const html =
+        this.docPrefix || this.tocQuelle !== null
+          ? api.renderMarkdown(this.docPrefix + this.source, this.basePath, {
+              frontmatterBlock: false,
+              tocQuelle: this.tocQuelle ?? undefined,
+            })
+          : api.renderMarkdown(this.source, this.basePath);
       const tmp = document.createElement('div');
       tmp.innerHTML = html;
       // markdown-it wickelt Inhalte ggf. in <p>. Bei Tabellen liegt das
@@ -393,9 +407,12 @@ export class MarkdownBlockWidget extends WidgetType {
       // Fence und den Fenster-Hinweis.
       // 4T-002021 (Epic 3E-000192): .perspective-chart ebenso — der Container
       // trägt den Block-Inhalt im Attribut und ist leer, bis er gezeichnet ist.
+      // 4T-002558: .toc-block zuerst — seine Einträge können Formeln und Code
+      // tragen, die sonst als Treffer gälten.
       const child =
         tmp.querySelector(
-          '.perspective-dashboard, .perspective-chart, .perspective-events, .perspective-datatable, ' +
+          '.perspective-dashboard, .toc-block, .perspective-chart, .perspective-events, ' +
+            '.perspective-datatable, ' +
             '.perspective-canvas, .perspective-records, table, pre, .katex-display, .katex',
         ) || tmp.firstElementChild;
       if (child) {
@@ -454,6 +471,9 @@ export class MarkdownBlockWidget extends WidgetType {
       // Datentabelle folgen dem Klick; ignoreEvent() hält den allgemeinen
       // Klick-Pfad des Live-Modus fern (No-op bei anderen Block-Widgets).
       bindDatentabellenVerweisKlicks(container);
+      // 4T-002558 (Epic 3E-000390): Einträge des Inhaltsverzeichnis-Blocks
+      // springen zur Überschrift (No-op bei anderen Block-Widgets).
+      bindTocKlicks(container);
       // 4T-000420: Ansichts-Zustand nach jedem Widget-Mount wiederanwenden.
       applyPerspectiveDatatableViewStates(container);
       // 4T-000512 (Epic 3E-000092): Ereignis-Fence im Live-Widget lokalisieren

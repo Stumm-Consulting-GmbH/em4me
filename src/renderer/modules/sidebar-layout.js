@@ -18,7 +18,7 @@
 // frontmatter-display).
 'use strict';
 
-import { api } from './app/api.js';
+import { api, settingWriteAccepted } from './app/api.js';
 // 4T-000568 (Epic 3E-000104): Zugangs-Reihenfolge der Panel-Toggles (Statusbar-
 // Leiste und Ansichtsmenü-Untermenü) aus dem prozess-neutralen Modell —
 // reine Daten, zyklusfrei.
@@ -34,14 +34,16 @@ import {
 // Helfer mit Statusbar-Feedback (persistSetting, views.js) wird deshalb
 // zur Laufzeit von app-init.js angehängt (Muster attachBroadcast der
 // Backlinks im Main); bis dahin gilt der schlanke api-Fallback.
+// 4T-002650: eine Abweisung des Hauptprozesses meldet settingWriteAccepted.
 let persistFn = async (key, value) => {
+  let antwort;
   try {
-    await api.setSetting(key, value);
-    return true;
+    antwort = await api.setSetting(key, value);
   } catch (err) {
     console.warn('setSetting fehlgeschlagen:', key, err);
     return false;
   }
+  return settingWriteAccepted(key, antwort);
 };
 
 export function attachSidebarLayoutPersistence(fn) {

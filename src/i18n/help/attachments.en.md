@@ -13,7 +13,7 @@ An image becomes an image reference, any other file a plain link:
 [Report](Minutes/Report.pdf)
 ```
 
-`Ctrl+Shift+V` remains plain pasting and stores nothing.
+`Ctrl+Shift+V` and the command **Paste as plain text** remain plain pasting and store nothing. A cell range from a spreadsheet becomes a table instead of an attachment, even when the spreadsheet supplies an image of the cells (see [Tools](tools.md)).
 
 ## Dragging an attachment in
 

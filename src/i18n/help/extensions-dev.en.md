@@ -56,6 +56,8 @@ The `manifest.json` describes the package:
 
 "Deactivate" withdraws all contributions immediately (the confirmation stays stored; re-activating the same version does not ask again). "Remove…" permanently deletes the package folder after its own confirmation.
 
+EM4me itself manages a package's confirmation, its on/off state and its error state. Extension code cannot write these entries, nor the other protected settings such as "Run script blocks" or the folders for templates and workflows; such an attempt is rejected. The extension's own storage `ctx.storage` is not affected.
+
 ## Changing an installed package
 
 Changed code of an already installed package only runs **after restarting the application**. This applies equally to both contribution paths, the UI entry point as well as the render contribution.

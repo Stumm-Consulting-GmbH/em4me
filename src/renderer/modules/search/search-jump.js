@@ -17,6 +17,8 @@ import { buildRegex, clearSearchHighlights, highlightInContainer, search } from 
 import { aktuellerRaumTreffer, indexInGruppe, raumIndex } from './search-run.js';
 import { springeZuDatensatz } from './search-records.js';
 import { zeigeFundstelleInDerLeseAnsicht } from './search-fundstelle.js';
+// 4T-002641 (Epic 3E-000397, Story AK2): Der Treffer geht der Lese-Stelle vor.
+import { verwirfStelle } from '../views/lese-position.js';
 
 // Wartet, bis der gerenderte Inhalt der ZIEL-Seite im DOM steht. Das Öffnen
 // eines Handbuch-Reiters stößt das Rendern an, ohne es abzuwarten.
@@ -73,6 +75,7 @@ function hebeHervorUndScrolle(els, nummerInGruppe, regex) {
 // (search-fundstelle.js) — ein Weg für alle Such-Wege der Lese-Ansicht.
 export function rolleZurFundstelleInDerLeseAnsicht(ziel) {
   if (!ziel || typeof ziel.scrollIntoView !== 'function') return;
+  verwirfStelle(state.activePaneIndex);
   zeigeFundstelleInDerLeseAnsicht(ziel);
   const els = getPaneEls(state.activePaneIndex);
   const tab = activeTab();
@@ -101,6 +104,8 @@ export async function springeZuTreffer(treffer) {
   search.angesprungen = true;
   const weg = SPRUNG_WEGE.get(treffer.quelle);
   if (weg) await weg(treffer);
+  // 4T-002641: Nach dem Sprung darf keine gemerkte Stelle mehr nachziehen.
+  verwirfStelle(state.activePaneIndex);
 }
 
 async function springeZuHandbuchSeite(treffer) {

@@ -21,7 +21,7 @@ import {
 import { buildEventsViewBarHtml } from '../../../shared/markdown/perspective-events.js';
 // 4T-001003: Laufzeit-Zyklus mit dem Kern. Kontext-Aufloesung und
 // Body-Normalisierung werden ausschliesslich im Funktionskoerper aufgerufen.
-import { normalizeBody, resolveContext } from './events-editor.js';
+import { anzeigeRumpf, resolveContext } from './events-editor.js';
 // 4T-001003: Laufzeit-Zyklus mit dem Ansichts-Zustand. Der Abruf zeichnet nach
 // seiner Antwort die Anzeige neu, aufgerufen erst im Funktionskoerper.
 import { applyEventsViewState } from './events-view-state.js';
@@ -110,7 +110,7 @@ export function renderAggStatus(display, text) {
 export function ensureAggregation(ctx) {
   const container = ctx.container;
   container.dataset.evAgg = '1';
-  const model = parsePerspectiveEvents(normalizeBody(container.dataset.evSource));
+  const model = parsePerspectiveEvents(anzeigeRumpf(container.dataset.evSource));
   if (!container.querySelector('.pev-display')) {
     container.innerHTML =
       buildEventsViewBarHtml(effectiveEventsView(model)) +

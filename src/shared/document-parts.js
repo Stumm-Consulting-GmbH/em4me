@@ -14,6 +14,7 @@
 
 const { extractFrontmatter, writeFrontmatter } = require('./markdown/frontmatter.js');
 const { isWindowsPlatform } = require('./platform.js');
+const { isWindowsDeviceName } = require('./windows-geraetenamen.js');
 
 // U+2022 BULLET (F3). Bewusst ein anderes Zeichen als das Unterseiten-
 // Trennzeichen U+2215 und bewusst kein Homoglyph dazu: Bei gleichem oder
@@ -168,15 +169,13 @@ function parsePartValue(value) {
 // Neben-Datenstrom). parsePartValue prüft das bewusst nicht: Die Erkennung
 // einer Zuordnungs-Zeile bleibt davon getrennt, damit ein Aufrufer eine
 // präparierte Zeile erkennen und abweisen kann, statt sie zu übersehen.
-// Unter Windows ist auch ein reservierter Geräte-Name kein Datei-Name (CON,
-// PRN, AUX, NUL, CONIN$, CONOUT$, COM1 bis COM9, LPT1 bis LPT9, dazu COM und
-// LPT mit hochgestellter Ziffer 1 bis 3, jeweils auch mit Leerzeichen am Ende
-// oder vor der Endung und mit Endung): Ein Pfad darauf adressiert ein Gerät
-// statt einer Datei im Ordner.
+// Unter Windows ist auch ein reservierter Geräte-Name kein Datei-Name: Ein
+// Pfad darauf adressiert ein Gerät statt einer Datei im Ordner. Die Erkennung
+// liest aus ihrer Heimat src/shared/windows-geraetenamen.js (Ratsche
+// test/unit/geraetenamen-kopien.test.js), seit dem Zusammenbau des
+// Funktions-Release am 2026-11-25 statt aus einer eigenen Kopie.
 // Dieselbe Regel trägt die Grenzprüfung der Workflows
 // (src/main/workflows/workflow-platten-schreibweg.js, blankerName).
-const WINDOWS_GERAETENAME =
-  /^(con|prn|aux|nul|conin\$|conout\$|com[1-9¹²³]|lpt[1-9¹²³]) *(\..*)?$/i;
 function isBlankPartBase(name) {
   if (typeof name !== 'string' || name === '' || name === '.' || name === '..') return false;
   if (/[\\/]/.test(name) || /^[A-Za-z]:/.test(name)) return false;
@@ -185,7 +184,7 @@ function isBlankPartBase(name) {
     if (code < 32 || code === 127) return false;
   }
   if (!isWindowsPlatform()) return true;
-  return !name.includes(':') && !WINDOWS_GERAETENAME.test(name);
+  return !name.includes(':') && !isWindowsDeviceName(name);
 }
 
 // Liest die Zuordnungs-Zeile aus dem Datei-Inhalt.

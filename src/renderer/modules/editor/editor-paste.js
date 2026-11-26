@@ -14,6 +14,13 @@ import { anlagenAusDataTransfer, legeAnlagenAb } from '../attachments.js';
 // Paste-in-Auswahl-Handler (reiner Shared-Baustein).
 import { detectPasteUrl, insertExternalLink } from '../../../shared/markdown-format.js';
 import { positionInsideCode } from '../live/live-shared.js';
+// 4T-002554 (Epic 3E-000389): Zellbereich aus einer Tabellenkalkulation als
+// Pipe-Tabelle (Erkennung und Rückgängig-Stufe dort).
+import {
+  fuegeAlsTabelleEin,
+  istTabellenAblage,
+  zellbereichZumEinfuegen,
+} from './editor-tabelle-einfuegen.js';
 // 4T-000790 (Epic 3E-000125): Bild-Anlage per Doppelklick oeffnen.
 import { oeffneBildDesElements } from '../views/link-navigation.js';
 // 4T-001002: Laufzeit-Zyklus mit dem Kern — paneEditors wird ausschliesslich in
@@ -140,6 +147,27 @@ export const pasteLinkHandler = EditorView.domEventHandlers({
     if (matchStyle) return false;
     if (view.state.readOnly) return false;
 
+    // 4T-002554 (Epic 3E-000389): Zellbereich aus einer Tabellenkalkulation, VOR
+    // dem Anlagen-Zweig. Excel legt neben Text und Tabellen-Form ein Bild der
+    // Zellen als Datei ab (gemessen am 2026-11-05); hinter dem Anlagen-Zweig
+    // würde daraus eine Bild-Anlage. Wandelt der Zweig nicht um (Erweiterung
+    // aus, Code-Bereich, Kopf-Block, bestehende Tabelle, Schwelle verfehlt),
+    // bleibt es beim reinen Text: Das Standard-Einfügen setzt text/plain ein.
+    // 4T-002557: Ohne Umwandlung entfällt allein der Anlagen-Zweig, die
+    // URL-Prüfung darunter läuft weiter, weil Excel auch bei einer einzelnen
+    // Zelle die Tabellen-Form ablegt und eine kopierte URL sonst über markiertem
+    // Text keinen Link mehr ergäbe.
+    const clipText = event.clipboardData ? event.clipboardData.getData('text/plain') : '';
+    const clipHtml = event.clipboardData ? event.clipboardData.getData('text/html') : '';
+    const tabellenAblage = istTabellenAblage(clipText, clipHtml);
+    if (tabellenAblage) {
+      const zeilen = zellbereichZumEinfuegen(view, clipText, clipHtml);
+      if (zeilen) {
+        event.preventDefault();
+        return fuegeAlsTabelleEin(view, clipText, zeilen);
+      }
+    }
+
     // 4T-000642 (Epic 3E-000125): Anlagen-Zweig VOR der URL-in-Auswahl-Pruefung.
     // Eine Zwischenablage mit Datei-Inhalt ist kein Text-Fall, und der Zweig
     // haengt bewusst NICHT am Schalter pasteUrlAsLink — das ist eine andere
@@ -147,7 +175,7 @@ export const pasteLinkHandler = EditorView.domEventHandlers({
     //
     // Strg+Umschalt+V bleibt unberuehrt: Der matchStyle-Merker oben hat den
     // Handler dann schon verlassen, reines Einfuegen legt also nichts ab.
-    const anlagen = anlagenAusDataTransfer(event.clipboardData);
+    const anlagen = tabellenAblage ? [] : anlagenAusDataTransfer(event.clipboardData);
     if (anlagen.length > 0) {
       event.preventDefault();
       // Das Ablegen ist asynchron, das Ereignis nicht. Deshalb sofort

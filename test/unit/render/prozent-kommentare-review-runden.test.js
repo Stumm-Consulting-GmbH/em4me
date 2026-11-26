@@ -4,6 +4,7 @@
 // wurde, solange die Erkennung Code-Blöcke, Behälter oder Roh-Blöcke selbst
 // gliederte; seit 4T-002802 entscheidet allein der Zerleger der Anzeige über
 // das ganze Dokument, und die Fälle bleiben als Regressionsschutz stehen.
+import { readFileSync } from 'node:fs';
 import { describe, it, expect, afterEach } from 'vitest';
 import {
   renderMarkdown,
@@ -15,6 +16,7 @@ import {
   findPercentCommentRanges,
   kommentarImCode,
 } from '../../../src/shared/markdown/plugins.js';
+import { MAX_ERGAENZTE_ZELLEN } from '../../../src/shared/markdown/plugins/comments-codefrage.js';
 
 afterEach(() => {
   configureExtensions([]);
@@ -499,6 +501,41 @@ describe('Treue der Kennung: E-Mail in spitzen Klammern (4T-002802)', () => {
   });
 });
 
+// Bezugs-Rechnung: Sie fragt nach jedem Kommentar das ganze Dokument, weil die
+// Antwort der Anzeige keine Neustart-Stellen nennt.
+function bezug(doc) {
+  return findPercentCommentRanges(doc, {
+    imCode: (text, leit, optionen) => {
+      const antwort = kommentarImCode(text, leit, false, optionen);
+      return antwort && !Array.isArray(antwort) ? { ...antwort, bloecke: [] } : antwort;
+    },
+  });
+}
+
+// Erkennung genau wie die Bezugs-Rechnung, und kein Kommentar-Text als
+// gewöhnlicher Text in Anzeige und portablem Export.
+function wieBezug(doc) {
+  const bereiche = findPercentCommentRanges(doc);
+  expect(bereiche).toEqual(bezug(doc));
+  expect(lageInAnzeige(renderMarkdown(doc, 'de', { frontmatterBlock: false }))).not.toBe('TEXT');
+  // Der portable Export behält einen Marker in Code; gemessen an seiner Anzeige.
+  expect(lageInAnzeige(renderMarkdown(convertMarkdownPortable(doc), 'de'))).not.toBe('TEXT');
+  return bereiche;
+}
+
+// Zählt, wie oft das ganze Dokument gefragt wird (4T-002837: aus
+// vorlagenLaengen und ganzeFragen zusammengelegt).
+function ganzeFragen(doc) {
+  const laengen = [];
+  const bereiche = findPercentCommentRanges(doc, {
+    imCode: (text, leit, optionen) => {
+      laengen.push(text.length);
+      return kommentarImCode(text, leit, false, optionen);
+    },
+  });
+  return { bereiche, ganze: laengen.filter((l) => l > doc.length / 2).length };
+}
+
 // 4T-002802, Variante B: Nach jedem Kommentar fragt die Erkennung die Anzeige
 // für den Abschnitt um ihn neu, statt eine eigene Regel zu entscheiden zu
 // lassen, ob das Entfernen etwas ändert. Die Fälle stammen aus Runde 1 des
@@ -580,44 +617,30 @@ describe('Variante B: Abschnitt statt eigener Regel, Schluss-Prüfung in beiden 
     dicht(doc);
   });
 
-  // Zweitblick Runde 2, Befund 1: Ein Dokument aus einer einzigen langen Liste
-  // oder einem langen Zitat. Ein Listen-Eintrag beginnt frisch; nach jedem
-  // Kommentar wird nur der Abschnitt um ihn gefragt, nicht das ganze Dokument.
-  // Ein Block in einem Zitat ist bewusst keine Neustart-Stelle (Zweitblick
-  // Runde 3, Entscheidung der Steuerung): Das Zitat wird als Ganzes gefragt,
-  // erkannt wird trotzdem jeder Kommentar genau.
-  function vorlagenLaengen(doc) {
-    const laengen = [];
-    const bereiche = findPercentCommentRanges(doc, {
-      imCode: (text, leit, optionen) => {
-        laengen.push(text.length);
-        return kommentarImCode(text, leit, false, optionen);
-      },
-    });
-    return { bereiche, ganze: laengen.filter((l) => l > doc.length / 2).length };
-  }
-  for (const [name, zeile, nurAbschnitt] of [
-    ['einer langen Liste', (t) => `- ${t}`, true],
-    ['Zitat', (t) => `> ${t}\n>`, false],
+  // Zweitblick Runde 2, Befund 1: Ein Dokument aus einer einzigen langen Liste,
+  // einem langen Zitat oder einer langen Tabelle. Ein Listen-Eintrag, seit
+  // 4T-002837 auch ein Block in einem obersten Zitat und eine Zeile einer
+  // obersten Tabelle, beginnt frisch; nach jedem Kommentar wird nur der
+  // Abschnitt um ihn gefragt, nicht das ganze Dokument.
+  for (const [name, zeile, vorspann] of [
+    ['einer langen Liste', (t) => `- ${t}`, []],
+    ['einem langen Zitat', (t) => `> ${t}\n>`, []],
+    ['einer langen Tabelle', (t) => `| ${t} | x |`, ['| Kopf | Wert |', '|---|---|']],
   ]) {
-    const wie = nurAbschnitt
-      ? 'fragt nach jedem Kommentar nur den Abschnitt'
-      : 'erkennt jeden Kommentar genau';
-    it(`Befund 1: in ${name} ${wie}`, () => {
-      const teile = ['# Titel', ''];
+    it(`Befund 1: in ${name} fragt nach jedem Kommentar nur den Abschnitt`, () => {
+      const teile = ['# Titel', '', ...vorspann];
       for (let i = 0; i < 40; i++)
         teile.push(zeile(`Eintrag ${i} mit \`Code-Stück\` und %%Notiz ${i}%% danach`));
       const doc = `${teile.join('\n')}\n\nEnde ${K}\n`;
-      const { bereiche, ganze } = vorlagenLaengen(doc);
+      const { bereiche, ganze } = ganzeFragen(doc);
       expect(bereiche).toHaveLength(41);
       expect(bereiche.every((b) => b.closed)).toBe(true);
       expect(bereiche.slice(0, 40).every((b, i) => doc.startsWith(`%%Notiz ${i}%%`, b.from))).toBe(
         true,
       );
-      // In der Liste ganz gefragt werden nur das Dokument zu Beginn und die
-      // Gegenprobe; das Zitat wird nach jedem Kommentar ganz gefragt.
-      if (nurAbschnitt) expect(ganze).toBeLessThanOrEqual(2);
-      else expect(ganze).toBeGreaterThan(2);
+      // Ganz gefragt werden nur das Dokument zu Beginn und die Gegenprobe.
+      expect(ganze).toBeLessThanOrEqual(2);
+      expect(bereiche).toEqual(bezug(doc));
       dicht(doc);
     });
   }
@@ -661,29 +684,13 @@ describe('Variante B: Abschnitt statt eigener Regel, Schluss-Prüfung in beiden 
 // Zweitblick Runde 3 zu 4T-002802: Eine Neustart-Stelle muss für sich gelesen
 // wieder so beginnen wie im ganzen Dokument. Eine Folgezeile eines Zitats darf
 // vor `>` vier und mehr Leerzeichen tragen und gehört trotzdem zum Zitat; für
-// sich gelesen wäre sie ein eingerückter Code-Block. Seit der Entscheidung der
-// Steuerung vom 2026-11-22 sind Blöcke in Zitaten deshalb keine Neustart-Stellen
-// mehr; die Fälle mit Zitaten sichern, dass ein Zitat genau wie die
-// Bezugs-Rechnung erkannt wird. Gemessen wird gegen eine Bezugs-Rechnung, die
-// nach jedem Kommentar das ganze Dokument fragt.
-describe('Neustart-Stellen in Listen, Zitate als Ganzes (Zweitblick Runde 3, 4T-002802)', () => {
-  function bezug(doc) {
-    return findPercentCommentRanges(doc, {
-      imCode: (text, leit, optionen) => {
-        const antwort = kommentarImCode(text, leit, false, optionen);
-        return antwort && !Array.isArray(antwort) ? { ...antwort, bloecke: [] } : antwort;
-      },
-    });
-  }
-  function wieBezug(doc) {
-    const bereiche = findPercentCommentRanges(doc);
-    expect(bereiche).toEqual(bezug(doc));
-    expect(lageInAnzeige(renderMarkdown(doc, 'de', { frontmatterBlock: false }))).not.toBe('TEXT');
-    // Der portable Export behält einen Marker in Code; gemessen an seiner Anzeige.
-    expect(lageInAnzeige(renderMarkdown(convertMarkdownPortable(doc), 'de'))).not.toBe('TEXT');
-    return bereiche;
-  }
-
+// sich gelesen wäre sie ein eingerückter Code-Block. Am 2026-11-22 wurden Blöcke
+// in Zitaten deshalb auf Entscheidung der Steuerung als Neustart-Stellen
+// herausgenommen; seit 4T-002837 zählen sie wieder, aber nur, wenn ihre Zeile
+// für sich gelesen als Zitat beginnt (höchstens drei Leerzeichen vor `>`).
+// Gemessen wird gegen die Bezugs-Rechnung, die nach jedem Kommentar das ganze
+// Dokument fragt.
+describe('Neustart-Stellen in Listen und Zitaten (Zweitblick Runde 3, 4T-002802, 4T-002837)', () => {
   it('Befund 1: eine Zitat-Folgezeile mit vier Leerzeichen vor `>` ist keine Neustart-Stelle', () => {
     const doc = [
       '> Start',
@@ -758,18 +765,6 @@ describe('Neustart-Stellen in Listen, Zitate als Ganzes (Zweitblick Runde 3, 4T-
     wieBezug(doc);
   });
 
-  // Zählt, wie oft nach dem ersten Kommentar das ganze Dokument gefragt wird.
-  function ganzeFragen(doc) {
-    const laengen = [];
-    const bereiche = findPercentCommentRanges(doc, {
-      imCode: (text, leit, optionen) => {
-        laengen.push(text.length);
-        return kommentarImCode(text, leit, false, optionen);
-      },
-    });
-    return { bereiche, ganze: laengen.filter((l) => l > doc.length / 2).length };
-  }
-
   it('Gegenprobe: Einträge oberster Listen mit höchstens drei Leerzeichen bleiben Neustart-Stellen', () => {
     // Zweitblick der gezielten Nachprüfung: Fiele die Prüfung der Anfangs-Zeile
     // zu streng aus, würde nach jedem Kommentar wieder das ganze Dokument
@@ -816,5 +811,136 @@ describe('Neustart-Stellen in Listen, Zitate als Ganzes (Zweitblick Runde 3, 4T-
       ].join('\n');
       expect(wieBezug(liste)).toHaveLength(3);
     }
+  });
+});
+
+// 4T-002837: Zeilen oberster Tabellen und Blöcke oberster Zitate sind
+// Neustart-Stellen. Eine Tabellen-Zeile wird mit vorangestellter Kopf- und
+// Trennzeile gefragt; reicht eine Tabelle so weit, dass die Anzeige sie an der
+// Obergrenze ergänzter Zellen beendet, zählt keine ihrer Zeilen. Jeder Fall
+// wird gegen die Bezugs-Rechnung gemessen.
+describe('Private Kommentare in großen Tabellen und Zitaten (4T-002837)', () => {
+  const zeilen = (n, bau) => Array.from({ length: n }, (_, i) => bau(i));
+  const texte = (doc) => wieBezug(doc).map((b) => doc.slice(b.from, b.to));
+
+  it('eine lange Tabelle und ein langes Zitat werden genau wie die Bezugs-Rechnung erkannt', () => {
+    const tabelle = [
+      '| A | B | C |',
+      '|---|:-:|--:|',
+      ...zeilen(120, (i) => `| ${i} %%t${i}%% | \`c%%\` | z %%u${i}%% \`|\` |`),
+      '',
+      `Ende ${K}`,
+      '',
+    ].join('\n');
+    expect(texte(tabelle)).toHaveLength(241);
+    const zitat = [
+      ...zeilen(120, (i) => `> ${i} %%z${i}%% \`c%%\` ende\n>`),
+      '',
+      `Ende ${K}`,
+      '',
+    ].join('\n');
+    expect(texte(zitat)).toHaveLength(121);
+  });
+
+  it('ein Kommentar in Kopf- oder Trennzeile: die Zeilen danach werden genau erkannt', () => {
+    const rumpf = zeilen(30, (i) => `| ${i} %%r${i}%% | \`x\` |`);
+    for (const kopf of [
+      ['| Kopf %%k%% | Wert |', '|---|---|'],
+      ['| Kopf %%k | Wert |', '|---|---|%% x'],
+      ['| Kopf | Wert %%k |', '|---|---|', '| a | b%% |'],
+      ['| Kopf | Wert |', '|---|%%k%%---|'],
+    ]) {
+      const doc = [...kopf, ...rumpf, '', `Ende ${K}`, ''].join('\n');
+      expect(wieBezug(doc).length).toBeGreaterThan(0);
+    }
+  });
+
+  it('ein Kommentar mit `|` oder über mehrere Zeilen ändert die Zellen der Zeile', () => {
+    const doc = [
+      '| A | B |',
+      '|---|---|',
+      ...zeilen(20, (i) => `| ${i} | x |`),
+      '| a %%x | y%% | `b |',
+      '| c | d` %%e |',
+      '| f | %% g |',
+      '| `h %%i | j` |',
+      '| k%% | `l` |',
+      ...zeilen(20, (i) => `| ${i} %%n${i}%% | \`x\` |`),
+      '',
+      `Ende ${K}`,
+      '',
+    ].join('\n');
+    expect(texte(doc)).toContain(K);
+  });
+
+  it('Zitate mit Folgezeilen ohne `>` und mit eingerückten Folgezeilen', () => {
+    const doc = [
+      '> eins %%a%% `x`',
+      'faul weiter %%b%% `y',
+      '> z` drei',
+      '>',
+      '>     eingerückt %%c%%',
+      '>',
+      '    > vier %%d `q',
+      '> fünf` d%% %%e%%',
+      '>',
+      ...zeilen(20, (i) => `> ${i} %%n${i}%% \`x\`\n>`),
+      '',
+      `Ende ${K}`,
+      '',
+    ].join('\n');
+    expect(texte(doc)).toContain(K);
+  });
+
+  it('Obergrenze ergänzter Zellen: eine Tabelle darüber hat keine Neustart-Stellen', () => {
+    // Die Anzeige beendet eine Tabelle, sobald sie mehr als MAX_ERGAENZTE_ZELLEN
+    // Zellen ergänzt hat; eine Zeile, die für sich gelesen frisch beginnt, läge
+    // dann womöglich hinter dem Ende. Gemessen an einer nachgestellten Antwort
+    // der Anzeige, weil sie für eine Tabelle dieser Größe mehrere Sekunden
+    // braucht: jede Zeile ab der dritten ein Block mit Kopf in Zeile 0.
+    const spalten = 40;
+    const grenze = Math.floor(MAX_ERGAENZTE_ZELLEN / spalten) - 2;
+    const nachgestellt = (text) => {
+      const z = text.split('\n');
+      const tabelle = z[0].startsWith('|') && /^\|(?:-\|)+$/.test(z[1]);
+      const antwort = { code: [], unsicher: [], bloecke: [], koepfe: [], spalten: [] };
+      for (let i = 0; i < z.length; i++) {
+        if (z[i].trim() === '' || (i > 0 && z[i - 1].trim() !== '' && !(tabelle && i > 1)))
+          continue;
+        antwort.bloecke.push(i);
+        antwort.koepfe.push(tabelle && i > 1 ? 0 : -1);
+        antwort.spalten.push(tabelle && i > 1 ? spalten : null);
+      }
+      return { ...antwort, definitionen: null };
+    };
+    for (const [n, ueber] of [
+      [grenze, false],
+      [grenze + 1, true],
+    ]) {
+      const kopf = ['|' + ' h |'.repeat(spalten), '|' + '-|'.repeat(spalten)];
+      const rumpf = zeilen(n, (i) => (i < n - 20 ? `| ${i}` : `| ${i} %%n${i}%% \`c\``));
+      const doc = [...kopf, ...rumpf, '', `Ende ${K}`, ''].join('\n');
+      const laengen = [];
+      const bereiche = findPercentCommentRanges(doc, {
+        imCode: (text) => {
+          laengen.push(text.length);
+          return nachgestellt(text);
+        },
+      });
+      expect(bereiche).toHaveLength(21);
+      const ganze = laengen.filter((l) => l > doc.length / 2).length;
+      if (ueber) expect(ganze).toBeGreaterThan(20);
+      else expect(ganze).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it('Wächter: die Obergrenze ergänzter Zellen ist die der Anzeige', () => {
+    const quelle = readFileSync(
+      new URL('../../../node_modules/markdown-it/lib/rules_block/table.mjs', import.meta.url),
+      'utf8',
+    );
+    const treffer = /const MAX_AUTOCOMPLETED_CELLS = (0x[0-9a-f]+|\d+)/i.exec(quelle);
+    expect(treffer).not.toBeNull();
+    expect(Number(treffer[1])).toBe(MAX_ERGAENZTE_ZELLEN);
   });
 });

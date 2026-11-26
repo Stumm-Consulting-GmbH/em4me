@@ -65,6 +65,8 @@
   "frontmatter.line.label": "Frontmatter",
   "frontmatter.line.fieldCount": "{count} campi",
   "frontmatter.line.fieldCountOne": "1 campo",
+  "frontmatter.coverImage.missing": "Immagine di copertina non trovata",
+  "frontmatter.coverImage.remote": "EM4me non carica immagini di copertina da Internet; salvare l’immagine come file nell’area",
   "properties.profileDefined": "Campo dal profilo «{profile}»",
   "properties.profileTypeLocked": "Tipo impostato dal profilo «{profile}»",
   "properties.profileHint.typeMismatch": "Il valore non corrisponde al tipo definito ({type}).",

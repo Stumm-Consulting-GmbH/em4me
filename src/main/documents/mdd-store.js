@@ -183,12 +183,20 @@ const MDDA_CACHE_FILENAME = 'Area_Cache.mdda';
 // der Warmstart übernähme für unveränderte Dateien das Ergebnis ohne sie; der
 // Rückverweis aus dem Dashboard auf seine Abfrage-Datei fehlte dann bis zur
 // nächsten Änderung der Datei.
+// Version 12 (4T-002782, Epic 3E-000392): drei neue Felder im parsed-Objekt,
+// `eigenAnkerVerweise` (Verweise auf eine Überschrift oder Block-Marke im selben
+// Dokument), `verknuepfungsVerweise` (Verweise in einen verknüpften Bereich) und
+// `blockVerweise` (Herkunft der Treffer aus Dashboard-Kachel, Diagramm-Angabe
+// und Text-Zelle einer Datentabelle, nach der Zeile). Alle drei tragen allein
+// die Liste der Verweise ohne Ziel. Ein Alt-Cache führt sie
+// nicht, und der Warmstart übernähme für unveränderte Dateien das Ergebnis ohne
+// sie; die Liste zeigte solche Verweise dann erst nach der nächsten Änderung.
 // **Beim Rebase** auf einen Stand, der die Version unabhängig angehoben hat
 // (der Diagramme-Zweig hebt sie für seine Zell-Verweise ebenfalls an), ist der
 // Wert auf den höchsten beider Seiten plus eins zu setzen und hier ein Absatz
 // je Seite zu führen; Git meldet dabei keinen Konflikt, wenn beide Seiten
 // dieselbe Zahl gesetzt haben.
-const MDDA_CACHE_SCHEMA_VERSION = 11;
+const MDDA_CACHE_SCHEMA_VERSION = 12;
 
 // Format: { schemaVersion, linkIndex: { files: { <relPath>: { mtimeMs, size,
 // hash, parsed } } } }. `parsed` traegt das Datei-Parse-Ergebnis (hits,

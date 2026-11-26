@@ -114,6 +114,34 @@ Changer de section dans les paramètres n’enregistre rien, un brouillon commen
 
 Dans les tableaux pipe, `Tab` saute à la cellule suivante et `Maj+Tab` à la précédente. À la fin de la dernière ligne, `Tab` ou `Entrée` créent une nouvelle ligne de tableau avec le même nombre de colonnes ; deux `Entrée` sur une ligne vide quittent le tableau. Les tableaux sans bordure (sans pipes extérieurs) sont aussi reconnus. Les opérations de structure (déplacer, insérer et supprimer des lignes et des colonnes, alignement, transposition) sont proposées par le sous-menu **Tableau** dans le [Menu contextuel de l'éditeur](context-menu.md).
 
+## Tableaux depuis un tableur
+
+Une plage de cellules copiée dans un tableur devient un tableau pipe avec `Ctrl+V`, de même avec **Coller** dans le [menu contextuel de l'éditeur](context-menu.md). La première ligne de la plage devient la ligne d'en-tête, et la barre d'état signale la conversion.
+
+La conversion a lieu lorsque le presse-papiers porte la forme tableau d'un tableur et que la plage compte au moins deux lignes et deux colonnes, avec le même nombre de cellules dans chaque ligne. Un saut de ligne dans une cellule devient une espace, une barre verticale est protégée en `\|` pour ne pas scinder la cellule, et une cellule vide reste vide. Si le curseur se trouve au milieu d'une ligne, le tableau est placé sur ses propres lignes, avec une ligne vide avant et après le texte voisin ; dans une citation ou un encadré, chaque ligne du tableau reçoit le préfixe de la ligne où le collage a lieu. Dans les zones de code source, dans le frontmatter, dans un tableau existant et avec plusieurs curseurs, le texte brut est collé ; une image des cellules fournie par le tableur n'est pas enregistrée comme [pièce jointe](attachments.md).
+
+### Annulation en deux étapes
+
+Le premier `Ctrl+Z` après la conversion rétablit le texte brut collé, avec des tabulations entre les cellules ; le second le retire à son tour.
+
+### Coller en texte brut
+
+`Ctrl+Maj+V` et la commande **Coller en texte brut** du menu contextuel de l'éditeur et de la palette de commandes insèrent toujours le presse-papiers sans modification, sans tableau, lien ni pièce jointe.
+
+### Coller comme tableau
+
+La commande **Coller comme tableau** du menu contextuel de l'éditeur et de la palette de commandes convertit aussi un texte qui ne provient pas d'un tableur : des cellules séparées par des tabulations ou des points-virgules, un enregistrement par ligne. Le séparateur retenu est le plus fréquent des deux. Il faut là aussi au moins deux lignes et deux colonnes avec le même nombre de cellules ; de plus, aucune ligne ne doit commencer par le séparateur, afin que du code source indenté reste du texte. Si le presse-papiers ne remplit pas ces conditions, la barre d'état le signale et rien n'est collé. L'annulation fonctionne en deux étapes, comme ci-dessus.
+
+```text
+Article;Quantité;Prix
+Café;2;8,00
+Thé;1;3,50
+```
+
+### Extension
+
+La conversion appartient à l'extension commutable « Outils de tableau » (Paramètres → Extensions). Une fois désactivée, `Ctrl+V` colle une plage de cellules copiée en texte brut, et **Coller comme tableau** disparaît du menu contextuel et de la palette de commandes ; **Coller en texte brut** reste disponible.
+
 ## Impression
 
 « Fichier → Autres fonctions de fichier → Imprimer… » (défaut `Ctrl+P`) imprime le contenu de l'onglet actif directement sur une imprimante — sans passer par un fichier PDF qu'il faudrait ensuite ouvrir dans un second programme. La boîte de dialogue d'impression du système s'ouvre : imprimante, plage de pages, nombre de copies, recto verso et tout le reste s'y choisissent, dans l'interface que vous connaissez de tout autre programme. Format de page, orientation et marges sont préremplis depuis la section « Export » des paramètres.

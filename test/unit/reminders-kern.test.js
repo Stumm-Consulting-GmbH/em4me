@@ -172,6 +172,18 @@ describe('collectReminders (4T-000525)', () => {
     expect(descs).not.toContain('Storniert'); // CANCELLED
   });
 
+  // 4T-002737 (Epic 3E-000396): Zeilen vom Typ «Keine Aufgabe», etwa eine mit
+  // dem Status «Übertragen» gekennzeichnete, melden keine Erinnerung.
+  it('NON_TASK (Status «Übertragen») löst nicht aus', () => {
+    const mitUebertragen = (ch) => (ch === '»' ? 'NON_TASK' : statusTypeOf(ch));
+    const zeilen = [
+      { path: 'a.md', zeile: 1, text: '- [»] #task Übertragen ⏰ 2099-02-01 09:00' },
+      { path: 'b.md', zeile: 1, text: '- [ ] #task Übertragen ⏰ 2099-02-01 09:00' },
+    ];
+    const res = collectReminders(zeilen, { globalFilter: '#task', statusTypeOf: mitUebertragen });
+    expect(res.map((r) => r.path)).toEqual(['b.md']);
+  });
+
   it('ignoriert Zeilen ohne ⏰ und mit ungueltigem ⏰-Wert', () => {
     const res = collectReminders(LINES, { globalFilter: '#task', statusTypeOf });
     const descs = res.map((r) => r.description);

@@ -75,6 +75,25 @@ describe('createTaskStatusTypeResolver (4T-000502)', () => {
     expect(forbidden(' ')).toBe('TODO');
   });
 
+  // 4T-002737 (Epic 3E-000396): der vorbelegte Status «Übertragen».
+  it('Status «Übertragen» (») ist vom Typ «Keine Aufgabe», auch bei gespeicherter Liste ohne ihn', () => {
+    expect(createTaskStatusTypeResolver(null)('»')).toBe('NON_TASK');
+    // Gespeicherte Liste einer älteren Fassung ohne den Eintrag: Vorgabe greift.
+    const alt = createTaskStatusTypeResolver([
+      { builtin: true, name: 'inProgress', type: 'IN_PROGRESS', enabled: true },
+    ]);
+    expect(alt('»')).toBe('NON_TASK');
+  });
+
+  it('Status «Übertragen» abgeschaltet oder mit geändertem Typ', () => {
+    const aus = createTaskStatusTypeResolver([{ builtin: true, name: 'migrated', enabled: false }]);
+    expect(aus('»')).toBeNull();
+    const geaendert = createTaskStatusTypeResolver([
+      { builtin: true, name: 'migrated', type: 'TODO', enabled: true },
+    ]);
+    expect(geaendert('»')).toBe('TODO');
+  });
+
   it('unbekanntes Zeichen liefert null', () => {
     const resolve = createTaskStatusTypeResolver(null);
     expect(resolve('§')).toBeNull();

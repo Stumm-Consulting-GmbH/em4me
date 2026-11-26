@@ -27,6 +27,10 @@ const WEEKLY = {
   dateProp: 'journal-date',
   startProp: 'journal-start-date',
   endProp: 'journal-end-date',
+  // 4T-002738 (Epic 3E-000396): Einstellung des Übertrags offener Aufgaben.
+  carryOverAuto: true,
+  carryOverMode: 'remove',
+  carryOverSection: 'Aufgaben',
 };
 
 describe('normalizeJournalsConfig — Leer- und Defekt-Fälle', () => {
@@ -89,6 +93,9 @@ describe('normalizeJournalsConfig — Normalisierung und Defaults', () => {
       dateProp: DEFAULT_DATE_PROP,
       startProp: DEFAULT_START_PROP,
       endProp: DEFAULT_END_PROP,
+      carryOverAuto: false,
+      carryOverMode: 'mark',
+      carryOverSection: '',
     });
   });
 
@@ -134,5 +141,63 @@ describe('normalizeJournalsConfig — Normalisierung und Defaults', () => {
     });
     expect(config.shelves).toEqual(['Tagebuch', 'Körperprogramm']);
     expect(config.journals[0].shelf).toBe('Körperprogramm');
+  });
+});
+
+// 4T-002738 (Epic 3E-000396): Die drei Felder des Übertrags offener Aufgaben
+// stehen im normalisierten Journal immer; ungültige Werte fallen auf die
+// sichere Vorgabe zurück (Übertrag aus, kennzeichnen, alle Abschnitte).
+describe('normalizeJournalsConfig — Übertrag offener Aufgaben', () => {
+  const tag = { id: 'tag', granularity: 'day', namePattern: '{{date}}' };
+  const normalisiere = (zusatz) =>
+    normalizeJournalsConfig({ journals: [{ ...tag, ...zusatz }] }).journals[0];
+
+  it('Vorgaben ohne Angabe: aus, kennzeichnen, leerer Abschnitt', () => {
+    const j = normalisiere({});
+    expect(j.carryOverAuto).toBe(false);
+    expect(j.carryOverMode).toBe('mark');
+    expect(j.carryOverSection).toBe('');
+  });
+
+  it('gültige Werte bleiben erhalten, der Abschnitt ohne Rand-Leerraum', () => {
+    const j = normalisiere({
+      carryOverAuto: true,
+      carryOverMode: 'remove',
+      carryOverSection: '  Aufgaben  ',
+    });
+    expect(j.carryOverAuto).toBe(true);
+    expect(j.carryOverMode).toBe('remove');
+    expect(j.carryOverSection).toBe('Aufgaben');
+  });
+
+  it('nur ein echtes true schaltet den Übertrag ein', () => {
+    for (const wert of ['true', 1, 'ja', {}, [], null, undefined, false]) {
+      expect(normalisiere({ carryOverAuto: wert }).carryOverAuto).toBe(false);
+    }
+  });
+
+  it('jeder andere Modus als genau remove wird mark', () => {
+    for (const wert of ['Remove', ' remove', 'delete', 'mark', '', 0, null, true]) {
+      expect(normalisiere({ carryOverMode: wert }).carryOverMode).toBe('mark');
+    }
+  });
+
+  it('ein Abschnitt, der kein Text ist, wird leer', () => {
+    for (const wert of [42, null, undefined, ['Aufgaben'], { text: 'Aufgaben' }, '   ']) {
+      expect(normalisiere({ carryOverSection: wert }).carryOverSection).toBe('');
+    }
+  });
+
+  it('die Einstellung gilt je Journal und bleibt beim erneuten Normalisieren gleich', () => {
+    const config = normalizeJournalsConfig({
+      journals: [
+        { ...tag, id: 'a', carryOverAuto: true, carryOverMode: 'remove', carryOverSection: 'X' },
+        { ...tag, id: 'b' },
+      ],
+    });
+    expect(config.journals[0].carryOverAuto).toBe(true);
+    expect(config.journals[1].carryOverAuto).toBe(false);
+    expect(config.journals[1].carryOverMode).toBe('mark');
+    expect(normalizeJournalsConfig(config)).toEqual(config);
   });
 });

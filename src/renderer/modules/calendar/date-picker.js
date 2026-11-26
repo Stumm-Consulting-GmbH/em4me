@@ -40,6 +40,8 @@ import {
 } from '../live/live-deco.js';
 import { detectFrontmatterLines } from '../live/live-marker-fields.js';
 import { activeLineSet, positionInsideCode } from '../live/live-shared.js';
+// 4T-002617 (Epic 3E-000391): gemeinsamer Zaun-Helfer für fenceLanguageAt.
+import { zaunAnStelle } from '../editor/editor-zaun-kontext.js';
 
 // 4T-000641 (Epic 3E-000069): Zeichenfolge des Schreib-Triggers. Bis dahin waren
 // es zwei Backslashes; die Wahl kollidierte mit der Bedeutung des Backslash
@@ -177,19 +179,12 @@ export function taskLineDescriptionEnd(lineText) {
 // 4T-000641 (Epic 3E-000069): Fence-Sprache an einer Position oder null.
 // Lezer liefert den FencedCode-Knoten samt CodeInfo (Sprach-Tag); Vorlage
 // ist getPerspectiveContext in editor-table-tools.js.
+// 4T-002617 (Epic 3E-000391): über den gemeinsamen Zaun-Helfer, gleiche
+// Bedeutung (Suche nur rechts der Stelle im Baum des Zustands wie bisher, null
+// außerhalb, leere Zeichenkette ohne Sprach-Tag).
 function fenceLanguageAt(state, pos) {
-  let node = syntaxTree(state).resolveInner(pos, 1);
-  while (node) {
-    if (node.name === 'FencedCode') break;
-    node = node.parent;
-  }
-  if (!node) return null;
-  let child = node.firstChild;
-  while (child) {
-    if (child.name === 'CodeInfo') return state.doc.sliceString(child.from, child.to).trim();
-    child = child.nextSibling;
-  }
-  return '';
+  const zaun = zaunAnStelle(state, pos, { seite: 1, baum: syntaxTree(state) });
+  return zaun ? zaun.sprache : null;
 }
 
 // 4T-000641: Fence-Sprachen, die trotz Code-Kontext Eingabe-Kontext sind.

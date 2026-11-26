@@ -7,6 +7,7 @@ import { describe, it, expect } from 'vitest';
 import {
   FORMAT_TOOLBAR_KEY,
   FORMAT_TOOLBAR_EXTENSION_ID,
+  MERMAID_COMMAND_ID,
   defaultFormatToolbarEntries,
   defaultFormatToolbar,
   normalizeFormatToolbarEntry,
@@ -17,6 +18,7 @@ import {
 import { COMMANDS } from '../../src/shared/commands/commands.js';
 import { COMMAND_ICON_IDS, DEFAULT_COMMAND_ICON } from '../../src/shared/commands/command-icons.js';
 import { extensionById } from '../../src/shared/extensions/extensions.js';
+import { disabledCommandIdSet } from '../../src/shared/extensions/extensions-core.js';
 
 describe('format-toolbar: Standard-Belegung', () => {
   it('referenziert nur registrierte Kommandos und bekannte Icons', () => {
@@ -49,6 +51,14 @@ describe('format-toolbar: Standard-Belegung', () => {
       'insert.perspectiveTable',
     ]);
     expect(entries.filter((e) => e.type === 'headings')).toHaveLength(1);
+    // 4T-002617 (Epic 3E-000391, I1 = B): der Mermaid-Knopf am Ende, hinter
+    // einem Trenner nach der Perspective-Tabelle.
+    expect(entries.slice(-3)).toEqual([
+      expect.objectContaining({ commandId: 'insert.perspectiveTable' }),
+      { type: 'separator' },
+      { type: 'mermaid' },
+    ]);
+    expect(entries.filter((e) => e.type === 'mermaid')).toHaveLength(1);
     // Die Standard-Belegung ist bereits Trenner-bereinigt.
     expect(collapseToolbarSeparators(entries)).toEqual(entries);
   });
@@ -71,6 +81,7 @@ describe('format-toolbar: Normalisierung', () => {
         { type: 'command', commandId: 'format.bold', icon: 'bold', label: null },
         { type: 'separator' },
         { type: 'headings' },
+        { type: 'mermaid', commandId: 'x', icon: 'zap' },
         { type: 'unbekannt' },
         { type: 'command', commandId: '' },
         null,
@@ -81,6 +92,8 @@ describe('format-toolbar: Normalisierung', () => {
       { type: 'command', commandId: 'format.bold', icon: 'bold', label: null },
       { type: 'separator' },
       { type: 'headings' },
+      // 4T-002617: der Mermaid-Knopf trägt nur seinen Typ, Zusatz-Felder entfallen.
+      { type: 'mermaid' },
     ]);
   });
 
@@ -127,6 +140,24 @@ describe('format-toolbar: Sichtbarkeits-Kern', () => {
     const entries = [cmd('a'), sep, cmd('weg'), sep, { type: 'headings' }, cmd('b')];
     const visible = visibleFormatToolbarEntries(entries, new Set(['b']), new Set(['a', 'b']));
     expect(visible).toEqual([cmd('a'), sep, { type: 'headings' }]);
+  });
+
+  // 4T-002617 (Epic 3E-000391): Der Mermaid-Knopf hängt an seinem Kommando und
+  // damit an der Erweiterung mermaid; der verwaiste Trenner davor entfällt.
+  it('blendet den Mermaid-Knopf bei abgeschalteter Erweiterung mermaid aus', () => {
+    const known = new Set(COMMANDS.map((c) => c.id));
+    expect(MERMAID_COMMAND_ID).toBe('insert.mermaid');
+    expect(known.has(MERMAID_COMMAND_ID)).toBe(true);
+    const entries = defaultFormatToolbarEntries();
+    const an = visibleFormatToolbarEntries(entries, disabledCommandIdSet([]), known);
+    expect(an.slice(-2)).toEqual([{ type: 'separator' }, { type: 'mermaid' }]);
+    const aus = visibleFormatToolbarEntries(entries, disabledCommandIdSet(['mermaid']), known);
+    expect(aus.some((e) => e.type === 'mermaid')).toBe(false);
+    expect(aus[aus.length - 1]).toEqual(
+      expect.objectContaining({ commandId: 'insert.perspectiveTable' }),
+    );
+    // Ohne registriertes Kommando erscheint der Knopf ebenso nicht.
+    expect(visibleFormatToolbarEntries([{ type: 'mermaid' }], new Set(), new Set())).toEqual([]);
   });
 
   it('liefert bei Nicht-Array eine leere Liste', () => {

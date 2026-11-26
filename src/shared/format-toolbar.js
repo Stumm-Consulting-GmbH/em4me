@@ -6,7 +6,10 @@
 // normalizePlacementEntry, keine zweite Normalisierung), Trenner
 // ({ type: 'separator' }) als optisches Gruppierungs-Element und das
 // Überschrift-Menü ({ type: 'headings' }) als gebündelter Zugang zu den
-// paragraph.heading*-Kommandos. Die Array-Reihenfolge ist die Anzeige-
+// paragraph.heading*-Kommandos. Seit 4T-002617 (Epic 3E-000391) kommt der
+// Knopf der Mermaid-Bausteine ({ type: 'mermaid' }) hinzu, eine Auswahl
+// wie das Überschrift-Menü, gebunden an das Kommando insert.mermaid und
+// damit an die Erweiterung mermaid. Die Array-Reihenfolge ist die Anzeige-
 // Reihenfolge (kein eigenes Reihenfolge-Feld, Muster command-placement).
 // Persistiert als EIN Store-Objekt unter 'formatToolbar'. Prozessneutral
 // (CJS, keine DOM-/Electron-Abhängigkeit), defensive Normalisierung nach
@@ -19,6 +22,7 @@ const { normalizePlacementEntry } = require('./commands/command-placement.js');
 
 const FORMAT_TOOLBAR_KEY = 'formatToolbar';
 const FORMAT_TOOLBAR_EXTENSION_ID = 'toolbar';
+const MERMAID_COMMAND_ID = 'insert.mermaid';
 
 // Kuratierte Standard-Belegung (PO-Freigabe der Liste aus
 // Architekturentscheidung 3 des Epics; Gruppierung per Trenner:
@@ -52,6 +56,10 @@ function defaultFormatToolbarEntries() {
       icon: 'table-merged',
       label: null,
     },
+    // 4T-002617 (Epic 3E-000391): Mermaid-Bausteine nach Entscheidung I1 (B)
+    // als eigene Gruppe am Ende.
+    { type: 'separator' },
+    { type: 'mermaid' },
   ];
 }
 
@@ -66,6 +74,7 @@ function normalizeFormatToolbarEntry(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
   if (raw.type === 'separator') return { type: 'separator' };
   if (raw.type === 'headings') return { type: 'headings' };
+  if (raw.type === 'mermaid') return { type: 'mermaid' };
   if (raw.type === 'command' || raw.type === undefined) {
     const entry = normalizePlacementEntry(raw);
     return entry ? { type: 'command', ...entry } : null;
@@ -103,21 +112,26 @@ function collapseToolbarSeparators(entries) {
 // Sichtbarkeits-Kern (Muster visibleContextMenuEntries): Kommando-
 // Einträge unbekannter Kommandos und Kommandos deaktivierter
 // Erweiterungen erscheinen nicht (Konsistenz zu Menü und Palette; die
-// Konfiguration bleibt erhalten). Trenner und Überschrift-Menü bleiben,
-// überzählige Trenner werden bereinigt.
+// Konfiguration bleibt erhalten). Der Mermaid-Knopf folgt demselben
+// Gate über sein Kommando insert.mermaid (4T-002617). Trenner und
+// Überschrift-Menü bleiben, überzählige Trenner werden bereinigt.
 function visibleFormatToolbarEntries(entries, disabledCommandIds, knownCommandIds) {
   if (!Array.isArray(entries)) return [];
   const disabled = disabledCommandIds || new Set();
   const known = knownCommandIds || new Set();
-  const filtered = entries.filter(
-    (e) => e.type !== 'command' || (known.has(e.commandId) && !disabled.has(e.commandId)),
-  );
+  const sichtbar = (id) => known.has(id) && !disabled.has(id);
+  const filtered = entries.filter((e) => {
+    if (e.type === 'command') return sichtbar(e.commandId);
+    if (e.type === 'mermaid') return sichtbar(MERMAID_COMMAND_ID);
+    return true;
+  });
   return collapseToolbarSeparators(filtered);
 }
 
 module.exports = {
   FORMAT_TOOLBAR_KEY,
   FORMAT_TOOLBAR_EXTENSION_ID,
+  MERMAID_COMMAND_ID,
   defaultFormatToolbarEntries,
   defaultFormatToolbar,
   normalizeFormatToolbarEntry,

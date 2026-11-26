@@ -31,6 +31,10 @@ import {
   reportMenuStateNow,
 } from '../tabs/tabs.js';
 import { scrollRenderedToLine } from '../views/anchor-navigation.js';
+// 4T-002641 (Epic 3E-000397, Story AK2): Die Zeile geht der Lese-Stelle vor.
+import { verwirfStelle } from '../views/lese-position.js';
+// 4T-002642 (Epic 3E-000397): Der Zeilen-Sprung eines Rückverweises ist ein Besuch.
+import { merkeSprung } from '../views/navigation-verlauf-bedienung.js';
 import { isAllEmpty, persistSetting, updateEmptyState } from '../views/views.js';
 import { toRootRelative } from '../../../shared/bookmark-tree.js';
 
@@ -201,22 +205,32 @@ export async function toggleBookmarksPanel(paneIdx) {
 // Sprung, kapselt findTabAcrossPanes plus Tab-/Pane-Aktivierung und Cursor-
 // Sprung. Wenn der Tab in keiner Pane offen ist, wird er in der aktiven Spalte
 // geoeffnet.
+//
+// 4T-002641: Ohne Zeile (Lesezeichen, Graph, Statistik-Seite, Profile) gibt es
+// kein Sprung-Ziel: Ein neuer Reiter öffnet an der gemerkten Lese-Stelle, ein
+// schon offener kommt nur nach vorn und bleibt, wo er steht (Entscheidung des
+// Product Owners vom 2026-11-13 zum Lesezeichen). Mit Zeile (Rückverweise)
+// entsteht keine offene Lese-Stelle, und die Schreibmarke springt an die Zeile.
 export async function openOrJumpToPath(targetPath, lineNumber) {
   if (!targetPath) return;
+  const zeile = parseInt(lineNumber, 10);
+  const mitZeile = Number.isFinite(zeile) && zeile >= 1;
   const found = findTabAcrossPanes(targetPath);
   if (found) {
     if (found.paneIdx !== state.activePaneIndex) {
       activatePane(found.paneIdx);
     }
-    if (state.panes[found.paneIdx].activeIndex !== found.tabIdx) {
-      activateTab(found.paneIdx, found.tabIdx);
-    }
-    placeCursorAtLine(found.paneIdx, lineNumber);
+    // Review 3E-000397: Nur ein eben nach vorn geholtes Dokument hat einen
+    // frischen Eintrag, der das Ziel bekommt; war der Reiter schon der
+    // gezeigte, ist es ein Sprung im selben Dokument mit eigenem Eintrag.
+    const nachOeffnen = state.panes[found.paneIdx].activeIndex !== found.tabIdx;
+    if (nachOeffnen) activateTab(found.paneIdx, found.tabIdx);
+    if (mitZeile) placeCursorAtLine(found.paneIdx, zeile, { nachOeffnen });
     return;
   }
   // Neuen Tab in der aktiven Spalte oeffnen, dann Cursor setzen.
-  await openInPane(state.activePaneIndex, [targetPath]);
-  placeCursorAtLine(state.activePaneIndex, lineNumber);
+  await openInPane(state.activePaneIndex, [targetPath], { zielFolgt: mitZeile });
+  if (mitZeile) placeCursorAtLine(state.activePaneIndex, zeile, { nachOeffnen: true });
 }
 
 // === 4T-000287 (Epic 3E-000051): Panel-Registrierung =============================
@@ -254,11 +268,15 @@ if (typeof api.onBookmarksChanged === 'function') {
   });
 }
 
-export function placeCursorAtLine(paneIdx, lineNumber) {
+// `nachOeffnen`: Der Aufrufer hat das Dokument in diesem Zug geöffnet oder nach
+// vorn geholt (siehe `merkeSprung`).
+export function placeCursorAtLine(paneIdx, lineNumber, { nachOeffnen = false } = {}) {
   const view = paneEditors[paneIdx];
   if (!view) return;
   const ln = parseInt(lineNumber, 10);
   if (!Number.isFinite(ln) || ln < 1) return;
+  verwirfStelle(paneIdx);
+  merkeSprung(paneIdx, ln, { nachOeffnen });
   // R3-03 (4T-000186): Im Reading-Modus ist der Editor unsichtbar — der
   // Cursor-Sprung verpuffte im versteckten Pane. Stattdessen das Render-
   // Pane zur naechstgelegenen data-source-line-Stelle scrollen.
@@ -267,6 +285,19 @@ export function placeCursorAtLine(paneIdx, lineNumber) {
   if (tab && tab.viewMode === 'rendered') {
     scrollRenderedToLine(paneIdx, ln);
     return;
+  }
+  // 4T-002783: Der Sprung bestimmt die Bildlauf-Lage des Editors. Wurde das
+  // Dokument in diesem Zug geöffnet oder nach vorn geholt, steht die
+  // Wiederherstellung der gemerkten Lage aus `renderPaneContent` noch aus. Sie
+  // läuft im selben Bild nach dem Mess-Durchlauf des Editors, weil der
+  // Text-Tausch diesen früher angemeldet hat, und setzte die Zeile sonst auf
+  // die gemerkte Lage zurück (gemessen: Lage 0, Zeile 301 außer Sicht). Die
+  // Marke gilt nur für dieses Bild.
+  if (tab) {
+    tab.sprungImEditor = true;
+    requestAnimationFrame(() => {
+      tab.sprungImEditor = false;
+    });
   }
   const doc = view.state.doc;
   const clamped = Math.min(ln, doc.lines);

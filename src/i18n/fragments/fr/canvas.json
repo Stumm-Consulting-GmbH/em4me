@@ -136,5 +136,7 @@
   "canvas.austausch.fehler.keinJson": "Le fichier ne contient pas de JSON valide ; aucun document n’a été créé.",
   "canvas.austausch.fehler.keineListen": "Le fichier ne comporte ni nœuds ni connexions ; aucun document n’a été créé.",
   "canvas.austausch.fehler.keinFreierName": "Aucun nom libre ne restait à côté du fichier ; aucun document n’a été créé.",
-  "canvas.austausch.fehler.nichtSchreibbar": "Le nouveau document n’a pas pu être créé ; le fichier choisi reste inchangé."
+  "canvas.austausch.fehler.nichtSchreibbar": "Le nouveau document n’a pas pu être créé ; le fichier choisi reste inchangé.",
+  "canvas.austausch.fehler.geschuetzterOrdner": "Le dossier du fichier appartient au programme ; aucun nouveau document n’y est créé. Le fichier choisi reste inchangé.",
+  "canvas.austausch.fehler.zielNichtPruefbar": "Impossible de vérifier si le dossier du fichier appartient au programme ; aucun nouveau document n’y est donc créé. Le fichier choisi reste inchangé."
 }

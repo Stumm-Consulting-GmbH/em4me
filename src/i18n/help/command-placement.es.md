@@ -12,7 +12,7 @@ Los botones cuyo comando pertenece a una extensión desactivada no aparecen (la 
 
 ## Ocultar los botones predeterminados
 
-Cada elemento predeterminado de la barra de estado se puede ocultar individualmente: los conmutadores de paneles, los tres conmutadores del editor (plegado, números de línea, ajuste de línea), los cuatro botones de vista y los elementos del lado derecho (estadísticas de palabras, indicador de zoom, editar, sincronización de desplazamiento, historial del documento, tema, idioma). Solo la línea de aviso permanece siempre visible — es el único canal para mensajes breves como el estado de guardado.
+Cada elemento predeterminado de la barra de estado se puede ocultar individualmente: los conmutadores de paneles, los dos botones de flecha «Atrás» y «Adelante» al principio de los botones de comando, los tres conmutadores del editor (plegado, números de línea, ajuste de línea), los cuatro botones de vista y los elementos del lado derecho (estadísticas de palabras, indicador de zoom, editar, sincronización de desplazamiento, historial del documento, tema, idioma). Solo la línea de aviso permanece siempre visible — es el único canal para mensajes breves como el estado de guardado.
 
 Ocultar solo retira el acceso, la función se mantiene: todo lo oculto sigue accesible a través del menú, la paleta de comandos y los atajos de teclado. El botón «Mostrar todo» restablece la barra de estado predeterminada. La ocultación aquí es permanente e independiente de que un botón sea utilizable en ese momento; cómo trata la barra los botones que en este momento no pueden hacer nada se describe en [Vistas y presentación](views-display.md).
 

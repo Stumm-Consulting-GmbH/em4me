@@ -28,6 +28,15 @@
 // WF-EREIGNIS-03: Der Workflow legt selbst eine Datei in «Eingang» an. Sie
 //   löst keinen weiteren Lauf aus (Lauf-Marke, 4T-002461).
 //
+// Nachgezogen mit 4T-002620 (Epic 3E-000445; Zusicherung von 4T-002462, AK2,
+// Story 4S-001145):
+//
+// WF-EREIGNIS-04: Ein scharfer Workflow mit `event: task-done in
+//   "Wochenplan.md"`. Ein Klick auf das Kästchen einer Aufgabe in der
+//   Live-Ansicht, ohne Speichern, ergibt genau einen Lauf mit der Herkunft
+//   «Ereignis», der Datei und dem Text der Aufgabe. Gemessen wie «kein weiterer
+//   Lauf» unten: Eine zweite abgehakte Aufgabe ist der Anker.
+//
 // **Wie «kein weiterer Lauf» gemessen wird, ohne feste Pause** (Stabilitäts-
 // regel 2): Nach dem ersten Lauf entsteht von außen eine zweite Datei als
 // Anker. Der Prüfer wertet strikt nacheinander aus und entprellt jede Datei
@@ -43,7 +52,13 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp, warteAufRendererBereit } = require('../helpers/app');
+const {
+  launchApp,
+  closeApp,
+  warteAufRendererBereit,
+  oeffneDokumentImFenster,
+} = require('../helpers/app');
+const { SEL } = require('../helpers/selectors');
 const mddStore = require('../../../src/main/documents/mdd-store.js');
 const {
   definitionsPruefsumme,
@@ -312,4 +327,79 @@ test.describe('WF-EREIGNIS: Scharf-Schaltung und Anzeige eines Ereignis-Workflow
       removeDir(wurzel);
     }
   });
+
+  test('WF-EREIGNIS-04: Abhaken einer Aufgabe in der Live-Ansicht ergibt genau einen Lauf (4T-002620)', async () => {
+    test.setTimeout(120000);
+    const { wurzel, plan, begleitdatei } = baueAufgabenBereich();
+    const { app, page, userData } = await launchApp();
+    try {
+      await warteAufRendererBereit(page);
+      await bindeBereich(page, wurzel);
+      await expect(page.locator('#statusbar-workflows')).toBeVisible(EREIGNIS_ZEIT);
+      await oeffneDokumentImFenster(app, page, plan);
+      await page.locator(SEL.viewBtn('live')).click();
+      // Das Kästchen zeichnet ::before auf einem Marker mit Schriftgröße 0;
+      // Playwright hält es für verborgen, daher der Klick mit force (Muster
+      // regression/4t-0484.spec.js).
+      const kaestchen = page.locator(`${SEL.paneSource0} [data-live-task-from]`);
+      await expect(kaestchen).toHaveCount(2);
+
+      await kaestchen.nth(0).click({ force: true });
+      await expect(page.locator(`${SEL.paneSource0} [data-live-task-checked="true"]`)).toHaveCount(
+        1,
+      );
+      await expect.poll(() => aufgabeImLetztenLauf(begleitdatei), EREIGNIS_ZEIT).toMatch(/Brief/);
+      const erster = laufStand(begleitdatei);
+      expect(erster.runs).toBe(1);
+      expect(erster.lastRun).toMatchObject({
+        status: 'ok',
+        origin: 'event',
+        event: { type: 'task-done', file: 'Wochenplan.md' },
+      });
+      expect(erster.lastRun.event.task).toContain('Brief schreiben');
+
+      // Anker: Ein zweiter Lauf durch dasselbe Abhaken stünde vor diesem.
+      await kaestchen.nth(1).click({ force: true });
+      await expect.poll(() => aufgabeImLetztenLauf(begleitdatei), EREIGNIS_ZEIT).toMatch(/Anker/);
+      const anker = laufStand(begleitdatei);
+      expect(anker.runs).toBe(2);
+      expect(anker.lastRun).toMatchObject({ status: 'ok', origin: 'event' });
+    } finally {
+      await closeApp(app, userData, { force: true });
+      removeDir(wurzel);
+    }
+  });
 });
+
+// Bereich für WF-EREIGNIS-04: ein schon scharfer Workflow auf «Aufgabe
+// erledigt» im Wochenplan und der Wochenplan mit zwei offenen Aufgaben.
+function baueAufgabenBereich() {
+  const wurzel = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-wf-aufgabe-'));
+  fs.mkdirSync(path.join(wurzel, 'Workflows'));
+  const plan = path.join(wurzel, 'Wochenplan.md');
+  fs.writeFileSync(plan, '# Wochenplan\n\n- [ ] Brief schreiben\n- [ ] Anker setzen\n', 'utf8');
+  const text = [
+    '---',
+    'workflow: true',
+    'name: Aufgaben-Probe',
+    'trigger: event',
+    'event: task-done in "Wochenplan.md"',
+    '---',
+    '',
+    '```workflow',
+    'notify "Erledigt: {{task}}"',
+    '```',
+    '',
+  ].join('\n');
+  fs.writeFileSync(path.join(wurzel, 'Workflows', 'Aufgaben-Probe.md'), text, 'utf8');
+  const container = mddStore.emptyContainer();
+  mddStore.setWorkflowArmed(container, { hash: definitionsPruefsumme(text) }, Date.now());
+  const begleitdatei = path.join(wurzel, 'Workflows', 'Aufgaben-Probe.mdd');
+  fs.writeFileSync(begleitdatei, mddStore.serializeContainer(container), 'utf8');
+  return { wurzel, plan, begleitdatei };
+}
+
+function aufgabeImLetztenLauf(begleitdatei) {
+  const stand = laufStand(begleitdatei);
+  return stand && stand.lastRun && stand.lastRun.event ? stand.lastRun.event.task || '' : '';
+}

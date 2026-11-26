@@ -12,8 +12,17 @@
 //   hasSelection     mindestens eine nicht-leere Selektions-Range.
 //   hasClipboardText die Zwischenablage enthält Text (Einfügen aktiv).
 //   docNotEmpty      das Dokument hat Inhalt (Alles auswählen aktiv).
+//   pasteAsTable     4T-002554: «Als Tabelle einfügen» anbieten (Erweiterung
+//                    table-tools aktiv); «Als reinen Text einfügen» ist Kern
+//                    und steht immer direkt hinter «Einfügen».
 // Rückgabe: geordnete Liste [{ id, enabled }] in Menü-Reihenfolge.
-function computeClipboardMenuState({ readOnly, hasSelection, hasClipboardText, docNotEmpty } = {}) {
+function computeClipboardMenuState({
+  readOnly,
+  hasSelection,
+  hasClipboardText,
+  docNotEmpty,
+  pasteAsTable,
+} = {}) {
   if (readOnly) {
     // Read-only-Teilmenge (Epic-Entscheidung): kein Ausschneiden/Einfügen.
     return [
@@ -25,6 +34,8 @@ function computeClipboardMenuState({ readOnly, hasSelection, hasClipboardText, d
     { id: 'cut', enabled: !!hasSelection },
     { id: 'copy', enabled: !!hasSelection },
     { id: 'paste', enabled: !!hasClipboardText },
+    { id: 'pastePlain', enabled: !!hasClipboardText },
+    ...(pasteAsTable ? [{ id: 'pasteAsTable', enabled: !!hasClipboardText }] : []),
     { id: 'selectAll', enabled: !!docNotEmpty },
   ];
 }

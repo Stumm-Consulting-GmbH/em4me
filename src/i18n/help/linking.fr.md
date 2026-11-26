@@ -63,6 +63,28 @@ Les cibles d'ancres cassées sont signalées par le [linter Markdown](tools.md) 
 
 Dans un fichier de table de la [base de données](database.md), `#^` désigne en outre l'identifiant d'un enregistrement isolé : `[[Personen#^r-00042]]`. Un tel lien vaut si la table porte cet enregistrement ; une ancre de bloc de même nom garde la priorité.
 
+## Précédent et suivant
+
+Comme dans un navigateur, « Précédent » ramène à l'endroit où vous étiez auparavant, et « Suivant » repart vers l'avant. Vous revenez ainsi à votre point de départ après avoir suivi un lien, sans avoir à le chercher.
+
+**Utilisation :**
+
+- `Alt+←` et `Alt+→` ; les raccourcis se modifient sous Fichier → Paramètres… → Raccourcis clavier.
+- Les boutons latéraux de la souris.
+- Affichage → Précédent et Affichage → Suivant.
+- Les commandes « Précédent » et « Suivant » de la palette de commandes.
+- Les deux boutons fléchés de la barre d'état. Ils sont grisés tant qu'aucun pas n'est possible dans leur direction, et ils se masquent comme tout bouton par défaut, voir [Placement des commandes](command-placement.md).
+
+Dans la vue source et en mode direct, `Alt+←` et `Alt+→` ne déplacent pas le curseur mais reculent et avancent eux aussi. Seule la table des matières d'un livre, lorsqu'une ligne de chapitre a le focus, les utilise pour désimbriquer et imbriquer le chapitre, `Alt+←` désimbrique et `Alt+→` imbrique ; `Alt+↑` et `Alt+↓` le déplacent au sein de son niveau, voir [Livres](books.md).
+
+**Ce qui compte comme visite.** Chaque changement du document affiché, que ce soit par un onglet, `Ctrl+Tab`, un lien ou l'ouverture d'un document. S'y ajoutent les sauts à l'intérieur d'un document : un lien vers un titre ou un bloc, un clic dans le panneau « Table des matières » ou dans un bloc table des matières, une entrée du panneau « Rétroliens » et un saut depuis la liste de résultats de la recherche. La recherche du résultat suivant dans la barre de recherche et le défilement ne comptent pas. Si deux endroits du même document sont distants de moins de dix lignes, ils comptent pour un seul.
+
+**Historique.** Si vous reculez puis sautez de là vers un nouvel endroit, la partie vers laquelle « Suivant » aurait mené disparaît. Chaque fenêtre a son propre historique d'au plus 100 entrées ; il commence vide avec la fenêtre et se termine avec elle. Si deux colonnes sont ouvertes, le pas ramène aussi dans la colonne où vous étiez.
+
+**Documents fermés et supprimés.** « Précédent » rouvre un document fermé entre-temps, à l'endroit où vous l'avez quitté. Un document qui n'existe plus est ignoré, sauf s'il est encore ouvert dans un onglet, et la barre d'état indique combien d'emplacements ont été ignorés. Si aucun pas n'est plus possible, elle affiche « Aucun emplacement précédent » ou « Aucun emplacement suivant ».
+
+L'endroit où se trouve un document ouvert sans cible précise est décrit dans la section « Position de lecture » de la page [Applications, fenêtres et zones](apps-windows.md).
+
 ## Liens Markdown vers des fichiers
 
 Les liens Markdown classiques ouvrent aussi les cibles `.md` en onglet ; les ancres fonctionnent pareil. Les liens d'ancre internes au document sautent dans la page — en direct ici : [vers le chapitre Tags](#tags).
@@ -127,9 +149,9 @@ La cible est d'abord cherchée au chemin indiqué puis, si rien ne s'y trouve, p
 
 **L'incorporation** depuis une zone liée n'est pas possible : `![[@zt:Note]]` affiche à sa place un avis qui le dit précisément, que les liens entre zones soient activés ou non. Le lien `[[@zt:Note]]` vers la même cible l'ouvre comme décrit.
 
-**Les modèles de la zone liée** peuvent être proposés à côté des vôtres ; un interrupteur existe par lien. La sélection de modèles montre alors les deux ensembles, et chaque entrée externe indique son origine. Sans cet interrupteur, un lien ne change pas l'ensemble des modèles.
+**Les modèles de la zone liée** peuvent être proposés à côté des vôtres ; un interrupteur existe par lien. La sélection de modèles montre alors les deux ensembles, et chaque entrée externe indique son origine. Sans cet interrupteur, un lien ne change pas l'ensemble des modèles. Si l'extension « Modèles » est désactivée, l'interrupteur est masqué ; le choix enregistré est conservé et s'applique de nouveau dès que l'extension est réactivée.
 
-**Les workflows de la zone liée** peuvent être proposés de la même façon, avec un interrupteur « Workflows » propre à chaque lien. Ils apparaissent dans le menu, dans la palette de commandes et sur la page des exécutions des workflows avec le préfixe du lien, ne se lancent qu'à la main et agissent dans votre propre zone ; rien n'est écrit dans la zone liée. Détails sur la page [Workflows](workflows.md).
+**Les workflows de la zone liée** peuvent être proposés de la même façon, avec un interrupteur « Workflows » propre à chaque lien. Ils apparaissent dans le menu, dans la palette de commandes et sur la page des exécutions des workflows avec le préfixe du lien, ne se lancent qu'à la main et agissent dans votre propre zone ; rien n'est écrit dans la zone liée. Si l'extension « Workflows » est désactivée, cet interrupteur est masqué de même, et son choix enregistré est conservé. Détails sur la page [Workflows](workflows.md).
 
 ### Lorsqu'une zone liée est introuvable
 

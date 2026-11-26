@@ -31,14 +31,30 @@
 // Aufgaben-Abfrage (`toggleTaskFromQuery`), damit Erledigt-Datum,
 // Wiederholung und die Weiche zum Editor-Puffer (P5, A3) dieselben sind; der
 // Hauptprozess antwortet deshalb mit dem Fenster-Handgriff `completeTask`.
-// Kein Treffer ist ein Fehlschlag des Schritts (A1).
+// Kein Treffer ist ein Fehlschlag des Schritts (A1). Ist die Datei nicht offen,
+// schreibt das Fenster über den Kanal `task:applyLineEdit`; seit 4T-002813
+// (Epic 3E-000444) liest und schreibt er bei einem in Teile zerlegten Dokument
+// das ganze Dokument, sodass der Handgriff mit dem Pfad der Kopf-Datei und der
+// Zeile des zusammengesetzten Stands auch eine Aufgabe in einem späteren Teil
+// trifft. Bis dahin las der Kanal allein die Kopf-Datei und meldete einen
+// Konflikt.
 //
 // **Lauf-Marke** (4T-002461, Story 4S-001144): Vor der Antwort `completeTask`
 // merkt der Hauptprozess die Einmal-Marke der Datei mit ihrem Inhalt davor und
 // der Beschreibung der Aufgabe (`documents/self-write.js`, Abschnitt
 // «Lauf-Marke», Form 3), denn abgehakt wird im Fenster: Weder das Speichern
 // noch das Ereignis `task-done` dieses Abhakens löst etwas aus. `delete` legt
-// in den Papierkorb und erzeugt kein Ereignis.
+// in den Papierkorb und erzeugt kein Ereignis. Seit 4T-002813 trägt bei einem
+// in Teile zerlegten Dokument zusätzlich jeder Folgeteil eine eigene
+// Einmal-Marke, in dessen Inhalt die Beschreibung steht: Liegt die Aufgabe
+// dort, schreibt der Kanal den Folgeteil und nicht die Kopf-Datei, und die
+// Meldungen der Beobachtung (Datei geändert, Aufgabe erledigt) tragen den Pfad
+// des Folgeteils. Die Marke sitzt am geschriebenen Pfad wie bei Form 1, weil
+// der Vergleich mit dem Inhalt davor und die synchrone Prüfung der Meldung
+// `task-done` je Pfad arbeiten; eine Zurechnung des Folgeteils zur Kopf-Datei
+// beim Prüfen müsste dagegen jede Meldung erst über die Teile auflösen.
+// Folgeteile ohne die Beschreibung bleiben ohne Marke, damit eine fremde
+// Änderung dort in den fünf Minuten der Marke nicht dem Lauf zugerechnet wird.
 //
 // **`delete` einer Karteikarte** (4T-002691, Epic 3E-000415, Tc Option (a))
 // geht über die Weiche des Bereichs-Panels (`workflow-kartei-weiche.js`):
@@ -60,6 +76,7 @@ const { buildTaskEnv } = require('../index/task-env');
 const { parseContent } = require('../index/parse');
 const { MDD_EXT, companionPathFor } = require('../../shared/markdown-data-family');
 const { merkeLaufAufgabe } = require('../documents/self-write');
+const { readStateForSave } = require('../documents/document-parts-io');
 const { modelMatchesGlobalFilter, parseTaskLine } = require('../../shared/tasks/task-markers.js');
 const { resolveAreaPath } = require('./workflow-area-path.js');
 // 4T-002689 (Zweitblick, Runde 2): ein Dokument, wie die Anwendung es führt,
@@ -204,6 +221,18 @@ function createWorkflowMaintenanceSteps(deps) {
     return { ok: true, effect };
   }
 
+  // 4T-002813: die Einmal-Marke der Folgeteile, in denen die Beschreibung
+  // steht (Abschnitt «Lauf-Marke» oben). Ein ungeteiltes Dokument oder ein
+  // nicht lesbarer Stand merkt nichts zusätzlich.
+  async function merkeFolgeteile(kopf, beschreibung) {
+    if (!beschreibung) return;
+    const stand = await readStateForSave(kopf);
+    if (!stand.ok || !stand.geteilt) return;
+    for (const teil of stand.teile.slice(1)) {
+      if (teil.content.includes(beschreibung)) await merkeLaufAufgabe(teil.pfad, beschreibung);
+    }
+  }
+
   async function abhaken(ctx, step) {
     const [relPfad, suche] = step.args;
     const ziel = await resolveAreaPath(ctx.root, relPfad);
@@ -220,7 +249,9 @@ function createWorkflowMaintenanceSteps(deps) {
     const treffer = findOpenTask(gelesen.kopf, gelesen.text, suche, aufgabenUmgebung());
     if (!treffer) return fehlschlag('taskNotFound', { path: relPfad, text: suche });
     const model = parseTaskLine(treffer.taskText);
-    await merkeLaufAufgabe(gelesen.kopf, model ? model.description : suche);
+    const beschreibung = model ? model.description : suche;
+    await merkeLaufAufgabe(gelesen.kopf, beschreibung);
+    await merkeFolgeteile(gelesen.kopf, beschreibung);
     return {
       ok: true,
       window: {

@@ -42,6 +42,8 @@ Result: the image appears with the caption "Quarterly figures compared" centred 
 
 Alternatively `![[image.png]]` embeds an image through the wiki syntax, including the size modifier `![[image.png|300]]` — details on the [Linking](linking.md) page.
 
+An image above the whole document is set by the property `cover` in the frontmatter, in both notations — section «Cover image» on the [Frontmatter and properties](frontmatter.md) page.
+
 ## Enlarging an image
 
 A click on an image in the “Rendered” view — likewise in its half of the “Split” view — shows it enlarged over the whole window. The background is dimmed, and the image appears as large as the window and its own resolution allow: complete, undistorted and never beyond its own size. A small image therefore stays at its own size in the middle. A size hint in the document (`=300x`) does not limit the enlargement. This applies to every displayed image, including those in tables, callouts and embeds, and also to an image that is itself a link.

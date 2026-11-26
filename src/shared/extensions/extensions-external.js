@@ -234,6 +234,8 @@ module.exports = {
   EXTERNAL_TRUSTED_KEY,
   EXTERNAL_ERRORS_KEY,
   EXTENSION_DATA_PREFIX,
+  // 4T-002649: Form der Kennung, für die Familie `extensionData.<id>` der Einstellungs-Klassen.
+  EXTENSION_ID_RE: ID_RE,
   extensionDataKey,
   isExtensionDataPath,
   parseVersion,

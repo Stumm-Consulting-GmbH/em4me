@@ -337,6 +337,148 @@ describe('Puffer-Overlay: Reichweite der Freischaltung', () => {
     expect(bufferOwnerFor('')).toBe(null);
   });
 
+  // 4T-002740 (Epic 3E-000396): Die Ablage je Fenster hält den Stand jedes
+  // meldenden Fensters, auch wenn ein anderes Fenster ihn in der Schicht
+  // überdeckt hat. Der Übertrag offener Aufgaben fragt sie, damit ein
+  // unverändert offenes Fenster den ungespeicherten Stand eines zweiten nicht
+  // verdeckt.
+  it('führt die Stände je Fenster: Überdecken verliert keinen, Rücknahme trifft nur das eigene Fenster', async () => {
+    const { bufferTexteAllerFenster, clearBufferOverlaysOfOwner } = require_(
+      '../../src/main/index/overlay.js',
+    );
+    const root = makeRoot();
+    const start = write(root, 'Start.md', '# Start\n');
+    const quelle = write(root, 'Quelle.md', '- [ ] Newsletter\n');
+    await indexFor(start);
+    expect(bufferTexteAllerFenster(quelle)).toEqual([]);
+
+    // Fenster 7 hat geändert, Fenster 9 meldet danach den unveränderten Text.
+    setBufferOverlay(quelle, '- [ ] Newsletter geändert\n', 7);
+    setBufferOverlay(quelle, '- [ ] Newsletter\n', 9);
+    expect(bufferTextFor(quelle)).toBe('- [ ] Newsletter\n');
+    expect(bufferTexteAllerFenster(quelle).sort()).toEqual(
+      ['- [ ] Newsletter\n', '- [ ] Newsletter geändert\n'].sort(),
+    );
+    // Ein Fenster meldet erneut: sein Stand wird ersetzt, nicht verdoppelt.
+    setBufferOverlay(quelle, '- [ ] Newsletter neu\n', 9);
+    expect(bufferTexteAllerFenster(quelle)).toHaveLength(2);
+
+    // Schreibweise wie bei bufferTextFor.
+    try {
+      setPlatformForTests('win32');
+      expect(bufferTexteAllerFenster(path.join(root, 'quelle.md'))).toHaveLength(2);
+      setPlatformForTests('linux');
+      expect(bufferTexteAllerFenster(path.join(root, 'quelle.md'))).toEqual([]);
+    } finally {
+      setPlatformForTests(undefined);
+    }
+
+    // Rücknahme durch Fenster 9: Der Eintrag der Schicht fällt wie bisher, der
+    // Stand von Fenster 7 bleibt in der Ablage.
+    clearBufferOverlay(quelle, 9);
+    expect(bufferTextFor(quelle)).toBe(null);
+    expect(bufferTexteAllerFenster(quelle)).toEqual(['- [ ] Newsletter geändert\n']);
+
+    // Schließen von Fenster 7 nimmt seinen Stand mit, auch wenn der Eintrag der
+    // Schicht nicht mehr ihm gehört.
+    setBufferOverlay(quelle, '- [ ] Newsletter\n', 9);
+    clearBufferOverlaysOfOwner(7);
+    expect(bufferTexteAllerFenster(quelle)).toEqual(['- [ ] Newsletter\n']);
+
+    // Rücknahme ohne Fenster-Angabe (bisherige Aufrufer) räumt alle Stände.
+    setBufferOverlay(quelle, '- [ ] Newsletter geändert\n', 7);
+    clearBufferOverlay(quelle);
+    expect(bufferTexteAllerFenster(quelle)).toEqual([]);
+    expect(bufferTexteAllerFenster('')).toEqual([]);
+  });
+
+  // 4T-002812 (Epic 3E-000444, AK1 und AK2): Besitzer ist nur ein Fenster mit
+  // UNGESPEICHERTEM Stand. Ein Fenster, das das Dokument unverändert hält, meldet
+  // seinen Stand weiter (die Anzeige braucht ihn), ist aber kein Schreibziel.
+  it('4T-002812: nennt nur den Melder eines ungespeicherten Stands; gelesen wird der Stand weiter', async () => {
+    const root = makeRoot();
+    const start = write(root, 'Start.md', '# Start\n');
+    const quelle = write(root, 'Quelle.md', '- [ ] Newsletter\n');
+    await indexFor(start);
+
+    // AK1: unverändert geöffnet: kein Besitzer, der Text bleibt lesbar.
+    setBufferOverlay(quelle, '- [ ] Newsletter\n', 7, false);
+    expect(bufferOwnerFor(quelle)).toBe(null);
+    expect(bufferTextFor(quelle)).toBe('- [ ] Newsletter\n');
+    // AK2: geändert: der Melder ist Besitzer.
+    setBufferOverlay(quelle, '- [ ] Newsletter ⏰ 2020-01-01 08:00\n', 7, true);
+    expect(bufferOwnerFor(quelle)).toBe(7);
+    // Zurück auf den gespeicherten Text getippt: wieder kein Besitzer.
+    setBufferOverlay(quelle, '- [ ] Newsletter\n', 7, false);
+    expect(bufferOwnerFor(quelle)).toBe(null);
+    // Ohne Angabe (bisherige Aufrufer) bleibt es beim bisherigen Verhalten.
+    setBufferOverlay(quelle, '- [ ] Newsletter ⏰ 2020-01-01 09:00\n', 9);
+    expect(bufferOwnerFor(quelle)).toBe(9);
+    // Abweichende Schreibweise unter Windows: dieselbe Regel.
+    setBufferOverlay(quelle, '- [ ] Newsletter\n', 7, false);
+    try {
+      setPlatformForTests('win32');
+      expect(bufferOwnerFor(path.join(root, 'quelle.md'))).toBe(null);
+      expect(bufferTextFor(path.join(root, 'quelle.md'))).toBe('- [ ] Newsletter\n');
+      setBufferOverlay(quelle, '- [ ] Newsletter und mehr\n', 7, true);
+      expect(bufferOwnerFor(path.join(root, 'quelle.md'))).toBe(7);
+    } finally {
+      setPlatformForTests(undefined);
+    }
+    clearBufferOverlay(quelle);
+  });
+
+  // Zusammenbau des Funktions-Release (Zweitblick Runde 2, Befund Z5): Schreibt
+  // ein Workflow in ein unverändert geöffnetes Dokument, folgen auch die Stände
+  // je Fenster dem geschriebenen Stand. Sonst lehnte der Übertrag offener
+  // Aufgaben bis zum Nachladen im Fenster grundlos ab.
+  it('Z5: Folgen auf den Plattenstand zieht die unveränderten Stände je Fenster nach', async () => {
+    const { bufferTexteAllerFenster, folgePlattenStand } = require_(
+      '../../src/main/index/overlay.js',
+    );
+    const root = makeRoot();
+    const start = write(root, 'Start.md', '# Start\n');
+    const quelle = write(root, 'Quelle.md', '- [ ] Newsletter\n');
+    await indexFor(start);
+
+    // Zwei Fenster halten das Dokument unverändert, ein drittes hat geändert;
+    // der Eintrag der Schicht gehört dem zuletzt meldenden, unveränderten.
+    setBufferOverlay(quelle, '- [ ] Newsletter geändert\n', 5, true);
+    setBufferOverlay(quelle, '- [ ] Newsletter\n', 9, false);
+    setBufferOverlay(quelle, '- [ ] Newsletter\n', 7, false);
+    expect(folgePlattenStand(quelle, '- [ ] Newsletter\n- [ ] Neu\n')).toBe(true);
+    expect(bufferTextFor(quelle)).toBe('- [ ] Newsletter\n- [ ] Neu\n');
+    expect(bufferTexteAllerFenster(quelle).sort()).toEqual(
+      [
+        '- [ ] Newsletter geändert\n',
+        '- [ ] Newsletter\n- [ ] Neu\n',
+        '- [ ] Newsletter\n- [ ] Neu\n',
+      ].sort(),
+    );
+
+    // Abweichende Schreibweise unter Windows (Zweitblick Runde 3): Ein Fenster
+    // hat seinen Stand unter dem anders geschriebenen Pfad gemeldet; auch er folgt.
+    clearBufferOverlay(quelle);
+    const anders = path.join(root, 'quelle.md');
+    try {
+      setPlatformForTests('win32');
+      setBufferOverlay(anders, '- [ ] Alt\n', 9, false);
+      setBufferOverlay(quelle, '- [ ] Alt\n', 7, false);
+      expect(folgePlattenStand(quelle, '- [ ] Neu\n')).toBe(true);
+      expect(bufferTexteAllerFenster(quelle)).toEqual(['- [ ] Neu\n', '- [ ] Neu\n']);
+      clearBufferOverlay(anders);
+      clearBufferOverlay(quelle);
+    } finally {
+      setPlatformForTests(undefined);
+    }
+
+    // Ein ungespeicherter Eintrag folgt nicht, seine Stände bleiben.
+    setBufferOverlay(quelle, '- [ ] Newsletter mehr\n', 7, true);
+    expect(folgePlattenStand(quelle, '- [ ] Platte\n')).toBe(false);
+    expect(bufferTexteAllerFenster(quelle)).not.toContain('- [ ] Platte\n');
+    clearBufferOverlay(quelle);
+  });
+
   // 4T-000952 (Befund E-04): Die Rückverweise lesen den geschriebenen Stand.
   // Beide Richtungen in einem Fall, weil sie dieselbe Umstellung prüfen: Ein im
   // Puffer entstandener Verweis erscheint, ein dort entfernter verschwindet.

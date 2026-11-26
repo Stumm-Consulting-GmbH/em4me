@@ -40,11 +40,25 @@
 // Selbst-Schreib-Marke bleibt aus, damit ein ungeändert geöffnetes Dokument in
 // jedem Fenster neu lädt.
 //
+// **Zweiter Nutzer des Schreib-Schritts** (4T-002813): Das zeilen-genaue
+// Rückschreiben der Aufgaben-Abfrage (`src/main/ipc/aufgaben-zeile-schreiben.js`)
+// liest ein geteiltes Dokument über `liesStand` und schreibt es über
+// `schreibeDokumentTeile`, dort ganz ohne Schreib-Marke. Die Marke reicht
+// deshalb der Aufrufer herein; dieser Weg reicht die Lauf-Marke.
+//
+// **Meldung bei unveränderter Kopf-Datei** (4T-002812): Neu geladen wird über
+// die Beobachtung der Kopf-Datei. Schreibt der Weg in einem geteilten Dokument
+// nur Folgeteile, meldet er die Änderung deshalb selbst
+// (`deps.meldeDateiAenderung`, Datei-Beobachtung).
+//
 // Eigener Zustand: keiner.
 'use strict';
 
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 const { merkeLaufStand } = require('../documents/self-write');
+// Zweitblick Runde 1, Befund 1: Ein unverändert geöffnetes Fenster folgt dem
+// geschriebenen Stand (Puffer-Overlay-Schicht).
+const { folgePlattenStand } = require('../index/overlay.js');
 const fs = require('node:fs/promises');
 const {
   readAssembledDocument,
@@ -336,58 +350,84 @@ function ohneBom(text) {
 }
 
 /**
+ * Teilung planen und die Dateien eines Dokuments schreiben, wie das Speichern
+ * von Hand: Grenz-Prüfung jedes Ziel-Pfads, Sicherung des alten Gesamt-Stands
+ * bei mehr als einer Datei, dann die Teile. Wirft bei einem Schreibfehler,
+ * an der Grenze mit `grenze: true`.
+ *
+ * 4T-002813: herausgelöst, damit auch das zeilen-genaue Rückschreiben der
+ * Aufgaben-Abfrage (`src/main/ipc/aufgaben-zeile-schreiben.js`) ein geteiltes
+ * Dokument auf demselben Weg schreibt. Die Schreib-Marke reicht der Aufrufer
+ * herein: der Lauf eines Workflows die Lauf-Marke, das Rückschreiben keine.
+ *
+ * @param {{root: string, owner: object}} ctx Wurzel des Bereichs und Fenster.
+ * @param {object} stand Stand aus `liesStand`, mit `ordner`.
+ * @param {string} zielPfad Pfad der Kopf-Datei.
+ * @param {string} neu neuer Gesamt-Stand mit LF.
+ * @param {boolean} recordHistory ob die Historie den Schreibvorgang aufnimmt.
+ * @param {{recordMddOnSave: Function, markSelfWriting?: Function}} wege
+ * @returns {Promise<{text: string, kopfGeschrieben: boolean}>} geschriebener
+ *   Gesamt-Stand und ob die Kopf-Datei darunter war.
+ */
+async function schreibeDokumentTeile(ctx, stand, zielPfad, neu, recordHistory, wege) {
+  const { recordMddOnSave, markSelfWriting } = wege;
+  const owner = ctx.owner;
+  const teilung = teilungsOptionen(neu);
+  const plan = planeZerlegung({
+    text: neu,
+    base: stand.basisName,
+    schwelle: teilung.schwelle,
+    bestand: stand.geteilt ? stand.teile : [],
+    segmentFelder: teilung.segmentFelder,
+  });
+  if (plan.ok === false) throw new Error(plan.error);
+  // Erstes Teilen eines gewöhnlichen Dokuments: ungeteilt weiter (siehe Kopf).
+  const teilen = plan.geteilt && !(plan.neuGeteilt && !teilung.istTabelle);
+  if (!teilen) {
+    await ersetzeDateiOderWirf(zielPfad, neu, { markSelfWriting });
+    return { text: neu, kopfGeschrieben: true };
+  }
+  // Sicherheits-Review, Runde 1: Jede Datei, die gleich geschrieben wird, liegt
+  // im geprüften Ordner und besteht die Prüfung eines Schritt-Pfads. Die
+  // Prüfung steht vor dem Sicherungs-Eintrag darunter, damit ein Halt an der
+  // Grenze auch die Begleitdatei unverändert lässt (Zweitblick des Epics).
+  const ext = path.extname(zielPfad) || '.md';
+  for (const teil of plan.teile) {
+    const p = teil.pfad || path.join(path.dirname(zielPfad), `${teil.basename}${ext}`);
+    const zulaessig =
+      blankerName(path.basename(p)) &&
+      gleicherOrdner(p, stand.ordner) &&
+      (await imBereich(ctx.root, p));
+    if (!zulaessig) throw Object.assign(new Error('outsideArea'), { grenze: true });
+  }
+  // Berührt das Schreiben mehr als eine Datei, liegt der alte Gesamt-Stand
+  // vorher in der Historie, auch bei abgeschalteter Historisierung — wie in
+  // `file:save`: Zwei Dateien lassen sich nicht in einem Zug schreiben.
+  const mehrDateien = plan.teile.filter((t) => t.geaendert).length > 1;
+  if (mehrDateien && !recordHistory) {
+    await recordMddOnSave(owner, zielPfad, stand.text, stand.text);
+  }
+  const res = await writeDocumentParts(zielPfad, plan.teile, { markSelfWriting });
+  if (!res.ok) throw Object.assign(new Error(res.error), { code: res.code });
+  const kopf = pathCompareKey(zielPfad);
+  return {
+    text: assembleParts(plan.teile.map((t) => ({ index: t.index, content: t.text }))).text,
+    kopfGeschrieben: (res.geschrieben || []).some((p) => pathCompareKey(p) === kopf),
+  };
+}
+
+/**
  * Baut den Schreibweg der Text-Befehle auf die Platte.
  *
  * @param {object} deps
  * @param {Function} deps.resolveHistoryFor Auflösung der Historisierungs-Schaltung.
  * @param {Function} deps.recordMddOnSave Historien-Paket beim Speichern schreiben.
+ * @param {(pfad: string) => number} [deps.meldeDateiAenderung] 4T-002812: Meldung
+ *   an die Fenster, die das Dokument beobachten, wenn die Kopf-Datei unverändert
+ *   blieb (Datei-Beobachtung, `file-watching.js`).
  * @returns {{schreibeBearbeitung: Function}}
  */
-function createPlattenSchreibweg({ resolveHistoryFor, recordMddOnSave }) {
-  // Teilung planen und die Dateien schreiben; liefert den geschriebenen
-  // Gesamt-Stand. Wirft bei einem Schreibfehler.
-  async function schreibe(ctx, stand, zielPfad, neu, recordHistory) {
-    const owner = ctx.owner;
-    const teilung = teilungsOptionen(neu);
-    const plan = planeZerlegung({
-      text: neu,
-      base: stand.basisName,
-      schwelle: teilung.schwelle,
-      bestand: stand.geteilt ? stand.teile : [],
-      segmentFelder: teilung.segmentFelder,
-    });
-    if (plan.ok === false) throw new Error(plan.error);
-    // Erstes Teilen eines gewöhnlichen Dokuments: ungeteilt weiter (siehe Kopf).
-    const teilen = plan.geteilt && !(plan.neuGeteilt && !teilung.istTabelle);
-    if (!teilen) {
-      await ersetzeDateiOderWirf(zielPfad, neu, { markSelfWriting: merkeLaufStand });
-      return neu;
-    }
-    // Sicherheits-Review, Runde 1: Jede Datei, die gleich geschrieben wird, liegt
-    // im geprüften Ordner und besteht die Prüfung eines Schritt-Pfads. Die
-    // Prüfung steht vor dem Sicherungs-Eintrag darunter, damit ein Halt an der
-    // Grenze auch die Begleitdatei unverändert lässt (Zweitblick des Epics).
-    const ext = path.extname(zielPfad) || '.md';
-    for (const teil of plan.teile) {
-      const p = teil.pfad || path.join(path.dirname(zielPfad), `${teil.basename}${ext}`);
-      const zulaessig =
-        blankerName(path.basename(p)) &&
-        gleicherOrdner(p, stand.ordner) &&
-        (await imBereich(ctx.root, p));
-      if (!zulaessig) throw Object.assign(new Error('outsideArea'), { grenze: true });
-    }
-    // Berührt das Schreiben mehr als eine Datei, liegt der alte Gesamt-Stand
-    // vorher in der Historie, auch bei abgeschalteter Historisierung — wie in
-    // `file:save`: Zwei Dateien lassen sich nicht in einem Zug schreiben.
-    const mehrDateien = plan.teile.filter((t) => t.geaendert).length > 1;
-    if (mehrDateien && !recordHistory) {
-      await recordMddOnSave(owner, zielPfad, stand.text, stand.text);
-    }
-    const res = await writeDocumentParts(zielPfad, plan.teile, { markSelfWriting: merkeLaufStand });
-    if (!res.ok) throw Object.assign(new Error(res.error), { code: res.code });
-    return assembleParts(plan.teile.map((t) => ({ index: t.index, content: t.text }))).text;
-  }
-
+function createPlattenSchreibweg({ resolveHistoryFor, recordMddOnSave, meldeDateiAenderung }) {
   /**
    * Wendet eine fertige Bearbeitung über die Platte auf ein Dokument an.
    *
@@ -422,8 +462,19 @@ function createPlattenSchreibweg({ resolveHistoryFor, recordMddOnSave }) {
     }
     try {
       const recordHistory = (await resolveHistoryFor(ctx.owner, zielPfad, neu)).effective;
-      const geschrieben = await schreibe(ctx, stand, zielPfad, neu, recordHistory);
-      if (recordHistory) await recordMddOnSave(ctx.owner, zielPfad, stand.text, geschrieben);
+      const geschrieben = await schreibeDokumentTeile(ctx, stand, zielPfad, neu, recordHistory, {
+        recordMddOnSave,
+        markSelfWriting: merkeLaufStand,
+      });
+      if (recordHistory) await recordMddOnSave(ctx.owner, zielPfad, stand.text, geschrieben.text);
+      // 4T-002812: Blieb die Kopf-Datei unverändert, meldet die Beobachtung
+      // nichts; die Fenster erfahren die Änderung von hier (Kopf oben).
+      if (!geschrieben.kopfGeschrieben && typeof meldeDateiAenderung === 'function') {
+        meldeDateiAenderung(zielPfad);
+      }
+      // Zweitblick Runde 1, Befund 1: Ein unverändert geöffnetes Fenster folgt
+      // sofort, damit der nächste Schritt den geschriebenen Stand liest.
+      folgePlattenStand(zielPfad, geschrieben.text);
     } catch (err) {
       if (err && err.grenze) return fehlschlag('outsideArea', { path: ziel.rel || zielPfad });
       return fehlschlag('writeFailed', { fsCode: fehlerCode(err) });
@@ -434,4 +485,13 @@ function createPlattenSchreibweg({ resolveHistoryFor, recordMddOnSave }) {
   return { schreibeBearbeitung };
 }
 
-module.exports = { createPlattenSchreibweg, kopfPfadVon, liesDokument, liesQuelle };
+// 4T-002813: `liesStand` und `schreibeDokumentTeile` auch für das zeilen-genaue
+// Rückschreiben der Aufgaben-Abfrage (`src/main/ipc/aufgaben-zeile-schreiben.js`).
+module.exports = {
+  createPlattenSchreibweg,
+  kopfPfadVon,
+  liesDokument,
+  liesQuelle,
+  liesStand,
+  schreibeDokumentTeile,
+};

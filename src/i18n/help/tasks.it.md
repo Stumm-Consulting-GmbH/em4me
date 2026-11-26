@@ -16,7 +16,7 @@ Nei file modificabili un clic sulla casella completa l'attività o la riapre —
 
 ## Stati estesi
 
-Sei stati predefiniti; il carattere sta tra le parentesi quadre:
+Sette stati predefiniti; il carattere sta tra le parentesi quadre:
 
 ```markdown
 - [/] in corso
@@ -25,6 +25,7 @@ Sei stati predefiniti; il carattere sta tra le parentesi quadre:
 - [?] domanda
 - [!] importante
 - [*] contrassegnata
+- [»] riportata
 ```
 
 - [/] in corso
@@ -33,8 +34,11 @@ Sei stati predefiniti; il carattere sta tra le parentesi quadre:
 - [?] domanda
 - [!] importante
 - [*] contrassegnata
+- [»] riportata
 
 Ogni stato appare come casella colorata con glifo. Un clic sulla casella passa al **simbolo successivo** dello stato (predefinito: completare con `[x]`); così si possono configurare catene come «aperta → in corso → completata».
+
+Lo stato **Riportato** (`»`) porta il tipo Non è un'attività e viene impostato dal riporto delle attività aperte dei diari: nella voce di diario precedente contrassegna un'attività passata a una voce successiva. Un clic sulla casella riapre l'attività (pagina [Diari](journals.md), sezione «Riportare le attività aperte»).
 
 ## Stati personalizzati, tipo e simbolo successivo
 

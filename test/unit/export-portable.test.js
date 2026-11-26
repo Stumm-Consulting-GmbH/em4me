@@ -642,3 +642,56 @@ describe('Portable-Export: Code-Block mit Leerzeile in einer Tabellenzelle (4T-0
     }
   });
 });
+
+// 4T-002558 (Epic 3E-000390, V7): Der Inhaltsverzeichnis-Block wird im
+// portablen Export zur statischen verschachtelten Markdown-Liste mit Verweisen
+// auf die GitHub-artigen Anker; ohne Überschriften bleibt eine leere Zeile.
+describe('Portable-Export: Inhaltsverzeichnis-Block (4T-002558)', () => {
+  const ZAUN = '```toc\n```';
+
+  it('ersetzt den Zaun durch die Liste, mit Tiefe, Duplikat-Anker und explizitem {#id}', () => {
+    const src =
+      `# Eins\n\n${ZAUN}\n\n## Teil\n\n## Teil\n\n### Tief {#eigen}\n\n` +
+      '```toc\ndepth: 2\n```\n\nSchluss.\n';
+    const out = convertMarkdownPortable(src, true, 'de');
+    const liste = '- [Eins](#eins)\n  - [Teil](#teil)\n  - [Teil](#teil-1)';
+    expect(out).toContain(`${liste}\n    - [Tief](#eigen)\n`);
+    expect(out).toContain(`${liste}\n\nSchluss.`);
+    expect(out).not.toContain('```toc');
+    // Die Verweise treffen die Anker, die der Export selbst trägt.
+    const html = renderMarkdown(out, 'de');
+    for (const anker of ['eins', 'teil', 'teil-1', 'eigen']) {
+      expect(html).toContain(`id="${anker}"`);
+      expect(html).toContain(`href="#${anker}"`);
+    }
+  });
+
+  it('lässt Überschriften im Code-Block aus und maskiert Klammern im Text', () => {
+    const src = `# [Klammer] und *Stern*\n\n${ZAUN}\n\n\`\`\`md\n# Kein Eintrag\n\`\`\`\n`;
+    const out = convertMarkdownPortable(src, true, 'de');
+    expect(out).toContain('- [\\[Klammer\\] und Stern](#klammer-und-stern)\n');
+    expect(out).not.toContain('(#kein-eintrag)');
+  });
+
+  // Zweitblick zu 3E-000390 (Runde 2): Ein eigener Anker mit Klammer läuft
+  // durch den ganzen Weg (Attribut-Erweiterung, Verzeichnis, Verweis-Ziel);
+  // ohne die Maskierung endete der Verweis an der ersten Klammer.
+  it('maskiert die Klammer eines eigenen Ankers {#id} im Verweis-Ziel', () => {
+    const out = convertMarkdownPortable(`# A {#x)y}\n\n${ZAUN}\n`, true, 'de');
+    expect(out).toContain('- [A](#x\\)y)\n');
+    const html = renderMarkdown(out, 'de');
+    expect(html).toContain('id="x)y"');
+    expect(html).toContain('href="#x)y"');
+  });
+
+  it('setzt ohne Überschriften eine leere Zeile', () => {
+    const out = convertMarkdownPortable(`Text.\n\n${ZAUN}\n\nMehr.\n`, true, 'de');
+    expect(out).not.toContain('```toc');
+    expect(out).toMatch(/Text\.\n\n+Mehr\.\n$/);
+  });
+
+  it('ersetzt einen Zaun in einem äußeren Zaun nicht', () => {
+    const src = `# Eins\n\n\`\`\`\`markdown\n${ZAUN}\n\`\`\`\`\n`;
+    expect(convertMarkdownPortable(src, true, 'de')).toContain(`\`\`\`\`markdown\n${ZAUN}\n`);
+  });
+});

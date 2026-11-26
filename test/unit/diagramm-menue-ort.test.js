@@ -439,14 +439,26 @@ describe('Diagramm: das echte editMode ändert keinen anderen Menü-Eintrag (4T-
     // Die Grundgesamtheit wie in command-availability.test.js, ohne die beiden
     // Lage-Felder (sie stehen auf true, damit die Diagramm-Bedingungen
     // überhaupt freigeben können).
+    // 4T-002642 (Epic 3E-000397): Die beiden Verlaufs-Felder bleiben aus
+    // demselben Grund aus der Aufzählung wie die Lage-Felder und stehen wie sie
+    // auf true; jedes weitere boolsche Feld verdoppelte sie. Dass keine andere
+    // Bedingung sie liest, hält command-availability.test.js fest.
+    const fest = ['viewMode', 'editMode', 'inDatentabelle', 'diagrammGewaehlt'];
+    const verlauf = ['kannZurueck', 'kannVor'];
     const bool = AVAILABILITY_CONTEXT_FIELDS.filter(
-      (f) => !['viewMode', 'editMode', 'inDatentabelle', 'diagrammGewaehlt'].includes(f),
+      (f) => !fest.includes(f) && !verlauf.includes(f),
     );
     const namen = new Set(COMMANDS.filter((c) => c.menu).map((c) => c.availability));
     const folgen = new Set();
     for (let maske = 0; maske < 1 << bool.length; maske += 1) {
       for (const viewMode of ['source', 'split', 'live', 'rendered', 'canvas', 'kanban', null]) {
-        const roh = { viewMode, inDatentabelle: true, diagrammGewaehlt: true };
+        const roh = {
+          viewMode,
+          inDatentabelle: true,
+          diagrammGewaehlt: true,
+          kannZurueck: true,
+          kannVor: true,
+        };
         bool.forEach((f, i) => {
           roh[f] = (maske & (1 << i)) !== 0;
         });

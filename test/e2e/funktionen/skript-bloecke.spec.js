@@ -12,6 +12,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 const { SEL } = require('../helpers/selectors');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
@@ -278,6 +279,17 @@ test.describe('SK-08: Skript-Einstellung — Umschalten wirkt sofort', () => {
       const block = page.locator(`${SEL.markdownBody0} .perspective-script`);
       await expect(block.locator('.perspective-script-banner')).toBeVisible({ timeout: 15000 });
 
+      // 4T-002650: Das Einschalten bestätigt ein Dialog des Hauptprozesses.
+      // Er wird dort beantwortet («Einschalten», Antwort 0), jeder Aufruf
+      // wird mitgezählt.
+      await hauptSenden(app, ({ dialog }) => {
+        globalThis.__skDialoge = 0;
+        dialog.showMessageBox = async () => {
+          globalThis.__skDialoge += 1;
+          return { response: 0 };
+        };
+      });
+
       // Einstellungs-Seite öffnen (Poll-Muster: Dispatcher registriert erst
       // am Ende des asynchronen init), Bereich Verhalten, Schalter an, OK.
       await oeffneEinstellungsSeite(page);
@@ -290,6 +302,7 @@ test.describe('SK-08: Skript-Einstellung — Umschalten wirkt sofort', () => {
       await expect(block.locator('.perspective-script-banner')).toHaveCount(0);
       // Persistiert im Store.
       await expect.poll(() => page.evaluate(() => window.api.getSetting('scripts.run'))).toBe(true);
+      expect(await hauptLesen(app, () => globalThis.__skDialoge)).toBe(1);
 
       // Rückweg: deaktivieren, Quelltext-Darstellung mit Banner kehrt zurück.
       await oeffneEinstellungsSeite(page);
@@ -299,6 +312,8 @@ test.describe('SK-08: Skript-Einstellung — Umschalten wirkt sofort', () => {
       await expect(block.locator('.perspective-script-banner')).toBeVisible({ timeout: 15000 });
       await expect(block.locator('pre code')).toContainText("pq.out('Ergebnis: '");
       await expect(block).not.toContainText('Ergebnis: 42');
+      // Das Ausschalten fragt nicht nach.
+      expect(await hauptLesen(app, () => globalThis.__skDialoge)).toBe(1);
     } finally {
       await closeApp(app, userData, { force: true });
       cleanupDir(dir);

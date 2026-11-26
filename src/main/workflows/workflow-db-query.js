@@ -32,6 +32,7 @@ const path = require('node:path');
 const { pathCompareKey } = require('../../shared/platform.js');
 const { extractFrontmatter } = require('../../shared/markdown/frontmatter.js');
 const { resultSetMarkdown } = require('../../shared/query/result-set-markdown.js');
+const { taskDisplaySettings } = require('../../shared/query/result-display.js');
 const { markierteDateien } = require('../database/table-catalog.js');
 const { abfrageDesTextes } = require('../database/listen-auskunft.js');
 const { LAGEN } = require('../database/record-auftrag-pruefung.js');
@@ -90,6 +91,15 @@ function createWorkflowDbQuery(deps) {
     });
   }
 
+  // 4T-002822: die beiden Einstellungen zum globalen Aufgaben-Filter, aus
+  // derselben Quelle und nach derselben Regel gelesen wie in der Ansicht
+  // (`taskDisplaySettings` im Darstellungs-Kern), damit die geschriebene
+  // Notiz denselben Aufgaben-Text trägt.
+  function aufgabenAnzeige() {
+    const store = typeof deps.getStore === 'function' ? deps.getStore() : null;
+    return taskDisplaySettings(store ? store.get('tasksConfig') : null);
+  }
+
   // Ist die Datei im Index eine Abfrage-Datei (Marke `db-query`)?
   function istAbfrageDatei(root, abs) {
     const lage = backlinks.datenbankSicht(null, root);
@@ -144,7 +154,7 @@ function createWorkflowDbQuery(deps) {
     const ausgefuehrt = await fuehreAus(ctx, String(step.args[0]));
     if (!ausgefuehrt.ok) return ausgefuehrt;
     const t = (key) => deps.tForWindow(ctx.owner, key);
-    const tabelle = resultSetMarkdown(ausgefuehrt.resultSet, { t });
+    const tabelle = resultSetMarkdown(ausgefuehrt.resultSet, { t, aufgaben: aufgabenAnzeige() });
     const position = step.position;
     if (position && position.kind === 'under') {
       const edit = { op: 'replaceSection', heading: position.heading, text: tabelle };

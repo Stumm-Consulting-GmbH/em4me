@@ -127,7 +127,9 @@ function collectReminders(taskLines, env) {
     if (!model || !model.reminder || model.reminder.invalid) continue;
     if (!modelMatchesGlobalFilter(model, globalFilter)) continue;
     const statusType = statusTypeOf(model.statusChar);
-    if (statusType === 'DONE' || statusType === 'CANCELLED') continue;
+    // 4T-002737 (Epic 3E-000396): auch Zeilen vom Typ «Keine Aufgabe» (etwa
+    // der Status «Übertragen») melden keine Erinnerung.
+    if (statusType === 'DONE' || statusType === 'CANCELLED' || statusType === 'NON_TASK') continue;
     out.push({
       key: reminderKey(tl.path, tl.text),
       path: tl.path,

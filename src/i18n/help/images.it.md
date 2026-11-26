@@ -42,6 +42,8 @@ Risultato: l'immagine appare con la didascalia «Cifre trimestrali a confronto»
 
 In alternativa `![[immagine.png]]` incorpora un'immagine tramite la sintassi wiki, incluso il modificatore di dimensione `![[immagine.png|300]]` — dettagli nella pagina [Collegamenti](linking.md).
 
+Un'immagine sopra l'intero documento si imposta con la proprietà `cover` del frontmatter, in entrambe le scritture — sezione «Immagine di copertina» della pagina [Frontmatter e proprietà](frontmatter.md).
+
 ## Ingrandire un'immagine
 
 Un clic su un'immagine nella vista «Renderizzato» — allo stesso modo nella sua metà della vista «Diviso» — la mostra ingrandita sull'intera finestra. Lo sfondo si scurisce e l'immagine appare grande quanto consentono la finestra e la sua risoluzione: intera, non deformata e mai oltre le sue dimensioni. Un'immagine piccola resta quindi alle sue dimensioni, al centro. Un'indicazione di dimensione nel documento (`=300x`) non limita l'ingrandimento. Questo vale per ogni immagine visualizzata, anche in tabelle, riquadri e incorporamenti, e anche per un'immagine che è essa stessa un collegamento.

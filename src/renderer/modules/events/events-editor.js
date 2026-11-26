@@ -37,6 +37,10 @@ import { state } from '../app/app-state.js';
 import { paneEditors } from '../editor/editor.js';
 import { cancelPendingPreviewUpdate } from '../editor/editor-preview.js';
 import { getDocText } from '../app/api.js';
+import { isExtensionActive } from '../extensions/extension-lifecycle.js';
+// 4T-002838: Code-Frage der Kommentar-Regel für die Zellen des Blocks.
+import '../app/kommentar-code-frage.js';
+import { ereignisRumpf } from '../../../shared/markdown/plugins/comments-block.js';
 // Zyklus-Hinweis: views/pane-render.js -> render-mermaid.js -> dieses Modul
 // -> views/pane-render.js. Unkritisch, weil alle Zugriffe erst zur Laufzeit
 // (im Event-Handler) erfolgen.
@@ -135,6 +139,15 @@ export function normalizeBody(s) {
   return String(s || '')
     .replace(/\r\n/g, '\n')
     .replace(/\n$/, '');
+}
+
+// 4T-002838 (Epic 3E-000447): der Rumpf für Anzeige und Auswertung, ohne
+// private Kommentare. Das Attribut bleibt roh, weil der Editor es mit dem
+// Dokument abgleicht und Änderungen aus dem Dokument-Rumpf zurückschreibt;
+// die Bereinigung ist zeilentreu, die Zeilen-Nummern der Einträge stimmen.
+export function anzeigeRumpf(s) {
+  const body = normalizeBody(s);
+  return isExtensionActive('comments') ? ereignisRumpf(body) : body;
 }
 
 export function locateFence(ctx) {

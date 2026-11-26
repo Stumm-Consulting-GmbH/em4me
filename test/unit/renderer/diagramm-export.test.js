@@ -22,6 +22,22 @@ import deDict from '../../../src/i18n/de.json';
 import enDict from '../../../src/i18n/en.json';
 import { buildChart } from '../../../src/main/preload-diagramme.js';
 
+// 4T-002838: Das Zeichnen der Mermaid-Bilder ist eine Attrappe, die die
+// gezeichneten Quelltexte mitschreibt. Das echte Modul bleibt bewusst außen
+// vor: Über seine Importe lädt es den Export, der sich dann an das echte
+// Modul bände.
+const mermaidQuellen = vi.hoisted(() => []);
+// Das Titelbild der Live-Ansicht (4T-002630) importiert über die Widgets
+// zusätzlich applyWikiEmbedsIfPresent; ohne sie scheitert schon das Laden.
+vi.mock('../../../src/renderer/modules/render-mermaid.js', () => ({
+  applyTeilbaumSchritte: () => {},
+  applyWikiEmbedsIfPresent: async () => {},
+  renderMermaidSvgsForExport: async (quelltexte) => {
+    mermaidQuellen.push(...quelltexte);
+    return new Map(quelltexte.map((q) => [q, '<svg role="img"></svg>']));
+  },
+}));
+
 const KATALOGE = { de: deDict, en: enDict };
 global.fetch = vi.fn(async (url) => {
   const code = /\/([a-z]{2})\.json$/.exec(String(url))[1];
@@ -525,6 +541,45 @@ describe('Portabler Export des aktiven Reiters (save-export.js)', () => {
     expect(aus).toContain(block(BALKEN));
     expect(aus).not.toContain('perspective-chart-karte-');
     expect(tab.content).toBe(inhalt);
+  });
+
+  // 4T-002838 (Epic 3E-000447), Befund des Zweitblicks in Runde 2: Der
+  // Export-Text behält die Maske `\%%`, das Bild zeichnet wie die Ansicht.
+  const MASKE = '\\%% Maske\n%% geheim %%\n';
+
+  it('Diagramm: das Bild zeichnet den Rumpf ohne Kommentar und ohne Maske', async () => {
+    antwort = GEZEICHNET;
+    reiter(dokument(TABELLE, block(BALKEN + MASKE)));
+    await exportCurrentTabAsPortable();
+    expect(aufrufe).toHaveLength(1);
+    expect(aufrufe[0].body).toBe(BALKEN + '%% Maske\n\n');
+    expect(bilder(gespeichert[0].inhalt)).toHaveLength(1);
+    expect(gespeichert[0].inhalt).not.toContain('geheim');
+  });
+
+  it('Mermaid-Diagramm: das Bild zeichnet den Rumpf ohne Kommentar und ohne Maske', async () => {
+    mermaidQuellen.length = 0;
+    reiter(dokument(`${Z}mermaid\ngraph TD\n${MASKE}A --> B\n${Z}`));
+    await exportCurrentTabAsPortable();
+    expect(mermaidQuellen).toEqual(['graph TD\n%% Maske\n\nA --> B\n']);
+    expect(bilder(gespeichert[0].inhalt)).toHaveLength(1);
+    expect(gespeichert[0].inhalt).not.toContain('mermaid');
+    expect(gespeichert[0].inhalt).not.toContain('geheim');
+  });
+
+  it('bei ausgeschalteten Kommentaren bleibt der Rumpf, wie die Ansicht ihn zeigt', async () => {
+    // Die Umwandlung läuft im Haupt-Prozess mit dessen Zustand und lässt den
+    // Text dann stehen; hier zählt allein der Weg zum Bild.
+    await applyExtensionsState(['comments'], { persist: false });
+    window.api.convertMarkdownPortable = (text) => text;
+    antwort = GEZEICHNET;
+    mermaidQuellen.length = 0;
+    reiter(
+      dokument(TABELLE, block(BALKEN + MASKE), `${Z}mermaid\ngraph TD\n${MASKE}A --> B\n${Z}`),
+    );
+    await exportCurrentTabAsPortable();
+    expect(aufrufe[0].body).toBe(BALKEN + MASKE);
+    expect(mermaidQuellen).toEqual([`graph TD\n${MASKE}A --> B\n`]);
   });
 });
 

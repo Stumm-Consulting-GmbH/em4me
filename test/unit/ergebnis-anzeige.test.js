@@ -259,13 +259,15 @@ describe('areaFileCount', () => {
 });
 
 describe('Stellung des Moduls', () => {
-  it('prozess-neutral: lädt allein den Werte-Kern, kein DOM, kein Electron', () => {
+  it('prozess-neutral: lädt allein den Werte- und den Marker-Kern, kein DOM, kein Electron', () => {
     const quelle = fs.readFileSync(
       path.join(dir, '../../src/shared/query/result-display.js'),
       'utf8',
     );
     const requires = [...quelle.matchAll(/require\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => m[1]);
-    expect(requires).toEqual(['./query-format.js']);
+    // 4T-002822: dazu der Aufgaben-Marker-Kern für den Anzeige-Text einer
+    // Aufgabe; er ist selbst prozess-neutral und läuft schon im Hauptprozess.
+    expect(requires).toEqual(['./query-format.js', '../tasks/task-markers.js']);
     expect(quelle).not.toMatch(/\bdocument\b|\bwindow\b|electron/);
   });
 });

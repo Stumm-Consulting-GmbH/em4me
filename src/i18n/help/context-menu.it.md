@@ -9,11 +9,11 @@ Dall'alto verso il basso, il menu è suddiviso in sette gruppi:
 - **Collegamento** — racchiudere la selezione come collegamento wiki o come collegamento esterno.
 - **Formato** — livello carattere: grassetto, corsivo, barrato, evidenziato, codice, formula, commento e «rimuovi formattazione».
 - **Paragrafo** — livello riga: elenco puntato, elenco numerato, elenco attività, titolo da 1 a 6, nessun titolo e citazione.
-- **Inserisci** — modelli: nota a piè di pagina, tabella, riquadro, linea orizzontale e blocco di codice.
+- **Inserisci** — modelli: nota a piè di pagina, tabella, riquadro, linea orizzontale e blocco di codice, più il blocco sommario quando l'estensione «Blocco sommario» è attiva (vedi [Costrutti di blocco](blocks.md)), più Diagramma Mermaid con la scelta di scheletri e blocchi quando l'estensione «Diagrammi Mermaid» è attiva (vedi [Matematica e diagrammi](math-diagrams.md)).
 - **Tabella** — operazioni di modifica per la tabella al cursore; appare solo quando il cursore si trova in una tabella.
 - **Grafico** — «Inserisci grafico per questa tabella» oppure «Modifica grafico»; appare solo quando il cursore si trova in una tabella dati o nel blocco di un grafico.
 - **Converti data** — apre il dialogo che mostra una data negli altri calendari dello stesso blocco ([Sistemi di calendario](custom-calendars.md)); compare solo con i sistemi di calendario attivati ed è attivo non appena l'area aperta definisce un calendario.
-- **Appunti** — taglia, copia, incolla, seleziona tutto.
+- **Appunti** — taglia, copia, incolla, incolla come testo semplice, incolla come tabella, seleziona tutto. **Incolla** trasforma un intervallo di celle di un foglio di calcolo in tabella, **Incolla come testo semplice** inserisce sempre gli appunti senza modifiche, e **Incolla come tabella** compare solo con l'estensione «Strumenti tabella» attivata (vedi [Strumenti](tools.md)).
 
 Le scorciatoie predefinite per grassetto (`Ctrl+B`) e corsivo (`Ctrl+I`) funzionano anche senza il menu; tutte le altre azioni possono essere associate a una scorciatoia nelle impostazioni.
 

@@ -31,12 +31,94 @@ Ein geändertes Schema benennt bestehende Dateien nicht um; Kalender-Punkte und 
 
 - **Heutiger Journal-Eintrag** (Menü Datei → Weitere Datei-Funktionen): öffnet den heutigen Eintrag eines Tages-Journals bzw. legt ihn an; bei mehreren Tages-Journalen mit Auswahl.
 - **Journal-Eintrag für Datum…** (Menü Datei → Weitere Datei-Funktionen): fragt ein Datum (JJJJ-MM-TT) und das Journal ab; die Periode ist die des Datums in der Granularität des Journals.
+- **Offene Aufgaben in den aktuellen Journal-Eintrag übertragen** (Menü Datei → Weitere Datei-Funktionen): öffnet bzw. legt den Eintrag der laufenden Periode an und überträgt die offenen Aufgaben des letzten Eintrags hinein; siehe Abschnitt „Offene Aufgaben übertragen“.
 
 Beim Anlegen entstehen die Ordner-Kette, der gefüllte Vorlagen-Inhalt (ohne Vorlage ein leerer Eintrag) und die Journal-Eigenschaften im Frontmatter. Ein Eintrag trägt **vier** Eigenschaften, unabhängig von seiner Granularität: den Namen des Journals (`journal`), das Perioden-Datum (`journal-date`), den Perioden-Start (`journal-start-date`) und das Perioden-Ende (`journal-end-date`). Das Perioden-Datum ist stets der **Beginn** der Periode; bei Tages-Einträgen stimmen deshalb alle drei Datums-Angaben überein. Die Feldnamen sind pro Journal einstellbar und stehen der Perspective-Abfrage zur Verfügung — weil jeder Eintrag denselben Satz trägt, braucht eine Abfrage nicht nach Granularität zu unterscheiden. Datums-Platzhalter der Vorlage werden am Perioden-Start ausgewertet — `{{date}}` liefert im Eintrag das Perioden-Datum, nicht den Anlage-Zeitpunkt. Ein Abbruch eines Vorlagen-Dialogs bricht das Anlegen ab; es entsteht keine Datei.
 
 Ein **bereits bestehender** Eintrag wird nachgepflegt, wenn ihm Eigenschaften fehlen — etwa weil er aus einer anderen Anwendung stammt oder von Hand angelegt wurde. Das geschieht auf zwei Wegen. Beim **Öffnen** über Kommando, Kalender oder Navigations-Block werden fehlende Eigenschaften stillschweigend ergänzt; ist der Eintrag bereits vollständig, bleibt die Datei unberührt. Das Kommando **Journal-Eigenschaften nachtragen…** holt denselben Stand für alle vorhandenen Einträge eines Journals auf einmal; es nennt vorher die Zahl der geprüften Einträge und verlangt eine Bestätigung.
 
 Anlegen und Nachpflegen verhalten sich dabei bewusst verschieden: Beim **Anlegen** setzt die Anwendung die Eigenschaften und übersteuert gleichnamige Felder der Vorlage. Beim **Nachpflegen** wird nur ergänzt, was fehlt; ein vorhandener Wert bleibt stehen, auch wenn er von der Periode abweicht — er kann eine bewusste Korrektur sein. Fremde Felder und der übrige Inhalt bleiben in beiden Fällen unangetastet, und ein beschädigtes Frontmatter wird nicht angefasst.
+
+## Offene Aufgaben übertragen
+
+Die Anwendung überträgt die offenen Aufgaben des letzten vorhandenen Eintrags eines Journals in den Eintrag der laufenden Periode: bei einem Tages-Journal in den heutigen, bei einem Wochen-Journal in den der laufenden Woche. Das gilt für Journale jeder Granularität, auch wenn der letzte Eintrag Tage zurückliegt. Quelle ist immer der jüngste frühere Eintrag desselben Journals; Einträge in der Zukunft zählen nicht.
+
+**Einstellungen.** Im Editor eines Journals unter Einstellungen → Journale stehen in der Gruppe «Offene Aufgaben übertragen» drei Einstellungen:
+
+- **Beim Anlegen des Eintrags selbsttätig übertragen** (in der Vorgabe aus): Ist der Schalter an, wird übertragen, sobald der Eintrag der laufenden Periode neu angelegt wird, gleich auf welchem Weg: über die Kommandos, das Kalender-Panel, den Navigations- oder den Timeline-Block oder das Datum einer Karte der Kanban-Tafel. Beim bloßen Öffnen eines bestehenden Eintrags und beim Anlegen eines Eintrags für eine andere Periode geschieht nichts.
+- **Im alten Eintrag**: «als übertragen kennzeichnen» (Vorgabe) setzt die übertragene Aufgabe dort auf den Status «Übertragen» (`- [»] …`, Seite [Aufgaben-Listen](tasks.md)); «entfernen» löscht sie dort.
+- **Nur aus Abschnitt** (in der Vorgabe leer): der Text einer Überschrift. Ist das Feld gefüllt, werden nur die Aufgaben unter dieser Überschrift und ihren Unter-Überschriften übertragen; ist es leer, alle offenen Aufgaben des Eintrags.
+
+**Befehl von Hand.** **Offene Aufgaben in den aktuellen Journal-Eintrag übertragen** (Menü Datei → Weitere Datei-Funktionen, auch in der Kommando-Palette) überträgt jederzeit in den Eintrag der laufenden Periode, auch wenn der Schalter aus ist, und auch in einen Eintrag, der schon besteht; fehlt der Eintrag, wird er angelegt. Bei mehreren Journalen fragt der Befehl, welches gemeint ist. Ein zweiter Aufruf überträgt nichts doppelt, weil die übertragenen Aufgaben im alten Eintrag gekennzeichnet oder entfernt sind.
+
+**Wo die Aufgaben landen.** Jede Aufgabe kommt im neuen Eintrag unter die Überschrift, unter der sie im alten stand, ans Ende dieses Abschnitts. Gleichnamig heißt gleicher Text, ohne Rücksicht auf Groß- und Kleinschreibung und auf die Ebene der Überschrift; gibt es die Überschrift im neuen Eintrag mehrfach, gilt die erste. Fehlt sie dort, wird sie mit den Aufgaben am Ende des Eintrags angelegt. Aufgaben, die im alten Eintrag vor der ersten Überschrift standen, kommen ans Ende des neuen. Die Reihenfolge bleibt erhalten.
+
+**Unterpunkte.** Eine Aufgabe zieht mit allem um, was eingerückt direkt unter ihr steht, bis zur nächsten Leerzeile: offene und erledigte Unteraufgaben, deren Unterpunkte und Notiz-Zeilen. Was nach einer Leerzeile eingerückt weitergeht, gehört nicht mehr dazu und bleibt im alten Eintrag. Bei «als übertragen kennzeichnen» wird im alten Eintrag jede Aufgaben-Zeile des umgezogenen Blocks gekennzeichnet, auch eine erledigte Unteraufgabe; bei «entfernen» fällt der ganze Block weg. Eine offene Aufgabe unter einer erledigten oder abgebrochenen, über der keine offene steht, zieht allein um und steht im neuen Eintrag ausgerückt.
+
+**Was als offen zählt.** Aufgaben, deren Status vom Typ Offen, In Arbeit oder Wartend ist (Seite [Aufgaben-Listen](tasks.md), Abschnitt „Eigene Status, Typ und Folge-Symbol“); ein Kästchen mit einem Zeichen, für das kein Status eingerichtet ist, zählt ebenfalls als offen. Erledigte und abgebrochene Aufgaben und Zeilen vom Typ Keine Aufgabe bleiben, wo sie sind. Eine als «Übertragen» gekennzeichnete Zeile wird nie erneut übertragen, auch wenn dieser Status abgeschaltet ist. Kästchen in Code-Blöcken, Zitaten und Tabellen sind keine Aufgaben und bleiben stehen. Ein gesetzter Global Filter gilt auch hier.
+
+Beispiel mit «als übertragen kennzeichnen». Der alte Eintrag vorher:
+
+```markdown
+## Arbeit
+- [ ] Angebot schreiben
+  - [x] Zahlen holen
+  - [ ] Text entwerfen
+- [x] Rechnung prüfen
+
+## Privat
+- [ ] Fahrrad zur Werkstatt
+```
+
+Der neue Eintrag, aus der Vorlage angelegt:
+
+```markdown
+## Arbeit
+
+## Privat
+```
+
+Der neue Eintrag nach dem Übertrag:
+
+```markdown
+## Arbeit
+
+- [ ] Angebot schreiben
+  - [x] Zahlen holen
+  - [ ] Text entwerfen
+
+## Privat
+
+- [ ] Fahrrad zur Werkstatt
+```
+
+Der alte Eintrag nach dem Übertrag:
+
+```markdown
+## Arbeit
+- [»] Angebot schreiben
+  - [»] Zahlen holen
+  - [»] Text entwerfen
+- [x] Rechnung prüfen
+
+## Privat
+- [»] Fahrrad zur Werkstatt
+```
+
+Mit «entfernen» stünden im alten Eintrag danach nur noch die beiden Überschriften und «Rechnung prüfen».
+
+**Festlegungen im Einzelnen.**
+
+- **Ungespeicherte Änderungen:** Hat der alte oder der neue Eintrag in irgendeinem Fenster ungespeicherte Änderungen, wird nichts übertragen, und die Statusleiste nennt den Eintrag. Beim selbsttätigen Übertrag entsteht der neue Eintrag dann ohne die Aufgaben; nach dem Speichern holt der Befehl von Hand den Übertrag nach.
+- **Ausgeschaltete Funktionen:** Ist die Erweiterung «Aufgaben» aus, wird nichts übertragen, weil dann nichts als Aufgabe gilt; der Befehl sagt es in der Statusleiste. Ist die Erweiterung «Journale» aus, entfallen Befehl und Einstellungen, und es wird nichts übertragen.
+- **Nur der letzte Eintrag:** Quelle ist genau der jüngste frühere Eintrag. Was in noch älteren Einträgen offen blieb, bleibt dort.
+- **Aufgabe steht schon da:** Bringt die Vorlage eine Aufgabe jeden Tag mit und steht dieselbe Aufgabe im alten Eintrag noch offen, kommt sie nicht ein zweites Mal in den neuen; im alten wird sie trotzdem gekennzeichnet oder entfernt. Das gilt nur, wenn die Zeile Zeichen für Zeichen gleich ist, unter derselben Überschrift steht und im alten Eintrag nichts unter ihr steht. Hat sie dort Unterpunkte bekommen, zieht sie mit ihnen um und steht dann zweimal im neuen Eintrag.
+- **Abschnitt nicht gefunden:** Nennt «Nur aus Abschnitt» eine Überschrift, die der alte Eintrag nicht hat, wird nichts übertragen, und die Statusleiste sagt es, auch beim selbsttätigen Übertrag.
+- **Meldungen:** Nach einem Übertrag nennt die Statusleiste die Zahl der Aufgaben und den Eintrag, aus dem sie kamen. Dass es keinen früheren Eintrag oder keine offenen Aufgaben gibt, meldet nur der Befehl von Hand.
+- **Nummerierte Listen und leere Überschriften:** Eine Aufgabe aus einer nummerierten Liste behält ihre Nummer; nichts wird neu gezählt. Bleibt im alten Eintrag nach «entfernen» eine Überschrift ohne Inhalt zurück, bleibt sie stehen.
+- **Grenzen:** höchstens 500 Aufgaben je Übertrag, Einträge bis 5 MB und höchstens 20 000 Markdown-Dateien in den Ordnern des Journals; darüber wird nichts übertragen, und die Statusleiste sagt es.
+- **Rückweg:** Einen eigenen Rückgängig-Befehl gibt es nicht. Beide Einträge bekommen einen Eintrag in ihrer [Dokument-Historie](history.md), wo sie für das Dokument eingeschaltet ist; bei «als übertragen kennzeichnen» öffnet ein Klick auf das Kästchen die Aufgabe im alten Eintrag wieder.
+- **Kein Verweis:** Die gekennzeichnete Zeile im alten Eintrag bekommt keinen Verweis auf den neuen Eintrag.
 
 ## Kalender-Panel
 

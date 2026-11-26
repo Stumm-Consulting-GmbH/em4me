@@ -465,7 +465,7 @@ export async function openOutgoingTarget(paneIdx, link, sourcePath) {
           const translated = toFileBasename(resolveTarget.replace(/\\/g, '/'));
           const cand = await api.resolveLink(sourcePath, translated);
           if (cand && (await api.fileExists(cand))) {
-            const realPane = await openInPane(paneIdx, [cand]);
+            const realPane = await openInPane(paneIdx, [cand], { zielFolgt: !!link.anchor });
             if (link.anchor) scrollToAnchorAfterOpen(realPane, normalizedAnchorId(link.anchor));
             return;
           }
@@ -484,7 +484,7 @@ export async function openOutgoingTarget(paneIdx, link, sourcePath) {
                 ? idx.candidates[0]
                 : await showAliasDialog(logical, idx.candidates);
             if (target) {
-              const realPane = await openInPane(paneIdx, [target]);
+              const realPane = await openInPane(paneIdx, [target], { zielFolgt: !!link.anchor });
               if (link.anchor) scrollToAnchorAfterOpen(realPane, normalizedAnchorId(link.anchor));
             }
             return;
@@ -496,7 +496,7 @@ export async function openOutgoingTarget(paneIdx, link, sourcePath) {
         if (aliasTarget) {
           // R3-06/R4-09 (4T-000186): Anker normalisieren (Slug bzw. ^-Strip)
           // und der tatsaechlichen Ziel-Pane folgen.
-          const realPane = await openInPane(paneIdx, [aliasTarget]);
+          const realPane = await openInPane(paneIdx, [aliasTarget], { zielFolgt: !!link.anchor });
           if (link.anchor) scrollToAnchorAfterOpen(realPane, normalizedAnchorId(link.anchor));
           return;
         }
@@ -512,7 +512,7 @@ export async function openOutgoingTarget(paneIdx, link, sourcePath) {
       showStatusbarHint('outgoing.notOpenable', { duration: 2500, error: true });
       return;
     }
-    const realPane = await openInPane(paneIdx, [resolved]);
+    const realPane = await openInPane(paneIdx, [resolved], { zielFolgt: !!link.anchor });
     if (link.anchor) scrollToAnchorAfterOpen(realPane, normalizedAnchorId(link.anchor));
   } catch (err) {
     console.warn('[4T-000073] Outgoing-Link konnte nicht geoeffnet werden', err);

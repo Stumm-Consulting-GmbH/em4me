@@ -375,6 +375,43 @@ function platteAuswerten(root, abs, vorher, nachher) {
 }
 
 /**
+ * 4T-002812 (Epic 3E-000444, Zweitblick Runde 1, Befund 1): Ein unverändert
+ * geöffnetes Dokument folgt einem Schreibvorgang auf die Platte
+ * (`folgePlattenStand` der Puffer-Overlay-Schicht). Der Beobachter wertet die
+ * Änderung nicht aus, weil der Puffer-Stand der Platte vorgeht
+ * (`platteAuswerten`); ohne diese Meldung zöge erst das Nachladen im Fenster
+ * den Spiegel nach und meldete einen Wechsel als Handlung im Fenster, ohne die
+ * Probe der Lauf-Marke. Ausgewertet wird deshalb wie ein Wechsel auf der
+ * Platte: Spiegel nachziehen, einen Wechsel nach der Probe melden. Das spätere
+ * Nachladen desselben Stands findet keinen Wechsel mehr.
+ *
+ * @param {string} abs absoluter Pfad.
+ * @param {{zeile: number, text: string}[]|undefined} vorher Aufgaben-Zeilen des Puffers davor.
+ * @param {{zeile: number, text: string}[]|undefined} nachher Aufgaben-Zeilen danach.
+ * @returns {Promise<void>|undefined} bei einer Datei mit Lauf-Marke ein Versprechen,
+ *   das nach der Probe erfüllt wird (Prüffälle).
+ */
+function meldePufferNachPlatte(abs, vorher, nachher) {
+  if (typeof abs !== 'string' || abs === '') return undefined;
+  // Die Erkennung darf den Schreibvorgang nie scheitern lassen.
+  try {
+    const env = umgebung();
+    const schluessel = pathCompareKey(abs);
+    const bisher = spiegel.get(schluessel);
+    const alt = bisher ? bisher.aufgaben : aufgabenZustaende(vorher, env);
+    const neu = aufgabenZustaende(nachher, env);
+    const { wechsel, geister } = erledigtWechsel(alt, neu, bisher ? bisher.geister : []);
+    setzeSpiegel(schluessel, { aufgaben: neu, geister, lesen: null });
+    if (wechsel.length === 0) return undefined;
+    if (hatLaufMarke(abs)) return meldePlatteNachProbe(abs, wechsel, null);
+    melde(abs, wechsel, null);
+  } catch (err) {
+    console.warn('Aufgabe erledigt: Platten-Stand des Puffers nicht ausgewertet:', err);
+  }
+  return undefined;
+}
+
+/**
  * Datei entfernt oder Index einer Wurzel abgebaut: Der Spiegel der Pfade fällt.
  *
  * @param {string} abs Datei oder Wurzel.
@@ -404,6 +441,7 @@ module.exports = {
   erledigtWechsel,
   meldePuffer,
   meldePufferEnde,
+  meldePufferNachPlatte,
   meldePlatte,
   vergissAufgaben,
   _spiegelLeeren,

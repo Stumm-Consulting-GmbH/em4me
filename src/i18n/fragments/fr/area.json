@@ -104,5 +104,9 @@
   "areaPanel.inputDiscarded": "Le dossier cible n'est plus affiché ; la saisie a été abandonnée",
   "area.outsideTitle": "Hors de la zone",
   "area.outsideOpenMessage": "La sélection se trouve hors de la zone et ne sera pas ouverte.",
-  "area.outsideSaveMessage": "L'emplacement choisi se trouve hors de la zone. Veuillez choisir un emplacement dans la zone."
+  "area.outsideSaveMessage": "L'emplacement choisi se trouve hors de la zone. Veuillez choisir un emplacement dans la zone.",
+  "area.protectedFolderTitle": "Dossier protégé",
+  "area.protectedFolderMessage": "Ce dossier appartient au programme. Rien ne peut y être enregistré.",
+  "area.targetUncheckedTitle": "Emplacement non vérifiable",
+  "area.targetUncheckedMessage": "Impossible de vérifier si cet emplacement appartient au programme. Rien n'y est donc enregistré."
 }

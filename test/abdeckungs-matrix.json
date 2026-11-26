@@ -2409,6 +2409,37 @@
       "hinweis": "4T-000382/4T-000384 (Epic 3E-000072): Mehrspalten-Container; MC-01 bis MC-03 (Spaltenzahl-Klassen, Rueckfall ungueltiger Zahlen, Reading-Paritaet) plus Snapshot-Fixtures columns.md/columns-portable.md und Unit-Parsing-Matrix. 4T-001914 (Epic 3E-000320): Name in jeder Schreibweise (COLUMNS 2 zweispaltig, COLUMNS 7 als neutrale Box mit Titel) im Render-Weg, im Vor-Durchlauf und in den Dekorationen der Live-Ansicht (callouts-schreibweise*.test.js) sowie im Ablauf-Fall HK-03."
     },
     {
+      "key": "help.feature.tocBlock",
+      "id": "F-414",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/inhaltsverzeichnis-block.spec.js",
+        "test/unit/render/toc-block.test.js",
+        "test/unit/render/extensions-aus-toc-block.test.js",
+        "test/unit/renderer/ueberschriften.test.js",
+        "test/unit/export-portable.test.js",
+        "test/unit/markdown-format.test.js",
+        "test/unit/render/snapshots.test.js"
+      ],
+      "hinweis": "4T-002558/4T-002559 (Epic 3E-000390): Inhaltsverzeichnis-Block, Zaun toc mit optionaler Zeile depth: N — TB-01 (gerenderte Ansicht zeigt das Verzeichnis, Klick springt zur Überschrift), TB-02 (Live-Widget zeigt das Verzeichnis und folgt einer umbenannten Überschrift), TB-03 (PDF-Export enthält die Überschriften), TB-04 (Erweiterung toc-block aus: Zaun als Quelltext, Kontextmenü ohne «Inhaltsverzeichnis-Block»), TB-05 (Kontextmenü Einfügen → Inhaltsverzeichnis-Block fügt den Zaun ein); Tiefe, Duplikat-Anker, {#id}, Nummerierung, Code-Block und Kopf-Block ausgeschlossen, Hinweis ohne Überschriften, mehrere Blöcke und Parität des Live-Wegs (toc-block.test.js), Aus-Zustand samt Kommando-Filter (extensions-aus-toc-block.test.js), Überschriften aus dem Lezer-Baum (ueberschriften.test.js), portabler Export als Markdown-Liste (export-portable.test.js), Einfüge-Funktion (markdown-format.test.js), Snapshot-Fixture inhaltsverzeichnis-block.md."
+    },
+    {
+      "key": "help.feature.mermaidBuildingBlocks",
+      "id": "F-415",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/mermaid-bausteine.spec.js",
+        "test/unit/mermaid-bausteine.test.js",
+        "test/unit/renderer/editor-zaun-kontext.test.js",
+        "test/unit/renderer/mermaid-bausteine-auswahl.test.js",
+        "test/unit/renderer/mermaid-editor-kontextmenue.test.js",
+        "test/unit/renderer/format-toolbar-mermaid-knopf.test.js",
+        "test/unit/render/extensions-aus-mermaid-bausteine.test.js",
+        "test/unit/format-toolbar.test.js"
+      ],
+      "hinweis": "4T-002617 (Epic 3E-000391): Mermaid-Bausteine, Aufklapp-Knopf «Mermaid-Diagramm» in der Format-Toolbar, Kontextmenü Einfügen → Mermaid-Diagramm und Kommando insert.mermaid — MB-01 (je Diagramm-Art Gerüst über den Knopf, geteilte Ansicht zeichnet das Diagramm, Rückgängig in einem Schritt), MB-02 (Auswahl im Text nur Gerüste, im Ablauf-Block nur Bausteine, im fremden Code-Block der ausgegraute Hinweis), MB-03 (Baustein Knoten im eingerückten Block übernimmt die Einrückung), MB-04 (Erweiterung mermaid aus: Knopf, Kontextmenü-Eintrag und Palette-Eintrag weg, wieder an: alle drei da), MB-05 (Kontextmenü und Kommando-Palette fügen dasselbe ein wie der Knopf); Katalog in fünf Sprachen gegen mermaid.parse, Kennungen, Bezüge, Einrückung und Einfüge-Änderungen (mermaid-bausteine.test.js), Lage der Schreibmarke (editor-zaun-kontext.test.js), Einträge je Lage und Kommando (mermaid-bausteine-auswahl.test.js), Kontextmenü (mermaid-editor-kontextmenue.test.js), Knopf an der gerenderten Leiste (format-toolbar-mermaid-knopf.test.js), Aus-Zustand samt Arbeitsmodus (extensions-aus-mermaid-bausteine.test.js), Eintrags-Typ und Standard-Belegung (format-toolbar.test.js)."
+    },
+    {
       "key": "help.feature.roundedTabs",
       "id": "F-146",
       "testart": "e2e",
@@ -2567,6 +2598,16 @@
       "hinweis": "4T-001407 (Epic 3E-000244): Massen-Nachpflege eines ganzen Journals in JR-15 (Auswahl, Vorschau mit Bestaetigung, Abbruch ohne Aenderung, Ergebnis-Meldung) plus die Unit-Faelle der Perioden-Zuordnung."
     },
     {
+      "key": "help.shortcut.journalCarryOver",
+      "id": "S-189",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/journal-übertrag.spec.js",
+        "test/unit/renderer/journal-uebertrag-ausloeser.test.js"
+      ],
+      "hinweis": "4T-002738 (Epic 3E-000396): Befehl Uebertrag offener Aufgaben in JU-03 und JU-06 (zweiter Lauf, bestehender Eintrag, ausgeschalteter Schalter, Meldung ohne frueheren Eintrag) plus die Unit-Faelle zu Ausloeser, Meldungen und Sprung-Ziel."
+    },
+    {
       "key": "help.feature.templateRules",
       "id": "F-102",
       "testart": "e2e",
@@ -2615,6 +2656,18 @@
       ],
       "sichtbarkeit": "entfällt: inhaltsgesteuerter Render-Block ohne dauerhaftes Bedienelement; Aufbau und Klick-Ziele sind jsdom-geprüft",
       "hinweis": "4T-001064 bis 4T-001066 (Epic 3E-000212): Timeline-Block — Aufbau der vier Modi, Kopfzeile samt Hervorhebung, Punkt-Markierung aus dem Existenz-Batch, Klick-Ziele je Perioden-Ebene mit Anlage, Degradations-Faelle und Portable-Ersetzung als jsdom-Unit; Modus-Parser, Wochen-Zeile und Fence-Erkennung als reine Unit im Perioden-Kern; Aus-Zustand der journals-Erweiterung und Snapshot-Fixture journal-timeline.md. Die Zeit-Zusage des Jahres-Modus (unter 150 ms) prueft der Product Owner an der gebauten Programmdatei, weil jsdom die Zeit eines echten Browsers nicht misst."
+    },
+    {
+      "key": "help.feature.journalCarryOver",
+      "id": "F-429",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/journal-übertrag.spec.js",
+        "test/e2e/funktionen/journal-übertrag-wege.spec.js",
+        "test/unit/journal-uebertrag.test.js",
+        "test/unit/journal-uebertrag-kanal.test.js"
+      ],
+      "hinweis": "4T-002737 und 4T-002738 (Epic 3E-000396): Uebertrag offener Aufgaben — JU-01 bis JU-15 (Anlegen mit Uebertrag, Eintrag Tage zurueck, zweiter Lauf, Abschnitt, entfernen, Befehl, ungespeicherter Eintrag in einem und in zwei Fenstern, Aufgabe aus der Vorlage, Erweiterung aus, Einstellung im Journal-Editor, Vorgaben, Menue-Weg, Kaestchen Uebertragen, Befehl nach dem Uebertrag bei offenen Reitern in der Ansicht Gerendert) und JW-01 bis JW-08 (Anlege-Wege: Datums-Kommando, Kalender-Panel Tag und Woche, Navigations-Block Pfeil und Wochen-Verweis, Zeitleisten-Block, Kanban-Karten-Datum, Gegenprobe ohne Uebertrag) plus die Unit-Suiten des Kerns und des Kanals."
     },
     {
       "key": "help.shortcut.areaGraph",
@@ -3627,7 +3680,7 @@
         "test/unit/workflow-armed-ipc.test.js"
       ],
       "sichtbarkeit": ["test/e2e/funktionen/workflow-ereignis.spec.js"],
-      "hinweis": "4T-002459 bis 4T-002463 (Epic 3E-000367, Stories 4S-001142 bis 4S-001146): Workflows bei Ereignissen. Unit: Grammatik der Ereignis-Zeile mit in und matching und Abgleich (workflow-event), Dateikopf-Felder trigger: event und event samt Befunden (workflow-document), Ereignis-Prüfer mit Entprellung, Reichweite, Warteschlange und Not-Bremse (workflow-event-check), Lauf im Fenster mit Platzhaltern je Ereignis (workflow-ereignis-lauf), Lauf-Marke gegen Ketten (workflow-lauf-marke), Aufgabe erledigt über Puffer und Platte (workflow-task-done), Scharf-Schaltung für Ereignisse im Hauptprozess (workflow-armed-ipc). An der gestarteten Anwendung: scharf schalten, Ereignis in Worten, Lauf durch eine Datei von außen, Definition geändert (WF-EREIGNIS-01)."
+      "hinweis": "4T-002459 bis 4T-002463 (Epic 3E-000367, Stories 4S-001142 bis 4S-001146): Workflows bei Ereignissen. Unit: Grammatik der Ereignis-Zeile mit in und matching und Abgleich (workflow-event), Dateikopf-Felder trigger: event und event samt Befunden (workflow-document), Ereignis-Prüfer mit Entprellung, Reichweite, Warteschlange und Not-Bremse (workflow-event-check), Lauf im Fenster mit Platzhaltern je Ereignis (workflow-ereignis-lauf), Lauf-Marke gegen Ketten (workflow-lauf-marke), Aufgabe erledigt über Puffer und Platte (workflow-task-done), Scharf-Schaltung für Ereignisse im Hauptprozess (workflow-armed-ipc). An der gestarteten Anwendung: scharf schalten, Ereignis in Worten, Lauf durch eine Datei von außen, Definition geändert (WF-EREIGNIS-01); Nachzug 4T-002620: Abhaken einer Aufgabe in der Live-Ansicht ergibt genau einen Lauf (WF-EREIGNIS-04)."
     },
     {
       "key": "help.feature.workflowConditions",
@@ -3667,8 +3720,8 @@
         "test/unit/script-sandbox-runtime.test.js",
         "test/unit/workflow-armed-skript.test.js"
       ],
-      "sichtbarkeit": "entfällt: kein eigenes Bedienelement; der Skript-Schritt ist ein Befehl im Code-Block workflow, und die Abschottung der Sandbox belegt die Ablauf-Prüfung der Skript-Blöcke (skript-bloecke.spec.js)",
-      "hinweis": "4T-002465 (Epic 3E-000367, Story 4S-001149): Skript-Schritt script mit as, if-script und Platzhalter script. Unit: Befunde zu Abschnitt, Name, Ergebnis und Einstellung (workflow-check-skript), Lauf mit Ergebnis, Bedingung, Fehler und Zeitgrenze (workflow-skript-schritt), ein gemeinsamer Baustein der Sandbox (script-sandbox-lauf), lesende Laufzeit ohne Schreibweg (script-sandbox-runtime), Scharf-Schaltung nur bei eingeschalteter Einstellung (workflow-armed-skript)."
+      "sichtbarkeit": ["test/e2e/funktionen/workflow-skript.spec.js"],
+      "hinweis": "4T-002465 (Epic 3E-000367, Story 4S-001149): Skript-Schritt script mit as, if-script und Platzhalter script. Unit: Befunde zu Abschnitt, Name, Ergebnis und Einstellung (workflow-check-skript), Lauf mit Ergebnis, Bedingung, Fehler und Zeitgrenze (workflow-skript-schritt), ein gemeinsamer Baustein der Sandbox (script-sandbox-lauf), lesende Laufzeit ohne Schreibweg (script-sandbox-runtime), Scharf-Schaltung nur bei eingeschalteter Einstellung (workflow-armed-skript). An der gestarteten Anwendung (Nachzug 4T-002620): Ergebnis in der folgenden Zeile und als Bedingung mit else (WF-SKRIPT-01), Einstellung aus sperrt den Start (WF-SKRIPT-02)."
     },
     {
       "key": "help.feature.workflowDbRecords",
@@ -3688,9 +3741,14 @@
       "key": "help.feature.workflowDbQuery",
       "id": "F-417",
       "testart": "unit",
-      "tests": ["test/unit/workflow-db-query.test.js", "test/unit/result-set-markdown.test.js"],
+      "tests": [
+        "test/unit/workflow-db-query.test.js",
+        "test/unit/result-set-markdown.test.js",
+        "test/unit/result-set-markdown-zeichenarten.test.js",
+        "test/e2e/funktionen/workflow-db-query-ausgaben.spec.js"
+      ],
       "sichtbarkeit": "entfällt: kein eigenes Bedienelement; die Befehle stehen im Code-Block workflow, deren Prüf-Anzeige und Hervorhebung die Einträge der Workflow-Blöcke im Editor belegen",
-      "hinweis": "4T-002546 (Epic 3E-000368, Story 4S-001197): db-query mit into und under. Unit: Ausführung wie die Lese-Ansicht, Ersetzen des Abschnitts und Anlegen der Datei (workflow-db-query), Ergebnismenge als Markdown-Tabelle in der Form der Abfrage-Ansicht (result-set-markdown). Ablauf-Prüfung WF-DB-02 in workflow-datenbank.spec.js."
+      "hinweis": "4T-002546 (Epic 3E-000368, Story 4S-001197): db-query mit into und under. Unit: Ausführung wie die Lese-Ansicht, Ersetzen des Abschnitts und Anlegen der Datei (workflow-db-query), Ergebnismenge als Markdown-Tabelle in der Form der Abfrage-Ansicht (result-set-markdown). Ablauf-Prüfung WF-DB-02 in workflow-datenbank.spec.js. 4T-002823 (Epic 3E-000445): Werte mit senkrechtem Strich, Zeilenumbruch und HTML in jeder Form der Ansicht, auch in einer Ziel-Notiz mit Portable-Marke, und das portable Markdown als Unit-Fälle in result-set-markdown-zeichenarten; die geschriebene Tabelle in Lese-Ansicht, Live-Ansicht, HTML-Export, PDF und Druck als Ablauf-Prüfung WF-DBQ-AUS-01 in workflow-db-query-ausgaben.spec.js."
     },
     {
       "key": "help.feature.workflowDbLoop",
@@ -3882,6 +3940,67 @@
       "hinweis": "4T-000590/4T-000591 (Epic 3E-000109): Kommando table.transpose — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
     },
     {
+      "key": "help.shortcut.pastePlain",
+      "id": "S-179",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/tabelle-einfuegen.spec.js",
+        "test/unit/renderer/tabelle-einfuegen.test.js",
+        "test/unit/editor-menu.test.js"
+      ],
+      "hinweis": "4T-002554 (Epic 3E-000389): Kommando edit.pastePlain «Als reinen Text einfügen» (Kern) — Kontextmenü-Eintrag hinter «Einfügen» und unveränderte Einfügung in TE-02, Bestand im Aus-Zustand in TE-04; Ausführungs-Weg und Menü-Zustand unit-getestet."
+    },
+    {
+      "key": "help.shortcut.pasteAsTable",
+      "id": "S-180",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/tabelle-einfuegen.spec.js",
+        "test/unit/renderer/tabelle-einfuegen.test.js",
+        "test/unit/zellbereich.test.js",
+        "test/unit/render/extensions-aus.test.js"
+      ],
+      "hinweis": "4T-002554 (Epic 3E-000389): Kommando edit.pasteAsTable «Als Tabelle einfügen» der Erweiterung table-tools — Kontextmenü-Eintrag in TE-02, Fehlen im Aus-Zustand in TE-04; Umwandlung von Semikolon-Text samt Rückgängig, Schwelle und Aus-Zustand unit-getestet."
+    },
+    {
+      "key": "help.shortcut.navBack",
+      "id": "S-187",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/vor-und-zurück.spec.js",
+        "test/unit/navigations-verlauf.test.js",
+        "test/unit/renderer/navigation-verlauf-bedienung.test.js",
+        "test/unit/commands.test.js",
+        "test/unit/command-availability.test.js"
+      ],
+      "hinweis": "4T-002642 (Epic 3E-000397): Kommando nav.back «Zurück» mit Alt+Pfeil links — Schritt zurück im Verlauf der besuchten Orte des Fensters an die Ausgangsstelle (VZ-01), Hinweis am Anfang des Verlaufs und ausgegrauter Menü-Zustand (VZ-02), geschlossenes Dokument öffnet an seiner Stelle (VZ-03), zweite Spalte und zweites Fenster (VZ-04), gelöschtes Dokument übersprungen und gezählt (VZ-05), Alt+Pfeil im Bearbeiten-Modus ohne Bewegung der Schreibmarke (VZ-06), Sprünge innerhalb eines Dokuments (VZ-07), seitliche Maustaste und Menü-Eintrag; Kern des Verlaufs (navigations-verlauf.test.js), Bedienung mit gereichtem Zugang (renderer/navigation-verlauf-bedienung.test.js), Editor-Belegung ohne Alt+Pfeil und keine Doppel-Belegung (commands.test.js), Bedingung navZurueck (command-availability.test.js)."
+    },
+    {
+      "key": "help.shortcut.navForward",
+      "id": "S-188",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/vor-und-zurück.spec.js",
+        "test/unit/navigations-verlauf.test.js",
+        "test/unit/renderer/navigation-verlauf-bedienung.test.js",
+        "test/unit/commands.test.js",
+        "test/unit/command-availability.test.js"
+      ],
+      "hinweis": "4T-002642 (Epic 3E-000397): Kommando nav.forward «Vor» mit Alt+Pfeil rechts — Schritt vor im Verlauf nach einem «Zurück», abgeschnitten durch eine neue Navigation (VZ-01), Hinweis am Ende des Verlaufs und ausgegrauter Menü-Zustand (VZ-02), Dokument der anderen Spalte kommt dort nach vorn (VZ-04), seitliche Maustaste und Menü-Eintrag; Kern, Bedienung, Belegung und Bedingung navVor wie beim Eintrag S-187."
+    },
+    {
+      "key": "help.feature.tableFromSpreadsheet",
+      "id": "F-406",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/tabelle-einfuegen.spec.js",
+        "test/unit/renderer/tabelle-einfuegen.test.js",
+        "test/unit/zellbereich.test.js",
+        "test/unit/render/extensions-aus.test.js"
+      ],
+      "hinweis": "4T-002554/4T-002556 (Epic 3E-000389): Einfügen aus einer Tabellenkalkulation — TE-01 (Strg+V mit Tabellen-Form wird Pipe-Tabelle, Strg+Z stellt den reinen Text her), TE-02 (Kontextmenü «Einfügen» über denselben Zweig, «Als reinen Text einfügen» und «Als Tabelle einfügen» dahinter), TE-03 (Code-Block und Strg+Umschalt+V bleiben Text), TE-04 (Erweiterung table-tools aus: reiner Text, «Als Tabelle einfügen» fehlt); Schwelle, Zerlegung und Bau der Tabelle unit-getestet."
+    },
+    {
       "key": "help.feature.inlineCalc",
       "id": "F-143",
       "testart": "e2e",
@@ -4059,9 +4178,11 @@
       "tests": [
         "test/e2e/funktionen/bereichs-statistik.spec.js",
         "test/unit/area-stats.test.js",
-        "test/unit/area-stats-extension.test.js"
+        "test/unit/area-stats-extension.test.js",
+        "test/unit/verweise-ohne-ziel.test.js",
+        "test/unit/renderer/area-stats-verweise-ohne-ziel.test.js"
       ],
-      "hinweis": "4T-000619/4T-000620 (Epic 3E-000117): Kennzahlen-Seite des Bereichs — BS-01 bis BS-06 (sechs Abschnitte mit nachgerechneten Zahlen, Tab-Wiederverwendung, Aktualisieren, Hinweis ohne Bereich, Klick auf eine auffaellige Datei, Kontextmenue im Aus-Zustand); die Erhebung selbst ist am Fixture-Verzeichnis unit-getestet. 4T-001517 (Epic 3E-000172): BS-07 deckt die vierte Auffaelligkeits-Liste ab — Namen der Waisen, Deckung mit der Kennzahl, Einspaltigkeit, Sprung ueber den Kennzahl-Knopf mit der Tastatur und das Oeffnen eines Eintrags."
+      "hinweis": "4T-000619/4T-000620 (Epic 3E-000117): Kennzahlen-Seite des Bereichs — BS-01 bis BS-06 (sechs Abschnitte mit nachgerechneten Zahlen, Tab-Wiederverwendung, Aktualisieren, Hinweis ohne Bereich, Klick auf eine auffaellige Datei, Kontextmenue im Aus-Zustand); die Erhebung selbst ist am Fixture-Verzeichnis unit-getestet. 4T-001517 (Epic 3E-000172): BS-08 deckt die vierte Auffaelligkeits-Liste ab — Namen der Waisen, Deckung mit der Kennzahl, Einspaltigkeit, Sprung ueber den Kennzahl-Knopf mit der Tastatur und das Oeffnen eines Eintrags. 4T-002782/4T-002783 (Epic 3E-000392): Liste «Verweise ohne Ziel» — BS-09 Spalten, Reihenfolge, Gründe und Kennzahl samt Sprung, BS-10 Klick öffnet das Dokument an der Zeile (auch im Folgeteil eines geteilten Dokuments), BS-11 gespeicherter und ungespeicherter Stand, BS-12 Aus-Zustand der Erweiterung; das Urteil je Grund und Verweis-Art samt Gleichlauf mit der Editor-Prüfung in test/unit/verweise-ohne-ziel.test.js, Antwort-Form und verknüpfte Bereiche in test/unit/area-stats.test.js, Spalten, Gründe, Kennzahl samt Sprung, Klick an die Zeile und Hinweis-Zeile der Seite in test/unit/renderer/area-stats-verweise-ohne-ziel.test.js."
     },
     {
       "key": "help.shortcut.openBook",
@@ -5116,6 +5237,46 @@
       ],
       "sichtbarkeit": "entfällt: Kein Ablauf-Fall rendert die sichtbare Seite der portablen Fassung, also Zeile und Schaltfläche «Daten-Ordner öffnen» im Fenster «Über EM4me». Die Ablauf-Suite startet aus den Quellen mit Test-Umlenkung und läuft nach der Erkennungs-Regel nie portabel; ein Schalter, der den portablen Betrieb im Testlauf vortäuscht, ist bewusst nicht gebaut, weil er ein zweiter Weg in den portablen Betrieb wäre, den die Zusage nach außen nicht kennt. Belegt ist die sichtbare Seite am Dialog-Modul und am echten Markup mit eingeschobener Auskunft (renderer/ueber-dialog-portabel.test.js) und am gebauten Programm; ueber-dialog.spec.js zeigt an der gestarteten Anwendung, dass Zeile und Schaltfläche außerhalb des portablen Betriebs fehlen",
       "hinweis": "4T-001990, 4T-001991 und 4T-001993 (Epic 3E-000188): die portable Fassung. portabler-betrieb.test.js hält die Erkennung am Ordner Data neben der Programmdatei samt Schreib-Probe und Sprache der Meldung am nicht beschreibbaren Ort, das Ausbleiben jeder Übernahme aus dem Benutzerprofil beim ersten Start, die Pfad-Bildung von temporärem Ordner und Programm-Symbol und die Hülle der Datei-Dialoge (kein Eintrag in die Listen zuletzt verwendeter Elemente, zuletzt besuchter Ordner nur im Arbeitsspeicher, Start im Ordner Dokumente); portabler-betrieb-kanal.test.js die Auskunft «läuft portabel» samt Pfad und das Öffnen allein des im Haupt-Prozess ermittelten Daten-Ordners; renderer/ueber-dialog-portabel.test.js Zeile und Schaltfläche im Über-Dialog, die nur bei ausdrücklicher Auskunft «portabel» erscheinen. Testart unit, weil jede dieser Zusagen an einer reinen Funktion, am Kanal oder am Dialog-Modul hängt und der portable Betrieb im Testlauf nicht entsteht; die Messungen am gebauten Programm stehen in den Tasks. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001996 entstanden; sie beschreibt die Form, in der das Programm vorliegt, und steht deshalb in der Kern-Liste test/unit/funktions-seite-kern.js."
+    },
+    {
+      "key": "help.feature.coverImage",
+      "id": "F-421",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/titelbild.spec.js",
+        "test/unit/titelbild.test.js",
+        "test/unit/render/extensions-aus-titelbild.test.js",
+        "test/unit/preload-images.test.js",
+        "test/unit/render/snapshots.test.js",
+        "test/unit/demo-links.test.js",
+        "test/unit/titelbild-setzstellen.test.js"
+      ],
+      "hinweis": "4T-002630/4T-002631 (Epic 3E-000395): Titelbild über die Eigenschaft cover mit cover-height und cover-position — TI-01 (gerenderte Ansicht und gerenderte Hälfte der geteilten Ansicht: Bild als erstes Element, Daten-Adresse, object-fit cover auf die eingestellte Höhe), TI-02 (fehlendes Bild und Adresse aus dem Netz: Hinweis, keine Meldung, keine Netz-Anfrage), TI-03 (Live-Ansicht: Block über der Frontmatter-Zeile, bleibt bei der Schreibmarke im Kopf, folgt dem Wert), TI-04 (Erweiterung cover-image aus und wieder an, Eigenschaften-Panel unverändert), TI-05 (HTML-Export, Druck-Zustand und PDF), TI-06 (Wiki-Form über den Namen im Bereich), TI-07 (Eigenschaft cover im Eigenschaften-Panel anlegen, gerenderte Ansicht zeigt das Bild oben, ausdrücklich gespeichert); Option titelbild: true an jeder Setz-Stelle der Vollansicht (titelbild-setzstellen.test.js); Formen, Werte, Kodierung und Einhänge-Punkt (titelbild.test.js), Aus-Zustand (extensions-aus-titelbild.test.js), Bild-Umwandlung des Kopf-Bereichs (preload-images.test.js), Snapshot-Fixture titelbild.md mit und ohne Option der Vollansicht; jedes Titelbild der Demo-Area, darunter das von «05 Properties and Profiles», zeigt auf eine vorhandene Bilddatei (demo-links.test.js)."
+    },
+    {
+      "key": "help.feature.readingPosition",
+      "id": "F-422",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/lese-position.spec.js",
+        "test/e2e/funktionen/lese-position-ablage.spec.js",
+        "test/unit/lese-stelle.test.js",
+        "test/unit/lese-positionen-ablage.test.js",
+        "test/unit/renderer/lese-position.test.js"
+      ],
+      "hinweis": "4T-002641/4T-002643 (Epic 3E-000397): Lese-Position je Dokument — LP-01 (geschlossen und über das Bereichs-Panel wieder geöffnet: oberste Zeile in der Lese-Ansicht, Schreibmarke beim Wechsel in den Live-Modus), LP-02 (Verweis auf eine Überschrift und Suchtreffer gehen der gemerkten Stelle vor; Lesezeichen öffnet ein geschlossenes Dokument an seiner Stelle und holt ein geöffnetes nach vorn, ohne es zu verschieben), LP-03 (Neustart: sofort beendet, zwei Reiter, geschlossenes Dokument nach dem Neustart), LP-04 (innerhalb der Sitzung: Reiter-Wechsel behält Schreibmarke und Bildlauf, Ansichts-Wechsel nimmt die oberste Zeile mit, Diagramm oberhalb, Ablage nach zwei Sekunden Ruhe, Tabelle im Live-Modus), LP-05 (Umbenennen im Bereichs-Panel, Kaskade der Unterseite, Verschieben einer Kapitel-Datei: Stelle unter dem neuen Pfad), LP-06 (später wachsender Inhalt oberhalb: Bilder, eingebettetes Dokument, ohne Bildlauf-Verankerung des Browsers), LP-07 (Ansichts-Wechsel ohne Zwischenbild in drei Richtungen); Kern der Stelle mit Grenzen, Umbenennen und Verdrängung über 500 (lese-stelle.test.js), Ablage im Nutzerdaten-Verzeichnis samt Abweisung ungültiger Werte am Kanal (lese-positionen-ablage.test.js), Messen und Setzen im Anzeige-Prozess (renderer/lese-position.test.js)."
+    },
+    {
+      "key": "help.feature.navigationHistory",
+      "id": "F-423",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/vor-und-zurück.spec.js",
+        "test/unit/navigations-verlauf.test.js",
+        "test/unit/renderer/navigation-verlauf-bedienung.test.js",
+        "test/unit/commands.test.js"
+      ],
+      "hinweis": "4T-002642/4T-002643 (Epic 3E-000397): Vor und Zurück zwischen besuchten Stellen — VZ-01 (Verweis, Zurück an die Ausgangsstelle, Vor zum Ziel, eine neue Navigation schneidet den Vorwärts-Teil ab), VZ-02 (frisches Fenster: Hinweis in der Statusleiste, Menü-Einträge ausgegraut; b Knöpfe der Statusleiste ausgegraut und per Klick bedienbar; c Knopf aus- und einblenden, das Kürzel wirkt weiter), VZ-03 (geschlossenes Dokument öffnet wieder an seiner Stelle; b nachgerücktes Dokument), VZ-04 (zweite Spalte und zweites Fenster mit eigenem Verlauf; b verdecktes Dokument der anderen Spalte), VZ-05 (gelöschtes Dokument wird übersprungen und gezählt), VZ-06 (Alt+Pfeil im Live-Modus, Schreibmarke im Ziel bleibt; b Buch-Panel rückt an einer Kapitel-Zeile aus und ein, der Verlauf bleibt), VZ-07 (Inhaltsverzeichnis legt Einträge an, Weitersuchen und Bildlauf nicht; b Rückverweis-Panel; c Inhaltsverzeichnis-Block im Live-Modus), VZ-08 (seitliche Maustasten), VZ-09 (Ansicht → Zurück und Vor über den Menü-Kanal); Kern des Verlaufs mit Grenze 100, Zusammenfassen naher Stellen und Abschneiden (navigations-verlauf.test.js), Bedienung im Fenster (renderer/navigation-verlauf-bedienung.test.js), Kommandos nav.back und nav.forward mit Standard-Belegung (commands.test.js)."
     }
   ]
 }

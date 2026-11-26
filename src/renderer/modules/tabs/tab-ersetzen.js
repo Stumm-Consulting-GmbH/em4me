@@ -28,6 +28,12 @@ import {
   findTabAcrossPanes,
 } from './tabs.js';
 import { showStatusbarHint } from '../views/views.js';
+import { leseOffeneStelle, loeseReiterVonDatei } from '../views/lese-position.js';
+import {
+  merkeErsetzenNachher,
+  merkeErsetzenVorher,
+  ohneVerlauf,
+} from '../views/navigation-verlauf-bedienung.js';
 import { t } from '../../i18n.js';
 
 /**
@@ -71,8 +77,10 @@ export async function ersetzeTabDurchDatei(paneIdx, tabIdx, zielPfad) {
   if (!stelle) return false;
 
   let daten;
+  let gemerkt = null;
   try {
-    daten = await api.readFile(zielPfad);
+    // 4T-002641: die gemerkte Stelle der neuen Datei, wie beim Öffnen.
+    [daten, gemerkt] = await Promise.all([api.readFile(zielPfad), leseOffeneStelle(zielPfad)]);
   } catch {
     daten = null;
   }
@@ -85,8 +93,16 @@ export async function ersetzeTabDurchDatei(paneIdx, tabIdx, zielPfad) {
     return false;
   }
 
+  // 4T-002641/4T-002642 (Review 3E-000397): Noch zeigt die Spalte die alte
+  // Datei. Ihre Stelle wird unter dem alten Pfad gemerkt und im Verlauf
+  // eingetragen; nichts davon wandert unter den neuen Pfad.
+  const gezeigt = state.panes[stelle.paneIdx].activeIndex === stelle.tabIdx;
+  if (gezeigt) merkeErsetzenVorher(stelle.paneIdx);
+  loeseReiterVonDatei(stelle.paneIdx, tab);
+
   const alterPfad = tab.path;
   tab.path = daten.path;
+  tab.stelleOffen = gemerkt;
   tab.content = daten.content;
   tab.originalContent = daten.content;
   tab.dirty = false;
@@ -106,8 +122,13 @@ export async function ersetzeTabDurchDatei(paneIdx, tabIdx, zielPfad) {
 
   // activateTab zieht Editor, Titelzeile, Panels und Sitzungs-Ablage nach; ein
   // eigener Nachzug wäre eine zweite, driftfähige Liste derselben Stellen.
-  activatePane(stelle.paneIdx);
-  activateTab(stelle.paneIdx, stelle.tabIdx);
+  // Die Aktivierung selbst legt keinen Eintrag an: Ihr «Verlassen» sähe schon
+  // die neue Datei. Den Eintrag der neuen Datei legt `merkeErsetzenNachher` an.
+  ohneVerlauf(() => {
+    activatePane(stelle.paneIdx);
+    activateTab(stelle.paneIdx, stelle.tabIdx);
+  });
+  merkeErsetzenNachher();
   return true;
 }
 

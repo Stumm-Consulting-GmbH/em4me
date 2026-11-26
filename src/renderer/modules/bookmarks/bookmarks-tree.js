@@ -17,6 +17,7 @@ import { toAbsolute, toRootRelative } from '../../../shared/bookmark-tree.js';
 // 4T-001775 (Epic 3E-000304): die gemeinsame Beschriftungs-Funktion; siehe die
 // drei Namens-Helfer am Ende dieses Moduls.
 import { fileLabelFromBasename } from '../../../shared/subpages.js';
+import { pathSeparator } from '../../../shared/platform.js';
 
 // === 4T-000075 (Epic 3E-000013): Bookmarks-Basis ================================
 // Persistente Lesezeichen mit Tree-Datenmodell (Folder + File-Knoten).
@@ -68,7 +69,12 @@ export function resolveBookmarkPath(section, node) {
   if (!node) return null;
   if (!section.isArea) return node.filePath || null;
   if (!state.areaPath) return null;
-  return toAbsolute(state.areaPath, node.filePath);
+  const abs = toAbsolute(state.areaPath, node.filePath);
+  // 4T-002641: In der Schreibweise der Plattform (unter Windows mit
+  // Rückstrich), wie die Pfade der Reiter und der Lese-Positionen. Mit
+  // Vorwärts-Schrägstrichen fand das Lesezeichen weder den schon offenen
+  // Reiter (es öffnete einen zweiten) noch die gemerkte Stelle.
+  return abs && pathSeparator() === '\\' ? abs.replace(/\//g, '\\') : abs;
 }
 
 export function findBookmarkByPath(nodes, filePath) {

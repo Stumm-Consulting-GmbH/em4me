@@ -36,6 +36,17 @@
 // Aufruf der Aktionen kommen von dort, dieses Modul trägt allein die
 // Platzierung im Editor. Das Widget fängt alle Ereignisse ab (`ignoreEvent`),
 // damit ein Klick weder die Schreibmarke setzt noch den Block aufklappt.
+//
+// **Breite (4T-002815):** Ein Block-Widget ist so breit wie der Inhalt des
+// Editors, und ohne Zeilenumbruch ist der Inhalt so breit wie seine längste
+// Zeile. Gemessen am 2026-11-24 mit einer Absatz-Zeile von rund 300 Zeichen:
+// Rollbereich 1335 px, Kopfzeile 2573 px, der Knopf «Starten» rechts außerhalb
+// des Sichtfensters. Das Plugin `sichtfenster` misst deshalb den Abstand des
+// Inhalts zum linken Rand des Rollbereichs und die sichtbare Breite rechts
+// davon und legt beide als CSS-Variablen an den Rollbereich; das Stilblatt
+// begrenzt die Kopfzeile auf diese Breite und hält sie beim waagerechten
+// Blättern am linken Rand fest. Mit Zeilenumbruch ändert sich nichts, weil der
+// Inhalt dann ohnehin nicht breiter ist als das Sichtfenster.
 'use strict';
 
 import { StateEffect, StateField } from '@codemirror/state';
@@ -50,6 +61,10 @@ export { kopfAktionenZuruecksetzen, registriereKopfAktion } from './workflow-kop
 
 /** Takt der Prüfung nach einer Text-Änderung, wie der Linter. */
 export const PRUEF_TAKT_MS = 300;
+
+/** CSS-Variablen am Rollbereich: linker Abstand und sichtbare Breite der Kopfzeile. */
+export const VAR_LINKS = '--wf-kopf-links';
+export const VAR_BREITE = '--wf-kopf-breite';
 
 // Vorprüfung und Analyse aus dem gemeinsamen Baustein, am Stand des Puffers.
 function analysiere(state, pfadFacet) {
@@ -178,5 +193,39 @@ export function workflowKopf(pfadFacet) {
       }
     },
   );
-  return [feld, takt];
+  // 4T-002815: Sichtbreite der Kopfzeile messen, nur solange eine da ist.
+  const sichtfenster = ViewPlugin.fromClass(
+    class {
+      constructor(view) {
+        this.view = view;
+        this.messen();
+      }
+      update(update) {
+        if (update.geometryChanged || update.docChanged || update.viewportChanged) this.messen();
+      }
+      messen() {
+        if (this.view.state.field(feld).koepfe.size === 0) return;
+        this.view.requestMeasure({
+          key: this,
+          read: (view) => {
+            const roll = view.scrollDOM;
+            const links =
+              view.contentDOM.getBoundingClientRect().left -
+              roll.getBoundingClientRect().left +
+              roll.scrollLeft;
+            return { links, breite: roll.clientWidth - links };
+          },
+          write: ({ links, breite }, view) => {
+            view.scrollDOM.style.setProperty(VAR_LINKS, `${Math.max(0, Math.round(links))}px`);
+            view.scrollDOM.style.setProperty(VAR_BREITE, `${Math.max(0, Math.floor(breite))}px`);
+          },
+        });
+      }
+      destroy() {
+        this.view.scrollDOM.style.removeProperty(VAR_LINKS);
+        this.view.scrollDOM.style.removeProperty(VAR_BREITE);
+      }
+    },
+  );
+  return [feld, takt, sichtfenster];
 }

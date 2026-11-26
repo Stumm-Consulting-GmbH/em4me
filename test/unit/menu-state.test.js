@@ -197,6 +197,22 @@ describe('normalizeMenuState (4T-000277)', () => {
     expect(leer.editMode).toBe(false);
   });
 
+  // 4T-002642 (Epic 3E-000397): «Zurück» und «Vor» geben ihre Menü-Einträge
+  // nur mit einem echten Wahrheitswert frei, vor der ersten Meldung nie.
+  it('4T-002642: kannZurueck und kannVor werden durchgereicht und normalisiert', () => {
+    const gesetzt = normalizeMenuState({ kannZurueck: true, kannVor: true }, {});
+    expect(gesetzt.kannZurueck).toBe(true);
+    expect(gesetzt.kannVor).toBe(true);
+
+    const roh = normalizeMenuState({ kannZurueck: 1, kannVor: 0 }, {});
+    expect(roh.kannZurueck).toBe(true);
+    expect(roh.kannVor).toBe(false);
+
+    const leer = normalizeMenuState(null, null);
+    expect(leer.kannZurueck).toBe(false);
+    expect(leer.kannVor).toBe(false);
+  });
+
   it('4T-000626: liefert ohne Meldung die leere Varianten-Form', () => {
     expect(normalizeMenuState(null, null).sidebarVariants).toEqual({
       global: [],

@@ -23,6 +23,8 @@ const { isInsideArea } = require('../area/area-path');
 const selbstSchreib = require('./self-write');
 // 4T-002460 (Epic 3E-000367): Sammelstelle des Ereignis-Prüfers der Workflows.
 const { meldeWorkflowEreignis } = require('../checks/workflow-event-check');
+// 4T-002641 (Epic 3E-000397): Ablage der Lese-Positionen (Modul-Singleton).
+const lesePositionen = require('../lese-positionen');
 
 // 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
@@ -272,6 +274,15 @@ function createLinkUpdate(deps) {
         );
         applyMenuToAllWindows();
       }
+    }
+    // 4T-002641 (Epic 3E-000397, V5): Die gemerkte Lese-Position zieht mit,
+    // auch wenn die Datei in keinem Fenster offen ist; jede Datei einer
+    // Kaskade läuft hier einzeln durch. Ein Fehler lässt die bereits
+    // vollzogene Bewegung nie scheitern.
+    try {
+      lesePositionen.benenneUm(absolute, newPath);
+    } catch (err) {
+      console.warn('Lese-Positionen: Umbenennen nicht nachgezogen:', absolute, err && err.message);
     }
     broadcast('file:renamed', { oldPath: absolute, newPath });
     // 4T-002460 (Epic 3E-000367, 3a): Quelle des Ereignisses `file-moved`. Jede

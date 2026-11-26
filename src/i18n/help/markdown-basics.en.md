@@ -4,7 +4,7 @@ The app renders Markdown based on the CommonMark standard, extended with tables,
 
 ## Headings
 
-Six levels with `#` to `######`; every heading automatically gets an anchor for links and the table of contents.
+Six levels with `#` to `######`; every heading automatically gets an anchor for links and the table of contents. A table of contents inside the document itself is provided by the table of contents block (see [Block constructs](blocks.md)).
 
 ```markdown
 ## Chapter
@@ -131,7 +131,7 @@ The behavior applies in Source, Split and Live view. The setting "Cursor jumps p
 
 ## Tables
 
-Pipe tables with a header row and a separator row; colons in the separator row control alignment. For multi-line block cells there is [Perspective Table](perspective-table.md), for typing comfort the table editor (see [Tools](tools.md)). To restructure existing tables (moving, inserting and deleting rows and columns, alignment, transposing), use the **Table** submenu in the [Editor context menu](context-menu.md).
+Pipe tables with a header row and a separator row; colons in the separator row control alignment. For multi-line block cells there is [Perspective Table](perspective-table.md), for typing comfort the table editor (see [Tools](tools.md)). To restructure existing tables (moving, inserting and deleting rows and columns, alignment, transposing), use the **Table** submenu in the [Editor context menu](context-menu.md). A cell range from a spreadsheet becomes a table by itself when pasted (see [Tools](tools.md)).
 
 ```markdown
 | Left | Centred | Right |

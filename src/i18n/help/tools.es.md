@@ -114,6 +114,34 @@ Cambiar de sección en los ajustes no guarda nada, un borrador empezado se conse
 
 En tablas pipe, `Tab` salta a la celda siguiente y `Mayús+Tab` a la anterior. Al final de la última fila, `Tab` o `Intro` crean una nueva fila con el mismo número de columnas; dos `Intro` en una fila vacía salen de la tabla. También se reconocen tablas sin bordes (sin pipes exteriores). Las operaciones de estructura (mover, insertar y eliminar filas y columnas, alineación, transposición) las ofrece el submenú **Tabla** en el [Menú contextual del editor](context-menu.md).
 
+## Tablas desde una hoja de cálculo
+
+Un rango de celdas copiado en una hoja de cálculo se convierte en una tabla pipe con `Ctrl+V`, y también con **Pegar** en el [menú contextual del editor](context-menu.md). La primera fila del rango pasa a ser la fila de encabezado, y la barra de estado informa de la conversión.
+
+La conversión se produce cuando el portapapeles contiene la forma de tabla de una hoja de cálculo y el rango tiene al menos dos filas y dos columnas con el mismo número de celdas en cada fila. Un salto de línea dentro de una celda se convierte en un espacio, una barra vertical se protege como `\|` para que no divida la celda, y una celda vacía sigue vacía. Si el cursor está en medio de una línea, la tabla se coloca en líneas propias, con una línea en blanco respecto al texto anterior y posterior; dentro de una cita o de un bloque de aviso, cada fila de la tabla lleva el prefijo de la línea en la que se pega. Dentro de áreas de código fuente, en el frontmatter, en una tabla existente y con varios cursores se pega el texto sin formato; una imagen de las celdas que aporte la hoja de cálculo no se guarda como [adjunto](attachments.md).
+
+### Deshacer en dos pasos
+
+El primer `Ctrl+Z` tras la conversión restaura el texto sin formato pegado, con tabuladores entre las celdas; el segundo lo retira también.
+
+### Pegar como texto sin formato
+
+`Ctrl+Mayús+V` y el comando **Pegar como texto sin formato** del menú contextual del editor y de la paleta de comandos insertan siempre el portapapeles sin cambios, sin tabla, enlace ni adjunto.
+
+### Pegar como tabla
+
+El comando **Pegar como tabla** del menú contextual del editor y de la paleta de comandos convierte también un texto que no procede de una hoja de cálculo: celdas separadas por tabuladores o punto y coma, un registro por línea. Como separador cuenta el más frecuente de los dos. También aquí se exigen al menos dos filas y dos columnas con el mismo número de celdas; además, ninguna línea puede empezar por el separador, para que el código fuente sangrado siga siendo texto. Si el portapapeles no lo cumple, la barra de estado lo indica y no se pega nada. Deshacer funciona en dos pasos, como arriba.
+
+```text
+Artículo;Cantidad;Precio
+Café;2;8,00
+Té;1;3,50
+```
+
+### Extensión
+
+La conversión pertenece a la extensión conmutable «Herramientas de tabla» (Configuración → Extensiones). Si se desactiva, `Ctrl+V` pega un rango de celdas copiado como texto sin formato, y **Pegar como tabla** desaparece del menú contextual y de la paleta de comandos; **Pegar como texto sin formato** se mantiene.
+
 ## Impresión
 
 «Archivo → Más funciones de archivo → Imprimir…» (predeterminado `Ctrl+P`) imprime el contenido de la pestaña activa directamente en una impresora, sin el rodeo de un archivo PDF que después habría que abrir en un segundo programa. Se abre el diálogo de impresión del sistema operativo: impresora, intervalo de páginas, número de copias, dúplex y todo lo demás se eligen allí, en la interfaz que conoce de cualquier otro programa. El tamaño de página, la orientación y los márgenes vienen rellenados desde la sección «Exportación» de la configuración.

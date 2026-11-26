@@ -332,7 +332,7 @@ export async function runSetReminderCommand() {
 async function oeffneAnZeile(pfad, zeile) {
   const target = state.activePaneIndex;
   activatePane(target);
-  const realPane = await openInPane(target, [pfad]);
+  const realPane = await openInPane(target, [pfad], { zielFolgt: true }); // 4T-002641
   scrollToLineAfterOpen(realPane, zeile);
 }
 

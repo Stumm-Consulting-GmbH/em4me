@@ -20,6 +20,7 @@
 const path = require('node:path');
 const { dialog } = require('electron');
 const shelves = require('./shelves');
+const { weiseGeschuetztesZielAb } = require('../ipc/protected-dialog-target');
 const { isSamePath, areaFromRootPath } = require('../area/area-path');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 
@@ -45,6 +46,7 @@ const { isExtensionEnabled } = require('../../shared/extensions/extensions-core'
  * @param {Function} deps.createWindow Fenster erzeugen.
  * @param {Function} deps.closeAppWindows Schliess-Kaskade einer Applikation.
  * @param {object} deps.recentLists Die vier "Zuletzt geoeffnet"-Listen.
+ * @param {object} deps.bindingGrants Bindungen als Freigabe im Buch (4T-002647).
  * @returns {object} Regal-API samt der Zustands-Map dieses Moduls.
  */
 function createShelfApps(deps) {
@@ -67,6 +69,11 @@ function createShelfApps(deps) {
     createWindow,
     closeAppWindows,
     recentLists,
+    // 4T-002647 (Epic 3E-000416): Ein Regal ist ein Bereich; Muster book-apps.js.
+    bindingGrants,
+    // Review-Befund Z1 vom 2026-11-22 (4T-002827): die Prüfung gegen die
+    // geschützten Ordner für jeden Aufrufer des Dialogs, auch das Menü.
+    checkTarget,
   } = deps;
 
   const activeShelves = new Map(); // appId -> shelfDir (absolut)
@@ -113,6 +120,7 @@ function createShelfApps(deps) {
   async function bindShelfToApp(appId, shelfDir) {
     if (!appRegistry.getArea(appId)) {
       appRegistry.setArea(appId, areaFromRootPath(shelfDir));
+      void bindingGrants.bindApp(appRegistry.windowsOf(appId), shelfDir);
       startAreaWatcher(appId);
     }
     activeShelves.set(appId, shelfDir);
@@ -279,6 +287,7 @@ function createShelfApps(deps) {
     if (area && !isSamePath(area.rootPath, state.state.shelfDir)) return;
     if (!area) {
       appRegistry.setArea(appId, areaFromRootPath(state.state.shelfDir));
+      void bindingGrants.bindApp(appRegistry.windowsOf(appId), state.state.shelfDir);
       startAreaWatcher(appId);
     }
     activeShelves.set(appId, state.state.shelfDir);
@@ -321,9 +330,16 @@ function createShelfApps(deps) {
 
   // Story 4S-000760, AK3: "Neues Buecherregal…" legt Regal-Ordner, Regal-Datei und
   // Begleitdatei an und oeffnet das Regal (Dialog-Muster createBookDialog).
-  async function createShelfDialog(ownerWin) {
+  //
+  // 4T-002827 (Epic 3E-000416): Liegt das neue Regal in einem geschuetzten Ordner,
+  // meldet der Dialog das und legt nichts an. `options.checkTarget` reicht der
+  // Kanal aus main.js durch, `options.dialog` ist die Naht der Prueffaelle.
+  async function createShelfDialog(ownerWin, options = {}) {
     const owner = ownerWin && !ownerWin.isDestroyed() ? ownerWin : null;
-    const result = await dialog.showSaveDialog(owner || undefined, {
+    // Naht der Prüffälle: `options.dialog` je Aufruf, `deps.dialog` für den
+    // Menü-Weg, der ohne Optionen ruft.
+    const dlg = options.dialog || deps.dialog || dialog;
+    const result = await dlg.showSaveDialog(owner || undefined, {
       title: tForWindow(owner, 'shelf.createDialogTitle'),
       buttonLabel: tForWindow(owner, 'shelf.createDialogButton'),
       defaultPath: areaOfWindow(owner)?.rootPath,
@@ -332,6 +348,16 @@ function createShelfApps(deps) {
     if (result.canceled || !result.filePath) return { ok: false, canceled: true };
     const parentDir = path.dirname(result.filePath);
     const name = path.basename(result.filePath);
+    const geschuetzt = await weiseGeschuetztesZielAb({
+      checkTarget: options.checkTarget || checkTarget,
+      dialog: dlg,
+      owner,
+      tForWindow,
+      kanal: 'shelves:createDialog',
+      ziel: path.join(parentDir, name),
+      umfang: 'create',
+    });
+    if (geschuetzt) return geschuetzt;
     const created = await shelves.createShelf(parentDir, name);
     if (!created.ok) {
       const messageKey =
@@ -340,7 +366,7 @@ function createShelfApps(deps) {
           : created.error === 'exists'
             ? 'shelf.createExistsMessage'
             : 'shelf.createFailedMessage';
-      await dialog.showMessageBox(owner || undefined, {
+      await dlg.showMessageBox(owner || undefined, {
         type: 'warning',
         title: tForWindow(owner, 'shelf.createFailedTitle'),
         message: tForWindow(owner, messageKey),

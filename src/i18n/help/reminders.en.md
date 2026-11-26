@@ -20,6 +20,8 @@ The time part is optional. Without it, the reminder announces itself at the conf
 - [ ] File tax return ⏰ 2099-04-14
 - [ ] Call customer back ⏰ 2099-04-14 09:30
 
+Lines with a state of type Done, Cancelled or Not a task do not remind, even if they carry a reminder marker; this includes the "Carried over" state set by the carry-over of open tasks in journals (types on the [Task lists](tasks.md) page, section "Custom states, type and follow-up symbol").
+
 There are several ways to enter it:
 
 - **Command "Set reminder"** (default `Ctrl+Alt+R`): on a task line it opens the date and time picker and writes the marker.

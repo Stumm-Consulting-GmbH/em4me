@@ -63,6 +63,28 @@ Le destinazioni di ancora rotte vengono segnalate dal [linter Markdown](tools.md
 
 In un file di tabella della [banca dati](database.md), `#^` indica inoltre l'identificatore di un singolo record: `[[Personen#^r-00042]]`. Un collegamento del genere vale se la tabella porta quel record; un'ancora di blocco con lo stesso nome mantiene la precedenza.
 
+## Indietro e avanti
+
+Come in un browser, «Indietro» porta al punto in cui eravate prima e «Avanti» torna avanti. Così ritornate al punto di partenza dopo aver seguito un collegamento, senza doverlo cercare.
+
+**Uso:**
+
+- `Alt+←` e `Alt+→`; le scorciatoie si modificano in File → Impostazioni… → Scorciatoie da tastiera.
+- I pulsanti laterali del mouse.
+- Visualizza → Indietro e Visualizza → Avanti.
+- I comandi «Indietro» e «Avanti» della palette dei comandi.
+- I due pulsanti freccia nella barra di stato. Sono disattivati finché nella loro direzione non è possibile alcun passo e si possono nascondere come ogni pulsante predefinito, vedere [Posizionamento dei comandi](command-placement.md).
+
+Nella vista sorgente e nella modalità live, `Alt+←` e `Alt+→` non spostano il cursore, ma tornano indietro e vanno avanti anch'essi. Solo nel sommario di un libro, con una riga di capitolo a fuoco, tolgono e applicano l'annidamento del capitolo, `Alt+←` toglie l'annidamento e `Alt+→` annida; `Alt+↑` e `Alt+↓` lo spostano all'interno del suo livello, vedere [Libri](books.md).
+
+**Che cosa conta come visita.** Ogni cambio del documento mostrato, tramite una scheda, `Ctrl+Tab`, un collegamento o l'apertura di un documento. In più i salti all'interno di un documento: un collegamento a un titolo o a un blocco, un clic nel pannello «Sommario» o in un blocco sommario, una voce del pannello «Backlink» e un salto dall'elenco dei risultati della ricerca. La ricerca del risultato successivo nella barra di ricerca e lo scorrimento non contano. Se due punti dello stesso documento distano meno di dieci righe, contano come uno solo.
+
+**Cronologia.** Se tornate indietro e da lì saltate a un punto nuovo, la parte a cui avrebbe portato «Avanti» viene eliminata. Ogni finestra ha la propria cronologia con al massimo 100 voci; inizia vuota con la finestra e termina con essa. Se sono aperte due colonne, il passo riporta anche nella colonna in cui eravate.
+
+**Documenti chiusi ed eliminati.** «Indietro» riapre un documento chiuso nel frattempo, nel punto in cui lo avete lasciato. Un documento che non esiste più viene saltato, a meno che non sia ancora aperto in una scheda, e la barra di stato indica quanti luoghi sono stati saltati. Se non è più possibile alcun passo, mostra «Nessun luogo precedente» o «Nessun luogo successivo».
+
+Dove si trova un documento aperto senza una destinazione precisa è descritto nella sezione «Posizione di lettura» della pagina [Applicazioni, finestre e aree](apps-windows.md).
+
 ## Collegamenti Markdown a file
 
 Anche i collegamenti Markdown classici aprono destinazioni `.md` come scheda; le ancore funzionano allo stesso modo. I collegamenti di àncora interni saltano dentro la pagina — dal vivo qui: [al capitolo Tag](#tag).
@@ -127,9 +149,9 @@ La destinazione viene cercata prima al percorso indicato e, se lì non c’è nu
 
 **Incorporare** da un’area collegata non è possibile: `![[@zt:Nota]]` mostra al suo posto un avviso che lo dice esattamente, che i collegamenti tra aree siano attivi o no. Il collegamento `[[@zt:Nota]]` alla stessa destinazione la apre come descritto.
 
-**I modelli dell’area collegata** possono essere proposti accanto ai propri; esiste un interruttore per ciascun collegamento. La scelta dei modelli mostra allora entrambi gli insiemi, e ogni voce esterna indica la sua provenienza. Senza l’interruttore un collegamento non modifica l’insieme dei modelli.
+**I modelli dell’area collegata** possono essere proposti accanto ai propri; esiste un interruttore per ciascun collegamento. La scelta dei modelli mostra allora entrambi gli insiemi, e ogni voce esterna indica la sua provenienza. Senza l’interruttore un collegamento non modifica l’insieme dei modelli. Se l’estensione «Modelli» è disattivata, l’interruttore è nascosto; la scelta salvata resta e torna a valere non appena l’estensione viene riattivata.
 
-**I workflow dell’area collegata** si possono proporre allo stesso modo, con un interruttore «Workflow» proprio per ciascun collegamento. Compaiono nel menu, nella palette dei comandi e nella pagina delle esecuzioni dei workflow con il prefisso del collegamento, si avviano solo a mano e agiscono nell’area propria; nell’area collegata non viene scritto nulla. Dettagli nella pagina [Workflow](workflows.md).
+**I workflow dell’area collegata** si possono proporre allo stesso modo, con un interruttore «Workflow» proprio per ciascun collegamento. Compaiono nel menu, nella palette dei comandi e nella pagina delle esecuzioni dei workflow con il prefisso del collegamento, si avviano solo a mano e agiscono nell’area propria; nell’area collegata non viene scritto nulla. Se l’estensione «Workflow» è disattivata, anche questo interruttore è nascosto, e la sua scelta salvata resta. Dettagli nella pagina [Workflow](workflows.md).
 
 ### Quando un’area collegata non si trova
 

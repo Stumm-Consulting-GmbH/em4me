@@ -31,8 +31,6 @@ const { sidebarPanelById } = await import('../../../src/renderer/modules/sidebar
 const { COMMANDS } = await import('../../../src/shared/commands/commands.js');
 const { tExtension } = await import('../../../src/renderer/i18n.js');
 const { extensionById } = await import('../../../src/shared/extensions/extensions.js');
-const { EXTERNAL_ENABLED_KEY, EXTERNAL_ERRORS_KEY, EXTERNAL_TRUSTED_KEY } =
-  await import('../../../src/shared/extensions/extensions-external.js');
 
 const ENTRY_SRC = `
 let deactivated = false;
@@ -98,17 +96,37 @@ function makeRuntime() {
 }
 
 let runtime;
-let persisted;
+// 4T-002650: Attrappe des Hauptprozesses. Er hält Bestätigungen, die Liste
+// der eingeschalteten Pakete und die Fehler; der Scan liefert je Paket, ob
+// die Bestätigung gilt. Aufgezeichnet werden Schalt- und Fehler-Meldungen.
+let main;
+
+function useEntries(list) {
+  main.entries = list;
+  host.resetExternalHostForTests(list);
+}
 
 beforeEach(() => {
   host.resetExternalHostForTests();
   runtime = makeRuntime();
   host.attachExtensionHostRuntime(runtime);
-  persisted = [];
-  host.attachExternalPersistence(async (key, value) => {
-    persisted.push([key, JSON.parse(JSON.stringify(value))]);
-    return true;
-  });
+  main = { entries: [], enabled: [], trusted: {}, switched: [], reported: [], refuse: null };
+  window.api.scanExternalExtensions = async () =>
+    main.entries.map((e) => ({
+      ...e,
+      trusted: main.trusted[e.manifest.id] === e.manifest.version,
+    }));
+  window.api.setExternalExtensionEnabled = async (id, on) => {
+    main.switched.push([id, on]);
+    if (on && main.refuse) return { ok: false, error: main.refuse };
+    main.enabled = on ? [...new Set([...main.enabled, id])] : main.enabled.filter((x) => x !== id);
+    return { ok: true, enabled: main.enabled };
+  };
+  window.api.reportExternalExtensionError = async (id, text) => {
+    main.reported.push([id, text]);
+    main.enabled = main.enabled.filter((x) => x !== id);
+    return { ok: true, enabled: main.enabled };
+  };
   delete globalThis.__extHostCommandRan;
   delete globalThis.__extHostDeactivated;
   window.api.configureExternalMarkdownPlugins = async () => ({});
@@ -183,11 +201,10 @@ describe('extension-host: Aktivierung und Beiträge (4T-000299)', () => {
     const entry = host.externalExtensionEntries()[0];
     expect(entry.status).toBe('error');
     expect(entry.lastError).toContain('Absichtlich defekt');
-    // Persistiert: Fehlertext plus bereinigte Enabled-Liste (Auto-Disable).
-    expect(persisted.some(([k, v]) => k === EXTERNAL_ERRORS_KEY && v.defekt)).toBe(true);
-    expect(persisted.some(([k, v]) => k === EXTERNAL_ENABLED_KEY && !v.includes('defekt'))).toBe(
-      true,
-    );
+    // 4T-002650: Fehler samt Ausschalten meldet der Host an den Hauptprozess.
+    expect(main.reported).toHaveLength(1);
+    expect(main.reported[0][0]).toBe('defekt');
+    expect(main.reported[0][1]).toContain('Absichtlich defekt');
     // Kein halber Zustand übrig.
     expect(extensionById('defekt')).toBeNull();
     expect(document.querySelectorAll('[class*="ext-defekt"]')).toHaveLength(0);
@@ -218,32 +235,38 @@ describe('extension-host: Aktivierung und Beiträge (4T-000299)', () => {
 
 describe('extension-host: Vertrauens-Ablauf (4T-000298)', () => {
   it('Aktivierung ohne bestätigten Dialog passiert nicht', async () => {
-    host.resetExternalHostForTests([makeEntry('test-ext', ENTRY_SRC)]);
+    useEntries([makeEntry('test-ext', ENTRY_SRC)]);
     window.api.confirmExternalExtensionTrust = async () => false;
     expect(await host.enableExternalExtension('test-ext')).toBe('canceled');
     expect(host.isExternalExtensionActive('test-ext')).toBe(false);
-    expect(persisted).toEqual([]);
+    expect(main.switched).toEqual([]);
+    expect(main.reported).toEqual([]);
   });
 
-  it('Bestätigung persistiert Vertrauen je Version und aktiviert', async () => {
-    host.resetExternalHostForTests([makeEntry('test-ext', ENTRY_SRC)]);
+  it('Bestätigung im Hauptprozess, Einschalten über seinen Kanal, dann geladen', async () => {
+    useEntries([makeEntry('test-ext', ENTRY_SRC)]);
     let dialogCalls = 0;
-    window.api.confirmExternalExtensionTrust = async () => {
+    // Der Hauptprozess speichert die Bestätigung selbst (Kanal confirmTrust).
+    window.api.confirmExternalExtensionTrust = async (id) => {
       dialogCalls += 1;
+      main.trusted[id] = '1.0.0';
       return true;
     };
     expect(await host.enableExternalExtension('test-ext')).toBe('active');
     expect(dialogCalls).toBe(1);
-    expect(
-      persisted.some(([k, v]) => k === EXTERNAL_TRUSTED_KEY && v['test-ext'] === '1.0.0'),
-    ).toBe(true);
-    expect(persisted.some(([k, v]) => k === EXTERNAL_ENABLED_KEY && v.includes('test-ext'))).toBe(
-      true,
-    );
+    expect(main.switched).toEqual([['test-ext', true]]);
+    expect(main.enabled).toEqual(['test-ext']);
     // Erneutes Aktivieren derselben bestätigten Version fragt nicht erneut.
     await host.disableExternalExtension('test-ext');
     expect(await host.enableExternalExtension('test-ext')).toBe('active');
     expect(dialogCalls).toBe(1);
+  });
+
+  it('weist der Hauptprozess das Einschalten ab, wird nichts geladen', async () => {
+    useEntries([makeEntry('test-ext', ENTRY_SRC)]);
+    main.refuse = 'extensions:notTrusted';
+    expect(await host.enableExternalExtension('test-ext')).toBe('error');
+    expect(host.isExternalExtensionActive('test-ext')).toBe(false);
   });
 
   it('meldet aktive Markdown-Plugins an den Preload-Loader', async () => {

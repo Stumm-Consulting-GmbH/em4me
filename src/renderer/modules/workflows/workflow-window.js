@@ -37,6 +37,16 @@
 // Löschen wieder schreiben; «Abbrechen» der Speicher-Rückfrage beendet den
 // Lauf mit `closeCanceled`, bevor gelöscht ist.
 //
+// **Vor dem Abhaken folgt ein unveränderter Reiter der Platte** (4T-002812,
+// Zweitblick des Epics 3E-000444, Runde 2, Befund 1). Ein unverändert
+// geöffnetes Dokument ist seit 4T-002812 kein Schreibziel mehr: Ein voriger
+// Schritt desselben Laufs schreibt es auf die Platte, und der Reiter lädt erst
+// nach, wenn die Datei-Beobachtung meldet, frühestens nach 150 ms. Ist das Ziel
+// der aktive Reiter, hakt `toggleTaskFromQuery` aber im Editor ab; ohne
+// Nachladen fände es eine eben angehängte Aufgabe nicht, oder es setzte auf dem
+// alten Stand auf und speicherte ihn gegen den neuen. `folgeDerPlatte` lädt
+// den Reiter deshalb vorher nach, wenn die Platte einen anderen Stand trägt.
+//
 // **Masken der Datenbank** (4T-002548, Story 4S-001201, Dg): `dbOpen` öffnet
 // den vom Hauptprozess aufgelösten Datensatz über `oeffneMaske` der
 // Masken-Seite in seiner Standard-Maske; eine Neuanlage hat der Hauptprozess
@@ -58,6 +68,7 @@ import { showLinkPreviewDialog } from '../dialogs/dialogs.js';
 import { flushIndexOverlay, paneEditors } from '../editor/editor.js';
 import { closeTab, openInPane } from '../tabs/tabs.js';
 import { findOpenTab, toggleTaskFromQuery, uebernimmInPuffer } from '../task-query-actions.js';
+import { reloadFile } from '../views/pane-render.js';
 import { applyContentEdit } from '../../../shared/workflows/workflow-edit.js';
 import { oeffneMaskeImLauf } from '../database/masken-seite.js';
 import { WARTEN_GEOEFFNET, WARTEN_ZURUECK } from '../database/masken-warten.js';
@@ -127,16 +138,22 @@ export function applyBufferEdit(path, edit, expected) {
 }
 
 /**
- * Meldet die ausstehenden Puffer-Stände aller geänderten Dokumente dieses
- * Fensters sofort, damit der Hauptprozess vor einem Inhalts-Schritt weiß, wer
- * den ungespeicherten Stand hält.
+ * Meldet die ausstehenden Puffer-Stände aller Dokumente dieses Fensters sofort,
+ * damit der Hauptprozess vor einem Inhalts-Schritt weiß, wer den
+ * ungespeicherten Stand hält.
+ *
+ * 4T-002812: alle Reiter mit Pfad, nicht nur die geänderten. Ein eben auf den
+ * gespeicherten Text zurückgetippter Reiter hat noch einen Plan mit dem
+ * Merkmal «unverändert» ausstehen; ohne ihn hielte der Hauptprozess das
+ * Fenster weiter für das Schreibziel. Ohne anstehenden Plan tut
+ * flushIndexOverlay nichts.
  *
  * @returns {Promise<void>}
  */
 export async function flushPendingBuffers() {
   const offen = [];
   for (const pane of state.panes) {
-    for (const tab of pane.tabs) if (tab.dirty && tab.path) offen.push(flushIndexOverlay(tab));
+    for (const tab of pane.tabs) if (tab.path) offen.push(flushIndexOverlay(tab));
   }
   await Promise.all(offen);
 }
@@ -154,6 +171,24 @@ async function schliesseDokument(path) {
     }
   }
   return { ok: true, geschlossen };
+}
+
+// Lädt einen unverändert geöffneten Reiter dieses Fensters nach, wenn die
+// Platte einen anderen Stand trägt (Kopf-Kommentar, Absatz «Vor dem Abhaken»).
+// Ein ungespeicherter Reiter bleibt, wie er ist: Er ist selbst das Schreibziel
+// und trägt den jüngsten Stand. Ein Lesefehler lässt den Reiter unverändert;
+// das Abhaken meldet dann wie bisher den Konflikt.
+async function folgeDerPlatte(pfad) {
+  const offen = findOpenTab(pfad);
+  if (!offen || offen.tab.dirty) return;
+  let platte;
+  try {
+    platte = await api.readFile(pfad);
+  } catch {
+    return;
+  }
+  if (!platte || !platte.ok || platte.content === offen.tab.content) return;
+  await reloadFile(pfad);
 }
 
 /**
@@ -194,6 +229,7 @@ export async function runWindowAction(ergebnis) {
     return erfolg('opened', 'window');
   }
   if (handgriff.action === 'completeTask') {
+    await folgeDerPlatte(pfad);
     const ziel = { path: pfad, line: handgriff.line, taskText: handgriff.taskText };
     if (!(await toggleTaskFromQuery(ziel))) return fehlschlag('taskConflict');
     return erfolg('edited', 'taskToggle');

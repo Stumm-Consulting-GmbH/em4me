@@ -69,6 +69,7 @@ function utcNowSeconds() {
  * @param {(roh: object) => object} deps.normalisiereDatenbankKonfig Wirksamer Stand der Datenbank-Sektion.
  * @param {{raeumeAuf: (rootPath: string) => Promise<object>}} deps.wiederanlauf Wiederanlauf
  *   liegengebliebener Datenbank-Aufträge (4T-001824).
+ * @param {object} deps.bindingGrants Bindungen als Freigabe im Buch (4T-002647).
  * @returns {object} Bereichs-API samt der Zustands-Behaelter dieses Moduls.
  */
 function createAreaApps(deps) {
@@ -103,6 +104,9 @@ function createAreaApps(deps) {
     // 4T-001824 (Epic 3E-000254): der Wiederanlauf liegengebliebener
     // Datenbank-Aufträge; das Öffnen eines Bereichs ist sein zweiter Auslöser.
     wiederanlauf,
+    // 4T-002647 (Epic 3E-000416): Die Bindung als Freigabe im Buch. Ein neues
+    // Fenster einer Bereichs-App trägt die Fenster-Verwaltung ein.
+    bindingGrants,
   } = deps;
 
   const workspacesState = [];
@@ -412,6 +416,7 @@ function createAreaApps(deps) {
       senderWin && !senderWin.isDestroyed() ? appRegistry.appOf(senderWin.webContents.id) : null;
     if (senderAppId != null && !appRegistry.getArea(senderAppId) && !appHasOpenFiles(senderAppId)) {
       appRegistry.setArea(senderAppId, area);
+      void bindingGrants.bindApp(appRegistry.windowsOf(senderAppId), area.rootPath);
       startAreaWatcher(senderAppId);
       broadcastDisplayInfo();
       applyMenuToAllWindows();

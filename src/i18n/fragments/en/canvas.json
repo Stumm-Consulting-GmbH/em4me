@@ -136,5 +136,7 @@
   "canvas.austausch.fehler.keinJson": "The file does not contain valid JSON; no document was created.",
   "canvas.austausch.fehler.keineListen": "The file carries neither nodes nor edges; no document was created.",
   "canvas.austausch.fehler.keinFreierName": "No free name was left next to the file; no document was created.",
-  "canvas.austausch.fehler.nichtSchreibbar": "The new document could not be created; the selected file remains unchanged."
+  "canvas.austausch.fehler.nichtSchreibbar": "The new document could not be created; the selected file remains unchanged.",
+  "canvas.austausch.fehler.geschuetzterOrdner": "The folder of the file belongs to the program; no new document is created there. The selected file remains unchanged.",
+  "canvas.austausch.fehler.zielNichtPruefbar": "It could not be checked whether the folder of the file belongs to the program, so no new document is created there. The selected file remains unchanged."
 }

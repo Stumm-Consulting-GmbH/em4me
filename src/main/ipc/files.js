@@ -8,6 +8,7 @@
 // das Modul zur Lade-Zeit ohne Electron ladbar bleibt.
 'use strict';
 
+const os = require('node:os');
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { isInsideArea } = require('../area/area-path');
@@ -31,6 +32,7 @@ const { teilungsOptionen } = require('../documents/teilungs-optionen');
 const { assembleParts } = require('../../shared/document-assembly');
 // 4T-002310 (Epic 3E-000263): Satz einer Abweisung des Definitions-Schutzes.
 const { abweisungsText } = require('../database/definitions-schutz');
+const { weiseGeschuetztesZielAb } = require('./protected-dialog-target');
 
 // 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
@@ -114,6 +116,9 @@ function registerFilesIpc(handle, deps) {
     getStore,
     definitionsSchutz,
     speicherPruefung,
+    // 4T-002827: Pruefung des im Dialog gewaehlten Ziels gegen die
+    // geschuetzten Ordner (channel-guard.js).
+    checkTarget,
   } = deps;
 
   // 4T-002069: Die Ausnahme der verknuepften Bereiche gilt nur bei
@@ -612,6 +617,25 @@ function registerFilesIpc(handle, deps) {
           buttons: ['OK'],
         });
         defaultPath = path.join(area.rootPath, path.basename(absolute));
+        continue;
+      }
+      // 4T-002827 (Epic 3E-000416): Ein Ziel in einem geschuetzten Ordner wird
+      // gemeldet und der Dialog erneut geoeffnet, wie an der Bereichs-Grenze.
+      const geschuetzt = await weiseGeschuetztesZielAb({
+        checkTarget,
+        dialog,
+        owner,
+        tForWindow,
+        kanal: 'file:saveAs',
+        ziel: absolute,
+        umfang: 'write',
+      });
+      if (geschuetzt) {
+        // Review-Befund Z3 vom 2026-11-22: Ohne Bereich schlägt der Dialog den
+        // Benutzerordner vor. Ein bloßer Dateiname führte in den abgewiesenen
+        // Ordner zurück, weil der Dialog (portabel: die Hülle in
+        // app/portabler-betrieb.js) den zuletzt gewählten Ordner einsetzt.
+        defaultPath = path.join(area ? area.rootPath : os.homedir(), path.basename(absolute));
         continue;
       }
       try {

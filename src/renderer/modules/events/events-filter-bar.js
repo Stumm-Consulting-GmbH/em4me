@@ -17,9 +17,9 @@ import {
   datePresetRange,
 } from '../../../shared/events/events-views.js';
 import { localTodayIso } from '../../../shared/markdown/perspective-events.js';
-// 4T-001003: Laufzeit-Zyklus mit dem Kern. normalizeBody wird erst im
+// 4T-001003: Laufzeit-Zyklus mit dem Kern. anzeigeRumpf wird erst im
 // Funktionskoerper gelesen.
-import { normalizeBody } from './events-editor.js';
+import { anzeigeRumpf } from './events-editor.js';
 // 4T-001003: Laufzeit-Zyklus mit dem Ansichts-Zustand. Die Leiste liest und
 // setzt ihn und stoesst die Anzeige an, alles in Funktionskoerpern.
 import {
@@ -242,7 +242,7 @@ function buildFilterBar(ctx, st) {
   // schreibt filter:-Direktiven und braucht den editierbaren Kontext).
   const saved = document.createElement('div');
   saved.className = 'pev-filter-saved-area';
-  const model = parsePerspectiveEvents(normalizeBody(ctx.container.dataset.evSource));
+  const model = parsePerspectiveEvents(anzeigeRumpf(ctx.container.dataset.evSource));
   const select = document.createElement('select');
   select.className = 'pev-filter-saved';
   const placeholder = document.createElement('option');

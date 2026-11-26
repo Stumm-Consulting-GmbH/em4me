@@ -26,8 +26,11 @@ function bufferOverlayBridge(ipcRenderer) {
     // Index-Overlay melden bzw. ihn zurücknehmen (Speichern, Verwerfen,
     // Schließen). Die gerenderte Ansicht zeigt damit auch in eingebetteten
     // Konstrukten den Stand des Editors und nicht den der Platte.
-    setIndexOverlay: (filePath, content) =>
-      ipcRenderer.invoke('index:overlay', { filePath, content }),
+    // 4T-002812: ungespeichert = tab.dirty des Melders; nur ein ungespeicherter
+    // Stand macht das Fenster zum Schreibziel von Text-Befehlen, Erinnerungen
+    // und Aufgaben-Abfrage (bufferOwnerFor).
+    setIndexOverlay: (filePath, content, ungespeichert) =>
+      ipcRenderer.invoke('index:overlay', { filePath, content, ungespeichert }),
     clearIndexOverlay: (filePath) =>
       ipcRenderer.invoke('index:overlay', { filePath, content: null }),
     // 4T-002023: Meldung an ALLE Fenster, den Melder eingeschlossen, nach jedem

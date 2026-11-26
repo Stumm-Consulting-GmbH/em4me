@@ -20,6 +20,8 @@ La parte de hora es opcional. En su ausencia, el recordatorio se avisa a la hora
 - [ ] Presentar la declaración ⏰ 2099-04-14
 - [ ] Devolver la llamada al cliente ⏰ 2099-04-14 09:30
 
+Las líneas con un estado de tipo Hecho, Cancelado o No es una tarea no avisan, aunque lleven un marcador de recordatorio; esto incluye el estado «Trasladado», que pone el traslado de tareas abiertas de los diarios (tipos en la página [Listas de tareas](tasks.md), sección «Estados propios, tipo y símbolo siguiente»).
+
 Hay varias vías para la entrada:
 
 - **Comando «Establecer recordatorio»** (predeterminado `Ctrl+Alt+R`): en una línea de tarea abre el selector de fecha y hora y escribe el marcador.

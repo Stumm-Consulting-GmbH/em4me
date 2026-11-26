@@ -69,6 +69,7 @@ import { initBookPanel, toggleBookPanel } from '../books/book-panel.js';
 import { toggleCanvasListPanel } from '../panels/panel-canvas-liste.js';
 import { markiereOffeneRaumSeite, springeZuTreffer } from '../search/search-jump.js';
 import { setzeRaumIndex } from '../search/search-run.js';
+import { merkeSprungZiel, merkeVerlassen } from '../views/navigation-verlauf-bedienung.js';
 import { initBlockPropsPanel, toggleBlockPropsPanel } from '../properties/block-props-panel.js';
 import { initBlockMetaIndicators } from '../block-meta-indicator.js';
 import { renderTagsFromCache } from '../editor/autocomplete-help.js';
@@ -278,9 +279,12 @@ export function bindAppUi() {
   // auseinanderlaufen.
   setzeRaumSprungHandler(springeZuTreffer);
   setzeRaumMarkierHandler(markiereOffeneRaumSeite);
+  // 4T-002642 (Epic 3E-000397): Der Sprung aus der Trefferliste ist ein Besuch;
+  // das Weitersuchen aus der Suchleiste (Raum-Sprung-Handler oben) nicht.
   setzeSprungHandler((treffer, index) => {
     setzeRaumIndex(index);
-    void springeZuTreffer(treffer);
+    merkeVerlassen();
+    void springeZuTreffer(treffer).then(merkeSprungZiel);
     updateSearchCounter();
   });
   // 4T-000434 (Epic 3E-000081): Kalender-Panel — Statusbar-Toggle und

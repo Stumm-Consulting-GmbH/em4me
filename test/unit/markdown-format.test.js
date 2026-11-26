@@ -27,6 +27,7 @@ import {
   insertCallout,
   insertHorizontalRule,
   insertCodeBlock,
+  insertToc,
 } from '../../src/shared/markdown-format.js';
 // 4T-001309: Gegenprobe des eingefuegten Geruests am Parser des Konstrukts.
 import { parsePerspectiveTableBlock } from '../../src/shared/markdown/perspective-table.js';
@@ -436,5 +437,39 @@ describe('insertTableOfSize: Raster-Tabellen', () => {
   });
   it('ein einziger changes-Eintrag — Undo nimmt die Tabelle in einem Schritt', () => {
     expect(insertTableOfSize('', 0, 5, 2).changes).toHaveLength(1);
+  });
+});
+
+// 4T-002558 (Epic 3E-000390): Einfüge-Funktion des Inhaltsverzeichnis-Blocks.
+// Der Zaun steht auf eigener Zeile, mit Leerzeile davor und danach, ohne
+// Körper; die Schreibmarke steht auf der Zeile hinter dem Block, damit er in
+// der Live-Ansicht gleich als Verzeichnis erscheint.
+describe('insertToc (4T-002558)', () => {
+  const ZAUN = '```toc\n```';
+  // Eine einzige Änderung an der Schreibmarke.
+  const anwenden = (text, r) =>
+    text.slice(0, r.changes[0].from) + r.changes[0].insert + text.slice(r.changes[0].to);
+
+  it('fügt den Zaun ins leere Dokument und setzt die Marke dahinter', () => {
+    const r = insertToc('', 0);
+    const out = anwenden('', r);
+    expect(out).toBe(`${ZAUN}\n`);
+    expect(r.selFrom).toBe(out.length);
+    expect(r.selTo).toBe(r.selFrom);
+  });
+
+  it('beginnt mitten in einer Zeile auf eigener Zeile mit Leerzeile davor und danach', () => {
+    const r = insertToc('Text davor und danach', 10);
+    const out = anwenden('Text davor und danach', r);
+    expect(out).toBe(`Text davor\n\n${ZAUN}\n\n und danach`);
+    expect(out.slice(0, r.selFrom).endsWith(`${ZAUN}\n`)).toBe(true);
+  });
+
+  it('ergänzt zwischen Absätzen nur die fehlenden Leerzeilen', () => {
+    const text = '# Titel\n\nAbsatz.\n';
+    const r = insertToc(text, text.indexOf('Absatz'));
+    const out = anwenden(text, r);
+    expect(out).toBe(`# Titel\n\n${ZAUN}\n\nAbsatz.\n`);
+    expect(out.slice(r.selFrom)).toBe('\nAbsatz.\n');
   });
 });

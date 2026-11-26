@@ -9,11 +9,11 @@ From top to bottom, the menu is organised into seven groups:
 - **Link** — wrap the selection as a wiki link or as an external link.
 - **Format** — character level: bold, italic, strikethrough, highlight, code, math, comment and "clear formatting".
 - **Paragraph** — line level: bulleted list, numbered list, task list, heading 1 to 6, no heading and quote.
-- **Insert** — templates: footnote, table, callout, horizontal rule and code block.
+- **Insert** — templates: footnote, table, callout, horizontal rule and code block, plus table of contents block when the extension «Table of contents block» is switched on (see [Block constructs](blocks.md)), and Mermaid diagram with the choice of skeletons and building blocks when the extension «Mermaid diagrams» is switched on (see [Math and diagrams](math-diagrams.md)).
 - **Table** — editing operations for the table at the cursor; appears only when the cursor is inside a table.
 - **Chart** — "Insert chart for this table" or "Edit chart"; appears only when the cursor is inside a data table or inside the block of a chart.
 - **Convert date** — opens the dialog that shows a date in the other calendars of the same block ([Calendar systems](custom-calendars.md)); appears only with calendar systems switched on and is active as soon as the open area defines a calendar.
-- **Clipboard** — cut, copy, paste, select all.
+- **Clipboard** — cut, copy, paste, paste as plain text, paste as table, select all. **Paste** turns a cell range from a spreadsheet into a table, **Paste as plain text** always inserts the clipboard unchanged, and **Paste as table** appears only when the extension "Table tools" is switched on (see [Tools](tools.md)).
 
 The default shortcuts for bold (`Ctrl+B`) and italic (`Ctrl+I`) also work without the menu; every other action can be bound to a shortcut in the settings.
 

@@ -804,6 +804,25 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert implicit-figures.md s
 "
 `;
 
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert inhaltsverzeichnis-block.md stabil 1`] = `
+"<div class="frontmatter-block" data-source-line="1"><button type="button" class="frontmatter-header" aria-expanded="false"><span class="frontmatter-chevron" aria-hidden="true"></span><span class="frontmatter-label" data-i18n="frontmatter.line.label">Frontmatter</span><span class="frontmatter-count" data-fm-count="1"></span></button><pre class="frontmatter-yaml"><code class="hljs language-yaml"><span class="hljs-attr">titel:</span> <span class="hljs-string">Prüf-Dokument</span> <span class="hljs-string">Inhaltsverzeichnis</span></code></pre></div>
+<h1 id="einleitung" data-source-line="5">Einleitung</h1>
+<nav class="toc-block" data-source-line="7"><ul><li><a href="#einleitung" data-toc-index="0">Einleitung</a><ul><li><a href="#abschnitt" data-toc-index="1">Abschnitt</a></li><li><a href="#abschnitt-1" data-toc-index="2">Abschnitt</a></li><li><a href="#setext-uberschrift" data-toc-index="3">Setext-Überschrift</a><ul><li><a href="#fett-code-und-verweis" data-toc-index="4"><strong>Fett</strong>, <code>Code</code> und Verweis</a></li><li><a href="#mein-anker" data-toc-index="5">Eigener Anker</a><ul><li><a href="#ebene-vier" data-toc-index="6">Ebene vier</a></li></ul></li></ul></li></ul></li></ul></nav>
+<p data-source-line="10">Einleitender Text.</p>
+<h2 id="abschnitt" data-source-line="12">Abschnitt</h2>
+<p data-source-line="14">Erster Abschnitt gleichen Namens.</p>
+<h2 id="abschnitt-1" data-source-line="16">Abschnitt</h2>
+<p data-source-line="18">Zweiter Abschnitt gleichen Namens.</p>
+<h2 id="setext-uberschrift" data-source-line="20">Setext-Überschrift</h2>
+<h3 id="fett-code-und-verweis" data-source-line="23"><strong>Fett</strong>, <code>Code</code> und <a href="https://example.org">Verweis</a></h3>
+<h3 id="mein-anker" data-source-line="25">Eigener Anker</h3>
+<pre><code class="hljs language-markdown"><span class="hljs-section"># Keine Überschrift im Code-Block</span>
+</code></pre>
+<h4 id="ebene-vier" data-source-line="31">Ebene vier</h4>
+<nav class="toc-block" data-source-line="33"><ul><li><a href="#einleitung" data-toc-index="0">Einleitung</a><ul><li><a href="#abschnitt" data-toc-index="1">Abschnitt</a></li><li><a href="#abschnitt-1" data-toc-index="2">Abschnitt</a></li><li><a href="#setext-uberschrift" data-toc-index="3">Setext-Überschrift</a></li></ul></li></ul></nav>
+"
+`;
+
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert inline-calc.md stabil 1`] = `
 "<h1 id="inline-berechnungen" data-source-line="1">Inline-Berechnungen</h1>
 <p data-source-line="3">Einfache Arithmetik: <span class="inline-calc" title="2+3*4">14</span> und mit Klammern <span class="inline-calc" title="(2+3) * (4 - 1)">15</span>.</p>
@@ -1234,6 +1253,27 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert task-states.md stabil
 </ul>
 </li>
 </ul>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert titelbild.md mit der Option der Vollansicht (4T-002630) 1`] = `
+"<figure class="titelbild" style="--titelbild-hoehe: 320px; --titelbild-lage: 0%"><img class="titelbild-bild" src="bilder/Strand%20am%20%22Meer%22%20&amp;%20mehr.jpg" alt=""><span class="titelbild-hinweis" data-i18n="frontmatter.coverImage.missing" title="bilder/Strand am &quot;Meer&quot; &amp; mehr.jpg"></span></figure>
+<div class="frontmatter-block" data-source-line="1"><button type="button" class="frontmatter-header" aria-expanded="false"><span class="frontmatter-chevron" aria-hidden="true"></span><span class="frontmatter-label" data-i18n="frontmatter.line.label">Frontmatter</span><span class="frontmatter-count" data-fm-count="4"></span></button><pre class="frontmatter-yaml"><code class="hljs language-yaml"><span class="hljs-attr">cover:</span> <span class="hljs-string">bilder/Strand</span> <span class="hljs-string">am</span> <span class="hljs-string">&quot;Meer&quot;</span> <span class="hljs-string">&amp;</span> <span class="hljs-string">mehr.jpg</span>
+<span class="hljs-attr">cover-height:</span> <span class="hljs-number">320</span>
+<span class="hljs-attr">cover-position:</span> <span class="hljs-string">top</span>
+<span class="hljs-attr">titel:</span> <span class="hljs-string">Titelbild-Probe</span></code></pre></div>
+<h1 id="sichtbarer-inhalt" data-source-line="8">Sichtbarer Inhalt</h1>
+<p data-source-line="10">Ohne die Option der Vollansicht erscheint hier kein Titelbild; mit ihr steht es vor der Frontmatter-Zeile.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert titelbild.md stabil 1`] = `
+"<div class="frontmatter-block" data-source-line="1"><button type="button" class="frontmatter-header" aria-expanded="false"><span class="frontmatter-chevron" aria-hidden="true"></span><span class="frontmatter-label" data-i18n="frontmatter.line.label">Frontmatter</span><span class="frontmatter-count" data-fm-count="4"></span></button><pre class="frontmatter-yaml"><code class="hljs language-yaml"><span class="hljs-attr">cover:</span> <span class="hljs-string">bilder/Strand</span> <span class="hljs-string">am</span> <span class="hljs-string">&quot;Meer&quot;</span> <span class="hljs-string">&amp;</span> <span class="hljs-string">mehr.jpg</span>
+<span class="hljs-attr">cover-height:</span> <span class="hljs-number">320</span>
+<span class="hljs-attr">cover-position:</span> <span class="hljs-string">top</span>
+<span class="hljs-attr">titel:</span> <span class="hljs-string">Titelbild-Probe</span></code></pre></div>
+<h1 id="sichtbarer-inhalt" data-source-line="8">Sichtbarer Inhalt</h1>
+<p data-source-line="10">Ohne die Option der Vollansicht erscheint hier kein Titelbild; mit ihr steht es vor der Frontmatter-Zeile.</p>
 "
 `;
 

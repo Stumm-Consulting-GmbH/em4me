@@ -129,3 +129,29 @@ Une affirmation avec source[^1] et une avec note en ligne^[notée directement].
 Une affirmation avec source[^1] et une avec note en ligne^[notée directement].
 
 [^1]: La définition se trouve en fin de fichier.
+
+## Bloc table des matières
+
+Un bloc de code portant l'identifiant `toc` affiche à son emplacement les titres du document sous forme de liste indentée ; chaque entrée est un lien, et un clic mène au titre. Une ligne `depth: N` dans le bloc limite la table des matières aux niveaux 1 à N, les valeurs valides allant de 1 à 6 ; sans cette ligne, tous les niveaux apparaissent. Les autres lignes et les valeurs hors de 1 à 6 restent sans effet.
+
+````markdown
+```toc
+depth: 2
+```
+````
+
+Rendu, pour cette page :
+
+```toc
+depth: 2
+```
+
+La table des matières suit d'elle-même chaque modification : les titres nouveaux, renommés ou supprimés sont mis à jour aussitôt, dans la vue rendue comme en mode Direct. Les entrées mènent aux mêmes ancres que les liens vers les titres, y compris pour des titres de même texte et des identifiants propres avec `{#id}`. Si la [numérotation automatique](markdown-basics.md) des titres est active, les numéros figurent aussi dans la table des matières. Les titres situés dans des blocs de code et dans le frontmatter n'apparaissent pas. Si le document n'a aucun titre, le bloc affiche la remarque « Ce document ne contient aucun titre. ». Plusieurs blocs dans le même document affichent la même table des matières.
+
+Le bloc s'insère depuis le [menu contextuel de l'éditeur](context-menu.md) : **Insérer → Bloc table des matières** place un bloc `toc` sans ligne `depth:` sur une ligne à part ; la profondeur s'ajoute à la main si besoin.
+
+L'impression, l'export PDF et l'export HTML contiennent la table des matières telle que la vue rendue l'affiche. L'export portable l'écrit sous forme de liste Markdown ordinaire avec des liens vers les titres, sans numéros ; un document sans titres reçoit une ligne vide à cet endroit. Dans une [présentation](presentation.md), chaque diapositive est affichée séparément ; un bloc sur une diapositive liste les titres de cette diapositive.
+
+Le bloc fait partie de l'[extension interne](extensions.md) « Bloc table des matières », activée à partir du mode de travail **Débutant**. Si elle est désactivée, le bloc apparaît comme un bloc de code ordinaire avec son texte, et le menu contextuel ne propose pas **Bloc table des matières** ; le document reste inchangé, et après la réactivation la table des matières réapparaît.
+
+Le panneau « Table des matières » de la [barre latérale](sidebar.md) en est indépendant : il affiche les titres du document ouvert à côté du texte et ne fait pas partie du document. Le bloc, lui, se trouve dans le document même et apparaît donc aussi à l'impression et à l'export.

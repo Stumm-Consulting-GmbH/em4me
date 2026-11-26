@@ -42,6 +42,8 @@ Résultat : l'image apparaît avec la légende « Chiffres trimestriels comparé
 
 Alternativement, `![[image.png]]` intègre une image via la syntaxe wiki, y compris le modificateur de taille `![[image.png|300]]` — détails sur la page [Liens](linking.md).
 
+Une image au-dessus de tout le document se définit par la propriété `cover` du frontmatter, dans les deux écritures — section « Image de couverture » de la page [Frontmatter et propriétés](frontmatter.md).
+
 ## Agrandir une image
 
 Un clic sur une image dans la vue « Rendu » — de même dans sa moitié de la vue « Partagé » — l'affiche agrandie sur toute la fenêtre. L'arrière-plan s'assombrit, et l'image apparaît aussi grande que la fenêtre et sa propre résolution le permettent : entière, sans déformation et jamais au-delà de sa propre taille. Une petite image reste donc à sa taille, au centre. Une indication de taille dans le document (`=300x`) ne limite pas l'agrandissement. Cela vaut pour toute image affichée, y compris dans les tableaux, les encadrés et les intégrations, et aussi pour une image qui est elle-même un lien.

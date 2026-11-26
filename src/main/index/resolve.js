@@ -311,6 +311,16 @@ function existingWikiTargets(filePath, targets, areaRoot) {
   // W-07 (4T-000309): Fehler-Status wie unavailable — sonst markiert der Linter
   // gegen den Stale-Index neue Dateien faelschlich als broken.
   if (entry.status === 'error') return ohneZiele('unavailable');
+  return { status: 'ready', ...urteileWikiZiele(entry, filePath, targets) };
+}
+
+// 4T-002782 (Epic 3E-000392, V1): Das Urteil über die Ziele eines Dokuments
+// gegen einen gegebenen Index-Eintrag, herausgezogen aus existingWikiTargets.
+// Die Liste der Verweise ohne Ziel (verweise-ohne-ziel.js) urteilt damit über
+// denselben Kern wie die Editor-Prüfung und nicht über einen zweiten
+// Auflösungs-Weg; sie hat den Eintrag schon in der Hand und braucht die
+// Wurzel-Bestimmung nicht. Der Rumpf ist unverändert.
+function urteileWikiZiele(entry, filePath, targets) {
   const existing = [];
   const brokenAnchor = [];
   // 4T-000336 (Epic 3E-000061): Ziele, bei denen Ordner-Pfad-Form und
@@ -401,7 +411,7 @@ function existingWikiTargets(filePath, targets, areaRoot) {
     else brokenAnchor.push(target);
     vermerke(target, urteil);
   }
-  return { status: 'ready', existing, brokenAnchor, ambiguous, ambiguousRecord, shadowedRecord };
+  return { existing, brokenAnchor, ambiguous, ambiguousRecord, shadowedRecord };
 }
 
 // 4T-000054: Prueft, ob die Datei einen Heading-Slug oder eine Block-ID
@@ -555,6 +565,10 @@ module.exports = {
   resolveWikiLinkDetailed,
   backlinksFor,
   existingWikiTargets,
+  // 4T-002782 (Epic 3E-000392): Kern des Urteils und Anker-Prüfung für die
+  // Liste der Verweise ohne Ziel.
+  urteileWikiZiele,
+  anchorExistsInFile,
   resolveWikiTargetByAlias,
   resolveWikiTargetInIndex,
 };

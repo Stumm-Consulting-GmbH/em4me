@@ -8,7 +8,9 @@
 import { getDocText } from '../app/api.js';
 // 4T-000498 (Epic 3E-000090): Erstellt-Automatik der Erweiterung "Aufgaben"
 // beim Umwandeln einer Zeile in eine Task-Zeile.
-import { withCreatedDate } from '../tasks.js';
+import { withCreatedDate, todayIsoDate } from '../tasks.js';
+// 4T-002617 (Epic 3E-000391): Auswahl der Mermaid-Gerüste und -Bausteine.
+import { mermaidAuswahlEintraege, zeigeMermaidAuswahl } from './mermaid-bausteine-auswahl.js';
 // 4T-002513 (Epic 3E-000402): Titel der Gerüst-Kachel des Dashboards in der
 // Oberflächen-Sprache.
 import { t } from '../../i18n.js';
@@ -31,6 +33,7 @@ import {
   insertCodeBlock,
   insertCanvas,
   insertDashboard,
+  insertToc,
 } from '../../../shared/markdown-format.js';
 
 // Wendet ein reines Transformations-Ergebnis (Zeichen-Format oder Link) auf die
@@ -152,6 +155,28 @@ export function insertTableSized(view, rows, cols) {
   return dispatchInsert(view, (text, pos) => insertTableOfSize(text, pos, rows, cols));
 }
 
+// 4T-002617 (Epic 3E-000391): Einträge der Mermaid-Auswahl an der Schreibmarke,
+// ausgeführt über dispatchInsert (ein Rückgängig-Schritt) und mit dem
+// Tagesdatum des Aufrufs. Eine Quelle für Kommando, Kontextmenü und Knopf.
+export function mermaidAuswahlFuer(view) {
+  return mermaidAuswahlEintraege(view, { einfuegen: dispatchInsert, heute: todayIsoDate() });
+}
+
+// Kommando insert.mermaid: die Auswahl als Popup an der Schreibmarke. Ohne
+// Editor oder im nicht änderbaren Dokument bleibt es ohne Wirkung.
+// Das Menü steht nach einem Laufzeit-Import. Anders als bei zeigeHinweis ist
+// es hier die eigentliche Wirkung: Scheitert das Öffnen, ist die Palette schon
+// geschlossen, und ohne Meldung sähe der Anwender gar nichts. Der Fehler wird
+// deshalb mit Kontext protokolliert und in der Statusleiste gesagt.
+function insertMermaidCommand(view) {
+  if (!view || view.state.readOnly) return false;
+  zeigeMermaidAuswahl(view, mermaidAuswahlFuer(view)).catch((err) => {
+    console.error('insert.mermaid: Mermaid-Auswahl konnte nicht geöffnet werden', err);
+    zeigeHinweis('mermaid.bausteine.fehler');
+  });
+  return true;
+}
+
 // Kommando-ID -> CodeMirror-Command (view) => boolean. Wird von editor.js in
 // EDITOR_COMMAND_FUNCTIONS gemerged und vom Kontextmenü direkt aufgerufen.
 export const FORMAT_COMMANDS = {
@@ -201,4 +226,8 @@ export const FORMAT_COMMANDS = {
     dispatchInsert(view, (text, pos) =>
       insertDashboard(text, pos, t('command.insert.dashboardKachelTitel')),
     ),
+  // 4T-002558 (Epic 3E-000390): Inhaltsverzeichnis-Block an der Schreibmarke.
+  'insert.toc': (view) => dispatchInsert(view, insertToc),
+  // 4T-002617 (Epic 3E-000391): Auswahl der Mermaid-Gerüste und -Bausteine.
+  'insert.mermaid': insertMermaidCommand,
 };

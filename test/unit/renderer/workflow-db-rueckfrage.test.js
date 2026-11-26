@@ -120,3 +120,65 @@ describe('Rückfragen nach Tabellen und Feldern', () => {
     expect(ansichten[0].dispatch).toHaveBeenCalledTimes(2);
   });
 });
+
+// 4T-002816: Ist die Datenbank beim Öffnen noch nicht bereit, holt die nächste
+// Index-Meldung die Auskunft sofort neu, und die Kopfzeilen rechnen ohne
+// Tastendruck neu (AK1); ohne vorheriges «noch nicht bereit» bleibt es beim
+// trägen Holen, und geholt wird je Meldung höchstens einmal (AK2).
+describe('Nachholen nach «noch nicht bereit»', () => {
+  const NICHT_BEREIT = { ok: false, code: 'notReady' };
+
+  it('holt nach der Index-Meldung sofort neu und rechnet die Kopfzeilen einmal neu', async () => {
+    antwort = NICHT_BEREIT;
+    await ersteAuskunft();
+    expect(window.api.workflowDbCatalog).toHaveBeenCalledTimes(1);
+    expect(ansichten[0].dispatch).not.toHaveBeenCalled();
+    antwort = BIBLIOTHEK;
+    meldeIndex();
+    await warte();
+    // Ohne weitere Rückfrage des Prüfers geholt und neu gerechnet.
+    expect(window.api.workflowDbCatalog).toHaveBeenCalledTimes(2);
+    expect(ansichten[0].dispatch).toHaveBeenCalledTimes(1);
+    expect(modul.dbTableRueckfrage('Library')).not.toBeNull();
+  });
+
+  it('holt ohne vorheriges «noch nicht bereit» erst bei der nächsten Rückfrage (Gegenprobe)', async () => {
+    await ersteAuskunft();
+    expect(window.api.workflowDbCatalog).toHaveBeenCalledTimes(1);
+    meldeIndex();
+    await warte();
+    expect(window.api.workflowDbCatalog).toHaveBeenCalledTimes(1);
+    expect(ansichten[0].dispatch).toHaveBeenCalledTimes(1);
+  });
+
+  it('rechnet bei erneutem «noch nicht bereit» nicht neu und holt nicht im Takt', async () => {
+    antwort = NICHT_BEREIT;
+    await ersteAuskunft();
+    meldeIndex();
+    await warte();
+    await warte();
+    // Genau ein Nachholen je Meldung, keine Schleife.
+    expect(window.api.workflowDbCatalog).toHaveBeenCalledTimes(2);
+    expect(ansichten[0].dispatch).not.toHaveBeenCalled();
+  });
+
+  it('holt eine Meldung nach, die kam, während die Auskunft unterwegs war', async () => {
+    let gib;
+    window.api.workflowDbCatalog = vi.fn(
+      () =>
+        new Promise((r) => {
+          gib = r;
+        }),
+    );
+    modul.dbTableRueckfrage('Library');
+    // Die Meldung kommt, bevor die erste Antwort da ist.
+    meldeIndex();
+    gib(NICHT_BEREIT);
+    await warte();
+    expect(window.api.workflowDbCatalog).toHaveBeenCalledTimes(2);
+    gib(BIBLIOTHEK);
+    await warte();
+    expect(ansichten[0].dispatch).toHaveBeenCalledTimes(1);
+    expect(window.api.workflowDbCatalog).toHaveBeenCalledTimes(2);
+  });
+});

@@ -19,7 +19,7 @@ Benvenuto nel manuale di EM4me. Questa pagina di panoramica è il punto di ingre
 - [Basi di Markdown](markdown-basics.md) — il nucleo Markdown: titoli, enfasi, elenchi, tabelle, collegamenti, più le particolarità CommonMark.
 - [Menu contestuale dell'editor](context-menu.md) — formattare con clic destro: struttura del menu, semantica di selezione, interruttori con segni di spunta, sola lettura e modalità live.
 - [Barra di formattazione](toolbar.md) — formattare con pulsante: visibilità in modalità modifica, indicazione dello stato, menu Titolo, griglia della tabella, assegnazione personalizzata.
-- [Costrutti di blocco](blocks.md) — callout, contenitori personalizzati, liste di definizioni, line block, note a piè di pagina.
+- [Costrutti di blocco](blocks.md) — callout, contenitori personalizzati, liste di definizioni, line block, note a piè di pagina, blocco sommario.
 - [Costrutti in linea](inline.md) — evidenziazione, pedice/apice, sottolineatura, spoiler, Critic Markup, span e abbreviazioni.
 - [Immagini](images.md) — sintassi delle immagini, dimensioni, figure implicite, ingrandire un'immagine.
 - [Allegati](attachments.md) — incollare e trascinare file: posizione e impostazione, nomi, apertura nel programma predefinito.

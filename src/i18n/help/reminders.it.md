@@ -20,6 +20,8 @@ La parte oraria è facoltativa. In sua assenza, il promemoria si segnala all'ora
 - [ ] Presentare la dichiarazione ⏰ 2099-04-14
 - [ ] Richiamare il cliente ⏰ 2099-04-14 09:30
 
+Le righe con uno stato di tipo Completato, Annullato o Non è un'attività non attivano promemoria, anche se portano un marcatore di promemoria; vi rientra lo stato «Riportato», impostato dal riporto delle attività aperte dei diari (tipi nella pagina [Liste di attività](tasks.md), sezione «Stati personalizzati, tipo e simbolo successivo»).
+
 Ci sono diverse vie per l'inserimento:
 
 - **Comando «Imposta promemoria»** (predefinito `Ctrl+Alt+R`): su una riga di attività apre il selettore di data e ora e scrive il marcatore.

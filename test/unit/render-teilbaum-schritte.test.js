@@ -101,6 +101,12 @@ const TEILBAUM = [
 const WIDGET_EXTRAKTION = [
   'modules/live/live-widget-render.js',
   'modules/live/live-mermaid-widget.js',
+  // 4T-002630 (Epic 3E-000395): Das Titelbild der Live-Ansicht rendert allein
+  // den Kopf des offenen Dokuments mit der Option `titelbild` — Kontext des
+  // offenen Dokuments wie die Frontmatter-Zeile in live-mermaid-widget.js. Es
+  // läuft je Änderung im Kopf; die zwei Schritte, die der Kopf-Bereich braucht
+  // (Übersetzung der Hinweise, Einbettung der Wiki-Form), zieht es selbst.
+  'modules/live/live-titelbild.js',
   // 4T-002054: Druck und PDF zeichnen eine gekürzte Datentabelle mit allen
   // Zeilen neu (zeichneGekuerzteDatentabellenVoll). Gerendert wird allein der
   // eine Block in einen Wegwerf-Container; entnommen wird sein Inhalt und für

@@ -149,18 +149,24 @@ function pruefeEingabe(eingabe) {
  * @param {string} [deps.iconPfad] Programm-Symbol.
  * @param {boolean} [deps.imTestlauf] E2E-Lauf: Fenster ohne Fokus zeigen.
  * @param {(owner: object) => string} [deps.titel] Fenster-Titel in der Sprache des Hauptfensters.
+ * @param {{registerWindow: Function}} deps.senderCheck Absender-Prüfung der
+ *   Anmelde-Stelle (4T-002648, ipc/channel-sender.js).
  * @returns {object}
  */
 function createPraesentationFenster(deps) {
   const {
     BrowserWindow,
     screen,
+    senderCheck,
     preloadPfad = path.join(__dirname, 'preload-publikum.js'),
     seitenPfad = path.join(__dirname, '..', 'renderer', 'publikum.html'),
     iconPfad,
     imTestlauf = false,
     titel = () => '',
   } = deps;
+  if (!senderCheck || typeof senderCheck.registerWindow !== 'function') {
+    throw new TypeError('Publikums-Fenster: senderCheck mit registerWindow erforderlich.');
+  }
 
   // Hauptfenster-Kennung (webContents.id) -> { owner, publikum, folie, ownerZu }
   const jeHaupt = new Map();
@@ -240,6 +246,9 @@ function createPraesentationFenster(deps) {
       }
     });
 
+    // 4T-002648 (Epic 3E-000416): Fenster-Art und geladene Seite für die
+    // Absender-Prüfung; das Fenster erreicht damit genau seine zwei Kanäle.
+    senderCheck.registerWindow(win.webContents, 'audience', seitenPfad);
     win.loadFile(seitenPfad);
     return { ok: true, vollbild: !!bildschirm, schonOffen: false };
   }

@@ -17,7 +17,12 @@ import {
   setBufferOverlay,
   statsFor,
 } from '../../src/main/backlinks.js';
-import { collectAreaStats } from '../../src/main/area/area-stats.js';
+import { collectAreaStats, verweisSchalter } from '../../src/main/area/area-stats.js';
+import { registerIndexViewsIpc } from '../../src/main/ipc/index-views.js';
+import { createTaskStatusTypeResolver } from '../../src/shared/markdown/plugins/tasks.js';
+import { readAssembledDocument } from '../../src/main/documents/document-parts-io.js';
+import { writePartLine } from '../../src/shared/document-parts.js';
+import { emptyContainer, serializeContainer } from '../../src/main/documents/mdd-store.js';
 
 const openRoots = new Set();
 let tmpDirs = [];
@@ -153,6 +158,21 @@ describe('statsFor — Index-Anteil der Bereichs-Statistik (4T-000619)', () => {
     const { aufgaben } = statsFor(root, { statusTypeOf });
     expect(aufgaben).toEqual({ gesamt: 4, offen: 2, erledigt: 1, abgebrochen: 1 });
     expect(aufgaben.offen + aufgaben.erledigt + aufgaben.abgebrochen).toBe(aufgaben.gesamt);
+  });
+
+  // 4T-002737 (Epic 3E-000396): Eine mit dem Status «Übertragen» (», Typ
+  // «Keine Aufgabe») gekennzeichnete Zeile zählt in der Statistik nicht.
+  it('zählt eine Zeile mit dem Status «Übertragen» nicht', async () => {
+    const { root, start } = makeFixture();
+    write(root, 'Gestern.md', '- [»] übertragene Aufgabe\n');
+    await indexFor(start, 'test:stats-uebertragen', root);
+
+    // Die echte Auflösung der vorbelegten Status: Ohne den Status «Übertragen»
+    // hätte das Zeichen keine Bedeutung, und die Zeile zählte als offen.
+    const { aufgaben } = statsFor(root, { statusTypeOf: createTaskStatusTypeResolver(null) });
+    expect(aufgaben).toEqual({ gesamt: 4, offen: 2, erledigt: 1, abgebrochen: 1 });
+    // Gegenprobe: Eine Auflösung, die das Zeichen nicht kennt, zählt die Zeile mit.
+    expect(statsFor(root, { statusTypeOf }).aufgaben.gesamt).toBe(5);
   });
 
   it('zaehlt Verweise nach Art und die Dateien ohne eingehenden Verweis', async () => {
@@ -353,5 +373,518 @@ describe('statsFor — Dateien ohne eingehenden Verweis (4T-001516)', () => {
     expect(verweise.ohneEingehende).toBe(13);
     expect(auffaelligkeiten.unverlinkt).toHaveLength(13);
     expect(auffaelligkeiten.groesste).toHaveLength(10); // die Nachbar-Liste kuerzt weiter
+  });
+});
+
+// 4T-002782 (Epic 3E-000392, Story 4S-001162): Die Verweise ohne Ziel in der
+// Antwort der Erhebung. Der Kern des Urteils hat seine eigene Prüfdatei
+// (verweise-ohne-ziel.test.js); hier stehen Antwort-Form, Sortierung, das
+// mehrfache Vorkommen, die Verweise in verknüpfte Bereiche und das
+// Erhebungs-Prinzip (nichts geschrieben, kein Teilstand).
+describe('collectAreaStats — Verweise ohne Ziel (4T-002782)', () => {
+  function bereichMitToten() {
+    const root = makeRoot();
+    const start = write(
+      root,
+      'B-Start.md',
+      ['# Start', 'Erst [[Fehlt]].', '', 'Dann [[Fehlt]] und [x](Weg.md).', '[[Fehlt]]', ''].join(
+        '\n',
+      ),
+    );
+    write(root, 'A-Notiz.md', '# Notiz\n\n[[Ziel#Gibt es nicht]]\n');
+    write(root, 'Ziel.md', '# Ziel\n');
+    write(
+      root,
+      'Verknuepft.md',
+      '[[@zt:Da]] [[@zt:Nicht-Da]] [[@xx:Egal]] [[@vs:Weg]] [[@off:A]] [[@off:B]]\n',
+    );
+    return { root, start };
+  }
+
+  it('listet je Stelle einen Eintrag, nach Dokument und Zeile sortiert, ohne Obergrenze', async () => {
+    const { root, start } = bereichMitToten();
+    await indexFor(start, 'test:stats-ohne-ziel', root);
+    const { verweiseOhneZiel } = await collectAreaStats(root, { statusTypeOf }, { statsFor });
+    expect(
+      verweiseOhneZiel.eintraege.map((e) => `${e.name}:${e.zeile} ${e.grund} ${e.verweis}`),
+    ).toEqual([
+      'A-Notiz:3 ueberschrift-fehlt [[Ziel#Gibt es nicht]]',
+      // Derselbe tote Verweis an drei Stellen ergibt drei Einträge (L6 Punkt 4).
+      'B-Start:2 dokument-fehlt [[Fehlt]]',
+      'B-Start:4 dokument-fehlt [[Fehlt]]',
+      'B-Start:4 dokument-fehlt [x](Weg.md)',
+      'B-Start:5 dokument-fehlt [[Fehlt]]',
+    ]);
+    expect(verweiseOhneZiel.eintraege[0]).toEqual({
+      pfad: path.join(root, 'A-Notiz.md'),
+      name: 'A-Notiz',
+      zeile: 3,
+      verweis: '[[Ziel#Gibt es nicht]]',
+      grund: 'ueberschrift-fehlt',
+    });
+    // Ohne eingeschaltete Bereichs-Verknüpfungen bleiben deren Verweise unbeurteilt.
+    expect(verweiseOhneZiel.nichtErreichbar).toEqual([]);
+  });
+
+  it('beurteilt Verweise in verknüpfte Bereiche mit einem Aufruf je Erhebung', async () => {
+    const { root, start } = bereichMitToten();
+    await indexFor(start, 'test:stats-verknuepft', root);
+    const urteilJeZiel = {
+      Da: 'ok',
+      'Nicht-Da': 'nicht-gefunden',
+      Egal: 'unbekannt',
+      Weg: 'verschoben',
+    };
+    const aufrufe = [];
+    const beurteileVerknuepfungsLinks = async (links, anfragen) => {
+      aufrufe.push({ links, anfragen });
+      return anfragen.map((a) => ({
+        ...a,
+        urteil: a.prefix === 'off' ? 'offline' : urteilJeZiel[a.target],
+      }));
+    };
+    const readAreaLinks = async () => [{ prefix: 'zt', path: '/irgendwo' }];
+    const stats = await collectAreaStats(
+      root,
+      { statusTypeOf, verknuepfungenAktiv: true },
+      { statsFor, readAreaLinks, beurteileVerknuepfungsLinks },
+    );
+    expect(aufrufe).toHaveLength(1);
+    expect(aufrufe[0].anfragen).toHaveLength(6);
+    const verknuepft = stats.verweiseOhneZiel.eintraege.filter((e) => e.name === 'Verknuepft');
+    expect(verknuepft.map((e) => `${e.grund} ${e.verweis}`)).toEqual([
+      'verknuepft-nicht-gefunden [[@zt:Nicht-Da]]',
+      'verknuepfung-nicht-nutzbar [[@xx:Egal]]',
+      'verknuepfung-nicht-nutzbar [[@vs:Weg]]',
+    ]);
+    expect(stats.verweiseOhneZiel.nichtErreichbar).toEqual([{ prefix: 'off', anzahl: 2 }]);
+  });
+
+  it('ruft die Beurteilung bei ausgeschalteter Erweiterung nicht auf', async () => {
+    const { root, start } = bereichMitToten();
+    await indexFor(start, 'test:stats-verknuepft-aus', root);
+    let aufrufe = 0;
+    const deps = {
+      statsFor,
+      readAreaLinks: async () => [],
+      beurteileVerknuepfungsLinks: async () => {
+        aufrufe += 1;
+        return [];
+      },
+    };
+    const aus = await collectAreaStats(root, { statusTypeOf, verknuepfungenAktiv: false }, deps);
+    // Wiki-Verweise aus: die Bereichs-Verknüpfungen hängen an ihnen.
+    const wikiAus = await collectAreaStats(
+      root,
+      { statusTypeOf, wikiVerweiseAktiv: false, verknuepfungenAktiv: true },
+      deps,
+    );
+    expect(aufrufe).toBe(0);
+    for (const stats of [aus, wikiAus]) {
+      expect(stats.verweiseOhneZiel.eintraege.some((e) => e.verweis.includes('@'))).toBe(false);
+      expect(stats.verweiseOhneZiel.nichtErreichbar).toEqual([]);
+    }
+    expect(wikiAus.verweiseOhneZiel.eintraege.map((e) => e.verweis)).toEqual(['[x](Weg.md)']);
+  });
+
+  // Zweitblick zu 4T-002782, Runde 3, Befund 2: Ziele mit einer Endung, die
+  // keine Markdown-Endung ist, gelten in einem verknüpften Bereich als Anlage.
+  // Die Namens-Suche dort findet nur Markdown-Dateien; `[[@zt:Handbuch.docx]]`
+  // stünde sonst als «nicht gefunden» in der Liste, obwohl die Datei im
+  // Unterordner liegt. Der eigene Bereich enthält keine docx-Datei.
+  it('lässt Anlagen in verknüpften Bereichen aus, auch ohne ihre Endung im eigenen Bereich', async () => {
+    const root = makeRoot();
+    const verknuepft = makeRoot();
+    write(verknuepft, 'Unterordner/Handbuch.docx', 'docx');
+    const start = write(
+      root,
+      'Notiz.md',
+      [
+        '# Notiz',
+        '[[@zt:Unterordner/Handbuch.docx]] [[@zt:Handbuch.docx]] [[@zt:Fehlt-Doku]]',
+        '',
+      ].join('\n'),
+    );
+    await indexFor(start, 'test:stats-verknuepft-anlage', root);
+    const stats = await collectAreaStats(
+      root,
+      { statusTypeOf, verknuepfungenAktiv: true },
+      { statsFor, readAreaLinks: async () => [{ prefix: 'zt', path: verknuepft }] },
+    );
+    expect(stats.verweiseOhneZiel.eintraege.map((e) => `${e.grund} ${e.verweis}`)).toEqual([
+      'verknuepft-nicht-gefunden [[@zt:Fehlt-Doku]]',
+    ]);
+  });
+
+  // Zweitblick zu 4T-002782, Befund 4: Ein Fehler der Beurteilung kostet nicht
+  // die ganze Statistik.
+  it('zählt bei einem Fehler der Beurteilung die Verweise als nicht erreichbar und liefert den Rest', async () => {
+    const { root, start } = bereichMitToten();
+    await indexFor(start, 'test:stats-verknuepft-fehler', root);
+    const warnung = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const stats = await collectAreaStats(
+        root,
+        { statusTypeOf, verknuepfungenAktiv: true },
+        {
+          statsFor,
+          readAreaLinks: async () => [{ prefix: 'zt', path: '/irgendwo' }],
+          beurteileVerknuepfungsLinks: async () => {
+            throw new Error('Freigabe getrennt');
+          },
+        },
+      );
+      expect(stats.status).toBe('ready');
+      expect(stats.dateien.markdown).toBe(4);
+      expect(stats.verweiseOhneZiel.eintraege.some((e) => e.verweis.includes('@'))).toBe(false);
+      expect(stats.verweiseOhneZiel.eintraege).toHaveLength(5);
+      expect(stats.verweiseOhneZiel.nichtErreichbar).toEqual([
+        { prefix: 'off', anzahl: 2 },
+        { prefix: 'vs', anzahl: 1 },
+        { prefix: 'xx', anzahl: 1 },
+        { prefix: 'zt', anzahl: 2 },
+      ]);
+      expect(warnung).toHaveBeenCalledTimes(1);
+      expect(String(warnung.mock.calls[0][0])).toContain('verknüpfte Bereiche');
+      expect(warnung.mock.calls[0]).toContain('Freigabe getrennt');
+    } finally {
+      warnung.mockRestore();
+    }
+  });
+
+  // Zweitblick zu 3E-000392, Hinweis B6: Ein Lesefehler der Verknüpfungen
+  // zählt die Verweise wie ein Fehler der Beurteilung, statt sie zu verschlucken.
+  it('zählt bei einem Lesefehler der Verknüpfungen die Verweise als nicht erreichbar', async () => {
+    const { root, start } = bereichMitToten();
+    await indexFor(start, 'test:stats-verknuepft-lesefehler', root);
+    const warnung = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const stats = await collectAreaStats(
+        root,
+        { statusTypeOf, verknuepfungenAktiv: true },
+        {
+          statsFor,
+          readAreaLinks: async () => {
+            throw new Error('Bereichsdatei nicht lesbar');
+          },
+        },
+      );
+      expect(stats.status).toBe('ready');
+      expect(stats.verweiseOhneZiel.eintraege).toHaveLength(5);
+      expect(stats.verweiseOhneZiel.nichtErreichbar).toEqual([
+        { prefix: 'off', anzahl: 2 },
+        { prefix: 'vs', anzahl: 1 },
+        { prefix: 'xx', anzahl: 1 },
+        { prefix: 'zt', anzahl: 2 },
+      ]);
+      expect(warnung).toHaveBeenCalledTimes(1);
+      expect(warnung.mock.calls[0]).toContain('Bereichsdatei nicht lesbar');
+    } finally {
+      warnung.mockRestore();
+    }
+  });
+
+  // Zweitblick zu 3E-000392, Hinweis A1: Die Abbildung, mit der der Kanal der
+  // Bereichs-Statistik die abgeschalteten Erweiterungen in Schalter der Erhebung
+  // übersetzt. Eine vertippte Kennung gälte als stets eingeschaltet; der Fall
+  // schaltet jede einzeln ab und erwartet genau ihren Schalter aus.
+  it('bildet jede abgeschaltete Erweiterung auf ihren Schalter der Erhebung ab', () => {
+    const paare = [
+      ['wiki-links', 'wikiVerweiseAktiv'],
+      ['area-links', 'verknuepfungenAktiv'],
+      ['canvas', 'canvasAktiv'],
+      ['dashboard', 'dashboardAktiv'],
+      ['perspective-chart', 'diagrammeAktiv'],
+      ['perspective-datatable', 'datentabelleAktiv'],
+    ];
+    expect(Object.keys(verweisSchalter([])).sort()).toEqual(paare.map(([, k]) => k).sort());
+    for (const [, schalter] of paare) expect(verweisSchalter([])[schalter]).toBe(true);
+    for (const [id, schalter] of paare) expect(verweisSchalter([id])[schalter]).toBe(false);
+  });
+
+  // Zweitblick zu 3E-000392, Runde 2, Hinweis 2: Der Kanal reicht die Schalter
+  // aus dem Speicher und den Leser der Verknüpfungen an die Erhebung durch.
+  // Der Speicher meldet die abgeschaltete Erweiterung erst nach der
+  // Registrierung, damit deren Start-Stand anderer Schalter unberührt bleibt.
+  it('reicht im Kanal areaStats:collect die Schalter und den Leser der Verknüpfungen durch', async () => {
+    let aus = [];
+    const aufrufe = [];
+    const readAreaLinks = async () => [];
+    const handlers = new Map();
+    registerIndexViewsIpc((name, fn) => handlers.set(name, fn), {
+      senderWindow: () => null,
+      areaOfWindow: () => null,
+      areaRootForEvent: () => '/bereich',
+      getStore: () => ({ get: (k) => (k === 'extensions.disabled' ? aus : null) }),
+      backlinks: {},
+      collectAreaStats: (...args) => {
+        aufrufe.push(args);
+        return null;
+      },
+      sucheImBereich: () => null,
+      gibBereichsVorratFrei: () => {},
+      readAreaProfilesConfig: () => null,
+      resolveAreaStartPage: () => null,
+      readAreaLinks,
+      resolveHistoryFor: () => null,
+      readPreviousTextFor: () => null,
+      recordMddOnSave: () => {},
+    });
+    const kanal = handlers.get('areaStats:collect');
+    await kanal({});
+    aus = ['area-links'];
+    await kanal({});
+    expect(aufrufe).toHaveLength(2);
+    expect(aufrufe[0][0]).toBe('/bereich');
+    expect(aufrufe[0][2].readAreaLinks).toBe(readAreaLinks);
+    expect(aufrufe[0][1]).toMatchObject(verweisSchalter([]));
+    expect(aufrufe[1][1]).toMatchObject({ ...verweisSchalter([]), verknuepfungenAktiv: false });
+  });
+
+  // Zweitblick zu 4T-002782, Befund 3: Die Schalter der Block-Erweiterungen
+  // wirken in der Erhebung (die Abbildung im Kanal prüfen die Fälle davor).
+  it('reicht die Schalter von Canvas, Dashboard, Diagrammen und Datentabelle an die Erhebung weiter', async () => {
+    const root = makeRoot();
+    const T = '```';
+    const start = write(
+      root,
+      'Bloecke.md',
+      [
+        '# Blöcke',
+        `${T}perspective-canvas`,
+        '!karte k1 x=0 y=0 doc="Fehlt-Karte"',
+        T,
+        `${T}perspective-dashboard`,
+        '!kachel liste abfrage="Fehlt-Abfrage"',
+        T,
+        `${T}perspective-chart`,
+        'table: [[Fehlt-Daten#^umsatz]]',
+        T,
+        `${T}perspective-datatable`,
+        'columns: Name:text',
+        '| [[Fehlt-Zelle]] |',
+        T,
+        '',
+      ].join('\n'),
+    );
+    await indexFor(start, 'test:stats-bloecke', root);
+    const zeilen = async (env) =>
+      (
+        await collectAreaStats(root, { statusTypeOf, ...env }, { statsFor })
+      ).verweiseOhneZiel.eintraege.map((e) => e.zeile);
+    expect(await zeilen({})).toEqual([3, 6, 9, 13]);
+    expect(await zeilen({ canvasAktiv: false })).toEqual([6, 9, 13]);
+    expect(await zeilen({ dashboardAktiv: false })).toEqual([3, 9, 13]);
+    expect(await zeilen({ diagrammeAktiv: false })).toEqual([3, 6, 13]);
+    expect(await zeilen({ datentabelleAktiv: false })).toEqual([3, 6, 9]);
+  });
+
+  it('schreibt nichts in den Bereich und liefert ohne bereiten Index keinen Teilstand', async () => {
+    const { root, start } = bereichMitToten();
+    await indexFor(start, 'test:stats-ohne-ziel-lesend', root);
+    // Den Zwischenspeicher des Index schreibt der Index-Aufbau verzögert, nicht
+    // die Erhebung; er bleibt deshalb aus dem Vergleich.
+    const stand = () =>
+      fs
+        .readdirSync(root, { recursive: true })
+        .filter((rel) => !rel.endsWith('Area_Cache.mdda'))
+        .sort()
+        .map((rel) => `${rel}:${fs.statSync(path.join(root, rel)).mtimeMs}`);
+    const vorher = stand();
+    await collectAreaStats(root, { statusTypeOf }, { statsFor });
+    expect(stand()).toEqual(vorher);
+
+    const nie = await collectAreaStats(
+      path.join(os.tmpdir(), 'em4me-nie-indexiert'),
+      {},
+      { statsFor },
+    );
+    expect(nie.status).toBe('unavailable');
+    expect(nie.verweiseOhneZiel).toBeUndefined();
+  });
+});
+
+// 4T-002783 (Epic 3E-000392): Ein Eintrag aus einem Folgeteil eines geteilten
+// Dokuments steht unter dem Dokument und seiner Zeile, wie der Editor es
+// zusammengesetzt unter dem Pfad der Kopf-Datei öffnet. Die Zeilen sind von
+// Hand nachgerechnet: Die Kopf-Datei trägt drei Zeilen Kopf-Block und zwei
+// Zeilen Text, jeder Folgeteil drei Zeilen Kopf-Block, die im Dokument fehlen.
+describe('collectAreaStats — Verweise ohne Ziel in Folgeteilen (4T-002783)', () => {
+  function geteiltesDokument(root) {
+    const teil = (i, text) => writePartLine(text, { index: i, base: 'Gross' }).text;
+    const kopf = write(root, 'Gross.md', teil(1, '# Kopf\nErst [[Fehlt-Kopf]].\n'));
+    write(root, 'Gross•part-00002.md', teil(2, '## Teil\nText\nDann [[Fehlt-Teil]].\n'));
+    write(root, 'Gross•part-00003.md', teil(3, '[[Fehlt-Drei]] am Anfang\n'));
+    return kopf;
+  }
+
+  it('bildet die Einträge auf das Dokument und seine Zeile ab und schreibt nichts', async () => {
+    const root = makeRoot();
+    const kopf = geteiltesDokument(root);
+    // Gültige Begleitdatei der Kopf-Datei: Ohne sie schriebe der Lese-Weg den
+    // Katalog ohnehin nicht, und der Fall bewiese das Nicht-Schreiben nicht
+    // (Zweitblick zu 4T-002783, Befund 3).
+    write(root, 'Gross.mdd', serializeContainer(emptyContainer()));
+    await indexFor(kopf, 'test:stats-folgeteile', root);
+    const stand = () =>
+      fs
+        .readdirSync(root, { recursive: true })
+        .filter((rel) => !rel.endsWith('Area_Cache.mdda'))
+        .sort()
+        .map((rel) => {
+          const s = fs.statSync(path.join(root, rel));
+          return `${rel}:${s.mtimeMs}:${s.size}`;
+        });
+    const vorher = stand();
+    const { verweiseOhneZiel } = await collectAreaStats(root, { statusTypeOf }, { statsFor });
+    expect(stand()).toEqual(vorher);
+    expect(verweiseOhneZiel.eintraege.map((e) => `${e.name}:${e.zeile} ${e.verweis}`)).toEqual([
+      'Gross:5 [[Fehlt-Kopf]]',
+      'Gross:8 [[Fehlt-Teil]]',
+      'Gross:9 [[Fehlt-Drei]]',
+    ]);
+    for (const e of verweiseOhneZiel.eintraege) expect(e.pfad).toBe(kopf);
+    // Gegenprobe am Text, den der Editor öffnet: Jede Zeile trägt ihren Verweis.
+    const doc = await readAssembledDocument(kopf, fs.readFileSync(kopf, 'utf8'));
+    const zeilen = doc.text.split('\n');
+    for (const e of verweiseOhneZiel.eintraege) expect(zeilen[e.zeile - 1]).toContain(e.verweis);
+  });
+
+  // Zweitblick zu 3E-000392, Hinweis A2: Ein Verweis im Kopf-Block eines
+  // Folgeteils steht im zusammengesetzten Text nicht. Er bleibt beim Dokument,
+  // aber ohne Zeile, statt auf die erste Zeile des Teils zu zeigen.
+  it('nennt einen Verweis im Kopf-Block eines Folgeteils beim Dokument ohne Zeile', async () => {
+    const root = makeRoot();
+    const teil = (i, text) => writePartLine(text, { index: i, base: 'Meta' }).text;
+    const kopf = write(root, 'Meta.md', teil(1, '# Meta\nText\n'));
+    write(
+      root,
+      'Meta•part-00002.md',
+      teil(2, '---\nquelle: "[[Fehlt-Meta]]"\n---\n## Teil\n[[Fehlt-Rumpf]]\n'),
+    );
+    await indexFor(kopf, 'test:stats-folgeteil-kopfblock', root);
+    const { verweiseOhneZiel } = await collectAreaStats(root, { statusTypeOf }, { statsFor });
+    const sicht = verweiseOhneZiel.eintraege.map(
+      (e) => `${path.basename(e.pfad)}:${e.zeile} ${e.verweis}`,
+    );
+    expect(sicht).toContain('Meta.md:null [[Fehlt-Meta]]');
+    const rumpf = verweiseOhneZiel.eintraege.find((e) => e.verweis === '[[Fehlt-Rumpf]]');
+    const doc = await readAssembledDocument(kopf, fs.readFileSync(kopf, 'utf8'));
+    expect(doc.text.split('\n')[rumpf.zeile - 1]).toContain('[[Fehlt-Rumpf]]');
+  });
+
+  it('lässt eine ungeteilte Datei mit Teil-Namen stehen und nennt ohne Lesen das Dokument ohne Zeile', async () => {
+    const root = makeRoot();
+    const kopf = geteiltesDokument(root);
+    // Name eines Folgeteils, aber ohne Zuordnungs-Zeile: Der Editor öffnet sie als
+    // eigenes Dokument, der Eintrag bleibt, wie er ist.
+    const solo = write(root, 'Solo•part-00002.md', '# Solo\n[[Fehlt-Solo]]\n');
+    await indexFor(kopf, 'test:stats-folgeteile-rueckfall', root);
+    const gelesen = [];
+    const { verweiseOhneZiel } = await collectAreaStats(
+      root,
+      { statusTypeOf },
+      {
+        statsFor,
+        leseGeteiltesDokument: async (p) => {
+          gelesen.push(path.basename(p));
+          if (p === solo) return { ok: true, geteilt: false, path: p };
+          throw new Error('Lesefehler der Probe');
+        },
+      },
+    );
+    const sicht = verweiseOhneZiel.eintraege.map(
+      (e) => `${path.basename(e.pfad)}:${e.zeile} ${e.verweis}`,
+    );
+    expect(sicht).toEqual([
+      'Gross.md:null [[Fehlt-Teil]]',
+      'Gross.md:null [[Fehlt-Drei]]',
+      'Gross.md:5 [[Fehlt-Kopf]]',
+      'Solo•part-00002.md:2 [[Fehlt-Solo]]',
+    ]);
+    // Je Teil-Datei höchstens ein Lese-Versuch, die Kopf-Datei nie.
+    expect(gelesen.sort()).toEqual([
+      'Gross•part-00002.md',
+      'Gross•part-00003.md',
+      'Solo•part-00002.md',
+    ]);
+  });
+
+  // Zweitblick zu 4T-002783, Befund 4: Der aus dem Namen abgeleitete Kopf-Pfad
+  // muss nicht bestehen. Fehlt die Kopf-Datei, bleibt der Eintrag unter der
+  // Teil-Datei ohne Zeile, statt auf eine Datei zu zeigen, die es nicht gibt.
+  it('lässt den Eintrag bei fehlender Kopf-Datei unter der Teil-Datei ohne Zeile', async () => {
+    const root = makeRoot();
+    const kopf = geteiltesDokument(root);
+    const waise = write(
+      root,
+      'Weg•part-00002.md',
+      writePartLine('## Rest\n[[Fehlt-Waise]]\n', { index: 2, base: 'Weg' }).text,
+    );
+    await indexFor(kopf, 'test:stats-folgeteile-ohne-kopf', root);
+    const { verweiseOhneZiel } = await collectAreaStats(root, { statusTypeOf }, { statsFor });
+    const eintrag = verweiseOhneZiel.eintraege.find((e) => e.verweis === '[[Fehlt-Waise]]');
+    expect(eintrag).toMatchObject({ pfad: waise, zeile: null });
+    expect(fs.existsSync(path.join(root, 'Weg.md'))).toBe(false);
+  });
+
+  // Sicherheits-Review zu 4T-002783, Befund 1, zweite Linie: Liefert der Lese-Weg
+  // für ein Dokument Pfade außerhalb des Bereichs, geht keiner davon in die
+  // Antwort. Der Leser ist präpariert, weil der echte Lese-Weg solche Pfade seit
+  // der Grundnamen-Prüfung nicht mehr liefert (Fall darunter).
+  it('nimmt keinen Pfad außerhalb des Bereichs in die Antwort (präparierter Leser)', async () => {
+    const root = makeRoot();
+    const kopf = geteiltesDokument(root);
+    await indexFor(kopf, 'test:stats-folgeteile-aussen', root);
+    const fremd = path.join(path.dirname(root), 'Fremd', 'Tagebuch.md');
+    const teil2 = path.join(root, 'Gross•part-00002.md');
+    const { verweiseOhneZiel } = await collectAreaStats(
+      root,
+      { statusTypeOf },
+      {
+        statsFor,
+        leseGeteiltesDokument: async (p) => ({
+          ok: true,
+          geteilt: true,
+          path: fremd,
+          text: 'a\nb\nc\n',
+          teile: [
+            { pfad: fremd, content: 'a\nb\n' },
+            { pfad: p, content: fs.readFileSync(p, 'utf8') },
+          ],
+          grenzen: [4],
+        }),
+      },
+    );
+    const sicht = verweiseOhneZiel.eintraege.map((e) => `${e.pfad}:${e.zeile} ${e.verweis}`);
+    expect(sicht).toContain(`${teil2}:null [[Fehlt-Teil]]`);
+    for (const e of verweiseOhneZiel.eintraege) {
+      expect(path.relative(root, e.pfad).startsWith('..'), e.pfad).toBe(false);
+    }
+  });
+
+  // Erste Linie, am echten Lese-Weg: Ein Grundname mit Pfad-Anteil macht die
+  // Datei zu einem ungeteilten Dokument, und ihr Eintrag behält Pfad und Zeile
+  // (Zeile 4 hinter drei Zeilen Kopf-Block). Ohne die Grundnamen-Prüfung läse der
+  // Lese-Weg die Datei außerhalb als Kopf-Datei, und der Eintrag verlöre seine Zeile.
+  it('liest einen Folgeteil mit Pfad im Grundnamen nicht über den Bereich hinaus', async () => {
+    const root = makeRoot();
+    const kopf = geteiltesDokument(root);
+    const aussen = path.join(path.dirname(root), `${path.basename(root)}-Fremd.md`);
+    fs.writeFileSync(aussen, 'Zeile 1\nZeile 2\nZeile 3\nZeile 4\n', 'utf8');
+    tmpDirs.push(aussen);
+    const base = `../${path.basename(root)}-Fremd`;
+    const teil = write(
+      root,
+      'Fremd•part-00002.md',
+      writePartLine('[[Fehlt-Fremd]]\n', { index: 2, base }).text,
+    );
+    await indexFor(kopf, 'test:stats-folgeteile-grundname', root);
+    const { verweiseOhneZiel } = await collectAreaStats(root, { statusTypeOf }, { statsFor });
+    const eintrag = verweiseOhneZiel.eintraege.find((e) => e.verweis === '[[Fehlt-Fremd]]');
+    expect(eintrag).toMatchObject({ pfad: teil, zeile: 4 });
+    for (const e of verweiseOhneZiel.eintraege) {
+      expect(path.relative(root, e.pfad).startsWith('..'), e.pfad).toBe(false);
+    }
   });
 });

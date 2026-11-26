@@ -34,7 +34,7 @@ import { createRequire } from 'node:module';
 // Über createRequire, damit die Plattform in DERSELBEN Modul-Instanz gesetzt
 // wird, die journal-core.js benutzt (Muster area-path.test.js).
 const { setPlatformForTests } = createRequire(import.meta.url)('../../src/shared/platform.js');
-import { isExtensionId } from '../../src/shared/extensions/extensions.js';
+import { allExtensions, isExtensionId } from '../../src/shared/extensions/extensions.js';
 import { disabledCommandIdSet } from '../../src/shared/extensions/extensions-core.js';
 
 const ms = (iso) => isoDateToMs(iso);
@@ -694,5 +694,14 @@ describe('Erweiterung journals — Aus-Zustand filtert die Kommandos', () => {
     const disabled = disabledCommandIdSet(['journals']);
     expect(disabled.has('journal.openToday')).toBe(true);
     expect(disabled.has('journal.openForDate')).toBe(true);
+  });
+
+  // 4T-002738 (Epic 3E-000396): Der Befehl zum Übertrag offener Aufgaben
+  // gehört zur Erweiterung und entfällt mit ihr aus Menü und Palette.
+  it('führt den Übertrag offener Aufgaben und filtert ihn im Aus-Zustand', () => {
+    const journale = allExtensions().find((m) => m.id === 'journals');
+    expect(journale.commands).toContain('journal.carryOver');
+    expect(disabledCommandIdSet(['journals']).has('journal.carryOver')).toBe(true);
+    expect(disabledCommandIdSet([]).has('journal.carryOver')).toBe(false);
   });
 });

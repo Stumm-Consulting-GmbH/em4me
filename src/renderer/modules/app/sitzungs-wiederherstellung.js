@@ -30,6 +30,7 @@ import { restoreGroupsIntoPane } from '../tabs/tab-groups.js';
 import { showStatusbarHint } from '../views/views.js';
 // 4T-002334 (Epic 3E-000264): Sitzungs-Eintrag des Masken-Dokuments.
 import { stelleMaskenWieder, uebergibRuhende } from './sitzungs-maske.js';
+import { leseOffeneStelle } from '../views/lese-position.js';
 
 export async function restorePanes(saved) {
   // saved = [{paths, activeIndex, viewMode (legacy)?, tabSettings?}, ...]
@@ -51,14 +52,19 @@ export async function restorePanes(saved) {
     for (let j = 0; j < paths.length; j++) {
       const p = paths[j];
       try {
-        const data = await api.readFile(p);
+        // 4T-002641 (Epic 3E-000397, V6, N2 = A): die Lese-Stelle parallel zum
+        // Inhalt lesen; hergestellt wird sie beim ersten Darstellen des Reiters.
+        // Das Lesen scheitert nie, ohne Stelle beginnt der Reiter oben.
+        const [data, stelle] = await Promise.all([api.readFile(p), leseOffeneStelle(p)]);
         // W-01 (4T-000309): {ok,error}-Vertrag — Lesefehler ueber den catch
         // (missing-Tab, W-14) statt frueherer IPC-Exception.
         if (!data || !data.ok) throw new Error((data && data.error) || 'read failed');
         const settings = tabSettings[j] || {};
         if (legacyViewMode && !settings.viewMode) settings.viewMode = legacyViewMode;
         Object.assign(settings, { readOnly: !!data.nurLesen, fehlendeTeile: data.fehlend });
-        state.panes[i].tabs.push(createTab(data.path, data.content, settings));
+        const tab = createTab(data.path, data.content, settings);
+        tab.stelleOffen = stelle;
+        state.panes[i].tabs.push(tab);
       } catch {
         // W-14 (4T-000308): Tab nicht still verwerfen. Der Fehler trifft nicht
         // nur geloeschte Dateien, sondern auch transiente Faelle (Lock,

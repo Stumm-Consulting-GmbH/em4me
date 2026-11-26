@@ -14,6 +14,1123 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.162.0.6322] - 2026-11-26 — Tabellen aus einer Tabellenkalkulation einfügen, Inhaltsverzeichnis als Block im Dokument, Mermaid-Bausteine, Titelbild für Dokumente, Lese-Position je Dokument, Vor und Zurück zwischen besuchten Stellen, offene Aufgaben ins aktuelle Journal übertragen, Verweise ohne Ziel in der Bereichs-Statistik, Grenzprüfung der internen Datei-Funktionen, Workflows schreiben verlässlich
+
+Zug
+3E-000410,
+der erste Zug des Arbeitspakets «Neue Fähigkeiten und Ausbau des
+Funktionsumfangs». Die Mitglieder in der Reihenfolge ihrer Umsetzung, je mit
+dem Task, der ihren Abschluss-Anteil trägt:
+
+1. 3E-000389
+   — ein aus einer Tabellenkalkulation kopierter Zellbereich wird beim Einfügen
+   zur Pipe-Tabelle mit Kopfzeile; ein Rückgängig-Schritt führt auf den reinen
+   Text, und reines Einfügen bleibt jederzeit möglich.
+   Abschluss-Anteil in
+   4T-002557.
+2. 3E-000390
+   — ein Block im Dokument zeigt die Überschriften als verlinktes Verzeichnis,
+   folgt jeder Änderung von selbst und erscheint in Druck, PDF und Export.
+   Abschluss-Anteil in
+   4T-002560.
+3. 3E-000391 —
+   Mermaid-Diagramme lassen sich aus Gerüsten und Bausteinen zusammenklicken,
+   statt die Schreibweise auswendig zu kennen. Abschluss-Anteil in
+   4T-002619.
+4. 3E-000395 —
+   eine Eigenschaft im Kopf des Dokuments stellt ihm ein Bild über die ganze
+   Breite des Inhalts voran, auf eine einstellbare Höhe und einen einstellbaren
+   Ausschnitt beschnitten. Abschluss-Anteil in
+   4T-002632.
+5. 3E-000397
+   — jedes Dokument öffnet an der Stelle, an der es zuletzt verlassen wurde,
+   auch nach einem Neustart, und «Zurück» und «Vor» führen wie im Browser
+   zwischen den besuchten Stellen hin und her. Abschluss-Anteil in
+   4T-002644.
+6. 3E-000396
+   — die offenen Aufgaben des letzten Journal-Eintrags ziehen in den Eintrag
+   der laufenden Periode um, selbsttätig beim Anlegen oder mit einem Befehl
+   von Hand. Abschluss-Anteil in
+   4T-002740.
+7. 3E-000392
+   — die Bereichs-Statistik nennt jeden Verweis, dessen Ziel es nicht gibt,
+   mit Dokument, Zeile und Grund, und ein Klick öffnet das Dokument an der
+   Zeile des Verweises. Abschluss-Anteil in
+   4T-002785.
+8. 3E-000416
+   — Stufe 1 der Grenzprüfung: Einstellungen, die über Sicherheit entscheiden,
+   ändert nur noch der Hauptprozess, und die Dokument-Funktionen schreiben
+   nicht mehr in die Ordner des Programms und seiner Einstellungen.
+   Abschluss-Anteil in
+   4T-002652.
+   Aus dem Zug
+   3E-000429
+   in dieses Release übernommen; dessen zweites Mitglied, der Datei-Zugriff
+   für Add-ons, fährt nicht mit.
+9. 3E-000447
+   — Rest-Fälle der privaten Kommentare: Sonder-Blöcke mit eigener
+   Darstellung sowie sehr große Tabellen und Zitate. Abschluss-Anteil in
+   4T-002834.
+   Vom Zweig `hotfix/3E-000447-Rest-Faelle` in dieses Release übernommen; der
+   erste Teil des Vorhabens kam mit 1.161.3.
+10. 3E-000444
+    — Text-Befehle der Workflows schreiben dorthin, wo das Handbuch es sagt:
+    Ein Text-Befehl auf ein geöffnetes, unverändertes Dokument schreibt die
+    Datei, und das Fenster zeigt den neuen Stand; das Abhaken einer Aufgabe
+    trifft auch Aufgaben in späteren Teilen eines geteilten Dokuments, und die
+    Quelle `from-section` findet einen Abschnitt im späteren Teil einer
+    geteilten Workflow-Datei. Abschluss-Anteil in
+    4T-002818.
+11. 3E-000445
+    — Bedienung, Meldungen und Absicherung der Workflows: Der Knopf «Starten»
+    bleibt in der Live-Ansicht sichtbar, die Prüf-Anzeige rechnet nach, sobald
+    die Datenbank bereit ist, ein vergebener Schlüssel wird beim Kopieren einer
+    Karteikarte genannt, die Schalter einer Bereichs-Verknüpfung fehlen bei
+    ausgeschalteter Erweiterung, und `db-query … into` schreibt bei Aufgaben
+    denselben Text wie die Abfrage-Ansicht. Abschluss-Anteil in
+    4T-002824.
+
+    Beide kommen aus dem Zug
+    3E-000443,
+    gestartet auf das Wort des Auftraggebers vom 2026-11-22 zu Punkt 51, und
+    fahren auf seinen Wortlaut «Hier folge ich deiner Empfehlung: Option A,
+    alles in einem Release.» mit diesem Release.
+
+Hinweis an Anwender zu den Rest-Fällen der privaten Kommentare im Wortlaut,
+freigegeben vom Auftraggeber am 2026-11-25 um 09:05 («79: A.» nach
+Empfehlung; Option A der Vorlage: freigeben wie vorgelegt), ergänzt um drei
+Sätze nach seinem Wort vom selben Tag um 11:21 («86 A»):
+
+> Private Kommentare bleiben jetzt auch in Sonder-Blöcken wie Perspective Table, Dashboard, Diagramm und Mermaid-Diagramm verborgen, und große Tabellen und Zitate mit vielen privaten Kommentaren werden vollständig angezeigt.
+>
+> **Behoben: Private Kommentare bleiben in Sonder-Blöcken verborgen.** Ein privater Kommentar bleibt jetzt auch in Blöcken mit eigener Darstellung verborgen: in einer Perspective Table, einem Datenblock, einem Ereignis-Block, einem Dashboard, einem Diagramm, einer Journal-Zeitleiste, einem Mermaid-Diagramm und einem Abfrage-Block, auch wenn der Block in einem Zitat oder einem Listenpunkt steht. Er endet dort spätestens am Ende des Blocks, in einer Tabellen-Zelle am Ende der Zelle. Im Mermaid-Diagramm bleiben die Steuer-Anweisung in geschweiften Klammern und Zeilen, die mit zwei Prozentzeichen beginnen und keine weiteren tragen, als Kommentare von Mermaid selbst stehen; beginnen Sie einen privaten Kommentar dort deshalb nicht am Zeilenanfang.
+>
+> **Behoben: Große Tabellen und Zitate werden vollständig angezeigt.** Eine einzelne sehr große Tabelle oder ein sehr großes Zitat mit vielen privaten Kommentaren baut sich in der Lese-Ansicht jetzt schnell auf, und das Programm blendet den Rest des Dokuments nicht mehr ab einem dieser Kommentare aus.
+>
+> **Bewusst ausgenommen: der Workflow-Block.** In einem Workflow-Block bleibt Text zwischen zwei Prozentzeichen-Paaren bewusst in der Ansicht und in exportierten Dateien sichtbar. «Starten» führt den Block so aus, wie er in der Datei steht, auch Befehle zwischen solchen Markern, und die Ansicht soll genau das zeigen, was ausgeführt wird. Schreiben Sie private Notizen zu einem Workflow deshalb außerhalb des Blocks.
+>
+> **Noch offen.** In einer Datentabelle und auf einer Karte der Canvas-Fläche in der Vorschau der Lese-Ansicht kann ein privater Kommentar weiter sichtbar werden. Beim Export als HTML-Datei steht der Inhalt einer Datentabelle, eines Ereignis-Blocks und eines Diagramms samt seinen privaten Kommentaren zusätzlich unsichtbar in der Datei; wer die Datei als Text öffnet, kann ihn lesen. Eine extrem breite Tabelle mit vielen zehntausend Zellen blendet den Rest des Dokuments weiter ab einem Kommentar aus, bei dem das Programm nicht sicher entscheiden kann: Es zeigt dann zu wenig, nie zu viel. In sehr ungewöhnlich gebauten Tabellen, in denen eine Zeile erst durch das Entfernen eines Kommentars zur Trennzeile wird, kann Text eines privaten Kommentars sichtbar bleiben. Ein privater Kommentar in einer Aufgaben-Zeile oder in der Überschrift über ihr erscheint weiter als Text, wo das Programm die Aufgabe außerhalb ihres Dokuments zeigt: in den Treffern einer Task-Abfrage, auch in einer Dashboard-Kachel, und damit im Druck, im PDF und im HTML-Export des Dokuments mit der Abfrage, in der Datei, die der Workflow-Befehl «Abfrage in eine Datei» schreibt, und in Erinnerungen samt System-Benachrichtigung. Am eigenen Bildschirm zeigen außerdem einige Ansichten neben dem Dokument einen privaten Kommentar weiter als Text, darunter die Ausschnitte der Bereichs-Suche und der Backlinks, das Inhaltsverzeichnis und die Mindmap-Ansicht.
+>
+> **Was Sie bis dahin tun.** Bis dahin gehören private Kommentare nicht in eine Datentabelle und nicht auf eine Karte der Canvas-Fläche. Ein Dokument mit privaten Kommentaren in einer Datentabelle, einem Ereignis-Block oder einem Diagramm geben Sie nicht als HTML-Datei weiter. Bis dahin gehören private Kommentare nicht in Aufgaben-Zeilen und Überschriften.
+>
+> **Handbuch: Das Handbuch nennt die Sonder-Blöcke.** Die Handbuch-Seite «Inline-Konstrukte», Abschnitt «Kommentare», nennt in allen fünf Sprachen die Blöcke mit eigener Schreibweise, die Regel im Mermaid-Diagramm und die Ausnahme des Workflow-Blocks.
+
+### Neu
+
+- **Tabellen aus einer Tabellenkalkulation einfügen** (`4T-002554`). Ein in
+  einer Tabellenkalkulation kopierter Zellbereich mit mindestens zwei Zeilen
+  und zwei Spalten wird mit Strg+V oder mit «Einfügen» im Editor-Kontextmenü
+  zur Pipe-Tabelle; die erste Zeile wird die Kopfzeile, und die Statusleiste
+  meldet «Als Tabelle eingefügt. Strg+Z fügt den reinen Text ein.».
+  Umgewandelt wird nur, wenn die Zwischenablage die Tabellen-Form der
+  Tabellenkalkulation mitliefert und jede Zeile gleich viele Zellen hat.
+  Rückgängig wirkt in zwei Stufen: Das erste Strg+Z stellt den eingefügten
+  reinen Text her, das zweite nimmt auch ihn zurück. Ein senkrechter Strich in
+  einer Zelle wird als `\|` geschützt, ein Zeilenumbruch in einer Zelle wird zum
+  Leerzeichen, und eine leere Zelle bleibt leer. Steht die Schreibmarke mitten
+  in einer Zeile, kommt die Tabelle auf eigene Zeilen mit einer Leerzeile davor
+  und danach; in einem Zitat oder Hinweisblock trägt jede Tabellenzeile das
+  Präfix der Zeile, in der eingefügt wird. Das Bild der Zellen, das die
+  Tabellenkalkulation mitliefert, wird nicht mehr als Anlage abgelegt. In
+  Quelltext-Bereichen, im Frontmatter, in einer bestehenden Tabelle und bei
+  mehreren Schreibmarken bleibt es beim reinen Text. Hinter «Einfügen» stehen
+  im Editor-Kontextmenü die neuen Einträge «Als reinen Text einfügen» und «Als
+  Tabelle einfügen», beide auch in der Kommando-Palette und ohne
+  Tastenkürzel-Vorbelegung; Strg+Umschalt+V und «Als reinen Text einfügen»
+  fügen immer unverändert ein. «Als Tabelle einfügen» wandelt auch durch
+  Tabulator oder Semikolon getrennten Text um, der nicht aus einer
+  Tabellenkalkulation kommt (Trennzeichen ist das häufigere der beiden, keine
+  Zeile darf mit dem Trennzeichen beginnen), und meldet bei ungeeigneter
+  Zwischenablage «Die Zwischenablage enthält keinen Zellbereich, der sich hier
+  als Tabelle einfügen lässt.». Die Umwandlung gehört zur Erweiterung
+  «Tabellen-Werkzeuge» (Datei → Einstellungen… → Erweiterungen) im
+  Arbeitsmodus Einsteiger; ist sie ausgeschaltet, fügt Strg+V reinen Text ein,
+  «Als Tabelle einfügen» fehlt in Kontextmenü und Kommando-Palette, und «Als
+  reinen Text einfügen» bleibt. Nachgewiesen am Einfüge-Ereignis von Microsoft
+  Excel; ob andere Tabellenkalkulationen die Tabellen-Form ebenso mitliefern,
+  ist nicht gemessen, ohne sie wandelt Strg+V dort nicht um, «Als Tabelle
+  einfügen» aber schon.
+- **Inhaltsverzeichnis als Block im Dokument** (`4T-002558`). Ein Code-Block
+  mit der Kennung `toc` zeigt an seiner Stelle die Überschriften des Dokuments
+  als eingerückte Liste; jeder Eintrag ist ein Verweis, ein Klick springt zur
+  Überschrift. Eine Zeile `depth: N` im Block begrenzt das Verzeichnis auf die
+  Ebenen 1 bis N, gültig sind 1 bis 6; ohne sie erscheinen alle Ebenen, andere
+  Zeilen und Werte bleiben wirkungslos. Das Verzeichnis folgt jeder Änderung
+  von selbst, in der gerenderten Ansicht wie in der Live-Ansicht, und springt
+  auf dieselben Anker wie Verweise auf die Überschriften, auch bei
+  gleichlautenden Überschriften und bei eigenen IDs mit `{#id}`. Überschriften
+  in Code-Blöcken und im Frontmatter bleiben außen vor; bei eingeschalteter
+  Überschriften-Nummerierung stehen die Nummern mit im Verzeichnis. Hat das
+  Dokument keine Überschrift, zeigt der Block «Dieses Dokument hat keine
+  Überschriften.»; mehrere Blöcke im selben Dokument zeigen dasselbe
+  Verzeichnis. Druck, PDF-Export und HTML-Export enthalten das Verzeichnis so,
+  wie die gerenderte Ansicht es zeigt; der portable Export schreibt es als
+  Markdown-Liste mit Verweisen auf die Überschriften, ohne Nummern, und bei
+  einem Dokument ohne Überschriften als Leerzeile. Ob die Einträge im PDF
+  anklickbar sind, wird nicht zugesagt. In einer Präsentation zeigt ein Block
+  die Überschriften seiner Folie. Eingefügt wird der Block über das
+  Editor-Kontextmenü mit Einfügen → «Inhaltsverzeichnis-Block» (ein Block `toc`
+  ohne Zeile `depth:` auf eigener Zeile), ohne Eintrag im Anwendungs-Menü und
+  ohne Tastenkürzel. Der Block gehört zur neuen Erweiterung
+  «Inhaltsverzeichnis-Block» (Datei → Einstellungen… → Erweiterungen) im
+  Arbeitsmodus Einsteiger; ist sie ausgeschaltet, steht der Block als
+  gewöhnlicher Code-Block mit seinem Text da, das Kontextmenü bietet
+  «Inhaltsverzeichnis-Block» nicht an, und das Dokument bleibt unverändert. Das
+  Panel «Inhaltsverzeichnis» der Seitenleiste bleibt davon unberührt.
+- **Mermaid-Bausteine** (`4T-002617`). Ein Mermaid-Diagramm entsteht per Klick,
+  ohne die Schreibweise auswendig zu kennen. Drei Wege führen zum selben
+  Angebot: der neue Aufklapp-Knopf «Mermaid-Diagramm» am Ende der
+  Format-Toolbar, Einfügen → «Mermaid-Diagramm» im Editor-Kontextmenü und das
+  Kommando «Mermaid-Diagramm…» in der Kommando-Palette, ohne Eintrag im
+  Anwendungs-Menü und ohne Tastenkürzel. Außerhalb jedes Code-Blocks bietet
+  die Auswahl die Gerüste der vier Arten «Ablauf (Flowchart)», «Abfolge
+  (Sequence)», «Zeitplan (Gantt)» und «Klassen (Class)» an, jedes ein
+  vollständiger, gültiger Block mit einer Leerzeile davor und danach; innerhalb
+  eines Mermaid-Blocks die Bausteine seiner Art (Ablauf: Knoten, Verzweigung,
+  Verbindung, Beschriftete Verbindung; Abfolge: Teilnehmer, Nachricht, Antwort,
+  Schleife, Alternative; Zeitplan: Abschnitt, Aufgabe, Meilenstein; Klassen:
+  Klasse, Klasse mit Mitgliedern, Vererbung, Beziehung, Teil von). In einem
+  anderen Code-Block, auf der ersten oder letzten Zeile eines Mermaid-Blocks, in
+  einem Mermaid-Block ohne Kopfzeile mit der Diagramm-Art und in einem
+  Mermaid-Block einer anderen Art steht allein der ausgegraute Hinweis «Keine
+  Mermaid-Bausteine an dieser Stelle». Neue Elemente bekommen fortlaufende
+  Kennungen (`N1`, `N2` …), ein verbindender Baustein bezieht sich auf die
+  beiden zuletzt angelegten Elemente, ein Baustein übernimmt die Einrückung des
+  Blocks, auch in einer Liste, und der erste Platzhalter ist nach dem Einfügen
+  ausgewählt; ein Klick ist ein einziger Rückgängig-Schritt. Eine Aufgabe im
+  Zeitplan trägt das heutige Datum. In der Live-Ansicht wird ein frisch
+  eingefügtes Gerüst gezeichnet, sobald die Schreibmarke den Block verlässt. Die
+  Bausteine gehören zur bestehenden Erweiterung «Mermaid-Diagramme» (Datei →
+  Einstellungen… → Erweiterungen) ab dem Arbeitsmodus Fortgeschritten; ist sie
+  ausgeschaltet, entfallen Knopf, Kontextmenü-Eintrag und Kommando. Wer die
+  Belegung der Format-Toolbar angepasst hat, bekommt den Knopf nicht von selbst:
+  Datei → Einstellungen… → Format-Toolbar → «Mermaid-Knopf hinzufügen» hängt ihn
+  an die eigene Belegung an, «Auf Standard zurücksetzen» bringt ihn mit der
+  ganzen Standard-Belegung zurück.
+- **Titelbild für Dokumente** (`4T-002630`). Die Eigenschaft `cover` im
+  Frontmatter stellt einem Dokument ein Bild über die ganze Breite des Inhalts
+  voran, unter der Titelzeile mit dem Dateinamen und über der
+  Frontmatter-Zeile; das Bild wird auf die eingestellte Höhe beschnitten, nie
+  verzerrt. Angegeben wird es als Pfad relativ zum Dokument
+  (`cover: bilder/strand.jpg`), mit derselben Grenze, denselben Formaten und
+  derselben Obergrenze von 20 MB wie jedes Bild, oder als Name in doppelten
+  eckigen Klammern in Anführungszeichen (`cover: "[[strand.jpg]]"`), der das
+  Bild in jedem Ordner des Bereichs findet. `cover-height` setzt die Höhe in
+  Bildpunkten (Vorgabe 200, Grenzen 80 und 600), `cover-position` den
+  sichtbaren Ausschnitt von 0 (oberer Rand) bis 100 (unterer Rand) oder als
+  `top`, `center` und `bottom` (Vorgabe die Mitte); was nicht verstanden wird,
+  fällt still auf die Vorgabe zurück. Das Titelbild erscheint in der
+  gerenderten Ansicht, in deren Hälfte der geteilten Ansicht und in der
+  Live-Ansicht, wo es stehen bleibt, während die Schreibmarke im Kopf des
+  Dokuments steht; es hängt nicht an der Frontmatter-Anzeige, und ein Kopf mit
+  YAML-Syntaxfehler ergibt keines. Druck, PDF-Export und HTML-Export zeigen es
+  oben; die Präsentation, eingebettete Dokumente, Karten und Vorschauen zeigen
+  keines. Fehlt das Bild, liegt es außerhalb der Grenze, ist es keine
+  Bilddatei oder größer als 20 MB, steht an seiner Stelle der unauffällige
+  Hinweis «Titelbild nicht gefunden», ohne Fehlermeldung; ebenso in einem noch
+  nie gespeicherten Dokument, bis es gespeichert ist. Eine Adresse aus dem Netz
+  (`http:`, `https:`) lädt die Anwendung nicht; an ihrer Stelle steht ein
+  Hinweis, das Bild als Datei in den Bereich zu legen. Druck und Export lassen
+  die Hinweise weg, ein Titelbild ohne Bild entfällt dort ganz. Wird das Bild
+  umbenannt, passt die Anwendung den Wert von `cover` nicht an. Buch- und
+  Regal-Dateien, die ihr Titelbild schon in `cover` tragen, zeigen es nun auch
+  oben, wenn man sie als Dokument öffnet. Das Titelbild ist die neue
+  Erweiterung «Titelbild» (Datei → Einstellungen… → Erweiterungen) ab dem
+  Arbeitsmodus Fortgeschritten; ist sie ausgeschaltet, erscheinen weder Bild
+  noch Hinweis, und die Eigenschaften bleiben unverändert im Dokument. Einen
+  Menü-Eintrag, ein Kommando oder eine Einstellung gibt es nicht.
+- **Lese-Position je Dokument** (`4T-002641`). Jedes Dokument öffnet an der
+  Stelle, an der es zuletzt verlassen wurde: mit derselben obersten sichtbaren
+  Zeile und derselben Schreibmarke. Die Stelle ist eine Zeile des Quelltexts
+  und deshalb in jeder Ansicht dieselbe; wer von der gerenderten Ansicht in den
+  Quellcode, den Live-Modus oder den Bearbeiten-Modus wechselt, hat oben
+  dieselbe Zeile, und beim Wechsel zurück ebenso. Beim Wechsel zwischen geöffneten Dokumenten kehrt auch die
+  Schreibmarke an ihren Platz zurück; steht sie in einer Tabelle des
+  Live-Modus, öffnet die Zelle dabei nicht von neuem. Gemerkt wird nach zwei
+  Sekunden Ruhe im Bildlauf, beim Wechsel von Reiter und Ansicht und beim
+  Schließen von Reiter, Fenster und Anwendung. Die Stelle überdauert den
+  Neustart: Wiederhergestellte Reiter stehen an ihrer Stelle, auch der nicht
+  aktive, sobald er nach vorn kommt, und bei ausgeschalteter
+  Sitzungs-Wiederherstellung öffnet ein Dokument beim nächsten Öffnen an seiner
+  Stelle. Ein angesteuertes Ziel geht vor: Ein Verweis auf eine Überschrift
+  oder einen Block, ein Suchtreffer, ein Eintrag im Panel «Backlinks», eine
+  Erinnerung oder ein Aufgaben-Treffer mit Zeile öffnet am Ziel. Ist ein
+  Dokument inzwischen kürzer, öffnet es an seinem Ende. Gemerkt werden die
+  zuletzt gelesenen 500 Dokumente; ein Umbenennen oder Verschieben in der
+  Anwendung, auch zusammen mit den Unterseiten, nimmt die Stelle mit, ein
+  Umbenennen außerhalb der Anwendung nicht. Unbenannte Dokumente,
+  Handbuch-Seiten und System-Seiten haben keine Lese-Position. Die Anwendung
+  merkt sich die Stellen in der Datei `lese-positionen.json` in ihren eigenen
+  Daten neben den Einstellungen, nie im Dokument; fehlt die Datei, beginnt
+  jedes Dokument oben wie bisher. Fester Bestandteil in jedem Arbeitsmodus,
+  ohne Einstellung.
+- **Zurück und Vor zwischen besuchten Stellen** (`4T-002642`). Wie im Browser
+  führt «Zurück» an die Stelle, an der der Anwender zuvor war, und «Vor»
+  wieder nach vorn, jeweils an die Stelle im Dokument. Bedient wird es mit
+  Alt+Pfeil links und Alt+Pfeil rechts (umbelegbar wie jedes Tastenkürzel), mit
+  den seitlichen Maustasten, über die neuen Einträge «Zurück» und «Vor» im Menü
+  «Ansicht» in einem eigenen Block über «Kommando-Palette», über die
+  gleichnamigen Kommandos der Kommando-Palette und über zwei Pfeil-Knöpfe am
+  Anfang der Kommando-Knöpfe in der Statusleiste. Als Besuch zählt jeder
+  Wechsel des gezeigten Dokuments, auch der Klick auf einen Reiter und
+  Strg+Tab, dazu die Sprünge innerhalb eines Dokuments zu einer Überschrift
+  oder einem Block, über das Panel «Inhaltsverzeichnis» oder einen
+  Inhaltsverzeichnis-Block, über einen Eintrag im Panel «Backlinks» und aus der
+  Trefferliste der Suche; Weitersuchen in der Suchleiste und Bildlauf zählen
+  nicht, und zwei Stellen desselben Dokuments weniger als zehn Zeilen
+  auseinander gelten als eine. Eine neue Navigation nach «Zurück» schneidet
+  den Vorwärts-Teil ab. Jedes Fenster hat seinen eigenen Verlauf mit höchstens
+  100 Einträgen, der mit dem Fenster beginnt und endet; bei zwei Spalten führt
+  der Schritt auch in die Spalte zurück, in der der Anwender war. Ein
+  inzwischen geschlossenes Dokument öffnet «Zurück» wieder an seiner Stelle;
+  ein nicht mehr vorhandenes wird übersprungen, sofern es nicht noch in einem
+  Reiter geöffnet ist, und die Statusleiste meldet die Zahl der übersprungenen
+  Orte. Ohne möglichen Schritt sind Menü-Eintrag und Knopf ausgegraut, und das
+  Tastenkürzel meldet «Kein früherer Ort» beziehungsweise «Kein späterer Ort».
+  Die beiden Knöpfe lassen sich wie jede Standard-Schaltfläche ausblenden, die
+  Einstellung, nicht aktivierbare Schalter auszublenden, lässt sie aber stehen.
+  Fester Bestandteil in jedem Arbeitsmodus, ohne Einstellung.
+- **Offene Aufgaben ins aktuelle Journal übertragen** (`4T-002737`,
+  `4T-002738`). Die offenen Aufgaben des letzten vorhandenen Eintrags eines
+  Journals ziehen in den Eintrag der laufenden Periode um: bei einem
+  Tages-Journal in den heutigen, bei einem Wochen-Journal in den der laufenden
+  Woche, bei Journalen jeder Granularität und auch dann, wenn der letzte Eintrag
+  Tage zurückliegt. Im Editor eines Journals unter Datei → Einstellungen… →
+  Journale steht dafür die Gruppe «Offene Aufgaben übertragen» mit drei
+  Einstellungen: «Beim Anlegen des Eintrags selbsttätig übertragen» (in der
+  Vorgabe aus) überträgt, sobald der Eintrag der laufenden Periode neu angelegt
+  wird, gleich auf welchem Weg; «Im alten Eintrag» legt fest, ob die übertragene
+  Aufgabe dort «als übertragen kennzeichnen» (Vorgabe) oder «entfernen» gilt;
+  «Nur aus Abschnitt» beschränkt den Übertrag auf die Aufgaben unter einer
+  Überschrift. Der neue Befehl «Offene Aufgaben in den aktuellen Journal-Eintrag
+  übertragen» unter Datei → Weitere Datei-Funktionen und in der
+  Kommando-Palette, ohne Tastenkürzel-Vorbelegung, überträgt jederzeit von Hand,
+  auch bei ausgeschaltetem Schalter und in einen bestehenden Eintrag; fehlt der
+  Eintrag, legt er ihn an. Jede Aufgabe kommt unter die Überschrift, unter der
+  sie im alten Eintrag stand; fehlt die Überschrift im neuen Eintrag, wird sie
+  am Ende angelegt. Eine Aufgabe zieht mit allem um, was eingerückt direkt unter
+  ihr steht, bis zur nächsten Leerzeile. Als offen zählen Aufgaben vom Typ
+  Offen, In Arbeit oder Wartend; erledigte und abgebrochene bleiben, wo sie
+  sind. Gekennzeichnet wird mit dem neuen vorbelegten Status «Übertragen» (`-
+  [»] …`, Typ «Keine Aufgabe»): Eine so gekennzeichnete Zeile zählt nicht als
+  offen, erinnert nicht und wird nie erneut übertragen; ein Klick auf ihr
+  Kästchen öffnet die Aufgabe wieder. Hat einer der beiden Einträge
+  ungespeicherte Änderungen, wird nichts übertragen, und die Statusleiste nennt
+  den Eintrag; nach einem Übertrag nennt sie die Zahl der Aufgaben und den
+  Eintrag, aus dem sie kamen. Eine Aufgabe ohne Unterpunkte, die Zeichen für
+  Zeichen gleich schon unter derselben Überschrift im neuen Eintrag steht, etwa
+  aus der Vorlage, kommt nicht ein zweites Mal hinein. Grenzen: höchstens 500
+  Aufgaben je Übertrag, Einträge bis 5 MB und höchstens 20 000 Markdown-Dateien
+  in den Ordnern des Journals. Einen eigenen Rückgängig-Befehl gibt es nicht;
+  beide Einträge bekommen einen Eintrag in ihrer Dokument-Historie, wo sie
+  eingeschaltet ist. Der Übertrag gehört zur bestehenden Erweiterung «Journale»
+  (Datei → Einstellungen… → Erweiterungen) ab dem Arbeitsmodus Fortgeschritten
+  und braucht die Erweiterung «Aufgaben»; ist «Journale» ausgeschaltet,
+  entfallen Befehl und Einstellungen.
+- **Verweise ohne Ziel in der Bereichs-Statistik** (`4T-002782`,
+  `4T-002783`). Die Bereichs-Statistik (Ansicht → Bereichs-Statistik) führt
+  unter «Auffälligkeiten» die neue Liste «Verweise ohne Ziel» und unter
+  «Inhalte» die gleichnamige Kennzahl hinter «Dateien ohne eingehenden
+  Verweis»; ihr Wert springt zur Liste. Die Liste nennt jeden Verweis, dessen
+  Ziel es nicht gibt, mit Dokument, Zeile, Verweis und Grund, sortiert nach
+  Dokument und Zeile, vollständig und je Verweis gezählt. Geprüft werden
+  Wiki-Links und Wiki-Embeds, auch im Frontmatter, Markdown-Verweise auf
+  Markdown-Dokumente, Verweise auf Überschriften und Block-Anker, auch im
+  selben Dokument, sowie die Verweise aus Canvas-Karten, Diagrammen zu
+  Tabellen und Dashboard-Kacheln. Die Gründe lauten «Dokument fehlt»,
+  «Überschrift fehlt», «Block-Anker fehlt» und «Außerhalb des Bereichs», wenn
+  der Pfad aus dem Bereich hinausführt; ein Verweis in einen verknüpften
+  Bereich wird nach dessen Bestand beurteilt, mit den Gründen «Im verknüpften
+  Bereich nicht gefunden» und «Verknüpfung nicht nutzbar» (Kürzel unbekannt
+  oder Bereich verschoben). Ist ein verknüpfter Bereich nicht erreichbar,
+  steht unter der Liste die Zahl seiner nicht geprüften Verweise. Die Liste
+  urteilt aus demselben Kern wie die Markierung ungültiger Verweise im
+  Editor. Nicht beurteilt werden Web-Adressen, Verweise in Code-Blöcken und
+  im Inline-Code, Ziele mit Platzhaltern einer Vorlage, Bilder und andere
+  Anlagen sowie Verweise, die erst zur Laufzeit entstehen; eine abgeschaltete
+  Erweiterung nimmt ihre Verweise aus der Prüfung. Ein Klick auf eine Zeile
+  öffnet das Dokument an der Zeile des Verweises, in der Lese- wie in der
+  Quellcode-Ansicht und auch dann, wenn der Verweis im Folgeteil eines
+  geteilten Dokuments steht; die Liste legt nichts an und ändert keinen
+  Verweis. Teil der bestehenden Erweiterung «Bereichs-Statistik» ab dem
+  Arbeitsmodus Fortgeschritten. Bestehende Bereiche werden beim ersten Öffnen
+  einmal neu eingelesen, weil der Zwischenspeicher des Index drei Felder mehr
+  führt.
+
+### Geändert
+
+- **Alt+Pfeil links und rechts im Editor** (`4T-002642`). Im Quellcode und im
+  Live-Modus bewegen Alt+Pfeil links und rechts die Schreibmarke nicht mehr um
+  eine Syntax-Einheit, sondern führen «Zurück» und «Vor» aus. Die Belegung
+  entfällt samt den Umschalt-Varianten (Auswahl um eine Syntax-Einheit) in
+  beiden Editoren der Anwendung, dem Haupt-Editor und dem Notiz-Editor. Im Inhaltsverzeichnis
+  eines Buchs rücken sie bei fokussierter Kapitel-Zeile weiterhin Kapitel aus
+  und ein. Auf macOS behält der Editor seine eigene Belegung von Alt+Pfeil; die
+  Plattform ist nicht freigegeben.
+- **Lesezeichen öffnen an der Lese-Position** (`4T-002641`). Ein Lesezeichen
+  öffnet ein geschlossenes Dokument an seiner gemerkten Stelle statt am
+  Anfang; ist das Dokument schon geöffnet, kommt es nach vorn und bleibt, wo
+  es steht. Rückverweise springen unverändert an ihre Zeile.
+- **Erinnerungen und Kennungs-Warnung ohne Zeilen vom Typ «Keine Aufgabe»**
+  (`4T-002737`). Eine Zeile, deren Status vom Typ «Keine Aufgabe» ist, löst
+  keine Erinnerung mehr aus und zählt bei der Warnung vor mehrfach vergebenen
+  Aufgaben-Kennungen nicht mehr mit; das gilt damit auch für eine als
+  «Übertragen» gekennzeichnete Zeile.
+
+- **Bestätigung und Einschalten von Add-ons liegen beim Programm selbst**
+  (`4T-002650`). Die Bestätigung eines fremden Add-ons speichert das Programm
+  selbst, gebunden an die Version des Pakets; Einschalten, Ausschalten und
+  der Fehler-Stand gehen ebenfalls über das Programm, und den Code eines
+  nicht bestätigten oder ausgeschalteten Pakets gibt es nicht heraus. Ein
+  Add-on kann diese Einträge nicht für sich setzen. Bestehende Bestätigungen
+  und eingeschaltete Add-ons gelten beim ersten Start unverändert weiter.
+- **Bestätigung beim Einschalten von «Skript-Blöcke ausführen»**
+  (`4T-002650`). Das Einschalten fragt in einem eigenen Dialog nach, Vorgabe
+  «Abbrechen»; das Ausschalten geht ohne Rückfrage. Ein bereits
+  eingeschalteter Schalter bleibt an.
+- **Geschützte Einstellungen** (`4T-002649`). Das Programmfenster ändert nur
+  noch Einstellungen der Darstellung und des Verhaltens, und nur mit Werten
+  der erwarteten Art. Erlaubnisse, Ordner-Angaben, Sitzung und Listen ändert
+  allein das Programm über eigene Wege; die Ordner für Vorlagen und für
+  Workflows haben dafür eigene, geprüfte Wege. Ein relativer Vorlagen-Ordner
+  wird abgewiesen statt wirkungslos gespeichert.
+- **Kein Schreiben in die Ordner des Programms und seiner Einstellungen**
+  (`4T-002647`, `4T-002648`, `4T-002827`). Speichern, auch unter neuem
+  Namen, Ausgaben, Anlagen, Umbenennen, Importe und das Anlegen von
+  Unterseiten, Büchern, Regalen, Workflows, Vorlagen und Sprachdateien
+  weisen ein Ziel im Ordner des Programms und im Ordner mit Einstellungen,
+  Add-ons und eigenen Sprachdateien ab, in der portablen Fassung also im
+  Ordner `Data`; Lesen bleibt möglich. Lässt sich ein Ziel nicht prüfen,
+  etwa bei einem Verweis ohne Ziel, wird dort ebenfalls nichts gespeichert.
+
+### Behoben
+
+- **Bereichs-Lesezeichen öffnete einen zweiten Reiter** (`4T-002641`). Unter
+  Windows öffnete ein Lesezeichen des Bereichs auf ein schon geöffnetes
+  Dokument einen zweiten Reiter desselben Dokuments, weil der Pfad mit
+  Vorwärts-Schrägstrichen nicht als derselbe erkannt wurde; jetzt kommt der
+  vorhandene Reiter nach vorn.
+- **Bildlauf im Editor löschte die Stelle der Lese-Ansicht** (`4T-002641`). Ein
+  Bildlauf im Quellcode setzte die gemerkte Bildlauf-Stelle der gerenderten
+  Ansicht desselben Reiters auf den Anfang zurück, sodass sie beim Wechsel
+  zurück oben stand.
+- **Beenden mit zwei Fenstern verlor ein Fenster der Sitzung** (`4T-002788`).
+  Waren zwei Fenster offen und fragte eines beim Beenden noch nach
+  ungespeicherten Änderungen, während das andere schon geschlossen war, kam
+  nach dem Neustart nur ein Fenster zurück; dasselbe konnte geschehen, wenn die
+  Anwendung innerhalb einer halben Sekunde nach einer Änderung an Reitern, Lage
+  oder Größe eines Fensters beendet wurde. Eine verzögerte Sicherung der
+  Fenster-Liste überschrieb dabei den vollständigen Stand. Jetzt sichert das
+  erste Fenster, das beim Beenden schließt, den Stand ein letztes Mal
+  vollständig, und danach schreibt nichts mehr darüber. Den Fehler gab es schon
+  in früheren Fassungen.
+- **Sprung in der Lese-Ansicht landete unter der Titelzeile** (`4T-002783`,
+  Befund der Abnahme). In der Lese-Ansicht rollten der Sprung aus dem Panel
+  «Backlinks», der Sprung über einen Verweis auf eine Überschrift und der
+  Klick im Panel «Inhaltsverzeichnis» das Ziel an die Oberkante der
+  Bildlauf-Fläche und damit unter die feste Titelzeile des Dokuments; zu
+  sehen war erst der Absatz danach. Jetzt hält der Bildlauf die Höhe der
+  sichtbaren Titelzeile frei. Den Fehler gab es schon in früheren Fassungen.
+- **Private Kommentare in Sonder-Blöcken und großen Tabellen** (`3E-000447`,
+  `4T-002838`, `4T-002837`). Ein privater Kommentar bleibt jetzt auch in acht
+  Blöcken mit eigener Darstellung privat: Perspective Table, Datenblock,
+  Ereignis-Block, Dashboard, Diagramm, Journal-Zeitleiste, Mermaid-Diagramm und
+  Abfrage-Block, auch in einem Zitat oder Listenpunkt; er endet spätestens am
+  Ende des Blocks, in einer Tabellen-Zelle am Ende der Zelle. Im
+  Mermaid-Diagramm bleiben die Steuer-Anweisung und dessen eigene
+  Kommentarzeilen stehen. Der Workflow-Block bleibt bewusst wörtlich, weil
+  «Starten» ihn so ausführt, wie er in der Datei steht (`4T-002838`). Eine sehr
+  große Tabelle oder ein sehr großes Zitat mit vielen Kommentaren blendet den
+  Rest des Dokuments nicht mehr aus; gemessen bis 340 KB mit 320 Kommentaren,
+  höchstens 0,27 s statt bisher 3,3 s (`4T-002837`). Offen bleiben die
+  Datentabelle und die Karte der Canvas-Fläche (`4T-002797`).
+- **Text-Befehl auf ein geöffnetes, unverändertes Dokument** (`4T-002812`).
+  Ein Text-Befehl eines Workflows, eine Erinnerung und ein Handgriff der
+  Aufgaben-Abfrage schrieben in ein geöffnetes Dokument auch dann, wenn es
+  keine ungespeicherten Änderungen trug; der Lauf meldete «erfolgreich», die
+  Datei blieb bis zum Speichern unverändert, und der Reiter trug die
+  Ungespeichert-Marke. Als Besitzer eines Dokuments gilt jetzt nur noch ein
+  Fenster mit ungespeichertem Stand (`bufferOwnerFor` in
+  `src/main/index/overlay.js`); die Meldung des Fensters an den Index
+  trägt dazu das Merkmal «ungespeichert». Ein unverändert geöffnetes Dokument
+  schreibt der Befehl in die Datei; der Eintrag der Puffer-Overlay-Schicht
+  folgt sofort dem geschriebenen Stand (`folgePlattenStand`), damit der nächste
+  Schritt eines Workflows nicht den alten Stand liest, und meldet die Änderung
+  an alle Fenster. Das Fenster lädt den neuen Stand still nach, bei einem
+  geteilten Dokument auch dann, wenn nur ein späterer Teil geschrieben wurde,
+  und vor dem Abhaken einer Aufgabe im aktiven Reiter folgt dieser zuerst der
+  Datei (`src/renderer/modules/workflows/workflow-window.js`). Ein Dokument mit
+  ungespeicherten Änderungen bekommt den Text wie bisher im Fenster.
+- **Aufgabe abhaken in späteren Teilen geteilter Dokumente** (`4T-002813`).
+  Das Rückschreiben einer Aufgaben-Zeile (Kanal `task:applyLineEdit`, Rumpf
+  jetzt in `src/main/ipc/aufgaben-zeile-schreiben.js`) las allein die genannte
+  Datei: Der Befehl `complete-task` fand eine Aufgabe in einem späteren Teil
+  nie, und das Abhaken aus der Aufgaben-Abfrage führte die Versions-Historie
+  unter dem Pfad des Teils. Ein geteiltes Dokument wird jetzt zusammengesetzt
+  gelesen, die Zeile in den zusammengesetzten Stand umgerechnet, gegen den
+  erwarteten Text geprüft und über den Schreibweg der Text-Befehle in seine
+  Teile zurückgeschrieben (`schreibeDokumentTeile` in
+  `src/main/workflows/workflow-platten-schreibweg.js`); fehlt ein Teil, wird
+  nichts geschrieben. Gewöhnliche Dateien behalten den bisherigen,
+  byte-genauen Weg.
+- **Quelle `from-section` in einer geteilten Workflow-Datei**
+  (`4T-002814`). Die Quelle `from-section` las die Workflow-Datei roh; ein
+  Abschnitt in einem späteren Teil fehlte. Sie liest jetzt über `liesDokument`
+  wie `from-file`, mit Halt bei fehlendem Teil; eine ungeteilte Workflow-Datei
+  liefert zeichengleich denselben Text wie bisher.
+- **Knopf «Starten» in der Live-Ansicht** (`4T-002815`). Ohne Zeilenumbruch
+  (`word-wrap` nicht gesetzt) machte eine lange Zeile über einem Workflow-Block
+  den Inhalt des Editors breiter als das Fenster; die Kopfzeile des Blocks war
+  so breit wie der Inhalt, und der Knopf «Starten» stand rechts außerhalb des
+  Bildes. Die Kopfzeile ist jetzt an das Sichtfenster gebunden: Ein Plugin
+  `sichtfenster` in `src/renderer/modules/workflows/workflow-kopf.js` misst
+  linken Abstand und sichtbare Breite des Rollbereichs, und
+  `src/renderer/styles/markdown-erweiterungen.css` begrenzt die Kopfzeile
+  darauf. **Sichtbare Änderung:** Der Knopf steht rechts am sichtbaren Rand,
+  ohne waagerechtes Blättern, und beim Blättern bleibt die Kopfzeile stehen; die
+  gerenderte Ansicht ist unverändert.
+- **Prüf-Anzeige rechnet nach «Datenbank bereit»** (`4T-002816`). War die
+  Datenbank beim Öffnen einer Workflow-Notiz noch nicht bereit, blieb die
+  Kopfzeile über dem Block ohne Befund zur Datenbank, bis das Dokument geändert
+  wurde. `src/renderer/modules/workflows/workflow-db-rueckfrage.js` holt die
+  Auskunft nach einer Antwort «noch nicht bereit» mit der nächsten Meldung des
+  Index erneut und rechnet die Kopfzeilen bei neuem Stand nach; abgefragt wird
+  nur nach einem Ereignis, nie im Takt. **Sichtbare Änderung:** Die Kopfzeile
+  zeigt den Befund, sobald die Datenbank bereit ist, ohne Tastendruck.
+- **Schlüssel schon vergeben beim Kopieren einer Karteikarte** (`4T-002821`).
+  Kopierte ein Workflow eine Karteikarte auf einen Namen, dessen Schlüssel in der
+  Tabelle schon an einen anderen Datensatz vergeben ist, hielt der Lauf mit dem
+  allgemeinen Satz «Die Datenbank hat den Schritt abgewiesen» an. Die Weiche
+  (`src/main/database/kartei-weichen.js`) gibt das Ergebnis der Datenbank am
+  Fehler mit, und `src/main/workflows/workflow-kartei-weiche.js` bildet daraus
+  den Fehlschlag mit seinen Lagen; das Bereichs-Panel geht wie bisher zur
+  nächsten freien Nummer. **Sichtbare Änderung:** Der Lauf hält mit dem Satz zum
+  vergebenen Schlüssel an, der Wert und Datensatz nennt.
+- **Schalter der Bereichs-Verknüpfungen bei ausgeschalteter Erweiterung**
+  (`4T-002440`). Die Seite «Bereichs-Verknüpfungen» der Einstellungen zeigte die
+  Schalter «Vorlagen» und «Workflows» auch dann, wenn die Erweiterung
+  ausgeschaltet war. `src/renderer/modules/settings/settings-area-links.js`
+  zeichnet jeden Schalter nur bei eingeschalteter Erweiterung; die gespeicherte
+  Wahl bleibt beim Ausblenden erhalten. **Sichtbare Änderung:** Bei
+  ausgeschalteter Erweiterung fehlt ihr Schalter; nach dem Wiedereinschalten
+  erscheint er mit der zuvor gespeicherten Wahl.
+- **`db-query … into` schreibt bei Aufgaben den Text der Abfrage-Ansicht**
+  (`4T-002822`). Der Schreiber schrieb bei Aufgaben in jeder Form die Zeile
+  mitsamt Termin- und Prioritäts-Zeichen, während die Abfrage-Ansicht die
+  Beschreibung ohne diese Zeichen und in einer Tabelle die Datei zeigt. Ansicht
+  und Schreiber leiten den Aufgaben-Text jetzt aus derselben Funktion `taskText`
+  in `src/shared/query/result-display.js` ab, samt globalem Filter und
+  `HIDE tags`; `src/main/workflows/workflow-db-query.js` gibt dem Schreiber
+  (`src/shared/query/result-set-markdown.js`) die Einstellungen der Aufgaben mit.
+  **Sichtbare Änderung:** In einer Liste steht je Aufgabe der Text wie in der
+  Ansicht, ohne Termin- und Prioritäts-Zeichen; in einer Tabelle über Aufgaben
+  steht in der Spalte «Datei» der Verweis auf die Datei.
+- **Geteilte Dokumente: weitere Gerätenamen von Windows abgewiesen**
+  (`4T-002553`). Unter Windows weist die Anwendung im Grundnamen eines
+  geteilten Dokuments jetzt auch `COM0`, `LPT0` und `CLOCK$` ab, wie bisher
+  schon `CON`, `NUL`, `COM1` und die übrigen reservierten Namen. Die Prüfung
+  liest aus derselben Quelle wie die Grenzprüfung der Datei-Funktionen.
+
+### Dokumentation
+
+- **Hilfe und Handbuch zum Einfügen aus einer Tabellenkalkulation**
+  (`4T-002556`): Der Funktions-Katalog führt in fünf Sprachen den Eintrag
+  «Tabellen aus Tabellenkalkulation» in der Gruppe der Tabellen-Werkzeuge
+  direkt hinter «Tabellen-Werkzeuge» (Schlüssel
+  `help.feature.tableFromSpreadsheet`, `help.featureName.tableFromSpreadsheet`,
+  `help.featureAccess.tableFromSpreadsheet`; Zeile `F-406` der
+  Abdeckungs-Matrix); der Zugang des Eintrags «Link-Einfügen in die Auswahl»
+  nennt zusätzlich «Als reinen Text einfügen». Die Erweiterung «Tabellen-Werkzeuge»
+  trägt den neuen Katalog-Eintrag als zweite Zeile, sodass im Aus-Zustand beide
+  Zeilen der Funktions-Seite die Aus-Marke tragen. Die Handbuch-Seite
+  «Werkzeuge» bekommt in fünf Sprachen hinter «Tabellen-Editor» den Abschnitt
+  «Tabellen aus einer Tabellenkalkulation» mit den Unterabschnitten
+  «Rückgängig in zwei Stufen», «Als reinen Text einfügen», «Als Tabelle
+  einfügen» (mit Semikolon-Beispiel) und «Erweiterung». Verweise kommen von den
+  Seiten «Markdown-Basis» (Abschnitt «Tabellen»), «Editor-Kontextmenü»
+  (Zeile «Zwischenablage» mit den beiden neuen Einträgen) und «Anlagen» (Satz
+  zu Strg+Umschalt+V und zum mitgelieferten Bild der Zellen). Das
+  Demo-Dokument «03 Tables» bekommt hinter «Pipe table» den Abschnitt «Paste
+  from a spreadsheet» mit den Handgriffen für Strg+V, Strg+Z und
+  Strg+Umschalt+V und einem Semikolon-Beispiel für «Paste as table». Die
+  englische Beschriftung von «Als reinen Text einfügen» heißt einheitlich
+  «Paste as plain text».
+- **Hilfe und Handbuch zum Inhaltsverzeichnis-Block** (`4T-002559`): Der
+  Funktions-Katalog führt in fünf Sprachen den Eintrag
+  «Inhaltsverzeichnis-Block» in der Gruppe «Bearbeitung» im Cluster der
+  Block-Konstrukte direkt hinter «Mehrspalten-Block» (Schlüssel
+  `help.feature.tocBlock`, `help.featureName.tocBlock`,
+  `help.featureAccess.tocBlock`; Zeile `F-414` der Abdeckungs-Matrix mit den
+  Ablauf-Fällen `TB-01` bis `TB-05`). Schlüssel, Gruppen-Eintrag und
+  Matrix-Zeile kamen mit dem Umsetzungs-Commit von `4T-002558`, weil die
+  Registry-Validierung der Erweiterung und die Katalog-Wächter sie verlangen.
+  Die Handbuch-Seite «Block-Konstrukte» bekommt in fünf Sprachen hinter
+  «Fußnoten» den Abschnitt «Inhaltsverzeichnis-Block» mit Schreibweise, Zeile
+  `depth:`, einem gerenderten Verzeichnis der Seite, Einfügen über das
+  Kontextmenü, den Ausgabe-Wegen, Präsentation, Erweiterung samt Aus-Zustand
+  und der Abgrenzung zum Panel «Inhaltsverzeichnis» der Seitenleiste. Verweise
+  kommen von den Seiten «Markdown-Basis» (Abschnitt «Überschriften»),
+  «Editor-Kontextmenü» (Zeile «Einfügen») und von der Überblicksseite
+  (Inhaltsangabe der Seite «Block-Konstrukte»). Das Demo-Dokument «02 Extended
+  Syntax» bekommt direkt hinter der Einleitung den Abschnitt «Table of
+  contents» mit einem gerenderten Block.
+- **Hilfe und Handbuch zu den Mermaid-Bausteinen** (`4T-002618`): Der
+  Funktions-Katalog führt in fünf Sprachen den Eintrag «Mermaid-Bausteine» in
+  der Gruppe «Ansicht» direkt hinter «Mermaid-Diagramme» (Schlüssel
+  `help.feature.mermaidBuildingBlocks`,
+  `help.featureName.mermaidBuildingBlocks`,
+  `help.featureAccess.mermaidBuildingBlocks`; Zeile `F-415` der
+  Abdeckungs-Matrix mit den Ablauf-Fällen `MB-01` bis `MB-05`). Schlüssel,
+  Gruppen-Eintrag und Matrix-Zeile kamen mit den Umsetzungs-Commits von
+  `4T-002617`, weil der Kommando-Wächter den Katalog-Schlüssel in allen
+  Sprachdateien verlangt; die Zugangs-Zeile steht in der Bestands-Form. Die
+  Handbuch-Seite «Mathematik und Diagramme» bekommt in fünf Sprachen im Teil
+  «Mermaid» hinter «Class» den Abschnitt «Bausteine einfügen» mit den drei
+  Wegen, den Gerüsten und Bausteinen je Art, Hinweis, Kennungen, Einrückung,
+  Rückgängig, einem Beispiel-Diagramm, der Live-Ansicht und der Erweiterung.
+  Die Seite «Format-Toolbar» bekommt den Abschnitt «Mermaid-Diagramm» zwischen
+  «Überschrift-Menü» und «Tabellen-Raster» und im Abschnitt «Belegung
+  anpassen» den Satz zu «Mermaid-Knopf hinzufügen» und «Auf Standard
+  zurücksetzen»; die Seite «Editor-Kontextmenü» nennt den Eintrag
+  «Mermaid-Diagramm» im Untermenü «Einfügen». Das Demo-Dokument «09 Diagrams
+  and Formulas» bekommt hinter «Sequence diagram» den Abschnitt «Building
+  blocks» mit einem aus Bausteinen gebauten Ablauf.
+- **Hilfe und Handbuch zum Titelbild** (`4T-002631`): Der Funktions-Katalog
+  führt in fünf Sprachen den Eintrag «Titelbild» in der Gruppe «Ansicht» direkt
+  hinter «Überschriften-Nummerierung» (Schlüssel `help.feature.coverImage`,
+  `help.featureName.coverImage`, `help.featureAccess.coverImage`; Zeile
+  `F-421` der Abdeckungs-Matrix mit den Ablauf-Fällen `TI-01` bis `TI-07`).
+  Schlüssel, Gruppen-Eintrag und Matrix-Zeile kamen mit dem Umsetzungs-Commit
+  von `4T-002630`, weil die Registry-Validierung der Erweiterung ihren Namen
+  und ihre Beschreibung verlangt. Die Handbuch-Seite «Frontmatter und
+  Properties» bekommt in fünf Sprachen hinter «Editor-Ansicht pro Dokument» den
+  Abschnitt «Titelbild» mit einem Beispiel aller drei Eigenschaften, den
+  beiden Schreibweisen des Bildes, dem Satz, dass der Wert beim Umbenennen des
+  Bildes nicht nachgezogen wird, Höhe und Ausschnitt mit Vorgaben und Grenzen,
+  Reihenfolge oben, Live-Ansicht, Ausgaben, Hinweisen, Adressen aus dem Netz,
+  Buch- und Regal-Dateien und der Erweiterung samt Aus-Zustand. Verweise
+  kommen von den Seiten «Bilder» (hinter «Bilder einbetten per Wiki-Embed»)
+  und «Bücher» (Punkt «Titelbild» der eigenen Angaben). Das Demo-Dokument «05
+  Properties and Profiles» trägt im Kopf ein Titelbild aus dem mitgelieferten
+  Bild `attachments/demo-image.png` und bekommt hinter «Editor view per
+  document» den Abschnitt «Cover image»; ein neuer Prüffall in
+  `test/unit/demo-links.test.js` verlangt, dass jedes Titelbild der Demo-Area
+  auf eine vorhandene Bilddatei zeigt.
+- **Hilfe und Handbuch zu Lese-Position und Vor und Zurück** (`4T-002643`):
+  Der Funktions-Katalog führt in fünf Sprachen die Einträge «Lese-Position»
+  (Schlüssel `help.feature.readingPosition`, `help.featureName.readingPosition`,
+  `help.featureAccess.readingPosition`; hinter «Sitzung wiederherstellen») und
+  «Vor und Zurück» (Schlüssel `help.feature.navigationHistory`,
+  `help.featureName.navigationHistory`, `help.featureAccess.navigationHistory`;
+  am Ende der Gruppe der Navigation hinter den Bereichs-Lesezeichen), beide in
+  der Kern-Liste der Funktions-Seite; Zeilen `F-422` (Ablauf-Fälle `LP-01` bis
+  `LP-07`) und `F-423` (`VZ-01` bis `VZ-09`) der Abdeckungs-Matrix. Die
+  Kürzel-Beschreibungen `help.shortcut.navBack` und `help.shortcut.navForward`
+  samt ihren Matrix-Einträgen kamen mit `4T-002642`. Das Handbuch bekommt in
+  fünf Sprachen, ohne neue Seite, den Abschnitt «Lese-Position» am Ende der
+  Seite «Applikationen, Fenster und Bereiche» und den Abschnitt «Vor und
+  Zurück» hinter «Heading- und Block-Anker» auf der Seite «Vernetzung»; dazu
+  Verweis-Sätze auf den Seiten «Ansichten und Darstellung» (Abschnitte
+  «Fenster-Zustand» und «Statusleiste»), «Kommando-Platzierung» (Abschnitt
+  «Standard-Buttons ausblenden», die zwei Pfeil-Knöpfe) und «Bücher»
+  (Abschnitt «Tastatur»). Das Demo-Dokument «04 Links and Structure» bekommt
+  zwischen «Block anchors» und «Tags» den Abschnitt «Back and forward». Mit dem
+  Review-Protokoll des Epics `3E-000397` sind vier Text-Befunde an Katalog und
+  Handbuch in fünf Sprachen behoben (Satz zu den Pfeil-Knöpfen auf
+  «Kommando-Platzierung», «Suchtreffer» im Katalog-Text auf den Sprung aus der
+  Trefferliste eingeengt, ein Name für das Panel «Backlinks», die Ausnahme für
+  ein gelöschtes, noch geöffnetes Dokument).
+- **Hilfe und Handbuch zum Übertrag offener Aufgaben** (`4T-002739`): Der
+  Funktions-Katalog führt den Eintrag «Offene Aufgaben ins Journal übertragen»
+  in fünf Sprachen; die Seite «Journale» beschreibt im neuen Abschnitt «Offene
+  Aufgaben übertragen» die Einstellungen, den Befehl von Hand, den Ziel-Ort, die
+  Unterpunkte, was als offen zählt, ein Beispiel vorher und nachher und die
+  Festlegungen im Einzelnen; die Seite «Aufgaben-Listen» nennt sieben vorbelegte
+  Status mit der Zeile `- [»] übertragen`, die Seite «Erinnerungen», dass Zeilen
+  vom Typ «Keine Aufgabe» nicht erinnern.
+- **Hilfe und Handbuch zu den Verweisen ohne Ziel** (`4T-002784`): Der
+  Funktions-Katalog nennt im Eintrag «Bereichs-Statistik» in fünf Sprachen
+  die neue Liste mit eigener Kennzahl, auch für Verweise aus dem Bereich
+  hinaus und in verknüpfte Bereiche; die Seite «Applikationen, Fenster und
+  Bereiche» führt im Abschnitt «Bereichs-Statistik» Kennzahl und Liste in der
+  Aufzählung der Abschnitte und beschreibt in fünf neuen Absätzen, was
+  geprüft wird und mit welchem Grund, die Verweise in verknüpfte Bereiche,
+  was nicht erscheint, Zählweise und Bedienung sowie die Wirkung
+  abgeschalteter Erweiterungen. Kein Demo-Beispiel; die Abdeckungs-Matrix
+  nennt unter `F-245` die neuen Prüfdateien und die Ablauf-Fälle `BS-09` bis
+  `BS-12`.
+
+- **Hilfe und Handbuch zur Grenzprüfung, Stufe 1** (`4T-002651`): Die Seiten
+  «Skripte», «Erweiterungen», «Erweiterungen erstellen» und «Portable
+  Fassung» beschreiben in fünf Sprachen die Bestätigung beim Einschalten der
+  Skript-Blöcke, die Verwaltung von Bestätigung und Einschalten durch das
+  Programm, die geschützten Einstellungen und den Ordner `Data`, in den keine
+  Dokumente gehören. Kein neuer Eintrag im Funktions-Katalog; Demo-Bereich
+  ohne Änderung.
+- **Handbuch Workflows und Vernetzung** (`4T-002817`), alle fünf Sprachen: Die
+  Seite «Workflows» sagt, dass ein Text-Befehl eine geöffnete, unveränderte
+  Datei direkt schreibt und das Fenster den neuen Stand ohne Ungespeichert-Marke
+  zeigt, dass `complete-task` eine Aufgabe in jedem Teil eines geteilten
+  Dokuments findet und dass die Quelle `from-section` ihren Abschnitt auch in
+  einem späteren Teil einer geteilten Workflow-Datei findet. Sie sagt außerdem,
+  dass die Prüf-Anzeige nachrechnet, sobald die
+  Datenbank bereit ist, und dass das Kästchen «Workflows» einer
+  Bereichs-Verknüpfung bei ausgeschalteter Erweiterung fehlt; die Seite
+  «Vernetzung» sagt dasselbe für die Schalter «Vorlagen» und «Workflows».
+
+### i18n
+
+- **Dialog beim Einschalten der Skript-Blöcke** (`4T-002650`): vier neue
+  Schlüssel für Titel, Meldung und die beiden Knöpfe, in allen fünf Sprachen.
+- **Meldung bei einem Ziel in einem geschützten Ordner** (`4T-002827`): sechs
+  neue Schlüssel für Titel und Text der Meldung, für Titel und Text bei einem
+  nicht prüfbaren Ziel und für die beiden Fehler beim Import, in allen fünf
+  Sprachen.
+
+### Intern
+
+- **Zellbereich-Erkennung und Einfüge-Weg** (`4T-002554`): Das neue Modul
+  `src/shared/markdown/zellbereich.js` zerlegt Tabulator- und Semikolon-Text
+  (Einfassung mit verdoppeltem Anführungszeichen nur, wenn sie vor
+  Trennzeichen, Umbruch oder Textende schließt), prüft die Schwelle, wählt das
+  Trennzeichen und baut die Pipe-Tabelle über `serializePipeTable`; das neue
+  Modul `src/renderer/modules/editor/editor-tabelle-einfuegen.js` ist der eine
+  Ausführungs-Weg für Strg+V, Kontextmenü und beide Kommandos, sperrt Lese-
+  Zustand, Mehrfach-Auswahl, Code-Bereich, Kopf-Block und bestehende Tabelle
+  und setzt reinen Text und Tabelle als zwei Verlaufs-Schritte mit
+  `isolateHistory`. Der Einfüge-Zweig in `editor-paste.js` steht vor dem
+  Anlagen-Zweig, weil Microsoft Excel neben Text und Tabellen-Form ein Bild der
+  Zellen als Datei ablegt (gemessen am Einfüge-Ereignis). Kommandos
+  `edit.pastePlain` (Kern) und `edit.pasteAsTable` (Kommando-Liste von
+  `table-tools`) in `src/shared/commands/commands.js`, ihre Funktionen in
+  `editor-keymaps.js`, Zwischenablage-Block in `src/shared/editor-menu.js` und
+  `editor-context-menu.js`; die Brücke `clipboardReadHTML` in
+  `src/main/preload.js` liest die Tabellen-Form nur als Erkennungs-Signal.
+  Zeilen-Grenzen in `scripts/datei-groessen-ausnahmen.json`: `commands.js` von
+  2111 auf 2131, `extensions.js` von 893 auf 894, `preload.js` von 503 auf 504.
+  Neue Prüfdateien `test/unit/zellbereich.test.js`,
+  `test/unit/renderer/tabelle-einfuegen.test.js` und
+  `test/e2e/funktionen/tabelle-einfuegen.spec.js` mit den Ablauf-Fällen
+  `TE-01` bis `TE-04`; Einträge `S-179` und `S-180` der Abdeckungs-Matrix.
+- **Erweiterungs-Anbindung des Katalog-Eintrags** (`4T-002556`): Feld
+  `featureKeys` mit `help.feature.tableFromSpreadsheet` am Eintrag
+  `table-tools` in `src/shared/extensions/extensions.js`, Gruppen-Eintrag in
+  `src/shared/manual/manual-feature-groups.js`; Zeilen-Grenze von
+  `extensions.js` von 894 auf 895.
+- **Test-Pflege** (`4T-002557`, ohne Produkt-Code): Änderungsklassen-Karte um
+  `test/unit/zellbereich.test.js` ergänzt, Modul-Karte der Architektur um
+  `editor-tabelle-einfuegen.js` und `zellbereich.js` nachgezogen.
+- **Inhaltsverzeichnis-Block in Pipeline, Live-Ansicht und portablem Export**
+  (`4T-002558`): Das neue Modul `src/shared/markdown/plugins/toc.js` zerlegt
+  den Zaun-Körper (`depth:`), sammelt die Überschriften als core-Ruler am Ende
+  der Kette (nach `markdown-it-anchor` und der Überschriften-Nummerierung) und
+  baut das Verzeichnis mit einer Bau-Funktion als HTML für gerenderte und
+  Live-Ansicht und als Markdown-Liste für den portablen Export; die Zaun-Kette
+  in `src/shared/markdown/markdown.js` gibt es hinter der Weiche
+  `enabled('toc-block')` aus. Die Live-Ansicht reicht die Überschriften des
+  Dokuments als Quelltext `tocQuelle` an das Widget, ermittelt aus dem
+  Lezer-Baum über das neue gemeinsame Modul
+  `src/renderer/modules/editor/ueberschriften.js`, das auch Faltung und Panel
+  nutzen; Zusatz-Kontext, Schlüssel-Anteil und Sprung-Liste liegen im neuen
+  Modul `src/renderer/modules/live/live-toc.js`, der Sprung geht über den Platz
+  des Eintrags mit `findHeadingLineForSlug` als Rückfall
+  (`live-interaction.js`). Paritäts-Nachweis Token-Weg gegen Lezer-Weg an einer
+  Fixture: vorher 7 gegen 8 Überschriften mit einem abweichenden Text und zwei
+  abweichenden Ankern, nachher 7 gegen 7 ohne Abweichung. Der portable Export
+  ersetzt den Zaun in `src/shared/markdown/portable-fences.js`. Erweiterung
+  `toc-block` (Kategorie `render`, `modeLevel: 'beginner'`) in
+  `src/shared/extensions/extensions.js`, Kommando `insert.toc` in
+  `src/shared/commands/commands.js`, Einfüge-Funktion `insertToc` in
+  `src/shared/markdown-format.js`, Eintrag im Kontextmenü über
+  `disabledCommandIdSet`; Hinweis-Text `tocBlock.empty` als Platzhalter mit
+  `data-i18n`. Zeilen-Grenzen in `scripts/datei-groessen-ausnahmen.json`:
+  `markdown.js` von 568 auf 573, `extensions.js` von 895 auf 903,
+  `commands.js` von 2131 auf 2141. Neue Prüfdateien
+  `test/unit/render/toc-block.test.js`,
+  `test/unit/render/extensions-aus-toc-block.test.js`,
+  `test/unit/renderer/ueberschriften.test.js` und
+  `test/e2e/funktionen/inhaltsverzeichnis-block.spec.js` mit den Ablauf-Fällen
+  `TB-01` bis `TB-05`, Snapshot-Fixture `inhaltsverzeichnis-block.md`;
+  Änderungsklassen-Karte und Modul-Karte der Architektur nachgezogen.
+- **Verankerung in der Architektur** (`4T-002560`, ohne Produkt-Code):
+  Designentscheidung «Inhaltsverzeichnis-Block» und Glossar-Eintrag; die
+  Modul-Karte war mit `4T-002558` nachgezogen. Der Commit des Review-Protokolls
+  brachte die Maskierung des Ankers im portablen Export (`markdownZiel` in
+  `src/shared/markdown/plugins/toc.js`, mit Prüffall) und trug Befund-Zeilen in
+  die Pflege-Gefäße `3E-000161` und `3E-000032` ein.
+- **Mermaid-Bausteine: Katalog, Lage der Schreibmarke und Auswahl**
+  (`4T-002617`): Das neue Modul `src/shared/mermaid-bausteine.js` (ohne
+  Electron und DOM) trägt den Katalog der vier Arten mit Gerüst, Bausteinen,
+  Kennungs-Buchstaben und 18 Platzhalter-Namen, ermittelt Art, nächste Kennung,
+  Bezüge und Einrückung und liefert die Einfüge-Änderung als
+  `{ changes, selFrom, selTo }`; den Leerzeilen-Puffer liefert `blockPadding`,
+  dafür aus `src/shared/markdown-format.js` exportiert statt kopiert. Nachweis
+  der Gerüste und Bausteine mit `mermaid.parse` 11.15.0 in fünf Sprachen: 105
+  von 105 Fällen angenommen. Das neue Blatt-Modul
+  `src/renderer/modules/editor/editor-zaun-kontext.js` (`zaunAnStelle`)
+  bestimmt den Code-Block an der Schreibmarke; der Datums-Wähler
+  (`fenceLanguageAt` in `src/renderer/modules/calendar/date-picker.js`) nutzt
+  es statt seiner eigenen Kopie, ohne Verhaltensänderung. Das neue Modul
+  `src/renderer/modules/editor/mermaid-bausteine-auswahl.js` baut die Einträge
+  je Lage mit hineingereichter Einfüge-Funktion und lädt die Menü-Helfer erst
+  beim Anzeigen; `mermaidAuswahlFuer` in `editor-format.js` ist die eine Quelle
+  für Kommando `insert.mermaid`, Kontextmenü und Knopf. Eintrags-Typ
+  `{ type: 'mermaid' }` der Format-Toolbar in `src/shared/format-toolbar.js`
+  mit Standard-Belegung, Normalisierung und Sichtbarkeit über das Kommando,
+  Knopf, Mehr-Menü und Einstellungs-Knopf in
+  `src/renderer/modules/editor/format-toolbar.js` und
+  `src/renderer/modules/settings/format-toolbar-settings.js`, neues Symbol
+  `diagram` in `src/shared/commands/command-icons.js`; Erweiterung `mermaid`
+  um `commands: ['insert.mermaid']` und `featureKeys` ergänzt. Zeilen-Grenzen
+  in `scripts/datei-groessen-ausnahmen.json`: `commands.js` von 2151 auf 2161,
+  `extensions.js` von 911 auf 913, `date-picker.js` von 690 auf 681 gesenkt.
+  Neue Prüfdateien `test/unit/mermaid-bausteine.test.js`,
+  `test/unit/renderer/editor-zaun-kontext.test.js`,
+  `test/unit/renderer/mermaid-bausteine-auswahl.test.js`,
+  `test/unit/render/extensions-aus-mermaid-bausteine.test.js`,
+  `test/unit/renderer/mermaid-editor-kontextmenue.test.js`,
+  `test/unit/renderer/format-toolbar-mermaid-knopf.test.js` und
+  `test/e2e/funktionen/mermaid-bausteine.spec.js` mit den Ablauf-Fällen
+  `MB-01` bis `MB-05`, Fixture `mermaid-bausteine.md`; Änderungsklassen-Karte
+  nachgezogen. Mit `4T-002618` sind vier verwaiste Ausnahmen der Version
+  1.131.0 im Wächter der zitierten Namen gestrichen, weil «Abschnitt» und seine
+  Übersetzungen mit dem Zeitplan-Baustein Oberflächen-Namen geworden sind.
+- **Verankerung in der Architektur** (`4T-002619`, ohne Produkt-Code):
+  Designentscheidung «Mermaid-Bausteine», Modul-Karte um die drei neuen Module
+  und Glossar-Eintrag; Verankerung des Epics `3E-000391`.
+- **Titelbild in Pipeline, Live-Ansicht und Ausgaben** (`4T-002630`): Das neue
+  Modul `src/shared/markdown/titelbild.js` (ohne Electron und DOM) liest mit
+  `titelbildAngaben` die drei Eigenschaften (Pfad-, Wiki- und Netz-Form,
+  geprüfte Zahlen für Höhe und Lage) und baut mit `titelbildHtml` den
+  Kopf-Bereich; der Wert wird vor dem Einsetzen kodiert und maskiert, der
+  Stil-Wert entsteht nur aus den geprüften Zahlen. `renderMarkdown` in
+  `src/shared/markdown/markdown.js` setzt den Kopf-Bereich vor die
+  Frontmatter-Zeile, nur mit der neuen Option `titelbild: true` und nur bei
+  eingeschalteter Erweiterung; die Option setzen allein die sechs Stellen der
+  Vollansicht (`pane-render.js`, `editor-preview.js`, `properties-save.js`,
+  `properties-suggest.js`, `history-page.js`, `history-status.js`) und der
+  Block der Live-Ansicht, sodass Einbettungen, Karten, Vorschauen und
+  Präsentation ohne Titelbild bleiben. Das Bild geht über die bestehenden
+  geprüften Wege, die Bild-Auflösung des Vorlade-Skripts für die Pfad-Form und
+  die Wiki-Einbettung für die Wiki-Form; ein neuer Datei- oder Netz-Zugriff
+  entsteht nicht. Das neue Modul `src/renderer/modules/live/live-titelbild.js`
+  trägt den Block der Live-Ansicht mit eigenem Zustandsfeld am
+  Dokument-Anfang, eingehängt in `live-widgets.js` mit hineingereichtem
+  Pfad-Facet und hineingereichter Einbettung. Darstellung in
+  `src/renderer/styles/frontmatter.css`, Druck-Regeln in
+  `export-historie-und-statistik.css`, im HTML-Export der Hinweis in der Liste
+  der Bedien-Elemente und ein Kopf-Bereich ohne Bild vor dem Bild-Durchgang
+  entfernt (`src/renderer/modules/views/html-export.js`). Erweiterung
+  `cover-image` (Kategorie `render`, `modeLevel: 'advanced'`) in
+  `src/shared/extensions/extensions.js`, Hinweis-Texte
+  `frontmatter.coverImage.missing` und `frontmatter.coverImage.remote` in den
+  fünf Fragmenten `properties.json`. Zeilen-Grenzen in
+  `scripts/datei-groessen-ausnahmen.json`: `markdown.js` von 573 auf 576,
+  `extensions.js` von 917 auf 924. Neue Prüfdateien
+  `test/unit/titelbild.test.js`,
+  `test/unit/render/extensions-aus-titelbild.test.js`,
+  `test/unit/titelbild-setzstellen.test.js` (Wächter: jede Setz-Stelle der
+  gerenderten Ansicht trägt die Option) und
+  `test/e2e/funktionen/titelbild.spec.js` mit den Ablauf-Fällen `TI-01` bis
+  `TI-07`, Snapshot-Fixture `titelbild.md`; ergänzt `preload-images.test.js`,
+  `render/snapshots.test.js`, `render-teilbaum-schritte.test.js` und
+  `extensions.test.js`; Änderungsklassen-Karte und Modul-Karte der Architektur
+  nachgezogen. Der Commit berichtigte zugleich eine falsche Aussage der
+  Konzept-Stufe zum Umbenennen von Bildern und trug dazu eine Befund-Zeile in
+  das Pflege-Gefäß `3E-000161` ein.
+- **Verankerung in der Architektur** (`4T-002632`, ohne Produkt-Code):
+  Designentscheidung «Titelbild» mit der Option `titelbild` von
+  `renderMarkdown` als Kontext der Vollansicht und Glossar-Eintrag; die
+  Modul-Karte war mit `4T-002630` nachgezogen. Verankerung des Epics
+  `3E-000395`.
+- **Lese-Position: Kern, Ablage und Anzeige-Prozess** (`4T-002641`): Das neue
+  Modul `src/shared/lese-stelle.js` (ohne Electron und DOM) prüft und begrenzt
+  eine Stelle `{ zeileOben, schreibmarke }` als Zeile des Quelltexts statt in
+  Bildpunkten und führt die Tabelle je Pfad mit Verdrängung über 500 Einträge
+  und Umbenennen. Die Ablage `src/main/lese-positionen.js` hält die Tabelle im
+  Hauptprozess und schreibt sie als `lese-positionen.json` (`{ version: 1,
+  eintraege }`) neben `config.json`, gesammelt nach zwei Sekunden über den
+  gemeinsamen atomaren Schreibweg und beim Beenden mit einem Halt am Ereignis
+  `will-quit` von höchstens zwei Sekunden; eine Datei aus einer neueren
+  Fassung wird nicht überschrieben, jeder Pfad wird vor Lesen, Merken und
+  Umbenennen vereinheitlicht. Kanäle `lesePosition:lesen` und
+  `lesePosition:merken` in der neuen Kanal-Gruppe `src/main/ipc/lese-positionen.js`
+  (Pfad als nicht-leere Zeichenkette unter 4096 Zeichen, nur Schlüssel der
+  Tabelle, Stelle über den Kern, sonst still abgewiesen), Brücke
+  `lesePositionLesen` und `lesePositionMerken` in `src/main/preload.js`,
+  Mitziehen beim Umbenennen in `src/main/documents/link-update.js`. Im
+  Anzeige-Prozess misst, stellt her und meldet das neue Blatt-Modul
+  `src/renderer/modules/views/lese-position.js` die Stelle; seinen Zugang
+  bekommt es über `verdrahteLesePosition` in `src/renderer/renderer.js`
+  gereicht, damit es nicht Teil des eingefrorenen Import-Kreises wird. Die
+  gelesene Stelle liegt als offene Stelle `stelleOffen` am Reiter und wird im
+  ersten Bildschirm-Takt nach dem Darstellen hergestellt, beim Öffnen
+  (`openInPane`), beim Programmstart (`restorePanes`) und beim
+  Ansichts-Wechsel, dort vor dem ersten gezeichneten Bild der neuen Ansicht;
+  ein Aufrufer mit Ziel öffnet mit `zielFolgt`, und die gemeinsamen
+  Sprung-Funktionen verwerfen eine offene Stelle (`verwirfStelle`). Ein
+  Nachlade-Beobachter, auf zwei Sekunden befristet und nur für die
+  Lese-Fläche, setzt die Stelle nach, wenn Inhalt oberhalb später wächst und
+  die Bildlauf-Verankerung des Browsers nicht greift. `saveScroll` schreibt
+  nur noch den Wert der sichtbaren Ansichten; neues Reiter-Feld
+  `schreibmarke`. Lesezeichen öffnen ohne Zeile (`openBookmarkFile`,
+  `openOrJumpToPath`), `resolveBookmarkPath` liefert den Pfad in der
+  Schreibweise der Bereichs-Wurzel. Zeilen-Grenzen in
+  `scripts/datei-groessen-ausnahmen.json`: `preload.js` von 504 auf 506,
+  `app-state.js` von 559 auf 560, `tabs.js` von 684 auf 689. Neue Prüfdateien
+  `test/unit/lese-stelle.test.js`, `test/unit/lese-positionen-ablage.test.js`,
+  `test/unit/renderer/lese-position.test.js`,
+  `test/e2e/funktionen/lese-position.spec.js` (`LP-01` bis `LP-04`) und
+  `test/e2e/funktionen/lese-position-ablage.spec.js` (`LP-05` bis `LP-07`) mit
+  dem Helfer `test/e2e/helpers/lese-position.js`; Änderungsklassen-Karte und
+  Modul-Karte der Architektur nachgezogen.
+- **Vor und Zurück: Verlauf, Kommandos, Menü, Maustasten und Knöpfe**
+  (`4T-002642`): Das neue Modul `src/shared/navigations-verlauf.js` (rein, ohne
+  DOM) führt den Verlauf mit Zeiger, Abschneiden des Vorwärts-Teils,
+  Zusammenfassen naher Stellen (weniger als zehn Zeilen), höchstens 100
+  Einträgen, Entfernen und Umbenennen. Das neue Blatt-Modul
+  `src/renderer/modules/views/navigation-verlauf-bedienung.js` hält den einen
+  Verlauf des Fensters nur im Arbeitsspeicher, Zugang gereicht über
+  `verdrahteNavigationsVerlauf` in `src/renderer/renderer.js`; Einhänge-Punkt
+  für jeden Wechsel des gezeigten Dokuments ist `activateTab` (dazu
+  `activatePane` und `closeTab` in `tabs.js`), für Sprünge im Dokument
+  `anchor-navigation.js`, `placeCursorAtLine`, `jumpToHeading` im Panel
+  «Inhaltsverzeichnis», der Sprung aus der Trefferliste und der Klick im
+  Inhaltsverzeichnis-Block des Live-Modus; die Hülle `ohneVerlauf` nimmt
+  Rückfragen vor dem Schließen, das Verschieben in die andere Spalte und die
+  eigenen Schritte aus. Die Stelle eines Eintrags stellt `stelleHer` der
+  Lese-Position her. Kommandos `nav.back` (`Alt+Left`) und `nav.forward`
+  (`Alt+Right`) in `src/shared/commands/commands.js` mit den neuen
+  Verfügbarkeits-Bedingungen `navZurueck` und `navVor` (Kontext-Felder
+  `kannZurueck`, `kannVor`); der Kürzel-Verteiler lässt beide aus, wenn ein
+  Panel den Tastendruck schon verarbeitet hat. Der Kontext des
+  Verfügbarkeits-Modells entsteht in
+  `src/shared/commands/command-availability.js` als Kopie einer fertigen
+  Vorlage statt durch Anfügen Feld für Feld, weil die JavaScript-Maschine ein
+  Objekt ab rund 19 so angefügten Feldern auf eine langsame Form umstellt
+  (gemessen: drei aufzählende Prüffälle bis zu hundertmal langsamer). Die
+  Grund-Belegung beider Editoren ohne Alt+Pfeil links und rechts liefert das
+  neue Modul `src/renderer/modules/editor/editor-grundbelegung.js`. Menü
+  «Ansicht» in `src/main/menu/menu.js` mit «Zurück» und «Vor» über
+  «Kommando-Palette», Kürzel angezeigt, aber nicht beim System angemeldet
+  (`registerAccelerator: false`), damit Alt+Pfeil immer den Kürzel-Verteiler
+  des Fensters erreicht; Kanäle `menu:navBack` und `menu:navForward`. Seitliche
+  Maustasten über einen Zuhörer auf das Loslassen der Tasten 3 und 4 in
+  `app-input-bindings.js`. Knöpfe `btn-nav-back` und `btn-nav-forward` in
+  `src/renderer/index.html`, ausblendbar über `STATUSBAR_HIDE_TARGETS` in
+  `src/shared/commands/command-placement.js`. Texte in fünf Sprachen
+  (`command.nav.back`, `command.nav.forward`, `menu.view.navBack`,
+  `menu.view.navForward`, `help.shortcut.navBack`, `help.shortcut.navForward`,
+  `statusbar.navNoBack`, `statusbar.navNoForward`, `statusbar.navSkipped`,
+  `statusbar.navSkippedOne`, `statusbar.navBackTitle`,
+  `statusbar.navForwardTitle`); Einträge `S-187` und `S-188` der
+  Abdeckungs-Matrix. Zeilen-Grenzen in
+  `scripts/datei-groessen-ausnahmen.json`: `menu.js` von 920 auf 937,
+  `preload.js` von 506 auf 508, `app-commands.js` von 649 auf 654, `tabs.js`
+  von 689 auf 708, `commands.js` von 2161 auf 2181, `index.html` von 2496 auf
+  2542. Neue Prüfdateien `test/unit/navigations-verlauf.test.js`,
+  `test/unit/renderer/navigation-verlauf-bedienung.test.js` und
+  `test/e2e/funktionen/vor-und-zurück.spec.js` mit den Ablauf-Fällen `VZ-01`
+  bis `VZ-09`; ergänzt `commands.test.js`, `command-availability.test.js`,
+  `renderer/kommando-verfuegbarkeit-palette.test.js` und
+  `diagramm-menue-ort.test.js`; Änderungsklassen-Karte und Modul-Karte der
+  Architektur nachgezogen.
+- **Review-Befunde der Runde 1** (Epic `3E-000397`): Reiter-Ersetzen
+  (`tab-ersetzen.js`, etwa beim Blättern der Journale) merkt die Stelle der
+  ersetzten Datei unter ihrem Pfad, und die neue Datei öffnet an ihrer
+  eigenen Lese-Position (Ablauf-Fall `LP-08`); ein Zeilen-Sprung im selben
+  Dokument über `placeCursorAtLine` legt einen eigenen Verlaufs-Eintrag an;
+  `resolveBookmarkPath` wählt die Schreibweise über `pathSeparator()`;
+  Unit-Fall zur Normalisierung von `kannZurueck` und `kannVor` in
+  `src/main/menu/menu-state.js`; Ablauf-Fälle geschärft und von
+  Momentaufnahmen und festen Pausen befreit, neue Teilfälle `LP-02` (v),
+  `LP-06` (iv) und `VZ-07` b über zwei Spalten.
+- **Verankerung in der Architektur** (`4T-002644`, ohne Produkt-Code):
+  Designentscheidung «Lese-Position und Vor und Zurück», Beschreibung der
+  neuen Module in der Code-Struktur, Eintrag `lese-positionen.json` in der
+  Ort-Tafel der Ablage-Regel samt Durchlauf, Kanäle der Lese-Position in der
+  Zeile «Preload und Prozess-Verbindungen (IPC)» des Bedrohungsmodells und
+  Glossar-Einträge; Verankerung des Epics `3E-000397`.
+- **Übertrag offener Aufgaben: Kern, Kanal und Auslöser** (`4T-002737`,
+  `4T-002738`): Das neue Modul `src/shared/journal-uebertrag.js` plant den
+  Übertrag als reine Text-Operation (`planeUebertrag`: offene Wurzeln mit
+  Teilbaum, Abschnitts-Filter, Einsetzen unter der gleichnamigen Überschrift,
+  Doppel-Schutz aus dem Inhalt ohne gespeicherten Merker, Kennzeichnen oder
+  Entfernen). Der Kanal `journals:uebertrageAufgaben`
+  (`src/main/ipc/area-journals-uebertrag.js`) nimmt die Kennung des Journals,
+  den Beginn der Ziel-Periode und die Liste ungespeicherter Pfade des Fensters,
+  bestimmt Quelle und Ziel im Hauptprozess, prüft beide an der Bereichs-Grenze,
+  liest, plant, liest unmittelbar vor dem Schreiben erneut und vergleicht,
+  schreibt das Ziel vor der Quelle und schreibt das Ziel zurück, wenn die Quelle
+  scheitert; beide Dateien bekommen ihren Eintrag in der Dokument-Historie.
+  Auslöser in `openJournalEntry` (`src/renderer/modules/calendar/journals.js`)
+  im Zweig der Neuanlage; Kommando `journal.carryOver` in Kommando-Tabelle,
+  Registry-Eintrag `journals`, Menü und Preload; drei Felder `carryOverAuto`,
+  `carryOverMode` und `carryOverSection` in `src/shared/journal-model.js`, im
+  Journal-Editor und im Formular der Journal-Einstellungen. Vorbelegter Status
+  `migrated` in `TASK_STATE_DEFAULTS`; `resolveStoredTaskStates` gibt einem
+  vorbelegten Status ohne gespeichertes Folge-Symbol seinen Vorgabewert statt
+  pauschal `x` (ohne Wirkung für die sechs bisherigen Status). Prüfdateien:
+  `test/unit/journal-uebertrag.test.js`,
+  `test/unit/journal-uebertrag-kanal.test.js`,
+  `test/unit/renderer/journal-uebertrag-ausloeser.test.js`, Ablauf-Fälle `JU-01`
+  bis `JU-14` und `JW-01` bis `JW-08`.
+- **Review-Befunde der Runden 1 und 2** (Epic `3E-000396`, `4T-002740`): Der
+  Kanal fragt die Größe beider Einträge ab, bevor er sie liest, und überträgt
+  bei einer abgeschnittenen Datei-Auflistung nichts, mit eigener Meldung, statt
+  aus einem womöglich falschen Eintrag zu übertragen; abgeschnitten gilt die
+  Auflistung erst mit einer Markdown-Datei über die Grenze hinaus; die Historie
+  wird vor der letzten Prüfung vorbereitet; Menü-Verdrahtung ohne
+  Schutz-Abfrage; Kürzel-Beschreibung in Grundform und Zugangs-Text mit der
+  Gruppe des Journal-Editors in fünf Sprachen; Statistik-Fall mit der echten
+  Typ-Auflösung.
+- **Befund des Probe-Durchlaufs der Prüf-Anleitung** (Epic `3E-000396`,
+  `4T-002740`, vor der Abnahme behoben): Der Befehl von Hand meldete nach dem
+  selbsttätigen Übertrag «ungespeicherte Änderungen», solange der alte oder der
+  neue Eintrag in einem Reiter offen war, obwohl nichts geändert war. Die
+  Puffer-Schicht des Hauptprozesses führt nach dem stillen Neuladen eines
+  Reiters dessen Text, auch wenn er dem Platten-Stand gleicht; als
+  ungespeichert gilt jetzt erst ein gemeldeter Stand, der vom Platten-Stand
+  abweicht (Vergleich ohne BOM und mit vereinheitlichten Zeilenenden), gleich
+  in welchem Fenster: Die Puffer-Schicht führt dafür neben ihrem Eintrag eine
+  Ablage der Stände je Fenster (Befund der dritten Review-Runde).
+  Ablauf-Fall `JU-15` in der Ansicht «Gerendert», weitere Fälle im Kanal-Test
+  und im Test der Puffer-Schicht; die Plattform-Umschaltung des Kanal-Tests
+  greift jetzt auch unter Linux, und der Wächter der zitierten
+  Oberflächen-Namen liest Code-Zäune nach CommonMark.
+- **Verankerung in der Architektur** (`4T-002740`, dieser Teil ohne
+  Produkt-Code): Designentscheidung «Übertrag offener Aufgaben», die neuen
+  Module in der Modul-Karte, der Kanal in der Zeile «Preload und
+  Prozess-Verbindungen (IPC)» des Bedrohungsmodells und der Glossar-Eintrag;
+  drei gekennzeichnete Abweichungen vom Standard in «Erkenntnisse und
+  Entscheidungen»; Verankerung des Epics `3E-000396`.
+- **Verweise ohne Ziel: Kern, Erhebung und Seite** (`4T-002782`,
+  `4T-002783`): Das neue Modul `src/main/index/verweise-ohne-ziel.js`
+  (`erhebeVerweiseOhneZiel`, `sortiereVerweiseOhneZiel`, `GRUND`) urteilt
+  über `urteileWikiZiele`, den aus `existingWikiTargets` herausgezogenen,
+  unveränderten Rumpf der Editor-Prüfung (`src/main/index/resolve.js`), und
+  über das nun exportierte `anchorExistsInFile`. Der Parser
+  (`src/main/index/parse.js`) liefert drei eigene Felder für Anker-Verweise
+  im selben Dokument, für Verweise in verknüpfte Bereiche und für die Herkunft
+  der Treffer aus Dashboard-Kacheln, Diagramm-Angaben und Zellen einer
+  Datentabelle, getrennt von den Treffern; der Index führt sie in
+  `pruefVerweisePerFile`, der Zwischenspeicher (`src/main/index/cache.js`)
+  schreibt sie mit, und seine Fassung (`src/main/documents/mdd-store.js`)
+  steht auf 12. `statsFor` erhebt die Liste nur auf Anforderung;
+  `collectAreaStats` (`src/main/area/area-stats.js`) beurteilt die Verweise
+  in verknüpfte Bereiche mit einem Aufruf je Erhebung, bildet Einträge aus
+  Folgeteilen geteilter Dokumente auf Kopf-Datei und Zeile ab und liefert das
+  Antwort-Feld `verweiseOhneZiel`; der Kanal `areaStats:collect` reicht die
+  Schalter der Erweiterungen herein, ein neuer Kanal entsteht nicht. Die Seite
+  (`src/renderer/modules/area-stats-page.js`) zeigt Liste, Kennzahl und
+  Hinweis-Zeile und setzt jeden fremden Text über `textContent`. Ein Sprung an
+  eine Zeile geht in der Quellcode-Ansicht der gemerkten Lage vor (Marke
+  `sprungImEditor`, `src/renderer/modules/bookmarks/bookmarks.js` und
+  `src/renderer/modules/views/pane-render.js`); in der Lese-Ansicht setzt
+  `rolleLeseZielInSicht` (`src/renderer/modules/views/lese-position.js`) den
+  Abstand der Titelzeile für Anker-Sprung, Zeilen-Sprung und den Klick im
+  Inhaltsverzeichnis. Prüfdateien: `test/unit/verweise-ohne-ziel.test.js`,
+  `test/unit/renderer/area-stats-verweise-ohne-ziel.test.js`, Fälle in
+  `test/unit/area-stats.test.js`, `test/unit/link-index-cache.test.js` und
+  `test/unit/renderer/anchor-navigation.test.js`, Ablauf-Fälle `BS-09` bis
+  `BS-12`.
+- **Review-Befunde** (Epic `3E-000392`, `4T-002782`, `4T-002783`): Weist der
+  Lese-Weg eines geteilten Dokuments den Grundnamen der Zuordnungs-Zeile nach
+  der Regel aus `4T-002811` (`isBlankPartBase`, seit 1.161.3) ab, steht das
+  jetzt als Warnung im Protokoll. Die Statistik prüft die Pfade ihrer Einträge
+  zusätzlich an der Bereichs-Grenze, damit ein präparierter Folgeteil beim
+  Erheben keine Datei außerhalb des Bereichs lesen lässt; die eigene Prüfung
+  des Grundnamens aus der Entwicklung dieses Vorhabens ist beim Nachzug des
+  Zug-Zweigs in der gemeinsamen Regel aufgegangen. Die Zeile «Auflösung von
+  Links und Bildern» des Bedrohungsmodells nennt beides.
+  Verweise auf fehlende Anlagen fallen aus der Liste, Anker-Verweise in
+  spitzen Klammern mit Leerzeichen werden erfasst, abgeschaltete
+  Erweiterungen nehmen Karten, Kacheln, Diagramm-Angaben und Zellen aus der
+  Prüfung, ein Fehler bei den verknüpften Bereichen bricht die Statistik nicht
+  mehr ab, und Folgeteile urteilen gegen die Kopf-Datei wie im Editor.
+- **Verankerung in der Architektur** (`4T-002785`, ohne Produkt-Code):
+  Designentscheidung «Verweise ohne Ziel (Epic 3E-000392)» mit dem
+  gemeinsamen Kern von Liste und Editor-Prüfung, den eigenen Feldern des
+  Parsers, dem Zwischenspeicher auf Fassung 12 und der Erhebung nur auf
+  Anforderung; das neue Modul in der Modul-Karte; Verankerung des Epics
+  `3E-000392`.
+
+- **Buch der Freigaben, Prüf-Funktion und geschützte Ordner** (`4T-002647`):
+  eine Prüf-Funktion für Ort und Umfang eines Zugriffs, die Liste der
+  geschützten Ordner in einmal aufgelöster Form und ein Buch der Freigaben,
+  das in dieser Stufe noch keinen Zugriff entscheidet.
+- **Liste der geschützten Ordner beim ersten Start** (`4T-002922`): Entsteht
+  ein Ort der Liste, während sie ermittelt wird, wie die Einstellungs-Datei
+  beim ersten Start mit leerem Profil, fragt die Auflösung einmal neu, statt
+  ihn als Verknüpfung ohne Ziel zu werten. Eine gescheiterte Ermittlung wird
+  nicht mehr für den ganzen Programmlauf festgehalten: Die neue Quelle der
+  Liste (`createListSource`) ermittelt beim nächsten Aufruf neu und
+  protokolliert den Grund samt Eintrag, ohne Pfad. Ohne Liste wird weiter
+  abgewiesen. Neue Einzel-Prüfung
+  `test/unit/geschuetzte-ordner-erster-start.test.js`.
+- **Erklärungs-Pflicht und Absender-Prüfung an der Anmelde-Stelle**
+  (`4T-002648`): Jede Verbindung zwischen Programmfenster und Hauptprozess
+  braucht eine Erklärung, was sie annimmt; die noch nicht erklärten stehen in
+  einer Übergangs-Liste, die die nächste Stufe abbaut. Aufrufe nimmt der Hauptprozess nur aus den
+  eigenen Fenstern des Programms an, je Fenster-Art mit einer festen Liste.
+- **Einstellungs-Klassen** (`4T-002649`): Tabelle der Einstellungs-Schlüssel in
+  drei Klassen mit einem Wächter, der jede Schreib-Stelle des Anzeige-Codes
+  gegen sie hält.
+- **Erlaubnisse der Add-ons im Hauptprozess** (`4T-002650`): ein eigenes Modul
+  für Bestätigung, Einschalten und Auslieferung, das der Datei-Zugriff für
+  Add-ons um die Bindung an den Inhalt des Pakets erweitert.
+- **Verankerung** (`4T-002652`, ohne Produkt-Code): Architektur
+  (Bedrohungsmodell, Code-Struktur), Entwicklungsrichtlinien und
+  «Erkenntnisse und Entscheidungen» fortgeschrieben.
+- **Prüfdateien** (`4T-002812`, `4T-002813`, `4T-002814`): neue Einzel-Prüfungen
+  `test/unit/aufgaben-zeile-geteilt.test.js` und
+  `test/unit/workflow-geteilte-schreibziel.test.js`, erweitert
+  `test/unit/workflow-buffer-route.test.js`,
+  `test/unit/index-puffer-overlay.test.js`, `test/unit/index-rundruf.test.js`,
+  `test/unit/meldungen-alle-fenster.test.js`,
+  `test/unit/workflow-task-done.test.js` und
+  `test/unit/renderer/workflow-window.test.js`; neue Ablauf-Prüfungen
+  `test/e2e/funktionen/workflow-schreibziel.spec.js` und
+  `test/e2e/funktionen/aufgabe-abhaken-geteilt.spec.js`, im Linux-Container
+  gelaufen. Die Änderungsklassen-Karte kennt die neuen Dateien.
+- **Befund-Eingang** (`4T-002812`, `4T-002814`): zwei vermutete Wettläufe beim
+  Nachladen im Fenster und zwei Leser der Workflow-Datei, die geteilte Dateien
+  noch nicht zusammensetzen, als Zeilen im Befund-Eingang der laufenden
+  Fehlerbehebung; dazu ein Vorfall im Fehlerklassen-Register.
+- **Grundsatz-Vorlage** (`4T-002820`): Konzept einer gemeinsamen
+  Schreib-Reihenfolge je Datei, damit Speichern, die Schreib-Schnittstelle der
+  Datenbank und die Workflows dieselbe Datei nicht gegeneinander schreiben; zur
+  Entscheidung beim Auftraggeber, ohne Wirkung auf diesen Zug.
+- **Prüfdateien** (`4T-002815`, `4T-002816`, `4T-002821`, `4T-002440`,
+  `4T-002822`): neue Einzel-Prüfung
+  `test/unit/renderer/aufgaben-text-ansicht-und-notiz.test.js`, erweitert
+  `test/unit/db-kartei-weichen.test.js`,
+  `test/unit/workflow-datei-befehle-kartei.test.js`,
+  `test/unit/renderer/workflow-lauf-texte.test.js`,
+  `test/unit/renderer/workflow-db-rueckfrage.test.js`,
+  `test/unit/renderer/settings-area-links.test.js`,
+  `test/unit/workflow-db-query.test.js` und `test/unit/ergebnis-anzeige.test.js`;
+  neue Ablauf-Prüfung `test/e2e/funktionen/workflow-kopf-breite.spec.js`,
+  erweitert `test/e2e/funktionen/bereichs-verknuepfungen.spec.js`.
+- **Ablauf-Prüfungen der Workflows nachgezogen** (`4T-002620`): Lauf beim
+  Ereignis «Aufgabe erledigt» in `test/e2e/funktionen/workflow-ereignis.spec.js`
+  und Skript-Schritt in der neuen `test/e2e/funktionen/workflow-skript.spec.js`.
+- **Lücken der Abnahme von `db-query … into`** (`4T-002823`): Werte mit
+  senkrechtem Strich, Zeilenumbruch und HTML in jeder Form als Text, in der neuen
+  `test/unit/result-set-markdown-zeichenarten.test.js`; die Ausgaben Live, HTML,
+  PDF, Druck und portables Markdown in der neuen Ablauf-Prüfung
+  `test/e2e/funktionen/workflow-db-query-ausgaben.spec.js`. Kein Fund. Die
+  Änderungsklassen-Karte und die Abdeckungs-Matrix kennen die neuen Dateien.
+- **Zusammenbau des Release** (`4T-002553`): Schreibt ein Text-Befehl der
+  Workflows ein Dokument, das in mehreren Fenstern unverändert geöffnet ist,
+  folgt der Stand aller dieser Fenster dem neuen Plattenstand
+  (`src/main/index/overlay.js`), damit der Übertrag offener Aufgaben nicht
+  grundlos ablehnt. Die Obergrenze der Kanal-Erklärungen im Prüffall steigt
+  einmalig von 156 auf 159 für drei Kanäle dieses Zuges
+  (`src/main/ipc/channel-declarations.js`), und die Prüfung des Grundnamens
+  geteilter Dokumente liest die Gerätenamen aus
+  `src/shared/windows-geraetenamen.js`.
+
 ## [1.161.3.5788] - 2026-11-24 — Sicherheit, Netzlaufwerke und private Kommentare
 
 Fehler-Release mit mehreren Vorhaben, gebündelt auf Auftrag der Steuerung vom

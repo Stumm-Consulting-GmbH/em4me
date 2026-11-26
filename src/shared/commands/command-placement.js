@@ -43,6 +43,10 @@ const STATUSBAR_HIDE_TARGETS = [
     elementId: p.buttonId,
     labelKey: p.titleKey,
   })),
+  // 4T-002642 (Epic 3E-000397): «Zurück» und «Vor» am Anfang des Segments der
+  // Kommando-Knöpfe, ausblendbar wie jeder Standard-Knopf.
+  { key: 'nav:back', elementId: 'btn-nav-back', labelKey: 'command.nav.back' },
+  { key: 'nav:forward', elementId: 'btn-nav-forward', labelKey: 'command.nav.forward' },
   { key: 'toggle:foldGutter', elementId: 'btn-fold-gutter', labelKey: 'menu.view.foldGutter' },
   { key: 'toggle:lineNumbers', elementId: 'btn-numbers', labelKey: 'menu.view.lineNumbers' },
   { key: 'toggle:wordWrap', elementId: 'btn-wrap', labelKey: 'menu.view.wordWrap' },

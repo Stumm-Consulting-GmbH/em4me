@@ -54,6 +54,8 @@ const { dashboardBruecke } = require('./preload-dashboard.js');
 const { bufferOverlayBridge, bufferEditBridge } = require('./preload-buffer-overlay.js');
 // 4T-002348 (Epic 3E-000184): Kanal-Bindungen der Workflow-Ausführung.
 const { workflowsBridge } = require('./preload-workflows.js');
+// 4T-002649 (Epic 3E-000416): Wege in den Einstellungs-Speicher.
+const { settingsBridge } = require('./preload-settings.js');
 // 4T-002068 (Epic 3E-000344): Bild-Umwandlung der Anzeige; Grenze und
 // Begründung im Kopf des Moduls.
 const { resolveImagesForBase, mindmapBilderAufloesen } = require('./preload-images.js');
@@ -105,6 +107,9 @@ contextBridge.exposeInMainWorld('api', {
   saveFileAs: (suggested, content, dateiArt) =>
     ipcRenderer.invoke('file:saveAs', suggested, content, dateiArt),
   pushRecent: (p) => ipcRenderer.invoke('recent:push', p),
+  // 4T-002641 (Epic 3E-000397): zuletzt gesehene Stelle je Dokument.
+  lesePositionLesen: (p) => ipcRenderer.invoke('lesePosition:lesen', p),
+  lesePositionMerken: (p, stelle) => ipcRenderer.invoke('lesePosition:merken', p, stelle),
 
   // 4T-001587 (Epic 3E-000160): Ex- und Import der eigenen Einrichtung. Die
   // Liste traegt nur Kennung, Beschriftungs-Schluessel und Anzahl; die Werte
@@ -247,9 +252,9 @@ contextBridge.exposeInMainWorld('api', {
   // aufzurufen, mit null beim Schließen des Bereichs.
   configureAttachmentArea: (rootPath) => configureAttachmentArea(rootPath),
 
-  // Settings
-  getSetting: (key) => ipcRenderer.invoke('settings:get', key),
-  setSetting: (key, value) => ipcRenderer.invoke('settings:set', key, value),
+  // Settings: der allgemeine Weg (getSetting, setSetting) und seit 4T-002649
+  // die eigenen Kanäle der Einstellungen, die er abweist (eigenes Modul).
+  ...settingsBridge(ipcRenderer),
 
   // 4T-000581/4T-000582 (Epic 3E-000107): Rechtschreibpruefung. Das falsch
   // geschriebene Wort samt Vorschlaegen meldet ausschliesslich der
@@ -370,6 +375,8 @@ contextBridge.exposeInMainWorld('api', {
   // clipboard, kein Fokus-Verlust). Nur Text — das Kontextmenü arbeitet auf
   // Markdown-Quelltext.
   clipboardReadText: () => electron.clipboard.readText(),
+  // 4T-002554: Tabellen-Form, nur als Erkennungs-Signal für «Einfügen».
+  clipboardReadHTML: () => electron.clipboard.readHTML(),
   clipboardWriteText: (text) => electron.clipboard.writeText(text == null ? '' : String(text)),
 
   // Markdown-Rendering
@@ -827,8 +834,12 @@ contextBridge.exposeInMainWorld('api', {
   journalsErgaenzePropertiesBatch: (eintraege) =>
     ipcRenderer.invoke('journals:ergaenzePropertiesBatch', { eintraege }),
   journalsConfirmNachtragen: (opts) => ipcRenderer.invoke('journals:confirmNachtragen', opts),
+  // 4T-002737 (Epic 3E-000396): Übertrag offener Aufgaben in den Eintrag der Ziel-Periode.
+  journalsUebertrageAufgaben: (journalId, periodStartMs, ungespeichert) =>
+    ipcRenderer.invoke('journals:uebertrageAufgaben', { journalId, periodStartMs, ungespeichert }),
   onMenuJournalToday: (cb) => ipcRenderer.on('menu:journalToday', () => cb()),
   onMenuJournalForDate: (cb) => ipcRenderer.on('menu:journalForDate', () => cb()),
+  onMenuJournalCarryOver: (cb) => ipcRenderer.on('menu:journalCarryOver', () => cb()),
   // 4T-000434 (Epic 3E-000081): Existenz-Batch fuer die Kalender-Punkte.
   journalsEntriesExist: (relPaths) => ipcRenderer.invoke('journals:entriesExist', { relPaths }),
   // 4T-000543 (Epic 3E-000097): Kalender-System-Konfiguration des Bereichs
@@ -1053,6 +1064,9 @@ contextBridge.exposeInMainWorld('api', {
   onMenuOpenMemoryPage: (cb) => ipcRenderer.on('menu:openMemoryPage', () => cb()),
   // 4T-000480 (Epic 3E-000089): Kommando-Palette ueber Menue-Eintrag Ansicht.
   onMenuOpenCommandPalette: (cb) => ipcRenderer.on('menu:openCommandPalette', () => cb()),
+  // 4T-002642 (Epic 3E-000397): Ansicht -> Zurück / Vor.
+  onMenuNavBack: (cb) => ipcRenderer.on('menu:navBack', () => cb()),
+  onMenuNavForward: (cb) => ipcRenderer.on('menu:navForward', () => cb()),
   // 4T-001501 (Epic 3E-000174): Menue-Weg des schnellen Datei-Oeffnens.
   onMenuQuickOpen: (cb) => ipcRenderer.on('menu:quickOpen', () => cb()),
   // 4T-000456 (Epic 3E-000084): Datei-Graph-Sidebar-Sektion toggeln.

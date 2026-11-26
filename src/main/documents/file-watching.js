@@ -14,6 +14,7 @@
 const chokidar = require('chokidar');
 const netzPfade = require('./network-paths');
 const selbstSchreib = require('./self-write');
+const { pathCompareKey } = require('../../shared/platform.js');
 
 // 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
@@ -179,12 +180,49 @@ function createFileWatching(deps) {
     return result;
   }
 
+  /**
+   * Meldet eine Änderung eines beobachteten Dokuments, die die Beobachtung
+   * selbst nicht sieht, an alle Fenster, die es beobachten (4T-002812,
+   * Epic 3E-000444).
+   *
+   * Beobachtet wird je Dokument allein der Pfad, unter dem es geöffnet ist,
+   * bei einem geteilten Dokument also die Kopf-Datei. Schreibt ein Text-Befehl
+   * nur einen Folgeteil, bleibt die Kopf-Datei unverändert, und ohne diese
+   * Meldung zeigte ein unverändert geöffnetes Dokument weiter den alten Stand.
+   * Es geht dieselbe Meldung hinaus wie bei einer Änderung der Kopf-Datei
+   * ('file:changed'), mit dem Pfad der Beobachtung, unter dem das Fenster den
+   * Reiter führt; ein ungespeicherter Reiter fragt dort wie gewohnt nach.
+   *
+   * @param {string} filePath Pfad der Kopf-Datei; Schreibweise wie der Index.
+   * @returns {number} Zahl der benachrichtigten Fenster.
+   */
+  function meldeDateiAenderung(filePath) {
+    if (typeof filePath !== 'string' || !filePath) return 0;
+    let pfad = watchers.has(filePath) ? filePath : null;
+    if (!pfad) {
+      const gesucht = pathCompareKey(filePath);
+      for (const p of watchers.keys()) if (pathCompareKey(p) === gesucht) pfad = p;
+    }
+    const entry = pfad ? watchers.get(pfad) : null;
+    if (!entry) return 0;
+    let gemeldet = 0;
+    for (const id of entry.owners) {
+      const win = windows().get(id);
+      if (win && !win.isDestroyed()) {
+        win.webContents.send('file:changed', pfad);
+        gemeldet += 1;
+      }
+    }
+    return gemeldet;
+  }
+
   return {
     watchFile,
     unwatchFile,
     unwatchAllForOwner,
     unwatchAll,
     moveWatchEntry,
+    meldeDateiAenderung,
   };
 }
 

@@ -51,6 +51,10 @@ import { warteAufDashboardQuellen } from './dashboard-quelle.js';
 import './dashboard-formen.js';
 import { chartDescriptionTexts } from '../../../shared/charts/chart-call-options.js';
 import { mermaidSvgBlock } from '../../../shared/mermaid-fence.js';
+// 4T-002838 (Epic 3E-000447): private Kommentare im Rumpf, mit der Code-Frage
+// für die Text-Kacheln.
+import '../app/kommentar-code-frage.js';
+import { sonderRumpfOhneKommentare } from '../../../shared/markdown/plugins/comments-block.js';
 import {
   DASHBOARD_EXTENSION_ID,
   dashboardSicht,
@@ -200,7 +204,12 @@ function mitGrenze(versprechen, ms) {
 }
 
 async function exportiereBlock(block, source, basePath, nr) {
-  const sicht = dashboardSicht(parseDashboardFence(block.body));
+  // 4T-002838: Der Export läuft vor der Bereinigung des Textes; der Rumpf
+  // verliert seine privaten Kommentare deshalb hier, vor Titeln und Abfragen.
+  const rumpf = isExtensionActive('comments')
+    ? sonderRumpfOhneKommentare('perspective-dashboard', block.body, isExtensionActive)
+    : block.body;
+  const sicht = dashboardSicht(parseDashboardFence(rumpf));
   const werte = vorbelegungsWerte(sicht);
   const ergebnisse = new Map();
   const auftraege = [];

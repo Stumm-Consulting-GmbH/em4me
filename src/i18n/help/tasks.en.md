@@ -16,7 +16,7 @@ In editable files a click on the checkbox completes the task or reopens it — i
 
 ## Extended states
 
-Six predefined states; the character sits between the square brackets:
+Seven predefined states; the character sits between the square brackets:
 
 ```markdown
 - [/] in progress
@@ -25,6 +25,7 @@ Six predefined states; the character sits between the square brackets:
 - [?] question
 - [!] important
 - [*] starred
+- [»] carried over
 ```
 
 - [/] in progress
@@ -33,8 +34,11 @@ Six predefined states; the character sits between the square brackets:
 - [?] question
 - [!] important
 - [*] starred
+- [»] carried over
 
 Each state renders as a coloured box with a glyph. A click on the state box advances to the state's **follow-up symbol** (default: complete with `[x]`); this lets chains such as "open → in progress → done" be configured.
+
+The **Carried over** state (`»`) carries the type Not a task and is set by the carry-over of open tasks in journals: in the previous journal entry it marks a task that has moved on to a later entry. A click on the box reopens the task (page [Journals](journals.md), section "Carrying over open tasks").
 
 ## Custom states, type and follow-up symbol
 

@@ -58,6 +58,9 @@ import { runTableCommand } from './editor-table-tools.js';
 // editor-format.js importiert nicht zurueck, der Spread unten darf deshalb
 // bereits zur Lade-Zeit lesen.
 import { FORMAT_COMMANDS } from './editor-format.js';
+// 4T-002554 (Epic 3E-000389): «Als reinen Text einfügen» (Kern) und «Als Tabelle
+// einfügen» (table-tools); Nutzung nur in Funktionskörpern.
+import { fuegeReinenTextEin, fuegeTextAlsTabelleEin } from './editor-tabelle-einfuegen.js';
 
 // 4T-000590 (Epic 3E-000109): Tabellen-Kommandos (editorScoped) als dünne
 // Wrapper auf das Laufzeit-Backend in editor-table-tools.js. Das Objekt
@@ -92,6 +95,9 @@ export const EDITOR_COMMAND_FUNCTIONS = {
   ...FORMAT_COMMANDS,
   // 4T-000590: Tabellen-Operationen des Kontextmenü-Untermenüs.
   ...TABLE_COMMAND_FUNCTIONS,
+  // 4T-002554: Einfügen aus der Zwischenablage als reiner Text bzw. als Tabelle.
+  'edit.pastePlain': (view) => fuegeReinenTextEin(view),
+  'edit.pasteAsTable': (view) => fuegeTextAlsTabelleEin(view),
   // 4T-000599 (Epic 3E-000112): Listenpunkt samt Teilbaum verschieben. Liefert
   // der Handler false (keine Listenzeile), faellt der Tastendruck an den
   // defaultKeymap durch, der Alt+Pfeil auf moveLineUp/-Down bindet — das

@@ -65,6 +65,8 @@
   "frontmatter.line.label": "Frontmatter",
   "frontmatter.line.fieldCount": "{count} campos",
   "frontmatter.line.fieldCountOne": "1 campo",
+  "frontmatter.coverImage.missing": "Imagen de portada no encontrada",
+  "frontmatter.coverImage.remote": "EM4me no carga imágenes de portada desde Internet; guarde la imagen como archivo en el área",
   "properties.profileDefined": "Campo del perfil «{profile}»",
   "properties.profileTypeLocked": "Tipo establecido por el perfil «{profile}»",
   "properties.profileHint.typeMismatch": "El valor no corresponde al tipo definido ({type}).",

@@ -257,6 +257,18 @@ const COMMANDS = [
     editorScoped: false,
     availability: 'area',
   },
+  // 4T-002738 (Epic 3E-000396): offene Aufgaben des letzten Eintrags in den
+  // Eintrag der laufenden Periode uebertragen (Journal-Auswahl, ohne Kuerzel).
+  {
+    id: 'journal.carryOver',
+    defaultBindings: [],
+    labelKey: 'menu.file.journalCarryOver',
+    descKey: 'help.shortcut.journalCarryOver',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+    availability: 'area',
+  },
   // 4T-001407 (Epic 3E-000244): Eigenschaften eines ganzen Journals nachtragen.
   // menu: false, weil die Menue-Einordnung im Struktur-Pruefschritt (4T-001408)
   // beim Product Owner liegt; bis dahin ueber die Kommando-Verwaltung.
@@ -2208,6 +2220,32 @@ const COMMANDS = [
     editorScoped: true,
     availability: 'editor',
   },
+  // 4T-002554 (Epic 3E-000389): Zwischenablage unverändert einfügen. Kern, ohne
+  // Vorbelegung, weil Strg+Umschalt+V fest verdrahtet ist.
+  {
+    id: 'edit.pastePlain',
+    defaultBindings: [],
+    labelKey: 'command.edit.pastePlain',
+    descKey: 'help.shortcut.pastePlain',
+    categoryKey: 'help.group.editing',
+    menu: false,
+    editorScoped: true,
+    availability: 'editor',
+  },
+  // 4T-002554: Tabulator- oder Semikolon-Text aus der Zwischenablage als Tabelle,
+  // auch ohne Tabellen-Form. Teil der Erweiterung table-tools; bewusst nicht im
+  // Namensraum table.*, der die Operationen IN einer Tabelle trägt (Bedingung
+  // «tabelle»), weil das Kommando gerade außerhalb einer Tabelle wirkt.
+  {
+    id: 'edit.pasteAsTable',
+    defaultBindings: [],
+    labelKey: 'command.edit.pasteAsTable',
+    descKey: 'help.shortcut.pasteAsTable',
+    categoryKey: 'help.group.editing',
+    menu: false,
+    editorScoped: true,
+    availability: 'editor',
+  },
   {
     id: 'insert.table',
     defaultBindings: [],
@@ -2292,6 +2330,30 @@ const COMMANDS = [
     defaultBindings: [],
     labelKey: 'command.insert.dashboard',
     descKey: 'help.feature.dashboard',
+    categoryKey: 'help.group.editing',
+    menu: false,
+    editorScoped: true,
+    availability: 'editor',
+  },
+  // 4T-002558 (Epic 3E-000390): Inhaltsverzeichnis-Block an der Schreibmarke,
+  // Muster insert.canvas; an die Erweiterung toc-block gebunden.
+  {
+    id: 'insert.toc',
+    defaultBindings: [],
+    labelKey: 'command.insert.toc',
+    descKey: 'help.feature.tocBlock',
+    categoryKey: 'help.group.editing',
+    menu: false,
+    editorScoped: true,
+    availability: 'editor',
+  },
+  // 4T-002617 (Epic 3E-000391): Auswahl der Mermaid-Gerüste und -Bausteine an
+  // der Schreibmarke; an die Erweiterung mermaid gebunden.
+  {
+    id: 'insert.mermaid',
+    defaultBindings: [],
+    labelKey: 'command.insert.mermaid',
+    descKey: 'help.feature.mermaidBuildingBlocks',
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
@@ -2492,6 +2554,28 @@ const COMMANDS = [
     menu: false,
     editorScoped: false,
     availability: 'immer',
+  },
+  // 4T-002642 (Epic 3E-000397, V12): «Zurück» und «Vor» zwischen besuchten
+  // Orten des Fensters. Alt+Pfeil hat der Editor dafür abgegeben (editor.js).
+  {
+    id: 'nav.back',
+    defaultBindings: ['Alt+Left'],
+    labelKey: 'command.nav.back',
+    descKey: 'help.shortcut.navBack',
+    categoryKey: 'help.group.navigation',
+    menu: true,
+    editorScoped: false,
+    availability: 'navZurueck',
+  },
+  {
+    id: 'nav.forward',
+    defaultBindings: ['Alt+Right'],
+    labelKey: 'command.nav.forward',
+    descKey: 'help.shortcut.navForward',
+    categoryKey: 'help.group.navigation',
+    menu: true,
+    editorScoped: false,
+    availability: 'navVor',
   },
   {
     id: 'search.open',

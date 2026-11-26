@@ -12,7 +12,7 @@ Les boutons dont la commande appartient à une extension désactivée n'apparais
 
 ## Masquer les boutons par défaut
 
-Chaque élément par défaut de la barre d'état peut être masqué individuellement : les commutateurs de panneaux, les trois bascules de l'éditeur (pliage, numéros de ligne, retour à la ligne), les quatre boutons de vue et les éléments du côté droit (statistiques de mots, affichage du zoom, modifier, synchronisation du défilement, historique du document, thème, langue). Seule la ligne d'indication reste toujours visible — elle est le seul canal pour les messages courts comme l'état d'enregistrement.
+Chaque élément par défaut de la barre d'état peut être masqué individuellement : les commutateurs de panneaux, les deux boutons fléchés « Précédent » et « Suivant » au début des boutons de commande, les trois bascules de l'éditeur (pliage, numéros de ligne, retour à la ligne), les quatre boutons de vue et les éléments du côté droit (statistiques de mots, affichage du zoom, modifier, synchronisation du défilement, historique du document, thème, langue). Seule la ligne d'indication reste toujours visible — elle est le seul canal pour les messages courts comme l'état d'enregistrement.
 
 Masquer ne retire que l'accès, la fonction demeure : tout ce qui est masqué reste accessible via le menu, la palette de commandes et les raccourcis clavier. Le bouton « Tout afficher » rétablit la barre d'état par défaut. Le masquage ici est durable et indépendant du fait qu'un bouton serait utilisable sur le moment ; la façon dont la barre traite les boutons qui ne peuvent rien faire sur le moment est décrite dans [Vues et affichage](views-display.md).
 

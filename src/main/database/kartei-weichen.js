@@ -200,8 +200,9 @@ function erzeugeKarteiWeichen({ schreibSchnittstelle, erweiterungAktiv, fsp }) {
    * `kopiere(ziel)` gibt einen Anlege-Auftrag mit dem Namen des Ziels als
    * Schlüssel und Dateiname und der Quelle als Vorlage; die Schnittstelle zieht
    * die Kennung, übernimmt übrige Felder und Freitext und schreibt den
-   * Anlege-Beleg. Ist der Name belegt, wirft sie `EEXIST`, und die
-   * Namensfindung nimmt die nächste Nummer; jede andere Abweisung bricht ab und
+   * Anlege-Beleg. Ist der Name belegt, wirft sie `EEXIST` mit dem Ergebnis der
+   * Datenbank in `datenbank` (4T-002821), und die Namensfindung nimmt die
+   * nächste Nummer; jede andere Abweisung bricht ab und
    * steht danach in `abweisung()`. 4T-002691: `kopiere(ziel, optionen)` nimmt
    * dieselbe optionale Naht der Lauf-Marke wie `loescheKarteikarte`.
    *
@@ -235,6 +236,12 @@ function erzeugeKarteiWeichen({ schreibSchnittstelle, erweiterungAktiv, fsp }) {
         if (nameBelegt(ergebnis)) {
           const belegt = new Error('EEXIST');
           belegt.code = 'EEXIST';
+          // 4T-002821 (Epic 3E-000445): Das Ergebnis der Datenbank reist am
+          // Fehler mit, damit ein Workflow mit fest genanntem Ziel den Grund
+          // nennen kann (etwa «Schlüssel schon vergeben»). `letzte` bleibt
+          // unberührt: `abweisung()` liefert weiter null, und die
+          // Namensfindung des Panels nimmt wie bisher die nächste Nummer.
+          belegt.datenbank = ergebnis;
           throw belegt;
         }
         letzte = ergebnis;

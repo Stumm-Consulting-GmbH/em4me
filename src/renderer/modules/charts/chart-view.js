@@ -75,6 +75,8 @@ import {
   resolveSchemeColors,
 } from '../../../shared/color-schemes.js';
 import { getColorSchemeState } from '../color-schemes.js';
+import { isExtensionActive } from '../extensions/extension-lifecycle.js';
+import { stripBlockComments } from '../../../shared/markdown/plugins/comments-block.js';
 import { chartDescriptionTexts } from '../../../shared/charts/chart-call-options.js';
 import { baueAuslassZeile, baueHinweis, baueHinweisNichtRechtzeitig } from './chart-hint.js';
 // 4T-002048: das Zeichen der Block-Eigenschaften überdauert das Neu-Zeichnen.
@@ -239,7 +241,10 @@ function frageBruecke(block, lauf, body, tabellenDokument) {
 // 4T-002023: Ein Diagramm wird gezeichnet; nennt es eine Tabelle in einem
 // anderen Dokument, beginnt die Lesung, und die Rückgabe ist ihr Promise.
 function zeichne(block, lauf) {
-  const body = block.dataset.chartSource || '';
+  // 4T-002838 (Epic 3E-000447): Das Attribut bleibt roh, weil die Bedienung es
+  // mit dem Dokument abgleicht; gezeichnet wird der Rumpf ohne private Kommentare.
+  const roh = block.dataset.chartSource || '';
+  const body = isExtensionActive('comments') ? stripBlockComments(roh) : roh;
   const nummer = (NUMMERN.get(block) || 0) + 1;
   NUMMERN.set(block, nummer);
   const erg = frageBruecke(block, lauf, body);

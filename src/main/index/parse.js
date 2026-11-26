@@ -45,6 +45,8 @@ const {
   MD_EXT_RE,
   createWikiLinkRegex,
   isAreaLinkTarget,
+  // 4T-002782 (Epic 3E-000392): Kürzel und Ziel eines Verknüpfungs-Verweises.
+  splitAreaLink,
   createMdLinkRegex,
   mdLinkTargetFromMatch,
   maskInlineCode,
@@ -146,6 +148,14 @@ const { HEADING_RE } = require('../../shared/markdown/heading-sections.js');
 // 4T-000344 (Epic 3E-000062): MD_LINK_RE (relative Markdown-Links) aus der
 // gemeinsamen Quelle; eine Instanz je Modul-Ladung, lastIndex-Reset pro Zeile.
 const MD_LINK_RE = createMdLinkRegex();
+// 4T-002782 (Epic 3E-000392): Markdown-Verweis auf einen Anker im selben
+// Dokument, `[Text](#abschnitt)` oder `[Text](<#Abschnitt Zwei>)`, die Form in
+// spitzen Klammern auch mit Leerzeichen (Gruppe 1), die Form ohne sie bis zum
+// ersten Leerraum (Gruppe 2); ein Titel in Anführungszeichen dahinter ist
+// erlaubt. MD_LINK_RE fängt ihn nicht, weil er nur Ziele mit Markdown-Endung
+// kennt; Bilder bleiben draußen wie in der Editor-Prüfung.
+const MD_EIGEN_ANKER_RE =
+  /(?<!!)\[[^\]\n]*\]\(\s*(?:<#([^<>\n]+)>|#([^)\s<>]+))(?:\s+(?:"[^"\n]*"|'[^'\n]*'))?\s*\)/g;
 
 // 4T-001749 (Epic 3E-000289): Ziel und Anker einer Verweis-Karte, nach
 // **denselben Regeln wie der Wiki-Link-Scan** weiter unten. Die Gleichheit ist
@@ -296,6 +306,24 @@ function parseContent(filePath, content, segmentDefinition) {
   }
 
   const out = [];
+  // 4T-002782 (Epic 3E-000392, V4): Zwei Arten von Verweisen, die nicht unter
+  // den Treffern stehen, weil sie keine Datei dieses Bereichs nennen: Verweise
+  // auf einen Anker im selben Dokument und Verweise in einen verknüpften
+  // Bereich. Eigene Felder statt Treffer, damit Rückverweise, Verweis-Netz,
+  // Verweis-Zahlen und das Nachziehen beim Umbenennen unverändert bleiben; sie
+  // braucht allein die Liste der Verweise ohne Ziel (verweise-ohne-ziel.js).
+  // Je Eintrag Zeile und Wortlaut, weil die Liste beides zeigt.
+  const eigenAnkerVerweise = [];
+  const verknuepfungsVerweise = [];
+  // Dazu die Herkunft der Verweise aus einem schaltbaren Block, der in den
+  // Treffern nicht von Fließtext zu unterscheiden ist: Dashboard-Kachel,
+  // Diagramm-Angabe `table:` und Text-Zellen einer Datentabelle, je
+  // `{ zeile, art: 'kachel' | 'diagramm' | 'datentabelle' }`. Die Liste lässt
+  // sie aus, wenn ihre Erweiterung ausgeschaltet ist (dann ist der Block
+  // gewöhnlicher Code). Eine Block-Zeile trägt nur Verweise dieses Blocks,
+  // weil Fließtext und Block sich keine Zeile teilen; die Zeile bestimmt die
+  // Herkunft also eindeutig.
+  const blockVerweise = [];
   // 4T-000054: Pro Datei zusaetzlich Heading-Slugs und Block-IDs sammeln,
   // damit existingWikiTargets Anker-Prueferungen machen kann. Fenced-
   // Code-Bloecke werden uebersprungen, damit Markdown-Beispiele im Code
@@ -347,12 +375,21 @@ function parseContent(filePath, content, segmentDefinition) {
     // laesst das Capture mit '\' enden — abschneiden wie im preload.
     const target = m[1].trim().replace(/\\$/, '');
     if (!target) return;
+    // 4T-002782: Wortlaut samt Ausrufezeichen einer Einbettung.
+    const wortlaut =
+      (typeof m.input === 'string' && m.input[m.index - 1] === '!' ? '!' : '') + m[0];
     // 4T-001451 (Epic 3E-000190): Ein Verknuepfungs-Link [[@kuerzel:Ziel]]
     // zeigt in einen anderen Bereich. Der Index kennt genau eine Wurzel je
     // Eintrag (resolveRootInfo), und die eingehende Richtung bleibt in Stufe 1
     // ausdruecklich draussen (E3) — als lokales Ziel gedeutet entstuende hier
     // ein Verweis auf eine Datei namens @kuerzel:Ziel, die es nie gibt.
-    if (isAreaLinkTarget(target)) return;
+    // 4T-002782: Er wird stattdessen im eigenen Feld geführt, mit dem Ziel
+    // samt Anker, wie die Editor-Prüfung ihn zur Beurteilung schickt.
+    if (isAreaLinkTarget(target)) {
+      const { prefix, target: ziel } = splitAreaLink(target);
+      verknuepfungsVerweise.push({ zeile: lineNum, wortlaut, prefix, ziel });
+      return;
+    }
     // Anker im Wiki-Link: [[Foo#anker]] -> ziel=Foo, anker=anker.
     // Auch [[#Anker]] (reiner Anker im selben Doc) wird erkannt, aber
     // als ausgehender Backlink uebersprungen — ein interner Anker ist
@@ -364,7 +401,12 @@ function parseContent(filePath, content, segmentDefinition) {
       anker = target.slice(hashIdx + 1).trim() || null;
       ziel = target.slice(0, hashIdx).trim();
     }
-    if (!ziel) return; // 4T-000054: reiner Anker — kein externer Backlink
+    if (!ziel) {
+      // 4T-000054: reiner Anker — kein externer Backlink. 4T-002782: aber ein
+      // Verweis auf einen Anker im selben Dokument, im eigenen Feld.
+      if (anker) eigenAnkerVerweise.push({ zeile: lineNum, wortlaut, anker, art: 'wiki' });
+      return;
+    }
     // 4T-000336 (Epic 3E-000061): relative Unterseiten-Ziele ('/Name', '..')
     // gegen den eigenen Basename expandieren — der Index traegt dann die
     // aufgeloeste U+2215-Form, damit Backlinks auf Unterseiten entstehen.
@@ -461,6 +503,13 @@ function parseContent(filePath, content, segmentDefinition) {
         snippet: shortSnippet(snippetZeile),
       });
     }
+    // 4T-002782 (Epic 3E-000392): Markdown-Verweise auf einen Anker im selben
+    // Dokument, auf derselben maskierten Zeile wie die Treffer oben.
+    MD_EIGEN_ANKER_RE.lastIndex = 0;
+    while ((m = MD_EIGEN_ANKER_RE.exec(lineForLinks)) !== null) {
+      const anker = (m[1] !== undefined ? m[1] : m[2]).trim();
+      if (anker) eigenAnkerVerweise.push({ zeile: lineNum, wortlaut: m[0], anker, art: 'md' });
+    }
   };
 
   // 4T-002502 (Epic 3E-000403): Wiki-Verweise im Kopf-Block zaehlen wie
@@ -536,6 +585,7 @@ function parseContent(filePath, content, segmentDefinition) {
             anker: ziel.anker,
             snippet: shortSnippet(line),
           });
+          blockVerweise.push({ zeile: lineNum, art: 'kachel' }); // 4T-002782
         }
         continue;
       }
@@ -597,6 +647,7 @@ function parseContent(filePath, content, segmentDefinition) {
               anker: ziel.anker,
               snippet: shortSnippet(line),
             });
+            blockVerweise.push({ zeile: lineNum, art: 'diagramm' }); // 4T-002782
           }
         }
       }
@@ -614,7 +665,14 @@ function parseContent(filePath, content, segmentDefinition) {
       // Wiedereinschalten.
       if (zellZustand) {
         const scanZeile = zellScanZeile(zellZustand, line);
-        if (scanZeile !== null) scanneVerweiseUndSchlagworte(scanZeile, lineNum, line);
+        if (scanZeile !== null) {
+          // 4T-002782: Herkunft «Datentabelle» für jede Zeile, aus deren
+          // Text-Zellen ein Verweis hervorgeht (Treffer oder eigenes Feld).
+          const vorher = out.length + eigenAnkerVerweise.length + verknuepfungsVerweise.length;
+          scanneVerweiseUndSchlagworte(scanZeile, lineNum, line);
+          const nachher = out.length + eigenAnkerVerweise.length + verknuepfungsVerweise.length;
+          if (nachher > vorher) blockVerweise.push({ zeile: lineNum, art: 'datentabelle' });
+        }
       }
       continue;
     }
@@ -671,6 +729,9 @@ function parseContent(filePath, content, segmentDefinition) {
     tasks,
     records: erfasst ? erfasst.records : [],
     recordDefSig: erfasst ? erfasst.defSignatur : null,
+    eigenAnkerVerweise,
+    verknuepfungsVerweise,
+    blockVerweise,
   };
 }
 

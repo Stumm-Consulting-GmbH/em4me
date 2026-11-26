@@ -29,7 +29,13 @@ window.api.workflowBufferEditDone = async (antwort) => {
   antworten.push(antwort);
   return { ok: true };
 };
-window.api.setIndexOverlay = async (p, c) => overlays.push({ p, c });
+// 4T-002812: das Merkmal «ungespeichert» getrennt mitgeschrieben, damit die
+// bestehenden Erwartungen an overlays unverändert bleiben.
+const merkmale = [];
+window.api.setIndexOverlay = async (p, c, u) => {
+  overlays.push({ p, c });
+  merkmale.push({ p, u });
+};
 
 vi.mock('../../../src/renderer/modules/tabs/tabs.js', async (importOriginal) => ({
   ...(await importOriginal()),
@@ -80,6 +86,34 @@ vi.mock('../../../src/renderer/modules/database/masken-seite.js', async (importO
 vi.mock('../../../src/renderer/modules/views/tabbar.js', async (importOriginal) => ({
   ...(await importOriginal()),
   renderTabbar: () => {},
+}));
+// 4T-002812 (Zweitblick des Epics 3E-000444, Runde 2, Befund 1): Nachladen und
+// Speichern als mitschreibende Attrappen. Das Nachladen übernimmt den Stand
+// der Platte (`plattenStand`) in Reiter und Editor, wie `reloadFile` es für
+// einen unveränderten Reiter tut.
+const nachgeladen = [];
+const gespeichert = [];
+let plattenStand = null;
+vi.mock('../../../src/renderer/modules/views/pane-render.js', async (importOriginal) => ({
+  ...(await importOriginal()),
+  reloadFile: async (p) => {
+    nachgeladen.push(p);
+    const { state: st } = await import('../../../src/renderer/modules/app/app-state.js');
+    const { paneEditors: editoren } =
+      await import('../../../src/renderer/modules/editor/editor.js');
+    st.panes.forEach((pane, i) => {
+      const tab = pane.tabs.find((x) => x.path === p);
+      if (!tab) return;
+      tab.content = plattenStand;
+      tab.originalContent = plattenStand;
+      tab.dirty = false;
+      if (editoren[i]) editoren[i].state = EditorState.create({ doc: plattenStand });
+    });
+  },
+}));
+vi.mock('../../../src/renderer/modules/views/save-export.js', async (importOriginal) => ({
+  ...(await importOriginal()),
+  saveTab: async (paneIdx, tabIdx) => gespeichert.push({ paneIdx, tabIdx }),
 }));
 
 const {
@@ -133,6 +167,7 @@ beforeEach(() => {
   geschlossen.length = 0;
   antworten.length = 0;
   overlays.length = 0;
+  merkmale.length = 0;
   schliessenErlaubt = true;
   closeTabEntfernt = false;
 });
@@ -394,6 +429,24 @@ describe('flushPendingBuffers', () => {
     await flushPendingBuffers();
     expect(overlays).toEqual([{ p: PFAD, c: `${PLATTE}neu` }]);
   });
+
+  // 4T-002812 (Epic 3E-000444): Die Meldung trägt das Merkmal «ungespeichert»
+  // aus tab.dirty, und ein auf den gespeicherten Text zurückgetippter Reiter
+  // wird vor einem Inhalts-Schritt ebenso sofort gemeldet. Ohne das hielte der
+  // Hauptprozess das Fenster noch bis zum Ablauf der Verzögerung für das
+  // Schreibziel.
+  it('4T-002812: meldet das Merkmal «ungespeichert», auch für einen unveränderten Reiter', async () => {
+    const { ziel } = fenster({ aktiv: false, content: `${PLATTE}neu` });
+    scheduleIndexOverlay(ziel);
+    await flushPendingBuffers();
+    expect(merkmale).toEqual([{ p: PFAD, u: true }]);
+    ziel.content = PLATTE;
+    ziel.dirty = false;
+    scheduleIndexOverlay(ziel);
+    await flushPendingBuffers();
+    expect(overlays.at(-1)).toEqual({ p: PFAD, c: PLATTE });
+    expect(merkmale.at(-1)).toEqual({ p: PFAD, u: false });
+  });
 });
 
 // 4T-002424 (Story 4S-001135, Regeln P1, P3, P5): Abhaken über den Weg der
@@ -447,6 +500,46 @@ describe('completeTask über den Weg der Aufgaben-Abfrage', () => {
         newText: expect.stringMatching(/^- \[x\] Rückblick schreiben ✅ \d{4}-\d{2}-\d{2}$/),
       }),
     );
+  });
+
+  // 4T-002812 (Zweitblick des Epics 3E-000444, Runde 2, Befund 1): Ein
+  // voriger Schritt hat das unveränderte, aktive Dokument auf die Platte
+  // geschrieben; der Reiter trägt noch den Stand davor.
+  describe('aktives, unverändertes Dokument folgt vor dem Abhaken der Platte', () => {
+    beforeEach(() => {
+      nachgeladen.length = 0;
+      gespeichert.length = 0;
+    });
+
+    it('eben angehängte Aufgabe: erst nachgeladen, dann im Editor abgehakt und gespeichert', async () => {
+      const { ziel } = fenster({ aktiv: true, content: PLATTE });
+      plattenStand = `${PLATTE}${AUFGABE}\n`;
+      window.api.readFile = vi.fn(async () => ({ ok: true, content: plattenStand }));
+      const res = await runWindowAction(handgriff());
+      expect(res).toMatchObject({ ok: true, effect: { via: 'taskToggle' } });
+      expect(nachgeladen).toEqual([PFAD]);
+      expect(ziel.content).toMatch(/^# Ziel\n## Protokoll\nalt\n- \[x\] Rückblick schreiben/);
+      expect(gespeichert).toEqual([{ paneIdx: 0, tabIdx: 1 }]);
+    });
+
+    it('Platte gleich dem Reiter: kein Nachladen', async () => {
+      const inhalt = `${PLATTE}${AUFGABE}\n`;
+      fenster({ aktiv: true, content: inhalt });
+      // Gleicher Stand: Der Reiter gilt als unverändert gegenüber der Platte.
+      state.panes[0].tabs[1].originalContent = inhalt;
+      state.panes[0].tabs[1].dirty = false;
+      window.api.readFile = vi.fn(async () => ({ ok: true, content: inhalt }));
+      expect((await runWindowAction(handgriff())).ok).toBe(true);
+      expect(nachgeladen).toEqual([]);
+    });
+
+    it('ungespeicherter Reiter: weder gelesen noch nachgeladen', async () => {
+      fenster({ aktiv: true, content: `${PLATTE}${AUFGABE}\ngetippt` });
+      window.api.readFile = vi.fn(async () => ({ ok: true, content: PLATTE }));
+      expect((await runWindowAction(handgriff())).ok).toBe(true);
+      expect(window.api.readFile).not.toHaveBeenCalled();
+      expect(nachgeladen).toEqual([]);
+    });
   });
 
   it('die Zeile ist nicht mehr da: taskConflict', async () => {

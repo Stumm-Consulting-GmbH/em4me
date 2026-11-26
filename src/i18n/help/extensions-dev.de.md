@@ -56,6 +56,8 @@ Die `manifest.json` beschreibt das Paket:
 
 „Deaktivieren" nimmt alle Beiträge sofort zurück (die Bestätigung bleibt gespeichert, erneutes Aktivieren derselben Version fragt nicht erneut). „Entfernen…" löscht den Paket-Ordner nach einer eigenen Bestätigung endgültig.
 
+Bestätigung, Ein- und Ausschalten und den Fehler-Stand eines Pakets verwaltet EM4me selbst. Code einer Erweiterung kann diese Einträge nicht schreiben, ebenso wenig die übrigen geschützten Einstellungen wie „Skript-Blöcke ausführen“ oder die Ordner für Vorlagen und Workflows; der Versuch wird abgewiesen. Der eigene Speicher `ctx.storage` bleibt davon unberührt.
+
 ## Änderung eines installierten Pakets
 
 Geänderter Code eines bereits installierten Pakets wird **erst nach einem Neustart der Anwendung** ausgeführt. Das gilt für beide Beitrags-Wege gleichermaßen, also für den UI-Einstiegspunkt wie für den Render-Beitrag.

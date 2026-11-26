@@ -133,10 +133,13 @@ function attrappe(verhalten = {}) {
 
   const timer = [];
   const logger = { info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+  // 4T-002648: Stellvertreter der Absender-Prüfung (ipc/channel-sender.js).
+  const senderCheck = { registerWindow: vi.fn() };
   const bilder = createFolienBilder({
     BrowserWindow,
     protocol,
     logger,
+    senderCheck,
     setTimer: (fn, ms) => {
       timer.push({ fn, ms });
       return timer.length;
@@ -145,7 +148,7 @@ function attrappe(verhalten = {}) {
   });
   bilder.registriereBildSchema();
   const schema = (url, method = 'GET') => handler.get(BILD_SCHEMA)({ url, method });
-  return { bilder, erzeugt, spur, anfragen, protocol, schema, timer, logger };
+  return { bilder, erzeugt, spur, anfragen, protocol, schema, timer, logger, senderCheck };
 }
 
 const FOLIE_16_9 = { html: '<!doctype html><p>A</p>', breite: 1280, hoehe: 720 };
@@ -186,6 +189,19 @@ describe('Fenster-Optionen und Navigations-Sperre (AK5)', () => {
     expect(erzeugt[0].optionen.webPreferences.offscreen).toBe(true);
     expect(erzeugt[0].removeMenu).toHaveBeenCalled();
     expect(erzeugt[0].getContentSize()).toEqual([1280, 720]);
+  });
+
+  it('trägt sich als Fenster für Folien-Bilder ohne Seite ein (4T-002648)', async () => {
+    const { bilder, erzeugt, senderCheck } = attrappe();
+    await bilder.erzeugeFolienBilder({ folien: [FOLIE_16_9, FOLIE_16_9] });
+    expect(senderCheck.registerWindow).toHaveBeenCalledTimes(1);
+    expect(senderCheck.registerWindow).toHaveBeenCalledWith(erzeugt[0].webContents, 'slideImages');
+  });
+
+  it('ohne Absender-Prüfung lässt sich der Erzeuger nicht bauen (4T-002648)', () => {
+    expect(() =>
+      createFolienBilder({ BrowserWindow: class {}, protocol: { handle: vi.fn() } }),
+    ).toThrow(/senderCheck/);
   });
 
   it('window.open abgewiesen, Navigation aus der Seite abgewiesen', async () => {
@@ -476,7 +492,11 @@ describe('Ladeweg über das eigene Schema (AK5)', () => {
     expect(protocol.handle).toHaveBeenCalledTimes(1);
     expect(protocol.handle.mock.calls[0][0]).toBe('em4me-folie');
     expect(() => bilder.registriereBildSchema()).toThrow(/schon registriert/);
-    const ohne = createFolienBilder({ BrowserWindow: class {}, protocol: { handle: vi.fn() } });
+    const ohne = createFolienBilder({
+      BrowserWindow: class {},
+      protocol: { handle: vi.fn() },
+      senderCheck: { registerWindow: vi.fn() },
+    });
     await expect(ohne.erzeugeFolienBilder({ folien: [FOLIE_16_9] })).rejects.toThrow(
       /nicht registriert/,
     );

@@ -111,7 +111,15 @@ function computeDependencyFlags(tasks) {
   const openById = new Map(); // id -> hat mindestens eine OFFENE Task mit dieser ID
   for (const task of tasks) {
     if (!task.id) continue;
-    idCounts.set(task.id, (idCounts.get(task.id) || 0) + 1);
+    // 4T-002737 (Epic 3E-000396): Zeilen vom Typ «Keine Aufgabe» gelten nicht
+    // als Aufgaben und zählen bei mehrfach vergebenen Kennungen nicht mit;
+    // so trägt eine übertragene Aufgabe keine Warnung, obwohl ihre
+    // gekennzeichnete Zeile im alten Eintrag stehen bleibt.
+    // AUSLEGUNG: Die Zeile vom Typ «Keine Aufgabe» selbst bekommt ihr Flag
+    // nach derselben Zählung wie jede andere (ohne eigene Ausnahme).
+    if (task.statusType !== 'NON_TASK') {
+      idCounts.set(task.id, (idCounts.get(task.id) || 0) + 1);
+    }
     if (OPEN_STATUS_TYPES.has(task.statusType)) {
       openById.set(task.id, true);
     } else if (!openById.has(task.id)) {

@@ -280,6 +280,14 @@ const NACH_DER_MESSUNG = new Set([
   // entsteht lange nach der Erhebung und trägt die neue Bedingung
   // bereichUndKalender, die die eingefrorene alte Logik nicht kennt.
   'calendar.convert',
+  // 4T-002642 (Epic 3E-000397): «Zurück» und «Vor», aus demselben Grund; sie
+  // lesen die beiden Verlaufs-Felder, die die alte Logik nicht kennt.
+  'nav.back',
+  'nav.forward',
+  // 4T-002738 (Epic 3E-000396): der Übertrag offener Aufgaben, aus demselben
+  // Grund — es gibt ihn erst seit diesem Vorgang; seine Regel ist die der
+  // beiden Journal-Kommandos (area).
+  'journal.carryOver',
 ]);
 
 // 4T-001765 (Epic 3E-000186, E6): Die drei Editor-Schalter, deren REGEL dieser
@@ -314,8 +322,13 @@ const STRENGERE_EDITOR_REGEL = [
 // und die beiden neuen werden über Basis mal vier Belegungen aufgezählt.
 const LAGE_FELDER = ['inDatentabelle', 'diagrammGewaehlt'];
 const NEUE_KOMMANDOS = ['chart.insert', 'chart.edit'];
+// 4T-002642 (Epic 3E-000397): Die beiden Verlaufs-Felder bleiben aus
+// demselben Grund aus der Voll-Aufzählung; in KONTEXTE stehen sie auf false.
+// Dass nur «Zurück» und «Vor» sie lesen, prüft
+// test/unit/command-availability.test.js an den Bedingungen.
+const VERLAUF_FELDER = ['kannZurueck', 'kannVor'];
 const BOOL_FIELDS = AVAILABILITY_CONTEXT_FIELDS.filter(
-  (f) => f !== 'viewMode' && !LAGE_FELDER.includes(f),
+  (f) => f !== 'viewMode' && !LAGE_FELDER.includes(f) && !VERLAUF_FELDER.includes(f),
 );
 // 4T-001847 (Epic 3E-000110): 'kanban' als siebter Modus.
 // 4T-002160 (Epic 3E-000149): 'presentation' als achter.

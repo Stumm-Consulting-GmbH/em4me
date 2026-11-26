@@ -322,7 +322,11 @@ export async function openBookmarkFile(filePath) {
   } catch {
     /* fileExists-Fehler: still ignorieren, openOrJumpToPath haendelt das */
   }
-  await openOrJumpToPath(filePath, 1);
+  // 4T-002641: Ein Lesezeichen zeigt auf ein Dokument, nicht auf eine Zeile
+  // (Entscheidung des Product Owners vom 2026-11-13). Ohne Zeile öffnet es an
+  // der gemerkten Lese-Stelle; ein schon geöffnetes Dokument kommt nur nach
+  // vorn und bleibt, wo es steht.
+  await openOrJumpToPath(filePath);
 }
 
 // 4T-000612: Einen Knoten oeffnen (Abschnitts-aufloesend). Bereichs-Ziele werden

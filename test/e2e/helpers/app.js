@@ -13,6 +13,8 @@ const { SEL } = require('./selectors');
 const { hauptSenden, hauptLesen } = require('./haupt-zugriff');
 // 4T-001101: Zustands-Anteil der Profil-Vorbelegung aus der einen Quelle.
 const { schreibeProfilVorbelegung } = require('../../../scripts/profil-vorbelegung.js');
+// 4T-002759: Sperre gegen Starts am Bildschirm des Rechners.
+const { sichereStart } = require('../../../scripts/start-sperre.js');
 
 // Projekt-Wurzel (test/e2e/helpers -> drei Ebenen hoch).
 const APP_ROOT = path.resolve(__dirname, '..', '..', '..');
@@ -426,6 +428,11 @@ async function setzePruefBreite(app) {
  *                     userData: string }>}
  */
 async function launchApp(opts = {}) {
+  // 4T-002759: Zuerst die Sperre, vor jedem anderen Schritt: Unter Windows
+  // außerhalb der Prüfmaschine und unter Linux außerhalb eines Containers endet
+  // der Start hier mit einer Meldung, die den abgeschirmten Weg nennt — für jede
+  // Ablauf-Prüfung, auch eine einzelne und auch gegen die gebaute Programmdatei.
+  sichereStart('anwendung');
   // 4T-001481: Frische-Tor vor jedem Start — Begründung am Helfer oben.
   // 4T-002068: Es entfällt allein beim Start einer gebauten Programmdatei,
   // die ihr eigenes gepacktes Bündel trägt (start-parameter.js).

@@ -129,6 +129,11 @@ function registerWindowsIpc(handle, deps) {
   // (dokumentiert im Task): nicht-dirty Fenster, die sich beim abgebrochenen
   // Quit bereits geschlossen haben, bleiben geschlossen; der Reset stellt
   // nur die Persistenz wieder her.
+  // 4T-002788: Hat beim abgebrochenen Beenden schon ein Fenster geschlossen,
+  // steht die Sperre der Sitzungs-Sicherung (window-manager.js,
+  // window-persistence.js). Der Reset hebt sie auf und sichert sofort einmal,
+  // damit der Store die Fenster zeigt, die nach dem Abbruch noch offen sind,
+  // und nicht mehr den Stand mit den inzwischen geschlossenen.
   handle('window:cancelClose', (event) => {
     setQuitting(false);
     // 4T-001213 (Epic 3E-000225): Der Anwender hat abgebrochen; die Wache endet

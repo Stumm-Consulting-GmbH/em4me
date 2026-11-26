@@ -14,6 +14,8 @@ Al primo avvio EM4me crea la cartella `Data` accanto al file del programma. Acco
 
 **Per questo non eliminare né rinominare la cartella `Data`.** Se manca all'avvio, EM4me la ricrea vuota e comincia come al primo avvio; ciò che si trovava nella cartella precedente non viene allora usato.
 
+**I documenti non vanno nella cartella `Data`.** Contiene le impostazioni e le estensioni con cui lavora EM4me. Per questo EM4me non vi salva né esporta documenti: se nella finestra di salvataggio si sceglie una posizione al suo interno, EM4me segnala un errore e non scrive nulla. Ciò che vi si trova si può comunque aprire e leggere. Lo stesso vale nella versione installata per la sua cartella dei dati nel profilo utente e per la cartella del programma.
+
 Portarla con sé significa copiare il file del programma insieme alla cartella `Data`, nel modo più semplice copiando la cartella in cui si trovano entrambi, ad esempio su una chiavetta USB o su un altro computer. Impostazioni e sessione vengono così portate con sé.
 
 ## Dove si trovano i dati

@@ -84,6 +84,28 @@ classDiagram
   Pane "1" --> "*" Tab
 ```
 
+### Inserting building blocks
+
+Diagrams can be assembled by clicking instead of knowing the notation by heart. Three ways lead to the same offer: the drop-down button **Mermaid diagram** at the end of the [format toolbar](toolbar.md), **Insert → Mermaid diagram** in the [editor context menu](context-menu.md) and the command **Mermaid diagram…** in the command palette. What is offered depends on where the cursor is:
+
+- **Outside any code block** the four skeletons **Flow (Flowchart)**, **Sequence (Sequence)**, **Schedule (Gantt)** and **Classes (Class)**; each one inserts a complete, valid block.
+- **Inside a Mermaid block** the building blocks of its type: for a flow **Node**, **Decision**, **Connection** and **Labeled connection**; for a sequence **Participant**, **Message**, **Reply**, **Loop** and **Alternative**; for a schedule **Section**, **Task** and **Milestone**; for classes **Class**, **Class with members**, **Inheritance**, **Association** and **Part of**.
+- **In another code block, on the first or last line of a Mermaid block (the lines with the three backticks), in a Mermaid block without a header line naming the diagram type (such as `flowchart TD`) or in a Mermaid block of another diagram type** only the greyed-out hint «No Mermaid building blocks at this position» appears.
+
+New elements get consecutive identifiers (`N1`, `N2` …), and a joining building block such as connection, message or inheritance refers to the two most recently added elements. A building block takes over the indentation of the line the cursor is on. After inserting, the first placeholder is selected and can be overwritten at once; one click is a single undo step. Two nodes and a connection in the flow skeleton, for example, result in:
+
+```mermaid
+flowchart TD
+  N1[Start] --> N2[End]
+  N3[Step]
+  N4[Step]
+  N3 --> N4
+```
+
+In Live mode a freshly inserted skeleton is drawn as soon as the cursor leaves the block.
+
+The building blocks belong to the [internal extension](extensions.md) «Mermaid diagrams», which is switched on from the working mode **Advanced**. When it is off, the button, the context menu entry and the command are gone. If you have customized the assignment of the format toolbar, the button is not added automatically; the section «Customize the assignment» on the [format toolbar](toolbar.md) page explains how to add it.
+
 ## Code blocks with syntax highlighting
 
 A language tag after the opening backticks enables the colour palette (follows the theme):

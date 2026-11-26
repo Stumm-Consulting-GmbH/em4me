@@ -31,11 +31,12 @@ const { createTaskStatusTypeResolver } = require('../../shared/markdown/plugins.
 // 4T-002080 (Epic 3E-000259): die Aufgaben-Umgebung einer Abfrage, geteilt mit
 // den Kanaelen von Wertevorrat und Lookup-Feld (src/main/ipc/profiles.js).
 const { buildTaskEnv } = require('../index/task-env.js');
-const { computeLineReplacement } = require('../documents/task-line-edit.js');
 // 4T-001978 (Epic 3E-000330): welches Fenster einen Auftrag zum ungespeicherten
 // Stand einer Datei bekommt — dieselbe Regel wie bei den Erinnerungen.
 const { uebergibAnPufferBesitzer } = require('./puffer-fenster.js');
 const { createAreaReplace } = require('../area/area-replace.js');
+// Zweitblick zu 3E-000392, Hinweis A1: Schalter der Verweise ohne Ziel.
+const { verweisSchalter } = require('../area/area-stats.js');
 // 4T-001531 (Epic 3E-000175): Die Fundstellen einer Tag-Umbenennung. Sie
 // braucht jede Datei des Bereichs und laeuft deshalb hier, nicht im Renderer.
 const { ermittleUmbenennung } = require('../area/tag-rename.js');
@@ -52,6 +53,8 @@ const { istFeldKonflikt } = require('../documents/save-guard.js');
 // Antwort-Form eines abgewiesenen Laufs.
 const { pruefeAbfrageParams } = require('./dashboard.js');
 const { stateResponse } = require('../index/query-result-set.js');
+// 4T-002813 (Epic 3E-000444): zeilen-genaues Rückschreiben, auch in Teile zerlegter Dokumente.
+const { createAufgabenZeileSchreiben } = require('./aufgaben-zeile-schreiben.js');
 
 /**
  * Registriert die Kanaele der Index-Sichten, der Bereichs-Suche und der Embeds.
@@ -89,12 +92,23 @@ function registerIndexViewsIpc(handle, deps) {
     gibBereichsVorratFrei,
     readAreaProfilesConfig,
     resolveAreaStartPage,
+    // 4T-002782 (Epic 3E-000392): Verknüpfungen des Bereichs für die Verweise
+    // ohne Ziel.
+    readAreaLinks,
     resolveHistoryFor,
     readPreviousTextFor,
     recordMddOnSave,
     resolveQueryTemplatesFolder,
     mddPathFor,
+    meldeDateiAenderung,
   } = deps;
+  // 4T-002813: der Rumpf von task:applyLineEdit, gewöhnliche wie geteilte Dokumente.
+  const aufgabenZeile = createAufgabenZeileSchreiben({
+    resolveHistoryFor,
+    readPreviousTextFor,
+    recordMddOnSave,
+    meldeDateiAenderung,
+  });
   // 4T-000999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
   // Der Bezeichner bleibt `store`, damit die Handler-Rumpfe unveraendert sind.
   const store = getStore();
@@ -260,37 +274,24 @@ function registerIndexViewsIpc(handle, deps) {
   // test/e2e/funktionen/rueckschreib-beobachtung.spec.js (RB-03 sichert seit
   // 4T-001978 die Übergabe statt des Dialogs) und von
   // test/unit/beobachtungs-anlage.test.js (Anlage-Stelle samt Negativ-Probe).
+  //
+  // 4T-002813 (Epic 3E-000444): Ein Dokument aus Teilen schreibt der Kanal als
+  // Ganzes (src/main/ipc/aufgaben-zeile-schreiben.js): Der Pfad eines
+  // Folgeteils wird auf die Kopf-Datei aufgelöst, die Zeile in den
+  // zusammengesetzten Stand umgerechnet, geschrieben wird wie beim Speichern
+  // (nur geänderte Teile, Historie unter dem Pfad der Kopf-Datei), und Kopf
+  // und Teile müssen innerhalb der Wurzel liegen. Eine gewöhnliche Datei geht
+  // den Weg oben unverändert. Auch dort gibt es keine Schreib-Marke, aus dem
+  // Grund oben. Ändert sich nur ein Folgeteil, meldet die Beobachtung der
+  // Kopf-Datei nichts; der Kanal meldet die Änderung dann selbst unter dem
+  // Pfad der Kopf-Datei, damit ein dort sauber geöffnetes Dokument neu lädt.
   handle('task:applyLineEdit', async (event, params) => {
-    // BOM-Strip wie file:read (Escape-Form, kein unsichtbares Literal, M-04).
-    const BOM_RE = new RegExp('^\\uFEFF');
     const filePath = params && typeof params.filePath === 'string' ? params.filePath : '';
-    if (!filePath) return { ok: false, error: 'no path' };
-    let raw;
-    try {
-      raw = await fs.readFile(filePath, 'utf8');
-    } catch (err) {
-      return { ok: false, error: err && err.message ? err.message : String(err) };
-    }
-    const result = computeLineReplacement(raw, {
-      line: params && params.line,
-      expectedText: params && params.expectedText,
-      newText: params ? params.newText : null,
-      insert: params ? params.insert : null,
-    });
-    if (!result.ok) return { ok: false, reason: result.reason };
-    try {
-      const owner = senderWindow(event);
-      const recordHistory = (await resolveHistoryFor(owner, filePath, result.newContent)).effective;
-      const previousText = recordHistory ? await readPreviousTextFor(filePath) : null;
-      await ersetzeDateiOderWirf(filePath, result.newContent);
-      if (recordHistory) {
-        const newTextNorm = result.newContent.replace(BOM_RE, '').replace(/\r\n/g, '\n');
-        await recordMddOnSave(owner, filePath, previousText, newTextNorm);
-      }
-      return { ok: true, line: result.line };
-    } catch (err) {
-      return { ok: false, error: err && err.message ? err.message : String(err) };
-    }
+    // 4T-002813: Grenze eines geteilten Dokuments ist die Wurzel, die auch der
+    // Index der Abfrage nimmt: der Bereich, wenn die Datei darin liegt, sonst
+    // ihr Ordner.
+    const root = filePath ? backlinks.rootForActiveFile(filePath, areaRootForEvent(event)) : null;
+    return aufgabenZeile.schreibeAufgabenZeile(senderWindow(event), root, params);
   });
 
   // 4T-001978 (Epic 3E-000330): Handgriff an einem Treffer der Aufgaben-Abfrage
@@ -459,10 +460,21 @@ function registerIndexViewsIpc(handle, deps) {
       const treffer = await resolveAreaStartPage(areaRoot);
       if (treffer && !treffer.missing) startPage = treffer.path;
     }
-    return collectAreaStats(areaRoot, {
-      statusTypeOf: createTaskStatusTypeResolver(store ? store.get('taskStates') : null),
-      startPage,
-    });
+    // 4T-002782 (Epic 3E-000392): Die Schalter der Wiki-Verweise, der
+    // Bereichs-Verknüpfungen, der Canvas, des Dashboards, der Diagramme und der
+    // Datentabelle entscheiden, welche Verweise ohne Ziel beurteilt werden; die
+    // Verknüpfungen liest die Erhebung über den Leser der Bereichsdatei, den
+    // auch der Kanal der Editor-Prüfung nutzt.
+    const disabled = store ? store.get('extensions.disabled') : null;
+    return collectAreaStats(
+      areaRoot,
+      {
+        statusTypeOf: createTaskStatusTypeResolver(store ? store.get('taskStates') : null),
+        startPage,
+        ...verweisSchalter(disabled),
+      },
+      { readAreaLinks },
+    );
   });
 
   // 4T-000615 (Epic 3E-000116): Bereichs-Suchlauf. Der Renderer schickt den
@@ -574,13 +586,19 @@ function registerIndexViewsIpc(handle, deps) {
     const filePath = params && params.filePath;
     const content = params && params.content;
     let ergebnis;
+    // 4T-001727 (Epic 3E-000305): Der Melder reist mit; eine aus diesem Stand
+    // faellige Erinnerung wird in seinem Fenster bearbeitet (reminders:edit).
+    // 4T-002740 (Epic 3E-000396): Auch die Rücknahme nennt ihn, damit in der
+    // Ablage je Fenster nur der Stand dieses Fensters fällt.
+    const besitzer = event && event.sender ? event.sender.id : null;
     if (content === null) {
-      ergebnis = backlinks.clearBufferOverlay(filePath);
+      ergebnis = backlinks.clearBufferOverlay(filePath, besitzer);
     } else {
-      // 4T-001727 (Epic 3E-000305): Der Melder reist mit; eine aus diesem Stand
-      // faellige Erinnerung wird in seinem Fenster bearbeitet (reminders:edit).
-      const besitzer = event && event.sender ? event.sender.id : null;
-      ergebnis = backlinks.setBufferOverlay(filePath, content, besitzer);
+      // 4T-002812 (Epic 3E-000444): Nur ein ausdrückliches false gilt als
+      // unverändert; fehlt die Angabe, bleibt es beim bisherigen Verhalten
+      // (Schreibziel ist der Melder). Wirkung an bufferOwnerFor (overlay.js).
+      const ungespeichert = !(params && params.ungespeichert === false);
+      ergebnis = backlinks.setBufferOverlay(filePath, content, besitzer, ungespeichert);
     }
     // 4T-002023 (Epic 3E-000192): Meldung an alle Fenster, auch nach einer
     // Ruecknahme ohne Eintrag (Begruendung an meldeOverlayAenderung). Sie geht

@@ -88,6 +88,8 @@ Nothing is passed over silently: every deviation from the straightforward case s
 
 Added are therefore your own color schemes, your custom slide themes, the macros, the layout variants of the sidebar, the custom working modes, the bookmarks and the calendar blocks: they step **alongside** what is there, and the existing stock is not touched in the process. Replaced are the settings, the keyboard shortcut assignment, the format toolbar, the template rules, the workflows folder and the on/off state of the extensions: a value knows no plural, and two interleaved arrangements would yield a third that nobody set up.
 
+A templates or workflows folder that lies in the program folder or in the folder of its settings, extensions and language files is not taken over: the preview names the data kind as skipped, with the reason, and the other data kinds arrive as chosen. The permission to run scripts never comes from the file: it stays as it is set here, and the preview names it when the file says otherwise.
+
 **With an identical name the existing entry stays unchanged**, and the one read in comes alongside it with a distinguishing addition: "Sample" becomes "Sample (2)". The preview names every such renaming by name. References follow along — a macro read in that receives a new identifier is still found by its button.
 
 Two special cases follow from the object: a bookmark to a file that is already remembered is skipped instead of being created twice — a bookmark folder, by contrast, always comes along as a whole, because it is your ordering work. And a calendar block whose definition is incomplete is rejected and named, instead of creating half an entry.

@@ -607,6 +607,15 @@ function tabellenKastenAn(view, kopf) {
   return null;
 }
 
+// 4T-002641: Liegt die Stelle `kopf` in einem Tabellen-Widget? Dieselbe Prüfung,
+// mit der der Auswahl-Beobachter entscheidet, ob eine Schreibmarke eine Zelle
+// öffnet. Die Lese-Position fragt sie, bevor sie eine vermerkte Schreibmarke
+// zurücksetzt: Dort stand sie nur, weil der Anwender in einer Zelle schrieb, und
+// ein Zurücksetzen öffnete die Zelle erneut, statt die Tabelle zu zeigen.
+export function liegtInTabellenWidget(view, kopf) {
+  return !!(view && view.dom && tabellenKastenAn(view, kopf));
+}
+
 // Oeffnet die Zelle, in der die Stelle `kopf` des Dokuments liegt — falls sie in
 // einem Tabellen-Widget liegt und dort geschrieben werden darf.
 export function oeffneZelleFuerDokumentStelle(view, kopf) {

@@ -22,6 +22,7 @@ const {
 beforeEach(() => {
   document.body.innerHTML = '';
   window.api.setSetting = vi.fn(async () => {});
+  window.api.workflowSetFolder = vi.fn(async () => ({ ok: true }));
   window.api.workflowSetAreaConfig = vi.fn(async () => ({ ok: true }));
   window.api.workflowGetConfig = vi.fn(async () => null);
   window.api.templatesChooseFolder = vi.fn(async () => ({ ok: false, canceled: true }));
@@ -103,13 +104,36 @@ describe('Änderungs-Erkennung', () => {
 });
 
 describe('applyWorkflowsSection — wohin geschrieben wird (AK1)', () => {
-  it('schreibt den globalen Ordner getrimmt in den Einstellungs-Speicher', async () => {
+  // 4T-002649: über den Kanal des Workflow-Ordners mit dem Ziel 'global', weil
+  // der allgemeine Einstellungs-Weg den Schlüssel abweist.
+  it('schreibt den globalen Ordner getrimmt über den Kanal des Workflow-Ordners', async () => {
     const d = await entwurf({ hasArea: false, global: null, area: null });
     d.workflows.global.folder = '  C:\\Workflows ';
     await applyWorkflowsSection(d);
-    expect(window.api.setSetting).toHaveBeenCalledWith('workflows.folder', 'C:\\Workflows');
+    expect(window.api.workflowSetFolder).toHaveBeenCalledWith('C:\\Workflows', 'global');
+    expect(window.api.setSetting).not.toHaveBeenCalled();
     expect(window.api.workflowSetAreaConfig).not.toHaveBeenCalled();
     expect(d.workflowsSnapshot).toEqual({ global: 'C:\\Workflows', area: null });
+  });
+
+  it('leert den globalen Ordner über denselben Kanal', async () => {
+    const d = await entwurf({ hasArea: false, global: { folder: 'C:\\Alt' }, area: null });
+    d.workflows.global.folder = '  ';
+    await applyWorkflowsSection(d);
+    expect(window.api.workflowSetFolder).toHaveBeenCalledWith('', 'global');
+    expect(d.workflowsSnapshot.global).toBe('');
+  });
+
+  it('behält bei abgewiesenem globalen Ordner den alten Stand als Vergleich', async () => {
+    const d = await entwurf({ hasArea: false, global: { folder: 'C:\\Alt' }, area: null });
+    window.api.workflowSetFolder = vi.fn(async () => ({
+      ok: false,
+      error: 'guard:protectedFolder',
+    }));
+    d.workflows.global.folder = 'C:\\Geschützt';
+    await applyWorkflowsSection(d);
+    expect(d.workflowsSnapshot.global).toBe('C:\\Alt');
+    expect(dirtyWorkflowsSection(d)).toBe(true);
   });
 
   it('schreibt den Bereichs-Ordner über den Kanal der Bereichsdatei und entfernt ihn beim Ausschalten', async () => {
@@ -149,6 +173,7 @@ describe('applyWorkflowsSection — wohin geschrieben wird (AK1)', () => {
     });
     await applyWorkflowsSection(d);
     expect(window.api.setSetting).not.toHaveBeenCalled();
+    expect(window.api.workflowSetFolder).not.toHaveBeenCalled();
     expect(window.api.workflowSetAreaConfig).not.toHaveBeenCalled();
   });
 });

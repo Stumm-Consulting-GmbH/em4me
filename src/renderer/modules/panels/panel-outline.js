@@ -23,10 +23,15 @@ import {
 // liefert die Nummern, der Renderer-Zustand den effektiven Dokument-Kontext.
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { foldStructureField } from '../editor/folding.js';
+import { extractHeadingText } from '../editor/ueberschriften.js';
 import { resolveHeadingNumberingForDoc } from '../heading-numbering.js';
 import { ensurePanelTabActive, registerSidebarPanel } from '../sidebar-layout.js';
 import { reportMenuStateNow } from '../tabs/tabs.js';
 import { isAllEmpty, persistSetting } from '../views/views.js';
+// 4T-002642 (Epic 3E-000397): Der Sprung zu einer Überschrift ist ein Besuch.
+import { merkeSprung } from '../views/navigation-verlauf-bedienung.js';
+// Der Sprung geht der gemerkten Lese-Stelle vor, wie bei jeder Sprung-Funktion.
+import { rolleLeseZielInSicht, verwirfStelle } from '../views/lese-position.js';
 import { computeHeadingNumbers } from '../../../shared/heading-numbers.js';
 import { extractFrontmatter } from '../../../shared/markdown/frontmatter.js';
 
@@ -125,19 +130,9 @@ export function renderOutline(paneIdx) {
   applyOutlineActiveHighlight(paneIdx);
 }
 
-// Extrahiert den Text einer Heading-Zeile aus dem Doc, mit ATX- bzw. Setext-
-// Bereinigung. Trailing '#' bei ATX werden mit entfernt.
-export function extractHeadingText(doc, lineNumber) {
-  if (lineNumber < 1 || lineNumber > doc.lines) return '';
-  const lineObj = doc.line(lineNumber);
-  let raw = lineObj.text;
-  // 4T-000202: trailing Attribut-Block ({#id}/{.klasse}, markdown-it-attrs)
-  // gehoert nicht in den Outline-Titel — der Render strippt ihn ebenso.
-  raw = raw.replace(/\{[^\s{}][^{}]*\}[ \t]*$/, '');
-  const atx = /^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$/.exec(raw);
-  if (atx) return atx[1].trim();
-  return raw.trim();
-}
+// 4T-002558 (Epic 3E-000390): Die Text-Ermittlung einer Überschrift liegt im
+// gemeinsamen Modul editor/ueberschriften.js; der Export bleibt hier bestehen.
+export { extractHeadingText };
 
 // 4T-000471 (Epic 3E-000087): Roh-Titel einer Heading-Zeile OHNE Attribut-/
 // Marker-Strip — die Marker-Erkennung des Nummerierungs-Kerns braucht das
@@ -298,6 +293,8 @@ export function refreshAllOutlineFoldIndicators(paneIdx) {
 // Sprung-Klick: setzt Cursor auf Heading-Zeile, entfaltet Region falls noetig,
 // und scrollt im Render-Pane zum entsprechenden Anker.
 export function jumpToHeading(paneIdx, lineNumber) {
+  verwirfStelle(paneIdx);
+  merkeSprung(paneIdx, lineNumber);
   const view = paneEditors[paneIdx];
   if (view) {
     if (isHeadingRegionFolded(view, lineNumber)) {
@@ -341,7 +338,7 @@ export function jumpToHeading(paneIdx, lineNumber) {
       }
       const domId = occurrence === 0 ? slug : `${slug}-${occurrence}`;
       const anchor = els.renderedHtml.querySelector(`[id="${CSS.escape(domId)}"]`);
-      if (anchor) anchor.scrollIntoView({ block: 'start' });
+      if (anchor) rolleLeseZielInSicht(els, anchor, 'auto');
     }
   }
 }

@@ -176,7 +176,9 @@ export function savePropertiesFromPane(paneIdx, targetTab) {
   syncEditorForPane(paneIdx);
   const elsRefresh = getPaneEls(paneIdx);
   if (elsRefresh.renderedHtml) {
-    elsRefresh.renderedHtml.innerHTML = api.renderMarkdown(tab.content, tab.path);
+    elsRefresh.renderedHtml.innerHTML = api.renderMarkdown(tab.content, tab.path, {
+      titelbild: true,
+    });
     // R2-13/R5-07 (4T-000179): vereinheitlichte Render-Nachverarbeitung
     // (inkl. Search-Refresh, der hier zuvor fehlte — gewollter Fix).
     applyRenderPipeline(elsRefresh.renderedHtml, tab.path);

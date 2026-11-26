@@ -12,7 +12,7 @@ Buttons whose command belongs to a disabled extension do not appear (the configu
 
 ## Hide default buttons
 
-Every default element of the status bar can be hidden individually: the panel toggles, the three editor toggles (fold gutter, line numbers, word wrap), the four view buttons and the elements on the right side (word statistics, zoom display, edit, scroll sync, document history, theme, language). Only the hint line always stays visible — it is the only channel for short messages such as the save status.
+Every default element of the status bar can be hidden individually: the panel toggles, the two arrow buttons "Back" and "Forward" at the start of the command buttons, the three editor toggles (fold gutter, line numbers, word wrap), the four view buttons and the elements on the right side (word statistics, zoom display, edit, scroll sync, document history, theme, language). Only the hint line always stays visible — it is the only channel for short messages such as the save status.
 
 Hiding only clears away the access point, the function itself remains: everything hidden stays reachable through the menu, the command palette and keyboard shortcuts. The "Show all" button restores the default status bar. Hiding here is permanent and independent of whether a button would be usable at the moment; how the bar handles buttons that can do nothing at the moment is described by [Views and display](views-display.md).
 

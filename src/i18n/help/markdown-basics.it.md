@@ -4,7 +4,7 @@ L'app renderizza Markdown sulla base dello standard CommonMark, esteso con tabel
 
 ## Titoli
 
-Sei livelli con `#` fino a `######`; ogni titolo riceve automaticamente un'ancora per collegamenti e sommario.
+Sei livelli con `#` fino a `######`; ogni titolo riceve automaticamente un'ancora per collegamenti e sommario. Un sommario all'interno del documento stesso lo crea il blocco sommario (vedi [Costrutti di blocco](blocks.md)).
 
 ```markdown
 ## Capitolo
@@ -131,7 +131,7 @@ Il comportamento vale nelle viste Sorgente, Divisa e Live. L'impostazione «Il c
 
 ## Tabelle
 
-Tabelle pipe con riga di intestazione e riga separatrice; i due punti nella riga separatrice controllano l'allineamento. Per celle-blocco multilinea c'è [Perspective Table](perspective-table.md), per il comfort di digitazione l'editor di tabelle (vedi [Strumenti](tools.md)). Per ristrutturare tabelle esistenti (spostare, inserire ed eliminare righe e colonne, allineamento, trasposizione), utilizzare il sottomenu **Tabella** nel [Menu contestuale dell'editor](context-menu.md).
+Tabelle pipe con riga di intestazione e riga separatrice; i due punti nella riga separatrice controllano l'allineamento. Per celle-blocco multilinea c'è [Perspective Table](perspective-table.md), per il comfort di digitazione l'editor di tabelle (vedi [Strumenti](tools.md)). Per ristrutturare tabelle esistenti (spostare, inserire ed eliminare righe e colonne, allineamento, trasposizione), utilizzare il sottomenu **Tabella** nel [Menu contestuale dell'editor](context-menu.md). Un intervallo di celle da un foglio di calcolo diventa da sé una tabella quando lo si incolla (vedi [Strumenti](tools.md)).
 
 ```markdown
 | Sinistra | Centrato | Destra |

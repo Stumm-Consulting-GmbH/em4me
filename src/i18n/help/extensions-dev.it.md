@@ -56,6 +56,8 @@ Il file `manifest.json` descrive il pacchetto:
 
 «Disattiva» ritira subito tutti i contributi (la conferma resta salvata; riattivare la stessa versione non chiede di nuovo). «Rimuovi…» elimina definitivamente la cartella del pacchetto dopo una propria conferma.
 
+EM4me gestisce da sé la conferma, lo stato attivo o disattivo e lo stato di errore di un pacchetto. Il codice di un'estensione non può scrivere queste voci, né le altre impostazioni protette come «Esegui blocchi di script» o le cartelle dei modelli e dei workflow; il tentativo viene respinto. Lo spazio di archiviazione proprio `ctx.storage` non ne è toccato.
+
 ## Modifica di un pacchetto installato
 
 Il codice modificato di un pacchetto già installato viene eseguito solo **dopo un riavvio dell'applicazione**. Vale allo stesso modo per entrambe le vie di contributo, sia il punto di ingresso dell'interfaccia sia il contributo al rendering.

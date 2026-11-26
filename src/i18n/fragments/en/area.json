@@ -104,5 +104,9 @@
   "areaPanel.inputDiscarded": "The target folder is no longer shown; the input was discarded",
   "area.outsideTitle": "Outside the area",
   "area.outsideOpenMessage": "The selection is outside the area and will not be opened.",
-  "area.outsideSaveMessage": "The chosen location is outside the area. Please choose a location inside the area."
+  "area.outsideSaveMessage": "The chosen location is outside the area. Please choose a location inside the area.",
+  "area.protectedFolderTitle": "Protected folder",
+  "area.protectedFolderMessage": "This folder belongs to the program. Nothing can be saved here.",
+  "area.targetUncheckedTitle": "Location could not be checked",
+  "area.targetUncheckedMessage": "It could not be checked whether this location belongs to the program. Nothing is saved here for that reason."
 }

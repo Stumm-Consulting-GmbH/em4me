@@ -264,9 +264,12 @@ function createSettingsVerteilung(deps) {
     }
     // 4T-000298 (Epic 3E-000053): Schalt-Zustand der EXTERNEN Erweiterungen an
     // alle Fenster broadcasten (auch an den Sender — der Empfangspfad laedt
-    // Store-Stand und Scan neu und gleicht idempotent an). Die Enabled-Liste
-    // wird vom Host immer als LETZTER Schluessel persistiert (nach trusted/
-    // lastError), damit der Broadcast den fertigen Zustand sieht.
+    // Store-Stand und Scan neu und gleicht idempotent an). Seit 4T-002650
+    // schreibt allein der Hauptprozess Bestaetigung, Fehler-Stand und
+    // Enabled-Liste (extension-trust.js) und verteilt erst danach ueber die
+    // Kanaele in ipc/extensions.js; der Broadcast sieht damit den fertigen
+    // Zustand (Review-Befund Z5 vom 2026-11-22: hier stand noch der Weg ueber
+    // den Erweiterungs-Host im Fenster).
     if (key === 'extensionsExternal.enabled') {
       for (const w of BrowserWindow.getAllWindows()) {
         if (!w.isDestroyed()) w.webContents.send('extensionsExternal:changed', value);

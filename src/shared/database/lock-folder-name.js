@@ -1,7 +1,7 @@
 // 4T-001787 (Epic 3E-000255, E9): Der Name des Sperr-Ordners — Vorgabe-Name und
 // Gültigkeits-Regel, an einer Stelle.
 //
-// **Warum prozess-neutral und importfrei.** Dieselbe Regel brauchen zwei
+// **Warum prozess-neutral.** Dieselbe Regel brauchen zwei
 // Seiten: der Sperr-Speicher im Haupt-Prozess, der den wirksamen Namen
 // auflöst, und später die Eingabe-Prüfung der Einstellung im Anzeige-Prozess
 // (4T-001795). Eine zweite Regel dort wäre der Weg, auf dem beide Seiten
@@ -25,8 +25,11 @@
 //
 // Hier stehen keine Texte und keine Übersetzungs-Schlüssel: Die Codes sind
 // sprachneutral, und wer eine Meldung braucht, bildet sie an seinem Bedienort
-// ab.
+// ab. Einziger Import ist die Gerätenamen-Regel aus ihrer Heimat, selbst
+// prozess-neutral und ohne eigenen Zustand.
 'use strict';
+
+const { isWindowsDeviceName } = require('../windows-geraetenamen');
 
 // Vier Gründe für diesen Namen, der erste ist der tragende. Erstens erbt ein
 // Name mit führendem Punkt den Ausschluss aus den sechs Stellen oben, ohne dass
@@ -77,8 +80,12 @@ const NUR_PUNKTE_RE = /^\.+$/;
 
 // 4T-001795 (Epic 3E-000255): Die reservierten Gerätenamen von Windows. Sie
 // bezeichnen dort kein Verzeichnis, sondern ein Gerät, und zwar **mit wie ohne
-// Endung**: `CON` und `CON.txt` sind beide belegt. Deshalb der optionale
-// Endungs-Teil im Ausdruck.
+// Endung**: `CON` und `CON.txt` sind beide belegt. Die Regel liegt seit dem
+// 2026-11-22 in `src/shared/windows-geraetenamen.js`, die auch die Prüf-Funktion
+// der Grenze liest (Review-Befund Z2, Epic 3E-000416); sie nimmt dort zusätzlich
+// `COM0`, `LPT0`, die hochgestellten Ziffern und die Konsolen-Geräte. Für einen
+// Sperr-Ordner ändert das nur den gemeldeten Grund solcher Namen, denn ohne
+// führenden Punkt scheitern sie ohnehin.
 //
 // **Warum die Prüfung VOR dem führenden Punkt steht.** Ein reservierter Name
 // scheitert ohnehin schon an der Punkt-Regel, denn `.con` trägt den Punkt und
@@ -86,7 +93,6 @@ const NUR_PUNKTE_RE = /^\.+$/;
 // und dann soll er den Grund erfahren, der seinen Namen unbrauchbar macht,
 // statt der bloßen Form-Vorgabe. Die Regel bleibt damit eine eigene mit eigener
 // Meldung, wie es die Gültigkeits-Regel des Vorgangs verlangt.
-const RESERVIERTER_NAME_RE = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i;
 
 /**
  * Prüft einen Ordnernamen gegen die Gültigkeits-Regel.
@@ -102,7 +108,7 @@ function pruefeSperrOrdnerName(name) {
   if (name.length > MAX_LOCK_FOLDER_NAME_LENGTH) {
     return { ok: false, code: LOCK_FOLDER_NAME_CODES.zuLang };
   }
-  if (RESERVIERTER_NAME_RE.test(name)) {
+  if (isWindowsDeviceName(name)) {
     return { ok: false, code: LOCK_FOLDER_NAME_CODES.reservierterName };
   }
   if (!name.startsWith('.')) {

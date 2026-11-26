@@ -31,12 +31,94 @@ Uno schema modificato non rinomina i file esistenti; i punti del calendario e il
 
 - **Voce di diario di oggi** (menu File → Altre funzioni file): apre o crea la voce di oggi di un diario giornaliero; con selezione se esistono più diari giornalieri.
 - **Voce di diario per una data…** (menu File → Altre funzioni file): chiede una data (AAAA-MM-GG) e il diario; il periodo è quello della data nella granularità del diario.
+- **Riportare le attività aperte nella voce di diario attuale** (menu File → Altre funzioni file): apre o crea la voce del periodo in corso e vi riporta le attività aperte dell’ultima voce; vedi la sezione «Riportare le attività aperte».
 
 La creazione produce la catena di cartelle, il contenuto del modello compilato (una voce vuota senza modello) e le proprietà del diario nel frontmatter. Una voce porta **quattro** proprietà, indipendentemente dalla granularità: il nome del diario (`journal`), la data del periodo (`journal-date`), l’inizio (`journal-start-date`) e la fine (`journal-end-date`). La data del periodo è sempre il suo **inizio**; nelle voci giornaliere le tre date coincidono quindi. I nomi di campo sono configurabili per diario e disponibili per la query Perspective — poiché ogni voce porta lo stesso insieme, una query non deve distinguere per granularità. I segnaposto di data del modello vengono valutati all’inizio del periodo: `{{date}}` restituisce la data del periodo, non il momento della creazione. Annullare un dialogo del modello interrompe la creazione; non viene creato alcun file.
 
 Una voce **già esistente** viene completata quando le mancano proprietà, per esempio perché proviene da un’altra applicazione o è stata creata a mano. Ciò avviene in due modi. All’**apertura** tramite comando, calendario o blocco di navigazione, le proprietà mancanti vengono aggiunte in silenzio; se la voce è già completa, il file resta intatto. Il comando **Completare le proprietà del diario…** porta tutte le voci esistenti di un diario allo stesso stato in una volta; prima indica quante voci vengono controllate e chiede conferma.
 
 Creare e completare si comportano volutamente in modo diverso: alla **creazione** l’applicazione imposta le proprietà e sovrascrive i campi omonimi del modello. Al **completamento** viene aggiunto solo ciò che manca; un valore esistente resta anche se diverge dal periodo, perché può essere una correzione deliberata. I campi estranei e il resto del contenuto restano intatti in entrambi i casi, e un frontmatter danneggiato non viene toccato.
+
+## Riportare le attività aperte
+
+L’applicazione riporta le attività aperte dell’ultima voce esistente di un diario nella voce del periodo in corso: in un diario giornaliero in quella di oggi, in un diario settimanale in quella della settimana in corso. Questo vale per diari di qualsiasi granularità, anche se l’ultima voce risale a giorni prima. La fonte è sempre la voce precedente più recente dello stesso diario; le voci future non contano.
+
+**Impostazioni.** Nell’editor di un diario in Impostazioni → Diari, il gruppo «Riportare le attività aperte» raccoglie tre impostazioni:
+
+- **Riportare automaticamente alla creazione della voce** (disattivato per impostazione predefinita): con l’interruttore attivo, il riporto avviene non appena la voce del periodo in corso viene creata, qualunque sia la via: i comandi, il pannello calendario, il blocco di navigazione o il blocco linea temporale, oppure la data di una scheda di una bacheca Kanban. La semplice apertura di una voce esistente e la creazione di una voce per un altro periodo non fanno nulla.
+- **Nella voce precedente**: «contrassegnare come riportata» (predefinito) mette lì l’attività riportata nello stato «Riportato» (`- [»] …`, pagina [Liste di attività](tasks.md)); «rimuovere» la cancella da lì.
+- **Solo dalla sezione** (vuoto per impostazione predefinita): il testo di un’intestazione. Se il campo è compilato, vengono riportate solo le attività sotto questa intestazione e le sue sotto-intestazioni; se è vuoto, tutte le attività aperte della voce.
+
+**Comando manuale.** **Riportare le attività aperte nella voce di diario attuale** (menu File → Altre funzioni file, anche nella palette dei comandi) riporta in qualsiasi momento nella voce del periodo in corso, anche se l’interruttore è disattivato, e anche in una voce che esiste già; se la voce manca, viene creata. Con più diari il comando chiede quale si intende. Una seconda esecuzione non riporta nulla due volte, perché le attività riportate sono contrassegnate o rimosse nella voce precedente.
+
+**Dove arrivano le attività.** Ogni attività arriva nella nuova voce sotto l’intestazione sotto cui stava nella precedente, alla fine di quella sezione. Omonima significa stesso testo, senza badare a maiuscole e minuscole né al livello dell’intestazione; se l’intestazione compare più volte nella nuova voce, vale la prima. Se lì manca, viene creata con le attività alla fine della voce. Le attività che nella voce precedente stavano prima della prima intestazione vanno alla fine della nuova. L’ordine resta invariato.
+
+**Sottopunti.** Un’attività si sposta con tutto ciò che sta rientrato direttamente sotto di essa, fino alla riga vuota successiva: sottoattività aperte e completate, i loro sottopunti e le righe di nota. Ciò che prosegue rientrato dopo una riga vuota non le appartiene più e resta nella voce precedente. Con «contrassegnare come riportata», ogni riga di attività del blocco spostato viene contrassegnata nella voce precedente, anche una sottoattività completata; con «rimuovere», sparisce l’intero blocco. Un’attività aperta sotto una completata o annullata, senza un’attività aperta sopra, si sposta da sola e nella nuova voce sta senza rientro.
+
+**Che cosa conta come aperto.** Le attività il cui stato è di tipo Aperto, In corso o In attesa (pagina [Liste di attività](tasks.md), sezione «Stati personalizzati, tipo e simbolo successivo»); anche una casella con un carattere per cui non è configurato alcuno stato conta come aperta. Le attività completate e annullate e le righe di tipo Non è un'attività restano dove sono. Una riga contrassegnata come «Riportato» non viene mai riportata di nuovo, anche se questo stato è disattivato. Le caselle nei blocchi di codice, nelle citazioni e nelle tabelle non sono attività e restano dove sono. Un Filtro globale impostato vale anche qui.
+
+Esempio con «contrassegnare come riportata». La voce precedente prima:
+
+```markdown
+## Lavoro
+- [ ] Scrivere il preventivo
+  - [x] Raccogliere i numeri
+  - [ ] Abbozzare il testo
+- [x] Controllare la fattura
+
+## Personale
+- [ ] Portare la bici dal meccanico
+```
+
+La nuova voce, creata dal modello:
+
+```markdown
+## Lavoro
+
+## Personale
+```
+
+La nuova voce dopo il riporto:
+
+```markdown
+## Lavoro
+
+- [ ] Scrivere il preventivo
+  - [x] Raccogliere i numeri
+  - [ ] Abbozzare il testo
+
+## Personale
+
+- [ ] Portare la bici dal meccanico
+```
+
+La voce precedente dopo il riporto:
+
+```markdown
+## Lavoro
+- [»] Scrivere il preventivo
+  - [»] Raccogliere i numeri
+  - [»] Abbozzare il testo
+- [x] Controllare la fattura
+
+## Personale
+- [»] Portare la bici dal meccanico
+```
+
+Con «rimuovere», nella voce precedente resterebbero poi solo le due intestazioni e «Controllare la fattura».
+
+**Regole di dettaglio.**
+
+- **Modifiche non salvate:** se la voce precedente o la nuova ha modifiche non salvate in una finestra qualsiasi, non viene riportato nulla, e la barra di stato nomina la voce. Con il riporto automatico la nuova voce viene allora creata senza le attività; dopo il salvataggio, il comando manuale recupera il riporto.
+- **Funzioni disattivate:** se l’estensione «Attività» è disattivata, non viene riportato nulla, perché allora niente conta come attività; il comando lo segnala nella barra di stato. Se l’estensione «Diari» è disattivata, comando e impostazioni scompaiono, e non viene riportato nulla.
+- **Solo l’ultima voce:** la fonte è esattamente la voce precedente più recente. Ciò che è rimasto aperto in voci ancora più vecchie resta lì.
+- **Attività già presente:** se il modello porta un’attività ogni giorno e la stessa attività è ancora aperta nella voce precedente, non arriva una seconda volta nella nuova; nella precedente viene comunque contrassegnata o rimossa. Questo vale solo se la riga è identica carattere per carattere, sta sotto la stessa intestazione e non ha nulla sotto di sé nella voce precedente. Se lì ha ricevuto sottopunti, si sposta con essi e compare quindi due volte nella nuova voce.
+- **Sezione non trovata:** se «Solo dalla sezione» nomina un’intestazione che la voce precedente non ha, non viene riportato nulla, e la barra di stato lo segnala, anche con il riporto automatico.
+- **Messaggi:** dopo un riporto la barra di stato indica il numero di attività e la voce da cui provengono. Che non esista una voce precedente o alcuna attività aperta lo segnala solo il comando manuale.
+- **Elenchi numerati e intestazioni vuote:** un’attività di un elenco numerato conserva il suo numero; nulla viene rinumerato. Se dopo «rimuovere» resta nella voce precedente un’intestazione senza contenuto, rimane.
+- **Limiti:** al massimo 500 attività per riporto, voci fino a 5 MB e al massimo 20 000 file Markdown nelle cartelle del diario; oltre non viene riportato nulla, e la barra di stato lo segnala.
+- **Ritorno:** non esiste un comando di annullamento dedicato. Entrambe le voci ricevono una voce nella loro [Cronologia del documento](history.md), dove è attivata per il documento; con «contrassegnare come riportata», un clic sulla casella riapre l’attività nella voce precedente.
+- **Nessun collegamento:** la riga contrassegnata nella voce precedente non riceve alcun collegamento alla nuova voce.
 
 ## Pannello calendario
 

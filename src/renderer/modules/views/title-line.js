@@ -119,6 +119,13 @@ export function updateTitleLineForPane(paneIdx) {
     el.hidden = !visible;
     if (!visible) {
       hideTitleLineHint(el);
+      // 4T-002783: Der Bildlauf-Abstand, den ein Sprung für die Titelzeile
+      // der Lese-Fläche gesetzt hat (rolleLeseZielInSicht), gilt nur, solange
+      // sie sichtbar ist; sonst verschöbe er etwa die mittige Fundstelle der
+      // Suche in der geteilten Ansicht.
+      if (el.dataset.host === 'rendered' && els.renderedEl && els.renderedEl.style) {
+        els.renderedEl.style.scrollPaddingTop = '';
+      }
       continue;
     }
     const textEl = el.querySelector('.title-line-text');

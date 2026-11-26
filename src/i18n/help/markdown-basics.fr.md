@@ -4,7 +4,7 @@ L'application rend du Markdown sur la base du standard CommonMark, étendu par l
 
 ## Titres
 
-Six niveaux avec `#` à `######` ; chaque titre reçoit automatiquement une ancre pour les liens et la table des matières.
+Six niveaux avec `#` à `######` ; chaque titre reçoit automatiquement une ancre pour les liens et la table des matières. Une table des matières dans le document même s'obtient avec le bloc table des matières (voir [Constructions de bloc](blocks.md)).
 
 ```markdown
 ## Chapitre
@@ -131,7 +131,7 @@ Le comportement s'applique dans les vues Source, Scindée et Live. Le paramètre
 
 ## Tableaux
 
-Tableaux pipe avec ligne d'en-tête et ligne de séparation ; les deux-points dans la ligne de séparation contrôlent l'alignement. Pour des cellules-bloc multilignes, voir [Perspective Table](perspective-table.md) ; pour le confort de saisie, l'éditeur de tableaux (voir [Outils](tools.md)). Pour remanier des tableaux existants (déplacer, insérer et supprimer des lignes et des colonnes, alignement, transposition), utilisez le sous-menu **Tableau** dans le [Menu contextuel de l'éditeur](context-menu.md).
+Tableaux pipe avec ligne d'en-tête et ligne de séparation ; les deux-points dans la ligne de séparation contrôlent l'alignement. Pour des cellules-bloc multilignes, voir [Perspective Table](perspective-table.md) ; pour le confort de saisie, l'éditeur de tableaux (voir [Outils](tools.md)). Pour remanier des tableaux existants (déplacer, insérer et supprimer des lignes et des colonnes, alignement, transposition), utilisez le sous-menu **Tableau** dans le [Menu contextuel de l'éditeur](context-menu.md). Une plage de cellules provenant d'un tableur devient d'elle-même un tableau lors du collage (voir [Outils](tools.md)).
 
 ```markdown
 | Gauche | Centré | Droite |

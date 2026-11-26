@@ -79,6 +79,11 @@ function normalizeMenuState(base, stored) {
     // false, derselbe sichere Fall wie bei den Feldern darüber.
     inDatentabelle: !!b.inDatentabelle,
     diagrammGewaehlt: !!b.diagrammGewaehlt,
+    // 4T-002642 (Epic 3E-000397): «Zurück» und «Vor» im Verlauf des Fensters
+    // möglich. Vor dem ersten Report false: Ein frisches Fenster hat einen
+    // leeren Verlauf.
+    kannZurueck: !!b.kannZurueck,
+    kannVor: !!b.kannVor,
     restoreSession: !!s.restoreSession,
     autoSave: !!s.autoSave,
     // 4T-001904 (Epic 3E-000318): Anzeige-Schalter der Kanban-Tafel, je

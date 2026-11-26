@@ -21,6 +21,7 @@
 const path = require('node:path');
 const { dialog } = require('electron');
 const books = require('./books');
+const { weiseGeschuetztesZielAb } = require('../ipc/protected-dialog-target');
 const { isSamePath, isInsideArea, areaFromRootPath } = require('../area/area-path');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 
@@ -43,6 +44,7 @@ const { isExtensionEnabled } = require('../../shared/extensions/extensions-core'
  * @param {Function} deps.createWindow Fenster erzeugen.
  * @param {Function} deps.closeAppWindows Schliess-Kaskade einer Applikation.
  * @param {object} deps.recentLists Die vier "Zuletzt geoeffnet"-Listen.
+ * @param {object} deps.bindingGrants Bindungen als Freigabe im Buch (4T-002647).
  * @returns {object} Buecher-API samt der Zustands-Map dieses Moduls.
  */
 function createBookApps(deps) {
@@ -62,6 +64,13 @@ function createBookApps(deps) {
     createWindow,
     closeAppWindows,
     recentLists,
+    // 4T-002647 (Epic 3E-000416): Ein Buch ist ein Bereich; wo die Bindung den
+    // Bereich setzt, entsteht auch seine Freigabe. Ein neues Fenster einer
+    // Buch-App trägt die Fenster-Verwaltung ein.
+    bindingGrants,
+    // Review-Befund Z1 vom 2026-11-22 (4T-002827): die Prüfung gegen die
+    // geschützten Ordner für jeden Aufrufer des Dialogs, auch das Menü.
+    checkTarget,
   } = deps;
 
   const activeBooks = new Map(); // appId -> bookDir (absolut)
@@ -153,6 +162,7 @@ function createBookApps(deps) {
   async function bindBookToApp(appId, bookDir) {
     if (!appRegistry.getArea(appId)) {
       appRegistry.setArea(appId, areaFromRootPath(bookDir));
+      void bindingGrants.bindApp(appRegistry.windowsOf(appId), bookDir);
       startAreaWatcher(appId);
     }
     activeBooks.set(appId, bookDir);
@@ -340,6 +350,7 @@ function createBookApps(deps) {
     if (area && !isSamePath(area.rootPath, state.state.bookDir)) return;
     if (!area) {
       appRegistry.setArea(appId, areaFromRootPath(state.state.bookDir));
+      void bindingGrants.bindApp(appRegistry.windowsOf(appId), state.state.bookDir);
       startAreaWatcher(appId);
     }
     activeBooks.set(appId, state.state.bookDir);
@@ -378,9 +389,16 @@ function createBookApps(deps) {
   // und laesst den Anwender zugleich einen neuen Eltern-Ordner anlegen. Ein
   // Text-Eingabe-Dialog gibt es im Main-Prozess nicht, und ein Renderer-Dialog
   // haette den Ablauf ohne Gewinn ueber zwei Prozesse gezogen.
-  async function createBookDialog(ownerWin) {
+  //
+  // 4T-002827 (Epic 3E-000416): Liegt das neue Buch in einem geschuetzten Ordner,
+  // meldet der Dialog das und legt nichts an. `options.checkTarget` reicht der
+  // Kanal aus main.js durch, `options.dialog` ist die Naht der Prueffaelle.
+  async function createBookDialog(ownerWin, options = {}) {
     const owner = ownerWin && !ownerWin.isDestroyed() ? ownerWin : null;
-    const result = await dialog.showSaveDialog(owner || undefined, {
+    // Naht der Prüffälle: `options.dialog` je Aufruf, `deps.dialog` für den
+    // Menü-Weg, der ohne Optionen ruft.
+    const dlg = options.dialog || deps.dialog || dialog;
+    const result = await dlg.showSaveDialog(owner || undefined, {
       title: tForWindow(owner, 'book.createDialogTitle'),
       buttonLabel: tForWindow(owner, 'book.createDialogButton'),
       defaultPath: areaOfWindow(owner)?.rootPath,
@@ -389,6 +407,16 @@ function createBookApps(deps) {
     if (result.canceled || !result.filePath) return { ok: false, canceled: true };
     const parentDir = path.dirname(result.filePath);
     const name = path.basename(result.filePath);
+    const geschuetzt = await weiseGeschuetztesZielAb({
+      checkTarget: options.checkTarget || checkTarget,
+      dialog: dlg,
+      owner,
+      tForWindow,
+      kanal: 'books:createDialog',
+      ziel: path.join(parentDir, name),
+      umfang: 'create',
+    });
+    if (geschuetzt) return geschuetzt;
     const created = await books.createBook(parentDir, name);
     if (!created.ok) {
       const messageKey =
@@ -397,7 +425,7 @@ function createBookApps(deps) {
           : created.error === 'exists'
             ? 'book.createExistsMessage'
             : 'book.createFailedMessage';
-      await dialog.showMessageBox(owner || undefined, {
+      await dlg.showMessageBox(owner || undefined, {
         type: 'warning',
         title: tForWindow(owner, 'book.createFailedTitle'),
         message: tForWindow(owner, messageKey),

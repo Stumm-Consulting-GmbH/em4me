@@ -63,6 +63,28 @@ Broken anchor targets are flagged by the [Markdown linter](tools.md) in the edit
 
 In a table file of the [database](database.md), `#^` also points at the identifier of a single record: `[[Personen#^r-00042]]`. Such a reference holds if the table carries that record; a block anchor of the same name keeps precedence.
 
+## Back and forward
+
+As in a browser, "Back" takes you to the place where you were before, and "Forward" takes you forward again. This way you return to your starting point after following a link without having to look for it.
+
+**Operation:**
+
+- `Alt+←` and `Alt+→`; the shortcuts can be reassigned under File → Settings… → Keyboard shortcuts.
+- The side buttons of the mouse.
+- View → Back and View → Forward.
+- The "Back" and "Forward" commands of the command palette.
+- The two arrow buttons in the status bar. They are greyed out as long as no step is possible in their direction, and they can be hidden like any default button, see [Command placement](command-placement.md).
+
+In the source and in live mode, `Alt+←` and `Alt+→` do not move the cursor but also step back and forward. Only in the table of contents of a book, with a chapter row focused, do they unnest and nest the chapter, `Alt+←` unnests and `Alt+→` nests; `Alt+↑` and `Alt+↓` move it within its level, see [Books](books.md).
+
+**What counts as a visit.** Every change of the document shown, whether via a tab, `Ctrl+Tab`, a link or opening a document. In addition, jumps within a document: a link to a heading or a block, a click in the "Table of contents" panel or in a table of contents block, an entry in the "Backlinks" panel and a jump from the result list of the search. Finding the next match in the search bar and scrolling do not count. If two places in the same document are less than ten lines apart, they count as one.
+
+**History.** If you go back and jump from there to a new place, the part that "Forward" would have led to is dropped. Each window has its own history with at most 100 entries; it starts empty with the window and ends with it. If two columns are open, the step also returns to the column you were in.
+
+**Closed and deleted documents.** "Back" reopens a document that has been closed in the meantime, at the place where you left it. A document that no longer exists is skipped unless it is still open in a tab, and the status bar reports how many places were skipped. If no further step is possible, it reports "No earlier place" or "No later place".
+
+Where a document stands when opened without a specific target is described in the section "Reading position" on the [Applications, windows and areas](apps-windows.md) page.
+
 ## Markdown links to files
 
 Classic Markdown links also open `.md` targets as tabs; anchors work the same. In-document anchor links jump within the page — live here: [to the Tags chapter](#tags).
@@ -127,9 +149,9 @@ The target is looked up at the given path first and, if nothing is there, by nam
 
 **Embedding** from a linked area is not possible: `![[@zt:Note]]` shows a notice in its place that says exactly that, whether area links are switched on or not. The link `[[@zt:Note]]` to the same target opens it as described.
 
-**Templates of the linked area** can be offered alongside your own; there is a switch per link. The template picker then shows both sets, and every entry from elsewhere names its origin. Without the switch a link does not change the set of templates.
+**Templates of the linked area** can be offered alongside your own; there is a switch per link. The template picker then shows both sets, and every entry from elsewhere names its origin. Without the switch a link does not change the set of templates. If the extension "Templates" is switched off, the switch is hidden; the saved choice is kept and applies again as soon as the extension is switched on.
 
-**Workflows of the linked area** can be offered in the same way, with a switch "Workflows" of its own per link. They appear in the menu, in the command palette and on the Workflow runs page with the prefix of the link, start only by hand and act in your own area; nothing is written into the linked area. Details on the [Workflows](workflows.md) page.
+**Workflows of the linked area** can be offered in the same way, with a switch "Workflows" of its own per link. They appear in the menu, in the command palette and on the Workflow runs page with the prefix of the link, start only by hand and act in your own area; nothing is written into the linked area. If the extension "Workflows" is switched off, this switch is hidden as well, and its saved choice is kept. Details on the [Workflows](workflows.md) page.
 
 ### When a linked area cannot be found
 

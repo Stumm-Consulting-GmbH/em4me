@@ -20,6 +20,8 @@ La partie horaire est facultative. En son absence, le rappel se signale à l'heu
 - [ ] Déposer la déclaration ⏰ 2099-04-14
 - [ ] Rappeler le client ⏰ 2099-04-14 09:30
 
+Les lignes dont le statut est de type Terminé, Annulé ou Pas une tâche ne déclenchent pas de rappel, même si elles portent un marqueur de rappel ; cela inclut le statut « Reporté » posé par le report des tâches ouvertes des journaux (types sur la page [Listes de tâches](tasks.md), section « Statuts personnalisés, type et symbole suivant »).
+
 Plusieurs voies existent pour la saisie :
 
 - **Commande « Définir un rappel »** (défaut `Ctrl+Alt+R`) : sur une ligne de tâche, elle ouvre le sélecteur de date et d'heure et écrit le marqueur.

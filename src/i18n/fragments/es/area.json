@@ -104,5 +104,9 @@
   "areaPanel.inputDiscarded": "La carpeta de destino ya no se muestra; la entrada se ha descartado",
   "area.outsideTitle": "Fuera del área",
   "area.outsideOpenMessage": "La selección está fuera del área y no se abrirá.",
-  "area.outsideSaveMessage": "La ubicación elegida está fuera del área. Elija una ubicación dentro del área."
+  "area.outsideSaveMessage": "La ubicación elegida está fuera del área. Elija una ubicación dentro del área.",
+  "area.protectedFolderTitle": "Carpeta protegida",
+  "area.protectedFolderMessage": "Esta carpeta pertenece al programa. Aquí no se puede guardar nada.",
+  "area.targetUncheckedTitle": "Ubicación no verificable",
+  "area.targetUncheckedMessage": "No se pudo comprobar si esta ubicación pertenece al programa. Por eso no se guarda nada aquí."
 }

@@ -13,7 +13,7 @@ Una imagen se convierte en una referencia de imagen; cualquier otro archivo, en 
 [Informe](Acta/Informe.pdf)
 ```
 
-`Ctrl+Mayús+V` sigue siendo un pegado simple y no guarda nada.
+`Ctrl+Mayús+V` y el comando **Pegar como texto sin formato** siguen siendo un pegado simple y no guardan nada. Un rango de celdas de una hoja de cálculo se convierte en tabla en lugar de adjunto, aunque la hoja de cálculo aporte una imagen de las celdas (véase [Herramientas](tools.md)).
 
 ## Arrastrar un adjunto
 

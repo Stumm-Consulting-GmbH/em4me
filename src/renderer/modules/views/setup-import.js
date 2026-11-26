@@ -48,9 +48,10 @@ const TEXTE_BERICHT = {
 // Satz.
 function wirkungsText(eintrag, texte) {
   if (eintrag.action === 'skip') {
-    return eintrag.grund === 'no-area'
-      ? t('exchange.import.skippedNoArea')
-      : t('exchange.import.skippedForm');
+    if (eintrag.grund === 'no-area') return t('exchange.import.skippedNoArea');
+    // Review-Befund S2 vom 2026-11-22: Ordner in einem geschützten Ordner.
+    if (eintrag.grund === 'protected-folder') return t('exchange.import.skippedProtectedFolder');
+    return t('exchange.import.skippedForm');
   }
   if (eintrag.action === 'append') {
     if (eintrag.hinzu === 0) return t(texte.addedNone);
@@ -73,6 +74,14 @@ function detailZeilen(eintrag, texte) {
   }
   if (eintrag.verworfen && eintrag.verworfen.length > 0) {
     zeilen.push(t('exchange.import.dropped').replace('{namen}', eintrag.verworfen.join(', ')));
+  }
+  // Review-Befund der Runde 2 vom 2026-11-22 (Epic 3E-000416): Eine Erlaubnis
+  // oder ein anderer geschützter Schlüssel reist nicht mit; der vorhandene
+  // Wert bleibt, und der Schlüssel wird genannt.
+  if (eintrag.behalten && eintrag.behalten.length > 0) {
+    zeilen.push(
+      t('exchange.import.keptPermission').replace('{namen}', eintrag.behalten.join(', ')),
+    );
   }
   // 4T-001590: Ein Eintrag, dessen Definition unvollständig ist, kommt nicht
   // an — und wird namentlich genannt statt stillschweigend weggelassen. Der

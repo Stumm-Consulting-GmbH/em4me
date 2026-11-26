@@ -6,6 +6,7 @@ topic: metadata
 status: published
 priority: 2
 final: false
+cover: attachments/demo-image.png
 ---
 
 # Properties and profiles
@@ -41,6 +42,20 @@ word-wrap: true
 ```
 
 Only real `true`/`false` values count. Toggling folding, line numbers or word wrap via the statusbar or the View menu writes the new value straight into the frontmatter, which marks the file as modified; documents without these keys follow the global default under **Settings → Appearance**.
+
+## Cover image
+
+The picture at the top of this page is a **cover image**: the `cover` property in the frontmatter places an image across the full width of the content, cropped to a fixed height and never distorted. Two more keys adjust it — `cover-height` in pixels (80 to 600, default 200) and `cover-position` for the visible part (0 to 100 from the top, or `top`, `center`, `bottom`; default is the middle):
+
+```markdown
+---
+cover: attachments/demo-image.png
+cover-height: 200
+cover-position: center
+---
+```
+
+Give the image as a path relative to the document, as this page does, or by its name in quotation marks, `cover: "[[demo-image.png]]"`, which finds it in any folder of the area. Images from the internet are not loaded. With the extension **Cover image** switched off under **Settings → Extensions**, the property stays in the file and the picture disappears.
 
 ## The properties panel
 

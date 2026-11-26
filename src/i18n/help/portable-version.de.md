@@ -14,6 +14,8 @@ Beim ersten Start legt EM4me neben der Programmdatei den Ordner `Data` an. Er ni
 
 **Löschen oder benennen Sie den Ordner `Data` deshalb nicht um.** Fehlt er beim Start, legt EM4me ihn neu und leer an und beginnt wie beim ersten Start; was im bisherigen Ordner lag, verwendet es dann nicht.
 
+**Dokumente gehören nicht in den Ordner `Data`.** Er trägt die Einstellungen und Erweiterungen, mit denen EM4me arbeitet. Deshalb speichert und exportiert EM4me dort keine Dokumente: Wählen Sie im Speichern-Dialog einen Ort darin, meldet EM4me einen Fehler und schreibt nichts. Was dort liegt, lässt sich weiterhin öffnen und lesen. Dasselbe gilt in der installierten Fassung für ihren Daten-Ordner im Benutzerprofil und für den Ordner des Programms.
+
 Mitnehmen heißt: die Programmdatei zusammen mit dem Ordner `Data` kopieren, am einfachsten den Ordner, in dem beide liegen, etwa auf einen Stick oder auf einen anderen Rechner. Einstellungen und Sitzung kommen damit mit.
 
 ## Wo die Daten liegen

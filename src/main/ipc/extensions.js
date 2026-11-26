@@ -4,6 +4,16 @@
 //
 // Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: extensions:*.
 //
+// 4T-002650 (Epic 3E-000416): Die Erlaubnisse der Add-ons schreibt allein diese
+// Gruppe. `extensions:confirmTrust` speichert die Bestätigung nach «Ja» selbst,
+// `extensions:setEnabled` schaltet ein und aus und prüft dabei die
+// Bestätigung, `extensions:reportError` hält den letzten Fehler mit begrenztem
+// Text fest, `extensions:removeExternal` räumt die Einträge mit dem Ordner ab.
+// Jede Änderung geht über die Verteilung der Einstellungen an alle Fenster
+// (`extensionsExternal:changed`). Code und Einstiegs-Adresse liefert die
+// Gruppe nur für Pakete, die eingeschaltet und bestätigt oder mitgeliefert
+// sind. Die Prüfungen selbst stehen in `extensions/extension-trust.js`.
+//
 // Eigener Zustand: keiner; der Helfer extensionsRoot bildet den Wurzelpfad
 // unter <userData> und ist der einzige Ort, an dem er entsteht.
 'use strict';
@@ -13,8 +23,12 @@ const {
   scanExtensionsRoot,
   readMarkdownPluginSource,
   externalExtensionInfo,
+  scannedPackage,
   removeExtensionDirectory,
 } = require('../extensions/extension-packages');
+const trust = require('../extensions/extension-trust');
+const { EXTERNAL_ENABLED_KEY } = require('../../shared/extensions/extensions-external');
+const { createSettingsVerteilung } = require('./settings-verteilung');
 
 /**
  * Registriert die Kanaele der externen Erweiterungen.
@@ -26,9 +40,17 @@ const {
  * @param {object} deps.shell Electron-Shell-Modul.
  * @param {(event: object) => object|null} deps.senderWindow Fenster des Absenders.
  * @param {(win: object, key: string) => string} deps.tForWindow Uebersetzung im Fenster-Kontext.
+ * @param {() => object|null} deps.getStore Einstellungs-Speicher (Erlaubnisse).
+ * @param {object} [options] Nur für Prüfdateien.
+ * @param {(pkg: object) => boolean} [options.isBundled] Erkennung mitgelieferter Pakete.
  */
-function registerExtensionsIpc(handle, deps) {
-  const { app, dialog, shell, senderWindow, tForWindow } = deps;
+function registerExtensionsIpc(handle, deps, options = {}) {
+  const { app, dialog, shell, senderWindow, tForWindow, getStore } = deps;
+  const isBundled = options.isBundled || trust.isBundledPackage;
+  // 4T-002650: dieselbe Verteilung wie settings:set; der Zweig des Schlüssels
+  // extensionsExternal.enabled meldet `extensionsExternal:changed` an alle
+  // Fenster, auch an das auslösende.
+  const verteileEinstellung = createSettingsVerteilung(deps);
 
   // --- 4T-000298 (Epic 3E-000053): externe Erweiterungen ---------------------------
   // Sicherheits-Kontrakt: der Renderer reicht nur IDs herein; alle Pfade
@@ -36,9 +58,16 @@ function registerExtensionsIpc(handle, deps) {
   // Scan-Eintraegen (Whitelist-Muster wie help:getManualPage).
   const extensionsRoot = () => path.join(app.getPath('userData'), 'extensions');
 
+  // Paket des letzten Scans zu einer Kennung aus dem Fenster, sonst null.
+  const packageOf = (id) => (trust.isExtensionId(id) ? scannedPackage(extensionsRoot(), id) : null);
+
+  // Erlaubnisse geändert: an alle Fenster verteilen.
+  const announce = (enabled) => verteileEinstellung(EXTERNAL_ENABLED_KEY, enabled, null);
+
   handle('extensions:scanExternal', async () => {
     try {
-      return await scanExtensionsRoot(extensionsRoot());
+      const entries = await scanExtensionsRoot(extensionsRoot());
+      return trust.entriesForWindow(entries, trust.readPermissions(getStore()), isBundled);
     } catch (err) {
       console.warn('Erweiterungs-Scan fehlgeschlagen:', err);
       return [];
@@ -47,6 +76,14 @@ function registerExtensionsIpc(handle, deps) {
 
   handle('extensions:getMarkdownPluginSource', async (_event, id) => {
     if (typeof id !== 'string') return { ok: false, error: 'Ungueltige ID' };
+    // 4T-002650: Quelltext nur für ein eingeschaltetes und bestätigtes oder
+    // mitgeliefertes Paket. Review-Befund Z3 vom 2026-11-22: Ein Paket, das der
+    // letzte Scan nicht kennt, bekommt ebenso keinen Quelltext (im Zweifel
+    // abweisend), statt die Entscheidung dem Lese-Weg zu überlassen.
+    const pkg = packageOf(id);
+    if (!pkg || !trust.mayDeliver(trust.readPermissions(getStore()), pkg, isBundled(pkg))) {
+      return { ok: false, error: 'extensions:notPermitted' };
+    }
     return readMarkdownPluginSource(extensionsRoot(), id);
   });
 
@@ -56,7 +93,10 @@ function registerExtensionsIpc(handle, deps) {
   handle('extensions:confirmTrust', async (event, id) => {
     if (typeof id !== 'string') return false;
     const info = externalExtensionInfo(extensionsRoot(), id);
-    if (!info) return false;
+    const pkg = packageOf(id);
+    if (!info || !pkg) return false;
+    // 4T-002650: Ein mitgeliefertes Paket braucht keine Bestätigung.
+    if (isBundled(pkg)) return true;
     const owner = senderWindow(event);
     const t = (k) => tForWindow(owner, k);
     const result = await dialog.showMessageBox(owner || undefined, {
@@ -71,7 +111,45 @@ function registerExtensionsIpc(handle, deps) {
       cancelId: 1,
       noLink: true,
     });
-    return result.response === 0;
+    if (result.response !== 0) return false;
+    // 4T-002650: gespeichert vom Hauptprozess, gebunden an die Version.
+    trust.recordTrust(getStore(), pkg);
+    announce(trust.readPermissions(getStore()).enabled);
+    return true;
+  });
+
+  // 4T-002650: Ein- und Ausschalten. Einschalten verlangt ein Paket des
+  // letzten Scans, dessen Bestätigung gilt oder das mitgeliefert ist;
+  // Ausschalten geht immer. Antwort `{ ok: true, enabled }` mit der Liste der
+  // eingeschalteten Kennungen oder `{ ok: false, error }`.
+  handle('extensions:setEnabled', async (_event, id, on) => {
+    if (!trust.isExtensionId(id) || typeof on !== 'boolean') {
+      return { ok: false, error: 'extensions:invalidArgument' };
+    }
+    if (on) {
+      const pkg = packageOf(id);
+      if (!pkg) return { ok: false, error: 'extensions:unknown' };
+      const trusted = trust.readPermissions(getStore()).trusted;
+      if (!isBundled(pkg) && !trust.trustHolds(trusted, pkg)) {
+        return { ok: false, error: 'extensions:notTrusted' };
+      }
+    }
+    const enabled = trust.setEnabled(getStore(), id, on);
+    announce(enabled);
+    return { ok: true, enabled };
+  });
+
+  // 4T-002650: Letzter Lade- oder Aufbau-Fehler eines Add-ons, gemeldet vom
+  // Fenster. Der Text wird auf `MAX_ERROR_TEXT` Zeichen gekürzt, das Add-on
+  // ausgeschaltet. Nur für Pakete des letzten Scans.
+  handle('extensions:reportError', async (_event, id, text) => {
+    if (typeof text !== 'string' || text === '') {
+      return { ok: false, error: 'extensions:invalidArgument' };
+    }
+    if (!packageOf(id)) return { ok: false, error: 'extensions:unknown' };
+    const enabled = trust.recordError(getStore(), id, text);
+    announce(enabled);
+    return { ok: true, enabled };
   });
 
   // Entfernen mit eigener Bestaetigung (destruktiv: loescht das
@@ -92,12 +170,17 @@ function registerExtensionsIpc(handle, deps) {
       noLink: true,
     });
     if (result.response !== 0) return { removed: false, canceled: true };
+    let removed;
     try {
-      return { removed: await removeExtensionDirectory(extensionsRoot(), id) };
+      removed = await removeExtensionDirectory(extensionsRoot(), id);
     } catch (err) {
       console.warn('Erweiterung entfernen fehlgeschlagen:', id, err);
       return { removed: false, error: String((err && err.message) || err) };
     }
+    // 4T-002650: Bestätigung, Schalter und Fehler des entfernten Pakets
+    // räumt der Hauptprozess selbst ab.
+    if (removed) announce(trust.forgetPackage(getStore(), id));
+    return { removed };
   });
 
   // Zugang zum Erweiterungs-Verzeichnis im Datei-Explorer (legt es bei

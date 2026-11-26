@@ -1106,3 +1106,30 @@ describe('area-links: Aus-Zustand der Bereichs-Verknuepfungen (4T-001457)', () =
     expect(disabledFeatureKeySet(['area-links']).has('help.feature.areaLinks')).toBe(true);
   });
 });
+
+// 4T-002554 (Epic 3E-000389): Einfügen aus einer Tabellenkalkulation. Die
+// Erweiterung table-tools trägt «Als Tabelle einfügen»; im Aus-Zustand fehlt
+// es in Palette, Keymap und Kontextmenü, «Als reinen Text einfügen» ist Kern
+// und bleibt. Dass Strg+V dann reinen Text einfügt, prüft der Ablauf am
+// Editor (test/unit/renderer/tabelle-einfuegen.test.js).
+describe('table-tools: Einfügen als Tabelle im Aus-Zustand (4T-002554)', () => {
+  it('führt das Kommando «Als Tabelle einfügen», und es ist registriert', () => {
+    expect(extensionById('table-tools').commands).toContain('edit.pasteAsTable');
+    const registrierte = new Set(COMMANDS.map((c) => c.id));
+    expect(registrierte.has('edit.pasteAsTable')).toBe(true);
+    expect(registrierte.has('edit.pastePlain')).toBe(true);
+  });
+
+  it('Aus-Zustand filtert «Als Tabelle einfügen», «Als reinen Text einfügen» bleibt', () => {
+    const aus = disabledCommandIdSet(['table-tools']);
+    expect(aus.has('edit.pasteAsTable')).toBe(true);
+    expect(aus.has('edit.pastePlain')).toBe(false);
+    expect(disabledCommandIdSet([]).has('edit.pasteAsTable')).toBe(false);
+  });
+
+  it('«Als reinen Text einfügen» gehört zu keiner Erweiterung', () => {
+    for (const m of internalExtensions()) {
+      expect(m.commands || [], m.id).not.toContain('edit.pastePlain');
+    }
+  });
+});

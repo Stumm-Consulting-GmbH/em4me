@@ -31,12 +31,94 @@ Un schéma modifié ne renomme pas les fichiers existants ; les points du calend
 
 - **Entrée de journal du jour** (menu Fichier → Autres fonctions de fichier) : ouvre ou crée l'entrée du jour d'un journal quotidien ; avec sélection s'il existe plusieurs journaux quotidiens.
 - **Entrée de journal pour une date…** (menu Fichier → Autres fonctions de fichier) : demande une date (AAAA-MM-JJ) et le journal ; la période est celle de la date dans la granularité du journal.
+- **Reporter les tâches ouvertes dans l’entrée de journal actuelle** (menu Fichier → Autres fonctions de fichier) : ouvre ou crée l’entrée de la période en cours et y reporte les tâches ouvertes de la dernière entrée ; voir la section « Reporter les tâches ouvertes ».
 
 La création produit la chaîne de dossiers, le contenu de modèle rempli (une entrée vide sans modèle) et les propriétés de journal dans le frontmatter. Une entrée porte **quatre** propriétés, quelle que soit sa granularité : le nom du journal (`journal`), la date de la période (`journal-date`), le début (`journal-start-date`) et la fin (`journal-end-date`). La date de la période est toujours son **début** ; pour les entrées quotidiennes, les trois dates coïncident donc. Les noms de champ sont configurables par journal et disponibles pour la requête Perspective — comme chaque entrée porte le même jeu, une requête n’a pas à distinguer selon la granularité. Les espaces réservés de date du modèle sont évalués au début de la période — `{{date}}` donne la date de la période, pas l’instant de création. L’annulation d’un dialogue de modèle interrompt la création ; aucun fichier n’est créé.
 
 Une entrée **déjà existante** est complétée lorsque des propriétés manquent — par exemple parce qu’elle provient d’une autre application ou a été créée à la main. Cela se fait de deux manières. À l’**ouverture** via commande, calendrier ou bloc de navigation, les propriétés manquantes sont ajoutées en silence ; si l’entrée est déjà complète, le fichier reste intact. La commande **Compléter les propriétés du journal…** applique le même état à toutes les entrées existantes d’un journal en une fois ; elle indique au préalable le nombre d’entrées vérifiées et demande confirmation.
 
 Créer et compléter se comportent volontairement différemment : à la **création**, l’application définit les propriétés et remplace les champs de même nom du modèle. Lors de la **complétion**, seul ce qui manque est ajouté ; une valeur existante demeure, même si elle diffère de la période — elle peut être une correction délibérée. Les champs étrangers et le reste du contenu restent intacts dans les deux cas, et un frontmatter endommagé n’est pas touché.
+
+## Reporter les tâches ouvertes
+
+L’application reporte les tâches ouvertes de la dernière entrée existante d’un journal dans l’entrée de la période en cours : pour un journal quotidien dans celle du jour, pour un journal hebdomadaire dans celle de la semaine en cours. Cela vaut pour les journaux de toute granularité, même si la dernière entrée remonte à plusieurs jours. La source est toujours l’entrée antérieure la plus récente du même journal ; les entrées futures ne comptent pas.
+
+**Paramètres.** Dans l’éditeur d’un journal sous Paramètres → Journaux, le groupe « Reporter les tâches ouvertes » réunit trois paramètres :
+
+- **Reporter automatiquement à la création de l’entrée** (désactivé par défaut) : si l’interrupteur est activé, le report a lieu dès que l’entrée de la période en cours est créée, quel que soit le chemin : par les commandes, le panneau calendrier, le bloc de navigation ou de frise, ou la date d’une carte d’un tableau Kanban. La simple ouverture d’une entrée existante et la création d’une entrée pour une autre période ne déclenchent rien.
+- **Dans l’entrée précédente** : « marquer comme reportée » (par défaut) donne à la tâche reportée le statut « Reporté » (`- [»] …`, page [Listes de tâches](tasks.md)) ; « supprimer » l’y efface.
+- **Uniquement depuis la section** (vide par défaut) : le texte d’un titre. Si le champ est rempli, seules les tâches sous ce titre et ses sous-titres sont reportées ; s’il est vide, toutes les tâches ouvertes de l’entrée.
+
+**Commande manuelle.** **Reporter les tâches ouvertes dans l’entrée de journal actuelle** (menu Fichier → Autres fonctions de fichier, aussi dans la palette de commandes) reporte à tout moment dans l’entrée de la période en cours, même si l’interrupteur est désactivé, et aussi dans une entrée qui existe déjà ; si l’entrée manque, elle est créée. S’il y a plusieurs journaux, la commande demande lequel est visé. Un second lancement ne reporte rien en double, car les tâches reportées sont marquées ou supprimées dans l’entrée précédente.
+
+**Où arrivent les tâches.** Chaque tâche arrive dans la nouvelle entrée sous le titre sous lequel elle se trouvait dans l’ancienne, à la fin de cette section. De même nom signifie même texte, sans tenir compte des majuscules et minuscules ni du niveau du titre ; si le titre figure plusieurs fois dans la nouvelle entrée, le premier vaut. S’il y manque, il est créé avec les tâches à la fin de l’entrée. Les tâches qui se trouvaient avant le premier titre de l’ancienne entrée vont à la fin de la nouvelle. L’ordre est conservé.
+
+**Sous-éléments.** Une tâche part avec tout ce qui est en retrait directement sous elle, jusqu’à la prochaine ligne vide : sous-tâches ouvertes et terminées, leurs sous-éléments et lignes de note. Ce qui continue en retrait après une ligne vide n’en fait plus partie et reste dans l’ancienne entrée. Avec « marquer comme reportée », chaque ligne de tâche du bloc déplacé est marquée dans l’ancienne entrée, y compris une sous-tâche terminée ; avec « supprimer », tout le bloc disparaît. Une tâche ouverte sous une tâche terminée ou annulée, sans tâche ouverte au-dessus, part seule et se retrouve sans retrait dans la nouvelle entrée.
+
+**Ce qui compte comme ouvert.** Les tâches dont le statut est de type Ouvert, En cours ou En attente (page [Listes de tâches](tasks.md), section « Statuts personnalisés, type et symbole suivant ») ; une case portant un caractère pour lequel aucun statut n’est configuré compte aussi comme ouverte. Les tâches terminées et annulées et les lignes de type Pas une tâche restent en place. Une ligne marquée « Reporté » n’est jamais reportée à nouveau, même si ce statut est désactivé. Les cases dans les blocs de code, les citations et les tableaux ne sont pas des tâches et restent en place. Un Filtre global défini s’applique ici aussi.
+
+Exemple avec « marquer comme reportée ». L’ancienne entrée avant :
+
+```markdown
+## Travail
+- [ ] Rédiger le devis
+  - [x] Récupérer les chiffres
+  - [ ] Rédiger le texte
+- [x] Vérifier la facture
+
+## Personnel
+- [ ] Porter le vélo au garage
+```
+
+La nouvelle entrée, créée à partir du modèle :
+
+```markdown
+## Travail
+
+## Personnel
+```
+
+La nouvelle entrée après le report :
+
+```markdown
+## Travail
+
+- [ ] Rédiger le devis
+  - [x] Récupérer les chiffres
+  - [ ] Rédiger le texte
+
+## Personnel
+
+- [ ] Porter le vélo au garage
+```
+
+L’ancienne entrée après le report :
+
+```markdown
+## Travail
+- [»] Rédiger le devis
+  - [»] Récupérer les chiffres
+  - [»] Rédiger le texte
+- [x] Vérifier la facture
+
+## Personnel
+- [»] Porter le vélo au garage
+```
+
+Avec « supprimer », il ne resterait ensuite dans l’ancienne entrée que les deux titres et « Vérifier la facture ».
+
+**Règles de détail.**
+
+- **Modifications non enregistrées :** si l’ancienne ou la nouvelle entrée a des modifications non enregistrées dans une fenêtre quelconque, rien n’est reporté, et la barre d’état nomme l’entrée. Lors du report automatique, la nouvelle entrée est alors créée sans les tâches ; après l’enregistrement, la commande manuelle rattrape le report.
+- **Fonctions désactivées :** si l’extension « Tâches » est désactivée, rien n’est reporté, car rien ne compte alors comme tâche ; la commande l’indique dans la barre d’état. Si l’extension « Journaux » est désactivée, la commande et les paramètres disparaissent, et rien n’est reporté.
+- **Seulement la dernière entrée :** la source est exactement l’entrée antérieure la plus récente. Ce qui est resté ouvert dans des entrées plus anciennes y reste.
+- **Tâche déjà présente :** si le modèle apporte une tâche chaque jour et que la même tâche est encore ouverte dans l’ancienne entrée, elle n’arrive pas une seconde fois dans la nouvelle ; dans l’ancienne, elle est tout de même marquée ou supprimée. Cela ne vaut que si la ligne est identique caractère pour caractère, se trouve sous le même titre et n’a rien sous elle dans l’ancienne entrée. Si elle y a reçu des sous-éléments, elle part avec eux et figure alors deux fois dans la nouvelle entrée.
+- **Section introuvable :** si « Uniquement depuis la section » nomme un titre que l’ancienne entrée n’a pas, rien n’est reporté, et la barre d’état l’indique, y compris lors du report automatique.
+- **Messages :** après un report, la barre d’état indique le nombre de tâches et l’entrée d’où elles viennent. L’absence d’entrée antérieure ou de tâche ouverte n’est signalée que par la commande manuelle.
+- **Listes numérotées et titres vides :** une tâche issue d’une liste numérotée garde son numéro ; rien n’est renuméroté. Si un titre sans contenu reste dans l’ancienne entrée après « supprimer », il reste en place.
+- **Limites :** au plus 500 tâches par report, des entrées jusqu’à 5 Mo et au plus 20 000 fichiers Markdown dans les dossiers du journal ; au-delà, rien n’est reporté, et la barre d’état l’indique.
+- **Retour en arrière :** il n’existe pas de commande d’annulation propre. Les deux entrées reçoivent une entrée dans leur [Historique du document](history.md), là où il est activé pour le document ; avec « marquer comme reportée », un clic sur la case rouvre la tâche dans l’ancienne entrée.
+- **Pas de lien :** la ligne marquée dans l’ancienne entrée ne reçoit pas de lien vers la nouvelle entrée.
 
 ## Panneau calendrier
 

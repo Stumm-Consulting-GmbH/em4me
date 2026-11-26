@@ -116,6 +116,16 @@ body.printing .cm-wf-kopf {
   display: none !important;
 }
 
+/* 4T-002630 (Epic 3E-000395, V8): Das Titelbild erscheint in Druck und PDF
+   oben wie in der gerenderten Ansicht; der Hinweis auf ein fehlendes Bild und
+   ein Kopf-Bereich ohne Bild haben auf Papier nichts verloren. */
+body.printing .markdown-body .titelbild-hinweis,
+body.printing .markdown-body .titelbild.titelbild-ohne-bild,
+body.printing .markdown-body .titelbild:has(> img.titelbild-bild:not([src])),
+body.printing .markdown-body .titelbild:has(.wiki-embed-broken) {
+  display: none !important;
+}
+
 /* Seitenumbruch-Regeln (4T-000024, ergaenzt um die seit 0.10.0
    hinzugekommenen Block-Typen: Callouts, Custom Containers, Perspective
    Table faellt unter table, Wiki-Embeds, Frontmatter-Block). */
@@ -859,6 +869,20 @@ body.printing.printing-source .pane-group.active-pane .pdf-source-print {
 .area-stats-top {
   flex: 1 1 240px;
   min-width: 220px;
+}
+/* 4T-002783: Die Liste der Verweise ohne Ziel hat vier Spalten und nimmt die
+   ganze Breite; die ganze Zeile ist Klick-Fläche, ein langer Verweis bricht um. */
+.area-stats-top-wide {
+  flex-basis: 100%;
+}
+.area-stats-dead-links tbody tr {
+  cursor: pointer;
+}
+.area-stats-dead-links tbody tr:hover {
+  background: var(--hover);
+}
+.area-stats-link {
+  overflow-wrap: anywhere;
 }
 .area-stats-top-title {
   margin: 0 0 4px;

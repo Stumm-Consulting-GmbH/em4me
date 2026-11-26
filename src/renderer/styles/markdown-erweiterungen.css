@@ -550,6 +550,17 @@
   cursor: default;
   user-select: none;
 }
+/* 4T-002815: In der Live-Ansicht ist ein Block-Widget so breit wie die längste
+   Zeile; ohne Zeilenumbruch rutschte der Knopf «Starten» damit aus dem Bild.
+   Die Kopfzeile endet am rechten Rand des Sichtfensters und bleibt beim
+   waagerechten Blättern links stehen; beide Werte misst workflow-kopf.js. Die
+   gerenderte Ansicht ist nicht betroffen (dort kein .cm-content). */
+.cm-content > .cm-wf-kopf {
+  box-sizing: border-box;
+  max-width: var(--wf-kopf-breite, none);
+  position: sticky;
+  left: var(--wf-kopf-links, 0);
+}
 /* Nachzug vom 2026-10-24 (Entscheidung des Product Owners vom 2026-10-23):
    dieselbe Kopfzeile über dem Block der gerenderten Ansicht, aus
    workflow-kopf-gerendert.js. Sie steht vor dem Block und rückt an ihn heran. */

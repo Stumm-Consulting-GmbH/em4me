@@ -337,7 +337,10 @@ async function oeffneVerweisZiel(paneIdx, doc) {
   ]);
   // Gruppe erben wie beim Öffnen-Link einer Einbettung: Die Karte liegt im
   // Dokument-Inhalt, und das Ziel gehört in dieselbe Reiter-Gruppe.
-  const zielPane = await tabs.openInPane(paneIdx, [ergebnis.path], { inheritGroup: true });
+  const zielPane = await tabs.openInPane(paneIdx, [ergebnis.path], {
+    inheritGroup: true,
+    zielFolgt: !!anker, // 4T-002641: der Anker geht der Lese-Stelle vor
+  });
   if (anker) {
     anchor.scrollToAnchorAfterOpen(typeof zielPane === 'number' ? zielPane : paneIdx, anker);
   }

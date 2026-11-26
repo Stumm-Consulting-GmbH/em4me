@@ -26,6 +26,7 @@ const markdownItFootnote = require('markdown-it-footnote');
 
 const { escapeHtml, githubLikeSlug } = require('./slug.js');
 const { extractFrontmatter } = require('./frontmatter.js');
+const { titelbildAngaben, titelbildHtml } = require('./titelbild.js'); // 4T-002630
 // 4T-001547 (Epic 3E-000251): Der Datensatz-Block ist das erste Konstrukt,
 // dessen Bedeutung AUSSERHALB seiner Fence steht — die Spalten stehen in der
 // Definition im Frontmatter derselben Datei (E3.2). Die Pipeline liest sie
@@ -84,10 +85,16 @@ const { istWorkflowFence, workflowFenceHtml } = require('./workflow-block.js');
 // 4T-002512 (Epic 3E-000402): der Dashboard-Block; Markup, Aus-Zustand mit
 // Hinweis und Text-Kacheln im Nachbar-Modul, hier allein die Weiche.
 const { istDashboardFence, dashboardFenceHtml } = require('./dashboard-block.js');
+// 4T-002558 (Epic 3E-000390): Inhaltsverzeichnis-Block, Zaun `toc`; hier bleiben
+// Einhängen und Weiche, Sammeln und Bau liegen im Nachbar-Modul.
+const { TOC_FENCE, TOC_EXTENSION_ID, tocPlugin, tocZaunHtml } = require('./plugins/toc.js');
 // 4T-001548 (Epic 3E-000251): Die statische Konvertierung aller Fence-Konstrukte
 // des portablen Exports; hier bleibt allein die Klammer darum (KaTeX-Abschaltung
 // und Marker an der Datei-Spitze).
 const { convertPortableFences, ersetzeObersteEbene } = require('./portable-fences.js');
+// 4T-002838 (Epic 3E-000447): private Kommentare in Sonder-Blöcken.
+const { textOhneKommentare } = require('./portable-fences.js');
+const { kommentarFreieRuempfe, ereignisRumpf } = require('./plugins/comments-block.js');
 // 4T-001777 (Epic 3E-000291): dieselbe Fence im portablen Export — die
 // strukturierte Entsprechung nach E7. Auch hier baut das Nachbar-Modul, und
 // hier bleibt die Weiche.
@@ -331,6 +338,9 @@ function registerMarkdownExtensions(mdInstance, opts = {}) {
   if (enabled('heading-numbering')) {
     mdInstance.use(headingNumbersPlugin, { portable: opts.portable });
   }
+  // 4T-002558: hinter heading_numbers (Nummern im Verzeichnis) und markdown-it-anchor;
+  // der portable Export ersetzt den Zaun vorher durch eine Markdown-Liste.
+  if (enabled(TOC_EXTENSION_ID) && !opts.portable) mdInstance.use(tocPlugin);
   // 4T-000660 (Epic 3E-000112): Leerzeile beginnt eine neue nummerierte Liste
   // (bewusste Abweichung von der Standard-Interpretation, PO-Festlegung vom
   // 2026-07-21). Seit 4T-002209 (Epic 3E-000334) Kern ohne Schalter: Die
@@ -594,6 +604,8 @@ function buildPipelines(enabled) {
       // 4T-002351 (Epic 3E-000184): der workflow-Block mit Hervorhebung aus dem
       // Zeilen-Leser; aus: Rückfall auf den Code-Block. Markup im Nachbar-Modul.
       if (istWorkflowFence(lang, enabled)) return workflowFenceHtml(token.content, token.map, env);
+      // 4T-002558 (Epic 3E-000390): Inhaltsverzeichnis; aus: Rückfall auf den Code-Block.
+      if (lang === TOC_FENCE && enabled(TOC_EXTENSION_ID)) return tocZaunHtml(token);
       // 4T-000354 (Epic 3E-000065): perspective-query rendert als statischer
       // Platzhalter-Container mit dem Query-Text im data-Attribut; die Datei-Liste
       // füllt der Renderer (4T-000355). escapeHtml maskiert auch die " der String-
@@ -673,7 +685,7 @@ function buildPipelines(enabled) {
           `data-ev-line-start="${lineStart}" data-ev-line-end="${lineEnd}" ` +
           `data-source-line="${lineStart}" data-ev-source="${escapeHtml(body)}" ` +
           `data-ev-today="${evToday}">` +
-          `${renderPerspectiveEventsViewer(body, {
+          `${renderPerspectiveEventsViewer(enabled('comments') ? ereignisRumpf(body) : body, {
             todayIso: evToday,
             lang: evLang,
             labels: portableLabels(evLang),
@@ -751,8 +763,12 @@ function buildPipelines(enabled) {
       return standard();
     };
     // 4T-002048: Die Kennung einer Anker-Zeile unter dem Block an sein erstes Tag.
+    // 4T-002838: Sonder-Blöcke zeichnen ihren Rumpf ohne private Kommentare.
+    kommentarFreieRuempfe(md, enabled, false);
     md.renderer.rules.fence = blockAnkerAmZaun(md.renderer.rules.fence);
   }
+  // 4T-002838: im Export dasselbe für Blöcke unterhalb der obersten Ebene.
+  kommentarFreieRuempfe(mdPortable, enabled, true);
 
   return { md, mdPortable, zellHtmlPortabel };
 }
@@ -997,10 +1013,16 @@ function renderMarkdown(text, lang, opts) {
     // 4T-002054: Druck und PDF zeichnen eine gekürzte Datentabelle mit allen
     // Zeilen neu (print-preparation.js); die Anzeige kennt die Option nicht.
     datatableAlleZeilen: !!(opts && opts.datatableAlleZeilen),
+    // 4T-002558: die Überschriften des Dokuments für den Live-Block (plugins/toc.js).
+    tocQuelle: opts && opts.tocQuelle,
   });
   const showBlock =
     frontmatterDisplayEnabled && fm.raw != null && !(opts && opts.frontmatterBlock === false);
-  return showBlock ? renderFrontmatterBlockHtml(fm) + bodyHtml : bodyHtml;
+  // 4T-002630 (Epic 3E-000395, V2/V3): Titelbild nur auf Wunsch der Vollansicht
+  // (opts.titelbild), vor der Frontmatter-Zeile; titelbildHtml(null) ist leer.
+  const mitTitel = opts && opts.titelbild === true && !activeEffectiveDisabled.has('cover-image');
+  const titel = mitTitel ? titelbildHtml(titelbildAngaben(fm.parseError ? null : fm.data)) : '';
+  return titel + (showBlock ? renderFrontmatterBlockHtml(fm) : '') + bodyHtml;
 }
 
 function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', labelCatalog) {
@@ -1063,9 +1085,8 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', la
   // Datei-Text (Kommentare sind privat; keine Export-Option). Der Strip
   // laeuft code-bewusst VOR der Fence-Konvertierung; bei deaktivierter
   // Erweiterung bleibt der Text unveraendert.
-  const rest = activeEffectiveDisabled.has('comments')
-    ? restMitFlaeche
-    : stripPercentComments(restMitFlaeche);
+  // 4T-002838: danach die Rümpfe der Sonder-Blöcke nach der Regel ihrer Sprache.
+  const rest = textOhneKommentare(restMitFlaeche, activeEffectiveDisabled, md);
   const commentsStripped = rest !== restMitFlaeche;
   // 4T-000470 (Epic 3E-000087): Zeilenende-Marker {-}/{+} auch aus dem
   // exportierten Text nehmen (Marker in keinem Export sichtbar). PO-
@@ -1107,6 +1128,7 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', la
       zellHtml: zellHtmlPortabel,
       eventsEnabled: !activeEffectiveDisabled.has('events'),
       recordsEnabled: !activeEffectiveDisabled.has('database'),
+      tocEnabled: !activeEffectiveDisabled.has(TOC_EXTENSION_ID),
       fields: (parseTableDefinition(fm.data) || {}).fields || [],
       labels: portableLabels(lang, labelCatalog),
     });
@@ -1131,7 +1153,8 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', la
     // 4T-001777: Die ersetzte Fläche erzwingt den zusammengesetzten
     // Rückgabe-Pfad, braucht aber keinen Marker — sie ist Markdown, kein
     // Roh-HTML. Dieselbe Stellung wie die gestrippten Kommentare darüber.
-    return commentsStripped || headingMarkersStripped || canvasConverted
+    // 4T-002558: ebenso das Inhaltsverzeichnis, eine Markdown-Liste.
+    return commentsStripped || headingMarkersStripped || canvasConverted || fences.toc
       ? head + converted
       : source;
   }

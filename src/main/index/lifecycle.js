@@ -134,6 +134,12 @@ function ensureIndex(rootPath, ownerKey, isArea) {
     // (nur Dateien mit Eintraegen). Roh-Zeilen; Modell-Parsing im Query-Zweig.
     //   tasksPerFile: Map<absPath, Array<{ zeile, text, heading }>>
     tasksPerFile: new Map(),
+    // 4T-002782 (Epic 3E-000392, V4): Verweise auf Anker im selben Dokument und
+    // in verknüpfte Bereiche, dazu die Herkunft der Block-Treffer (nur Dateien
+    // mit Einträgen). Allein für die Liste der Verweise ohne Ziel; kein
+    // Rückverweis, keine Kante.
+    //   pruefVerweisePerFile: Map<absPath, { eigenAnker: Array, verknuepft: Array, block: Array }>
+    pruefVerweisePerFile: new Map(),
     // B-15 (4T-000181): inverse Namens-Map basenameKeyLower -> Set<Pfad>
     // fuer O(1)-Wiki-Aufloesung (traegt die B-04-Normalisierung strukturell).
     nameMap: new Map(),

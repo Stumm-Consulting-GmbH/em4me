@@ -4,7 +4,7 @@ La aplicación renderiza Markdown sobre la base del estándar CommonMark, amplia
 
 ## Encabezados
 
-Seis niveles con `#` a `######`; cada encabezado recibe automáticamente un ancla para enlaces e índice.
+Seis niveles con `#` a `######`; cada encabezado recibe automáticamente un ancla para enlaces e índice. Un índice dentro del propio documento lo crea el bloque de índice (ver [Construcciones de bloque](blocks.md)).
 
 ```markdown
 ## Capítulo
@@ -131,7 +131,7 @@ El comportamiento se aplica en las vistas Código, Dividida y Live. El ajuste «
 
 ## Tablas
 
-Tablas pipe con fila de encabezado y fila separadora; los dos puntos en la fila separadora controlan la alineación. Para celdas-bloque multilínea existe [Perspective Table](perspective-table.md); para mayor comodidad al teclear, el editor de tablas (ver [Herramientas](tools.md)). Para reestructurar tablas existentes (mover, insertar y eliminar filas y columnas, alineación, transposición), utilice el submenú **Tabla** en el [Menú contextual del editor](context-menu.md).
+Tablas pipe con fila de encabezado y fila separadora; los dos puntos en la fila separadora controlan la alineación. Para celdas-bloque multilínea existe [Perspective Table](perspective-table.md); para mayor comodidad al teclear, el editor de tablas (ver [Herramientas](tools.md)). Para reestructurar tablas existentes (mover, insertar y eliminar filas y columnas, alineación, transposición), utilice el submenú **Tabla** en el [Menú contextual del editor](context-menu.md). Un rango de celdas de una hoja de cálculo se convierte por sí solo en tabla al pegarlo (véase [Herramientas](tools.md)).
 
 ```markdown
 | Izquierda | Centrado | Derecha |

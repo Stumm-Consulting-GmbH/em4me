@@ -32,6 +32,10 @@ The link [[04 Links and Structure#^decision-1]] jumps straight to it. The render
 
 The same notation reaches a single row of a database table: [[Library#^r-00016]] points at one record of [[Library]] instead of the whole file. Such a link counts as valid as long as the table carries that record.
 
+## Back and forward
+
+Every jump is remembered, as in a browser. Try it: follow the link [[01 Markdown Basics#Lists]], then press `Alt+Left` (or the back button on the side of your mouse) and you are back at this paragraph. `Alt+Right` goes forward again. **View → Back** and **View → Forward** and the two arrow buttons in the status bar do the same; each window keeps its own history.
+
 ## Tags
 
 ```markdown

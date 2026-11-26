@@ -97,13 +97,18 @@ import { closeWorkspace, createWorkspace, saveWorkspaceAs } from './workspaces.j
 // «Arbeitsbereiche» statt des abgelösten Pop-ups.
 import { openWorkspacesPage } from './workspaces-page.js';
 import { refreshVisibleEventsAggregations } from '../events/events-aggregation.js';
-import { openJournalEntryForDate, openTodayJournalEntry } from '../calendar/journals.js';
+import {
+  openJournalEntryForDate,
+  openTodayJournalEntry,
+  uebertrageOffeneAufgaben,
+} from '../calendar/journals.js';
 import { openHistoryPageForActiveTab } from '../views/history-page.js';
 import { openAreaGraphTab } from '../graph/graph-tab.js';
 import { openAreaStatsPage } from '../area-stats-page.js';
 import { openMemoryPage } from '../memory-page.js';
 import { oeffneDatenbankUebersicht } from '../database/datenbank-uebersicht-seite.js';
 import { showCommandPalette } from '../command-palette.js';
+import { geheVor, geheZurueck } from '../views/navigation-verlauf-bedienung.js';
 import { zeigeDateiOeffnen } from '../datei-oeffnen.js';
 import { moveActiveChapterFile } from '../books/book-repair.js';
 import { renderTags } from '../editor/autocomplete-help.js';
@@ -167,6 +172,11 @@ export function bindMenuEvents() {
   // 'Datei -> Journal-Eintrag fuer Datum...'.
   api.onMenuJournalToday(() => openTodayJournalEntry());
   api.onMenuJournalForDate(() => openJournalEntryForDate());
+  // 4T-002738 (Epic 3E-000396): 'Datei -> Offene Aufgaben in den aktuellen
+  // Journal-Eintrag uebertragen'.
+  api.onMenuJournalCarryOver(() => {
+    void uebertrageOffeneAufgaben();
+  });
   // 4T-000339 (Epic 3E-000061): 'Datei -> Umbenennen...' plus zentraler
   // Nachzug nach einem Umbenennen (Broadcast aus dem Main).
   api.onMenuRenameFile(() => renameActiveFile());
@@ -392,6 +402,9 @@ export function bindMenuEvents() {
   if (typeof api.onMenuOpenCommandPalette === 'function') {
     api.onMenuOpenCommandPalette(() => void showCommandPalette());
   }
+  // 4T-002642 (Epic 3E-000397): Ansicht -> Zurück / Vor im Verlauf des Fensters.
+  if (typeof api.onMenuNavBack === 'function') api.onMenuNavBack(() => void geheZurueck());
+  if (typeof api.onMenuNavForward === 'function') api.onMenuNavForward(() => void geheVor());
   // 4T-001501 (Epic 3E-000174): Datei -> Datei ueber Namen oeffnen.
   if (typeof api.onMenuQuickOpen === 'function') {
     api.onMenuQuickOpen(() => void zeigeDateiOeffnen());

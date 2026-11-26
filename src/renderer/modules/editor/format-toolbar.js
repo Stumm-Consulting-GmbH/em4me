@@ -49,7 +49,7 @@ import {
   hideContextMenu,
   placeContextMenuAt,
 } from '../dialogs/context-menu-utils.js';
-import { getParagraphState, insertTableSized } from './editor-format.js';
+import { getParagraphState, insertTableSized, mermaidAuswahlFuer } from './editor-format.js';
 import { paneEditors } from './editor.js';
 import { activatePane } from '../tabs/tabs.js';
 import { persistSetting } from '../views/views.js';
@@ -196,6 +196,19 @@ function buildHeadingMenuItems(paneIdx) {
     action: () => runEntryCommand(paneIdx, 'paragraph.noHeading'),
   });
   return items;
+}
+
+// 4T-002617 (Epic 3E-000391): Auswahl der Mermaid-Bausteine an der Schreibmarke
+// des Editors dieser Pane, aus derselben Quelle wie Kommando und Kontextmenü.
+function buildMermaidMenuItems(paneIdx) {
+  const view = paneEditors[paneIdx];
+  return view ? mermaidAuswahlFuer(view) : [];
+}
+
+function showMermaidMenu(paneIdx, anchorRect) {
+  contextMenu.innerHTML = '';
+  for (const item of buildMermaidMenuItems(paneIdx)) appendContextMenuItem(contextMenu, item);
+  placeContextMenuAt(contextMenu, anchorRect.left, anchorRect.bottom + 2);
 }
 
 function showHeadingMenu(paneIdx, anchorRect) {
@@ -358,6 +371,22 @@ function renderFormatToolbarForPane(paneIdx) {
         activatePane(paneIdx);
         showHeadingMenu(paneIdx, e.currentTarget.getBoundingClientRect());
       });
+    } else if (entry.type === 'mermaid') {
+      node = document.createElement('button');
+      node.type = 'button';
+      node.className = 'btn-toggle btn-icon format-toolbar-item format-toolbar-button';
+      node.dataset.special = 'mermaid';
+      node.innerHTML = COMMAND_ICONS.diagram;
+      const title = t('formatToolbar.mermaid');
+      node.title = title;
+      node.setAttribute('aria-label', title);
+      node.setAttribute('aria-haspopup', 'menu');
+      node.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hideContextMenu();
+        activatePane(paneIdx);
+        showMermaidMenu(paneIdx, e.currentTarget.getBoundingClientRect());
+      });
     } else {
       const cmd = COMMANDS.find((c) => c.id === entry.commandId);
       node = document.createElement('button');
@@ -503,7 +532,8 @@ export function updateFormatToolbarOverflow(paneIdx) {
 }
 
 // Mehr-Menü: ein Eintrag pro eingelagertem Item mit Label, Icon und
-// Zustands-Häkchen; das Überschrift-Menü erscheint als Untermenü.
+// Zustands-Häkchen; das Überschrift-Menü und die Mermaid-Auswahl erscheinen
+// als Untermenü.
 function showFormatToolbarOverflowMenu(paneIdx, anchorRect) {
   const entries = collapseToolbarSeparators(overflowEntriesByPane[paneIdx]);
   if (entries.length === 0) return;
@@ -520,6 +550,15 @@ function showFormatToolbarOverflowMenu(paneIdx, anchorRect) {
         label: t('formatToolbar.headings'),
         dataId: 'format-toolbar-overflow-headings',
         submenu: buildHeadingMenuItems(paneIdx),
+      });
+      continue;
+    }
+    if (entry.type === 'mermaid') {
+      appendContextMenuItem(contextMenu, {
+        label: t('formatToolbar.mermaid'),
+        dataId: 'format-toolbar-overflow-mermaid',
+        icon: COMMAND_ICONS.diagram,
+        submenu: buildMermaidMenuItems(paneIdx),
       });
       continue;
     }

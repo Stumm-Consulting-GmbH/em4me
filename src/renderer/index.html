@@ -1784,7 +1784,60 @@
           role="group"
           data-i18n-aria-label="statusbar.group.commands"
           aria-label="Commands"
-        ></div>
+        >
+          <!-- 4T-002642 (Epic 3E-000397): «Zurück» und «Vor» im Verlauf des
+               Fensters. Statisch am Anfang des Segments; command-placement.js
+               entfernt beim Neuaufbau nur seine eigenen Knöpfe. Ausgegraut
+               ohne möglichen Schritt (navigation-verlauf-bedienung.js). -->
+          <button
+            id="btn-nav-back"
+            class="btn-toggle btn-icon"
+            data-i18n-title="statusbar.navBackTitle"
+            data-i18n-aria-label="command.nav.back"
+            title=""
+            aria-label="Back"
+            disabled
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m12 19-7-7 7-7" />
+              <path d="M19 12H5" />
+            </svg>
+          </button>
+          <button
+            id="btn-nav-forward"
+            class="btn-toggle btn-icon"
+            data-i18n-title="statusbar.navForwardTitle"
+            data-i18n-aria-label="command.nav.forward"
+            title=""
+            aria-label="Forward"
+            disabled
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 12h14" />
+              <path d="m12 5 7 7-7 7" />
+            </svg>
+          </button>
+        </div>
       </div>
       <!-- 4T-000576 (Epic 3E-000106): mittlere Statusbar-Zone. Die drei
            Editor-Ansicht-Schalter und die vier Ansichts-Schalter stehen hier

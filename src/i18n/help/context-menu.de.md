@@ -9,11 +9,11 @@ Das Menü gliedert sich von oben nach unten in sieben Gruppen:
 - **Link** — die Markierung als Wiki-Link oder als externen Link umschließen.
 - **Format** — Zeichen-Ebene: Fett, Kursiv, Durchgestrichen, Hervorheben, Quelltext, Mathe, Kommentar und „Formatierung entfernen".
 - **Absatz** — Zeilen-Ebene: Aufzählung, nummerierte Liste, Aufgabenliste, Überschrift 1 bis 6, Keine Überschrift und Zitat.
-- **Einfügen** — Schablonen: Fußnote, Tabelle, Hinweisblock, horizontale Linie und Quelltext-Block.
+- **Einfügen** — Schablonen: Fußnote, Tabelle, Hinweisblock, horizontale Linie und Quelltext-Block, bei eingeschalteter Erweiterung «Inhaltsverzeichnis-Block» außerdem Inhaltsverzeichnis-Block (siehe [Block-Konstrukte](blocks.md)), bei eingeschalteter Erweiterung «Mermaid-Diagramme» außerdem Mermaid-Diagramm mit der Auswahl der Gerüste und Bausteine (siehe [Mathematik und Diagramme](math-diagrams.md)).
 - **Tabelle** — Bearbeitungs-Operationen für die Tabelle am Cursor; erscheint nur, wenn der Cursor in einer Tabelle steht.
 - **Diagramm** — „Diagramm zu dieser Tabelle einfügen" bzw. „Diagramm bearbeiten"; erscheint nur, wenn der Cursor in einer Datentabelle bzw. im Block eines Diagramms steht.
 - **Datum umrechnen** — öffnet den Dialog, der ein Datum in den anderen Kalendern desselben Blocks zeigt ([Kalender-Systeme](custom-calendars.md)); erscheint nur bei eingeschalteten Kalender-Systemen und ist aktiv, sobald der geöffnete Bereich einen Kalender definiert.
-- **Zwischenablage** — Ausschneiden, Kopieren, Einfügen, Alles auswählen.
+- **Zwischenablage** — Ausschneiden, Kopieren, Einfügen, Als reinen Text einfügen, Als Tabelle einfügen, Alles auswählen. **Einfügen** macht aus einem Zellbereich einer Tabellenkalkulation eine Tabelle, **Als reinen Text einfügen** setzt die Zwischenablage immer unverändert ein, und **Als Tabelle einfügen** erscheint nur bei eingeschalteter Erweiterung „Tabellen-Werkzeuge" (siehe [Werkzeuge](tools.md)).
 
 Die Standard-Kürzel für Fett (`Strg+B`) und Kursiv (`Strg+I`) wirken auch ohne das Menü; alle übrigen Aktionen lassen sich in den Einstellungen mit einem Kürzel belegen.
 

@@ -9,11 +9,11 @@ De arriba abajo, el menú se divide en siete grupos:
 - **Enlace** — envolver la selección como enlace wiki o como enlace externo.
 - **Formato** — nivel de carácter: negrita, cursiva, tachado, resaltado, código, fórmula, comentario y «quitar formato».
 - **Párrafo** — nivel de línea: lista con viñetas, lista numerada, lista de tareas, encabezado 1 a 6, sin encabezado y cita.
-- **Insertar** — plantillas: nota al pie, tabla, bloque de aviso, línea horizontal y bloque de código.
+- **Insertar** — plantillas: nota al pie, tabla, bloque de aviso, línea horizontal y bloque de código, además de bloque de índice si la extensión «Bloque de índice» está activada (ver [Construcciones de bloque](blocks.md)), además de Diagrama Mermaid con la elección de esqueletos y bloques si la extensión «Diagramas Mermaid» está activada (ver [Matemáticas y diagramas](math-diagrams.md)).
 - **Tabla** — operaciones de edición para la tabla en el cursor; aparece solo cuando el cursor está dentro de una tabla.
 - **Gráfico** — «Insertar gráfico para esta tabla» o «Editar gráfico»; aparece solo cuando el cursor está dentro de una tabla de datos o dentro del bloque de un gráfico.
 - **Convertir fecha** — abre el diálogo que muestra una fecha en los demás calendarios del mismo bloque ([Sistemas de calendario](custom-calendars.md)); aparece solo con los sistemas de calendario activados y está activo en cuanto el área abierta define un calendario.
-- **Portapapeles** — cortar, copiar, pegar, seleccionar todo.
+- **Portapapeles** — cortar, copiar, pegar, pegar como texto sin formato, pegar como tabla, seleccionar todo. **Pegar** convierte un rango de celdas de una hoja de cálculo en tabla, **Pegar como texto sin formato** inserta siempre el portapapeles sin cambios, y **Pegar como tabla** solo aparece con la extensión «Herramientas de tabla» activada (véase [Herramientas](tools.md)).
 
 Los atajos predeterminados para negrita (`Ctrl+B`) y cursiva (`Ctrl+I`) también funcionan sin el menú; todas las demás acciones pueden asociarse a un atajo en la configuración.
 

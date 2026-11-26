@@ -125,6 +125,8 @@ import { openAreaGraphTab } from '../graph/graph-tab.js';
 import { openAreaStatsPage } from '../area-stats-page.js';
 // 4T-001599 (Epic 3E-000191): My Extended Memory als System-Seite.
 import { openMemoryPage } from '../memory-page.js';
+// 4T-002642 (Epic 3E-000397): «Zurück» und «Vor» im Verlauf des Fensters.
+import { geheVor, geheZurueck } from '../views/navigation-verlauf-bedienung.js';
 // 4T-002024 (Epic 3E-000192): Diagramm einfügen und bearbeiten.
 import { runChartEdit, runChartInsert } from '../charts/chart-commands.js';
 // 4T-001759 (Epic 3E-000253): Uebersicht der Datenbank als System-Seite.
@@ -355,6 +357,10 @@ export const commandHandlers = {
   },
   'journal.openForDate': () => {
     journale.openJournalEntryForDate();
+  },
+  // 4T-002738 (Epic 3E-000396): offene Aufgaben übertragen.
+  'journal.carryOver': () => {
+    void journale.uebertrageOffeneAufgaben();
   },
   // 4T-001407 (Epic 3E-000244): Eigenschaften eines ganzen Journals nachtragen.
   'journal.nachtragen': () => {
@@ -754,6 +760,8 @@ export const commandHandlers = {
   'tab.moveLeft': () => {
     moveActiveTabBetweenPanes('left');
   },
+  'nav.back': () => void geheZurueck(),
+  'nav.forward': () => void geheVor(),
   'search.open': () => {
     // 4T-001771 (Epic 3E-000290): In der Canvas-Ansicht fuehrt Strg+F in das
     // Filter-Feld der Karten-Liste statt in die Suchleiste (Entscheidung F4 des
@@ -908,6 +916,9 @@ export const commandHandlers = {
   },
 };
 
+// 4T-002642: Kommandos, die einem schon verarbeiteten Tastendruck weichen.
+const VERLAUF_KOMMANDOS = new Set(['nav.back', 'nav.forward']);
+
 // Map normalisiertes Binding -> Kommando-ID. Wird beim Start aus Registry
 // plus Overrides gebaut; 4T-000208 baut sie bei hotkeys:changed neu.
 let hotkeyDispatchMap = new Map();
@@ -956,6 +967,9 @@ export function handleCommandKeydown(e) {
     commandId = hotkeyDispatchMap.get(stripShiftFromBinding(binding));
   }
   if (commandId === undefined) return;
+  // 4T-002642: Hat ein Panel mit eigener Belegung (Buch-Panel) den Druck schon
+  // verarbeitet, geht es vor; «Zurück» und «Vor» tun dann nichts.
+  if (e.defaultPrevented && VERLAUF_KOMMANDOS.has(commandId)) return;
   const handler = commandHandlers[commandId];
   if (!handler) return;
   if (handler() !== false) e.preventDefault();

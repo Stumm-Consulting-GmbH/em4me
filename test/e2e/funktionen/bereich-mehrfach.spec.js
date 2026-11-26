@@ -174,13 +174,29 @@ async function arbeitsbereichAufOrdner(app, page, dir) {
 test.describe('BM-01: Nachfrage und zweite Applikation auf demselben Ordner (4T-001743)', () => {
   test('Abbrechen, Wechseln, Zusätzlich öffnen, drei Wege, Grenzen und Schließen', async () => {
     const dir = makeAreaDir('bm01');
+    const anders = makeAreaDir('bm01-anders');
     const name = path.basename(dir);
     const { app, page, userData } = await launchApp({ args: [BASIS] });
     try {
       const pageW = await arbeitsbereichAufOrdner(app, page, dir);
       await oeffneDokumentImFenster(app, pageW, path.join(dir, 'erste.md'));
+      // 4T-002649: Die Zuletzt-Liste der Bereiche ist geschützt, das Fenster
+      // setzt sie nicht mehr. Damit «Abbrechen ohne Wirkung auf die Liste»
+      // etwas prüft, darf der Ordner nicht vorn stehen: Ein zweiter, echter
+      // Bereich wird geöffnet und gleich wieder geschlossen, die Liste beginnt
+      // danach mit [anders, dir].
+      const fensterA = app.waitForEvent('window');
+      expect((await page.evaluate((p) => window.api.openAreaPath(p), anders)).createdNew).toBe(
+        true,
+      );
+      const pageA = await fensterA;
+      await pageA.waitForLoadState('domcontentloaded');
+      await expect.poll(() => fensterZahl(app)).toBe(3);
+      await pageA.evaluate(() => void window.api.closeArea()).catch(() => {});
+      await expect.poll(() => fensterZahl(app)).toBe(2);
+      const listeVorher = await page.evaluate(() => window.api.getSetting('recentAreas'));
+      expect(listeVorher.slice(0, 2)).toEqual([anders, dir]);
       await dialogeAbfangen(app, dir);
-      await page.evaluate((p) => window.api.setSetting('recentAreas', ['C:\\Anderswo', p]), dir);
 
       // Abbrechen: keine Wirkung, auch nicht auf die Zuletzt-Liste.
       await antwortSetzen(app, 2);
@@ -196,10 +212,7 @@ test.describe('BM-01: Nachfrage und zweite Applikation auf demselben Ordner (4T-
         'Abbrechen',
       ]);
       expect(await fensterZahl(app)).toBe(2);
-      expect(await page.evaluate(() => window.api.getSetting('recentAreas'))).toEqual([
-        'C:\\Anderswo',
-        dir,
-      ]);
+      expect(await page.evaluate(() => window.api.getSetting('recentAreas'))).toEqual(listeVorher);
 
       // Menü-Weg (Ordner-Dialog) und Zuletzt-Liste zeigen dieselbe Nachfrage
       // (jeweils Abbrechen).
@@ -283,6 +296,7 @@ test.describe('BM-01: Nachfrage und zweite Applikation auf demselben Ordner (4T-
     } finally {
       await closeApp(app, userData, { force: true });
       removeDir(dir);
+      removeDir(anders);
     }
   });
 });

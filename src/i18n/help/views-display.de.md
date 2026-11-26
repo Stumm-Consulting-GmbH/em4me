@@ -97,7 +97,7 @@ Schriftart und Schriftgröße lassen sich getrennt für die Bearbeiten-Fläche u
 
 ## Fenster-Zustand
 
-Position, Größe und Maximiert-Zustand eines Fensters werden beim Beenden gemerkt und beim nächsten Start wiederhergestellt. Dafür ist nichts einzustellen. Was darüber hinaus eine ganze Sitzung mit ihren geöffneten Dokumenten zurückholt, beschreibt die Seite [Applikationen, Fenster und Bereiche](apps-windows.md).
+Position, Größe und Maximiert-Zustand eines Fensters werden beim Beenden gemerkt und beim nächsten Start wiederhergestellt. Dafür ist nichts einzustellen. Was darüber hinaus eine ganze Sitzung mit ihren geöffneten Dokumenten zurückholt, beschreibt die Seite [Applikationen, Fenster und Bereiche](apps-windows.md). An welcher Stelle Sie ein Dokument zuletzt gelesen haben, merkt sich die Anwendung je Dokument; das beschreibt der Abschnitt „Lese-Position“ auf der Seite [Applikationen, Fenster und Bereiche](apps-windows.md).
 
 ## Statusleiste
 
@@ -106,6 +106,8 @@ Die Statusleiste am unteren Fensterrand ist der Bedien-Ort, der in jeder Ansicht
 Wann zusammengeklappt wird, bestimmt die Einstellung „Zusammenklappen" (Datei → Einstellungen… → Statusleiste). „Automatisch bei knappem Platz" ist die Vorgabe und klappt nur ein, was nicht mehr passt; „Immer zusammengeklappt" hält die Schaltflächen unabhängig von der Fensterbreite in den beiden Menüs und lässt die Leiste dauerhaft schlank. Derselbe Bereich trägt auch die eigenen Kommando-Schaltflächen der Leiste und die Liste der ausgeblendeten Standard-Schaltflächen, siehe [Kommando-Platzierung](command-placement.md).
 
 Wie die Leiste mit Schaltflächen umgeht, die im Augenblick nichts tun können, bestimmt die Einstellung „Nicht aktivierbare Schaltflächen" (Datei → Einstellungen… → Statusleiste). Betroffen sind die Ansichts-Schalter und die drei Editor-Schalter der Mitte sowie Bearbeiten, Scroll-Synchronisation und Dokument-Historie auf der rechten Seite — etwa während eine System-Seite wie die Einstellungen vorn liegt oder solange kein Dokument offen ist. „Blass anzeigen" ist die Vorgabe: Die Schaltfläche bleibt an ihrem Platz, ist erkennbar stillgelegt und reagiert nicht. „Ausblenden" nimmt sie so lange aus der Leiste, wie sie nichts tun kann, und ebenso aus den beiden Rand-Menüs der zusammengeklappten Leiste; sobald sie wieder etwas tun kann, kehrt sie an ihren Platz zurück. Die Panel-Schalter links, die eigenen Kommando-Schaltflächen, die Sprach-Auswahl und der Hell/Dunkel-Umschalter kennen diesen Zustand nicht und sind von der Wahl nie betroffen; das Ansichtsmenü bleibt ebenfalls unverändert und zeigt nicht verfügbare Einträge weiter blass an.
+
+Die beiden Pfeil-Knöpfe „Zurück“ und „Vor“ sind ausgegraut, solange in ihre Richtung kein Schritt möglich ist. Auch bei „Ausblenden“ bleiben sie an ihrem Platz, damit die Leiste nicht bei jedem Schritt springt; siehe den Abschnitt „Vor und Zurück“ auf der Seite [Vernetzung](linking.md).
 
 Eine Schaltfläche kann damit aus drei verschiedenen Gründen in der Leiste fehlen, und nur der dritte hängt an dieser Einstellung: Sie ist in der Liste der ausgeblendeten Standard-Schaltflächen abgewählt und bleibt dauerhaft weg — diese Liste wirkt vor der Wahl, siehe [Kommando-Platzierung](command-placement.md); sie gehört zu einer abgeschalteten Erweiterung, dann gibt es die Funktion nicht, siehe [Erweiterungen](extensions.md); oder sie kann im Augenblick nichts tun und die Wahl steht auf „Ausblenden", dann kommt sie von selbst zurück.
 

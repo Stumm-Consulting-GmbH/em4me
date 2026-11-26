@@ -42,6 +42,8 @@ Ergebnis: das Bild erscheint mit der Unterschrift „Quartalszahlen im Vergleich
 
 Alternativ bettet `![[bild.png]]` ein Bild über die Wiki-Syntax ein, inklusive Größen-Modifikator `![[bild.png|300]]` — Details auf der Seite [Vernetzung](linking.md).
 
+Ein Bild über dem ganzen Dokument setzt die Eigenschaft `cover` im Frontmatter, in beiden Schreibweisen — Abschnitt «Titelbild» auf der Seite [Frontmatter und Properties](frontmatter.md).
+
 ## Bild vergrößern
 
 Ein Klick auf ein Bild in der Ansicht „Gerendert" — ebenso in deren Hälfte der Ansicht „Geteilt" — zeigt es vergrößert über dem ganzen Fenster. Der Hintergrund wird abgedunkelt, und das Bild erscheint so groß, wie Fenster und eigene Auflösung es zulassen: vollständig, unverzerrt und nie über seine eigene Größe hinaus. Ein kleines Bild steht deshalb in seiner eigenen Größe in der Mitte. Eine Größen-Angabe im Dokument (`=300x`) begrenzt die Vergrößerung nicht. Das gilt für jedes angezeigte Bild, auch in Tabellen, Callouts und Einbettungen, und auch für ein Bild, das selbst ein Verweis ist.

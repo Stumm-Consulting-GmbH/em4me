@@ -16,6 +16,10 @@ Gedrückte Schaltflächen zeigen den Zustand an der Cursor-Position: Listen-, Ü
 
 Der Überschrift-Button öffnet die Ebenen-Auswahl: Überschrift-Ebene eins bis sechs plus „Keine Überschrift", mit Häkchen auf der Ebene der Cursor-Zeile. Der Button selbst erscheint gedrückt, sobald die Cursor-Zeile eine Überschrift ist.
 
+## Mermaid-Diagramm
+
+Am Ende der Standard-Belegung steht der Aufklapp-Knopf **Mermaid-Diagramm**. Außerhalb eines Mermaid-Blocks bietet er die Gerüste der vier Diagramm-Arten an, innerhalb eines Blocks die Bausteine seiner Art; Einzelheiten stehen unter [Mathematik und Diagramme](math-diagrams.md) im Abschnitt «Bausteine einfügen». Der Knopf gehört zur Erweiterung «Mermaid-Diagramme» und erscheint nicht, solange sie abgeschaltet ist.
+
 ## Tabellen-Raster
 
 Der Tabellen-Button öffnet ein Auswahl-Raster nach Textverarbeitungs-Vorbild: Überstreichen markiert Zeilen mal Spalten (die Beschriftung zeigt die Größe, Zeilen inklusive Kopfzeile), ein Klick fügt die leere Tabelle mit Kopfzeile und Trennzeile am Cursor ein. Rückgängig entfernt die eingefügte Tabelle in einem Schritt. An allen anderen Zugängen (Kontextmenü, Palette, Kürzel) fügt das Tabellen-Kommando unverändert seine kompakte Standard-Schablone ein.
@@ -28,7 +32,7 @@ Passt die Belegung nicht in die Breite der Editor-Spalte, wandern die hinteren E
 
 ## Belegung anpassen
 
-Der Bereich „Datei → Einstellungen… → Format-Toolbar" pflegt die Belegung als Liste: Einträge umordnen (Hoch/Runter), bearbeiten und entfernen; neue Kommandos entstehen im Drei-Schritt-Dialog (Kommando per Filter-Suche, Icon aus dem kuratierten Set, optionaler Anzeigename). Trenner und das Überschrift-Menü sind eigene Eintrags-Typen; „Auf Standard zurücksetzen" stellt die Standard-Belegung wieder her. Einträge, deren Kommando zu einer deaktivierten Erweiterung gehört, erscheinen nicht in der Leiste — die Konfiguration bleibt erhalten und kehrt mit der Erweiterung zurück.
+Der Bereich „Datei → Einstellungen… → Format-Toolbar" pflegt die Belegung als Liste: Einträge umordnen (Hoch/Runter), bearbeiten und entfernen; neue Kommandos entstehen im Drei-Schritt-Dialog (Kommando per Filter-Suche, Icon aus dem kuratierten Set, optionaler Anzeigename). Trenner und das Überschrift-Menü sind eigene Eintrags-Typen; „Auf Standard zurücksetzen" stellt die Standard-Belegung wieder her. Wer die Belegung angepasst hat, bekommt den Knopf **Mermaid-Diagramm** nicht von selbst: „Mermaid-Knopf hinzufügen" hängt ihn an die eigene Belegung an, „Auf Standard zurücksetzen" bringt ihn mit der ganzen Standard-Belegung zurück. Einträge, deren Kommando zu einer deaktivierten Erweiterung gehört, erscheinen nicht in der Leiste — die Konfiguration bleibt erhalten und kehrt mit der Erweiterung zurück.
 
 ## Abgrenzung
 

@@ -48,7 +48,9 @@ function workflowsBridge(ipcRenderer) {
     // ({ kind, path? }), «Neuer Workflow …» (Ordner festhalten, Datei anlegen)
     // und die Frage, ob eine Datei des Bereichs ein Workflow ist (Kontextmenü).
     onWorkflowMenuAction: (cb) => ipcRenderer.on('workflow:menuAction', (_e, aktion) => cb(aktion)),
-    workflowSetFolder: (folder) => ipcRenderer.invoke('workflow:setFolder', { folder }),
+    // 4T-002649: `target` 'global' stellt den anwendungsweiten Ordner ein (Einstellungen).
+    workflowSetFolder: (folder, target) =>
+      ipcRenderer.invoke('workflow:setFolder', { folder, target }),
     workflowCreate: (name) => ipcRenderer.invoke('workflow:create', { name }),
     workflowFileInfo: (filePath) => ipcRenderer.invoke('workflow:fileInfo', filePath),
     // 4T-002350: alle Workflows des Bereichs mit Lauf-Stand (Seite «Workflow-Läufe»).

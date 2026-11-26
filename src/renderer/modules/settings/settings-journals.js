@@ -90,6 +90,10 @@ function journalsPersistForm(values) {
     dateProp: String(j.dateProp || '').trim() || DEFAULT_DATE_PROP,
     startProp: String(j.startProp || '').trim() || DEFAULT_START_PROP,
     endProp: String(j.endProp || '').trim() || DEFAULT_END_PROP,
+    // 4T-002738 (Epic 3E-000396): Einstellung des Übertrags offener Aufgaben.
+    carryOverAuto: j.carryOverAuto === true,
+    carryOverMode: j.carryOverMode === 'remove' ? 'remove' : 'mark',
+    carryOverSection: String(j.carryOverSection || '').trim(),
   }));
   if (shelves.length === 0 && journals.length === 0) return null;
   return { shelves, journals };
@@ -300,6 +304,9 @@ function renderJournalsShelfDetail(container, draft, values) {
       dateProp: DEFAULT_DATE_PROP,
       startProp: DEFAULT_START_PROP,
       endProp: DEFAULT_END_PROP,
+      carryOverAuto: false,
+      carryOverMode: 'mark',
+      carryOverSection: '',
     });
     renderActiveSection();
   });

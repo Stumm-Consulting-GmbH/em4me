@@ -31,12 +31,94 @@ A changed pattern does not rename existing files; calendar dots and entry detect
 
 - **Today's Journal Entry** (File menu → More File Functions): opens or creates today's entry of a daily journal; with a picker if several daily journals exist.
 - **Journal Entry for Date…** (File menu → More File Functions): asks for a date (YYYY-MM-DD) and the journal; the period is that of the date in the journal's granularity.
+- **Carry Over Open Tasks to the Current Journal Entry** (File menu → More File Functions): opens or creates the entry of the current period and carries the open tasks of the last entry over into it; see the section "Carrying over open tasks".
 
 Creation produces the folder chain, the filled template content (an empty entry without a template) and the journal properties in the frontmatter. An entry carries **four** properties regardless of its granularity: the name of the journal (`journal`), the period date (`journal-date`), the period start (`journal-start-date`) and the period end (`journal-end-date`). The period date is always the **beginning** of the period, so for daily entries all three date values coincide. The field names are configurable per journal and are available to the Perspective query — because every entry carries the same set, a query does not have to distinguish by granularity. Date placeholders of the template are evaluated at the period start — `{{date}}` yields the period date in the entry, not the creation time. Cancelling any template dialog aborts the creation; no file is created.
 
 An **existing** entry is completed when properties are missing — for instance because it comes from another application or was created by hand. This happens in two ways. When **opening** it via command, calendar or navigation block, missing properties are added silently; if the entry is already complete, the file is left untouched. The command **Add journal properties…** brings all existing entries of a journal to the same state at once; it states the number of entries checked beforehand and asks for confirmation.
 
 Creating and completing behave deliberately differently: When **creating**, the application sets the properties and overrides fields of the same name from the template. When **completing**, only what is missing is added; an existing value stays, even if it deviates from the period — it may be a deliberate correction. Foreign fields and the remaining content are untouched in both cases, and a damaged frontmatter is left alone.
+
+## Carrying over open tasks
+
+The application carries the open tasks of the last existing entry of a journal over into the entry of the current period: for a daily journal into today's entry, for a weekly journal into the entry of the current week. This applies to journals of every granularity, even if the last entry lies days back. The source is always the most recent earlier entry of the same journal; entries in the future do not count.
+
+**Settings.** In the editor of a journal under Settings → Journals, the group "Carry over open tasks" holds three settings:
+
+- **Carry over automatically when the entry is created** (off by default): when the switch is on, tasks are carried over as soon as the entry of the current period is newly created, whichever way: via the commands, the calendar panel, the navigation or timeline block, or the date of a card on a Kanban board. Merely opening an existing entry, or creating an entry for another period, does nothing.
+- **In the previous entry**: "mark as carried over" (default) sets the carried-over task there to the "Carried over" state (`- [»] …`, page [Task lists](tasks.md)); "remove" deletes it there.
+- **Only from section** (empty by default): the text of a heading. If the field is filled in, only the tasks under this heading and its sub-headings are carried over; if it is empty, all open tasks of the entry.
+
+**Command by hand.** **Carry Over Open Tasks to the Current Journal Entry** (File menu → More File Functions, also in the command palette) carries over into the entry of the current period at any time, even when the switch is off, and also into an entry that already exists; if the entry is missing, it is created. With several journals the command asks which one is meant. A second run carries nothing over twice, because the carried-over tasks are marked or removed in the previous entry.
+
+**Where the tasks land.** Each task goes into the new entry under the heading it stood under in the previous one, at the end of that section. Same name means the same text, regardless of upper and lower case and of the heading level; if the heading occurs more than once in the new entry, the first one applies. If it is missing there, it is created together with the tasks at the end of the entry. Tasks that stood before the first heading in the previous entry go to the end of the new one. The order is kept.
+
+**Sub-items.** A task moves with everything indented directly below it, up to the next blank line: open and done subtasks, their sub-items and note lines. Whatever continues indented after a blank line no longer belongs to it and stays in the previous entry. With "mark as carried over", every task line of the moved block is marked in the previous entry, including a done subtask; with "remove", the whole block is dropped. An open task below a done or cancelled one, with no open task above it, moves on its own and stands outdented in the new entry.
+
+**What counts as open.** Tasks whose state is of type Open, In progress or On hold (page [Task lists](tasks.md), section "Custom states, type and follow-up symbol"); a box with a character for which no state is set up also counts as open. Done and cancelled tasks and lines of type Not a task stay where they are. A line marked "Carried over" is never carried over again, even if this state is switched off. Boxes in code blocks, quotes and tables are not tasks and stay put. A Global filter that is set applies here as well.
+
+Example with "mark as carried over". The previous entry before:
+
+```markdown
+## Work
+- [ ] Write the quote
+  - [x] Get the figures
+  - [ ] Draft the text
+- [x] Check the invoice
+
+## Personal
+- [ ] Take the bike to the shop
+```
+
+The new entry, created from the template:
+
+```markdown
+## Work
+
+## Personal
+```
+
+The new entry after the carry-over:
+
+```markdown
+## Work
+
+- [ ] Write the quote
+  - [x] Get the figures
+  - [ ] Draft the text
+
+## Personal
+
+- [ ] Take the bike to the shop
+```
+
+The previous entry after the carry-over:
+
+```markdown
+## Work
+- [»] Write the quote
+  - [»] Get the figures
+  - [»] Draft the text
+- [x] Check the invoice
+
+## Personal
+- [»] Take the bike to the shop
+```
+
+With "remove", only the two headings and "Check the invoice" would remain in the previous entry afterwards.
+
+**Details.**
+
+- **Unsaved changes:** if the previous or the new entry has unsaved changes in any window, nothing is carried over, and the status bar names the entry. With the automatic carry-over the new entry is then created without the tasks; after saving, the command by hand catches up on the carry-over.
+- **Switched-off functions:** if the "Tasks" extension is off, nothing is carried over, because then nothing counts as a task; the command says so in the status bar. If the "Journals" extension is off, the command and the settings are gone, and nothing is carried over.
+- **Only the last entry:** the source is exactly the most recent earlier entry. Whatever stayed open in even older entries stays there.
+- **Task already there:** if the template brings a task along every day and the same task is still open in the previous entry, it does not come into the new entry a second time; in the previous entry it is still marked or removed. This applies only if the line is identical character for character, stands under the same heading and has nothing below it in the previous entry. If it has gained sub-items there, it moves with them and then stands twice in the new entry.
+- **Section not found:** if "Only from section" names a heading the previous entry does not have, nothing is carried over, and the status bar says so, also with the automatic carry-over.
+- **Messages:** after a carry-over the status bar names the number of tasks and the entry they came from. That there is no earlier entry or no open task is reported only by the command by hand.
+- **Numbered lists and empty headings:** a task from a numbered list keeps its number; nothing is renumbered. If a heading without content remains in the previous entry after "remove", it stays.
+- **Limits:** at most 500 tasks per carry-over, entries up to 5 MB and at most 20,000 Markdown files in the folders of the journal; beyond that nothing is carried over, and the status bar says so.
+- **Way back:** there is no dedicated undo command. Both entries get an entry in their [Document history](history.md) where it is switched on for the document; with "mark as carried over", a click on the box reopens the task in the previous entry.
+- **No link:** the marked line in the previous entry gets no link to the new entry.
 
 ## Calendar panel
 

@@ -53,6 +53,9 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.journals',
       'help.feature.journalNav',
       'help.feature.journalTimeline',
+      // 4T-002739 (Epic 3E-000396): Übertrag offener Aufgaben, direkt hinter
+      // den Journal-Einträgen.
+      'help.feature.journalCarryOver',
       'help.feature.save',
       'help.feature.autoSave',
       // 4T-000334 (Epic 3E-000060): Dokument-Historie — Protokollierung,
@@ -92,6 +95,9 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.exportHtml',
       'help.feature.autoReload',
       'help.feature.restoreSession',
+      // 4T-002641/4T-002643 (Epic 3E-000397): Lese-Position je Dokument —
+      // neben der Sitzungs-Wiederherstellung, die sie beim Start mitnimmt.
+      'help.feature.readingPosition',
       // 4T-000370 (Epic 3E-000068): Entwurfs-Zwischenspeicher — was ueberlebt das
       // Beenden, direkt neben der Sitzungs-Wiederherstellung.
       'help.feature.unsavedDrafts',
@@ -167,6 +173,9 @@ const HELP_FEATURE_GROUPS = [
       // 4T-000590 (Epic 3E-000109): Tabellen-Werkzeuge (Kontextmenü-Untermenü
       // „Tabelle") direkt hinter dem Tabellen-Editor-Komfort.
       'help.feature.tableTools',
+      // 4T-002556 (Epic 3E-000389): Einfügen aus einer Tabellenkalkulation,
+      // direkt hinter den Tabellen-Werkzeugen, deren Erweiterung es trägt.
+      'help.feature.tableFromSpreadsheet',
       // 4T-000209 (Epic 3E-000015): Timestamp-Kommando, hinter dem
       // Editier-Komfort-Bestand.
       'help.feature.insertTimestamp',
@@ -310,6 +319,9 @@ const HELP_FEATURE_GROUPS = [
       // 4T-000384 (Epic 3E-000072): Mehrspalten-Block direkt hinter dem
       // Container-Bestand (gleiche ::: -Syntax-Familie).
       'help.feature.multiColumns',
+      // 4T-002559 (Epic 3E-000390): Inhaltsverzeichnis-Block direkt hinter
+      // dem Mehrspalten-Block, im Cluster der Block-Konstrukte.
+      'help.feature.tocBlock',
       'help.feature.subSup',
       'help.feature.insertion',
       'help.feature.headingAttributes',
@@ -680,11 +692,15 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.codeHighlight',
       'help.feature.katex',
       'help.feature.mermaid',
+      // 4T-002617 (Epic 3E-000391): Gerüste und Bausteine der Mermaid-Diagramme.
+      'help.feature.mermaidBuildingBlocks',
       // 4T-000065 (Epic 3E-000012): Scroll-Synchronisation in der Split-Ansicht.
       'help.feature.scrollSync',
       // 4T-000285 (Epic 3E-000050): Frontmatter-Zeile im Gerenderten.
       'help.feature.frontmatterDisplay',
       'help.feature.headingNumbering',
+      // 4T-002630 (Epic 3E-000395): Titelbild über die Eigenschaft `cover`.
+      'help.feature.coverImage',
     ],
   },
   {
@@ -778,6 +794,9 @@ const HELP_FEATURE_GROUPS = [
       // 4T-000613 (Epic 3E-000115): Bereichs-Lesezeichen direkt hinter den
       // allgemeinen Lesezeichen (zweiter Abschnitt desselben Panels).
       'help.feature.areaBookmarks',
+      // 4T-002642/4T-002643 (Epic 3E-000397): Vor und Zurueck zwischen
+      // besuchten Stellen, hinter dem Lesezeichen-Paar (das zusammen bleibt).
+      'help.feature.navigationHistory',
     ],
   },
   {

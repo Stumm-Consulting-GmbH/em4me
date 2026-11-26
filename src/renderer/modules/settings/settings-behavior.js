@@ -246,11 +246,25 @@ function renderScriptBlocksSetting(container, draft) {
   container.appendChild(hint);
 }
 
+// 4T-002650 (Epic 3E-000416): Den Schalter setzt der Hauptprozess über einen
+// eigenen Kanal; beim Einschalten fragt er im Dialog nach. Der Haken folgt der
+// Antwort, nach «Abbrechen» steht er wieder aus.
 async function applyScriptBlocksSetting(draft) {
   const next = draft.scriptsRun === true;
   if (next === isPerspectiveScriptsEnabled()) return;
-  applyPerspectiveScriptsEnabled(next);
-  await persistSetting('scripts.run', next);
+  let antwort;
+  try {
+    antwort = await api.setScriptsRun(next);
+  } catch (err) {
+    console.warn('Skript-Schalter setzen fehlgeschlagen:', err);
+  }
+  const enabled =
+    antwort && antwort.ok === true ? antwort.enabled === true : isPerspectiveScriptsEnabled();
+  if (!antwort || antwort.ok !== true) console.warn('Skript-Schalter abgewiesen:', antwort);
+  applyPerspectiveScriptsEnabled(enabled);
+  draft.scriptsRun = enabled;
+  const input = document.getElementById('settings-run-script-blocks');
+  if (input) input.checked = enabled;
 }
 
 export async function applyBehaviorSection(draft) {

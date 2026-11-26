@@ -47,6 +47,37 @@ La bascule via la barre d'état ou le menu Affichage écrit la nouvelle valeur d
 
 Cas particuliers : dans les cibles en lecture seule (comme les pages du manuel) et en cas de YAML incorrect, la bascule n'agit que de façon éphémère pour la session en cours. Dans les onglets Sans titre, elle est également éphémère ; au premier enregistrement, l'application reporte les valeurs qui diffèrent de la valeur par défaut dans le frontmatter du nouveau fichier.
 
+## Image de couverture
+
+La propriété `cover` place une image en tête du document : sur toute la largeur du contenu, recadrée à une hauteur réglable et jamais déformée. Deux autres propriétés fixent la hauteur et le cadrage :
+
+```markdown
+---
+cover: images/plage.jpg
+cover-height: 240
+cover-position: top
+---
+```
+
+L'image s'indique de deux façons :
+
+- **comme chemin relatif au document**, comme pour une image ordinaire : `cover: images/plage.jpg`. La même limite, les mêmes formats et le même plafond de 20 Mo s'appliquent que sur la page [Images](images.md).
+- **comme nom entre doubles crochets, entre guillemets** : `cover: "[[plage.jpg]]"`. L'application trouve alors l'image par son nom, quel que soit le dossier de la zone où elle se trouve.
+
+Si l'image est renommée, l'application n'adapte pas la valeur de `cover` ; le nouveau nom se saisit à la main.
+
+`cover-height` est la hauteur en pixels, 200 par défaut ; les valeurs inférieures à 80 ou supérieures à 600 sont ramenées à la limite la plus proche. `cover-position` choisit la partie visible de l'image : un nombre de 0 à 100, mesuré depuis le haut (0 montre le bord supérieur, 100 le bord inférieur), ou l'un des mots `top`, `center` et `bottom` ; par défaut, le milieu. Ce qui n'est pas compris revient silencieusement à la valeur par défaut.
+
+L'image de couverture apparaît dans la vue rendue, dans sa moitié de la vue partagée et en mode Live, sous la [ligne de titre](tools.md) avec le nom de fichier et au-dessus de la ligne du frontmatter. En mode Live, elle reste en place même lorsque le curseur se trouve dans les lignes YAML, et une modification de `cover` affiche aussitôt la nouvelle image. L'image de couverture ne dépend pas de l'affichage du frontmatter et apparaît même lorsque celui-ci est désactivé ; un bloc comportant une erreur de syntaxe YAML ne produit pas d'image de couverture.
+
+L'impression, l'export PDF et l'export HTML contiennent l'image de couverture telle que la vue rendue l'affiche. La [présentation](presentation.md), les documents intégrés, les cartes et les aperçus n'affichent pas d'image de couverture.
+
+Si l'application ne trouve pas l'image — le fichier manque, se trouve hors de la limite, n'est pas un fichier image ou dépasse 20 Mo —, la remarque discrète « Image de couverture introuvable » apparaît à sa place, sans message d'erreur. Il en va de même dans un document jamais enregistré, jusqu'à son enregistrement. Une adresse Internet (`http:` ou `https:`) n'est pas chargée ; à sa place, une remarque invite à placer l'image comme fichier dans la zone. L'impression et l'export omettent les remarques ; une image de couverture sans image y disparaît entièrement.
+
+Les fichiers de livre et de bibliothèque portent leur image de couverture dans la même propriété `cover` (voir [Livres](books.md)) ; lorsqu'on ouvre un tel fichier comme document, l'image apparaît aussi en tête, au-dessus de son contenu.
+
+L'image de couverture fait partie de l'[extension interne](extensions.md) « Image de couverture », activée à partir du mode de travail **Avancé**. Si elle est désactivée, ni image ni remarque n'apparaissent ; les propriétés restent inchangées dans le document et dans la barre Propriétés, et après la réactivation l'image de couverture est de retour.
+
 ## Carte mentale par document
 
 La clé `mindmap` détermine la façon dont la [vue carte mentale](mindmap.md) dessine ce document précis et remplace ainsi la valeur par défaut sous Fichier → Paramètres… → Carte mentale :

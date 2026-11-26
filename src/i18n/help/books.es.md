@@ -84,6 +84,8 @@ Con una fila enfocada, estas entradas fijas actúan sobre el capítulo junto con
 
 En el borde de un nivel el árbol queda inalterado y no avisa de nada: allí sencillamente no hay destino.
 
+Sin una fila de capítulo enfocada, `Alt+←` y `Alt+→` retroceden y avanzan como en cualquier otro lugar, véase la sección «Atrás y adelante» de la página [Enlaces](linking.md).
+
 ### Menú contextual
 
 El clic derecho sobre una fila ofrece:
@@ -157,7 +159,7 @@ Un libro abierto y una estantería abierta dicen también en la configuración (
 En primer lugar del bloque está la sección **Datos propios**. Lleva los datos que el libro y la estantería tienen de todos modos:
 
 - **Título**, **Autor** y **Descripción** — tres campos del front matter del archivo del libro o de la estantería.
-- **Imagen de portada** — la referencia de imagen `cover`, indicada como ruta relativa a la carpeta del libro o de la estantería. Un campo vacío significa: sin imagen de portada. El archivo debe estar en la carpeta de la estantería, incluidas las carpetas de libro que hay debajo, o, en un libro que no está en ninguna estantería, en la carpeta del libro; otro lugar del área circundante no basta. Debe ser un archivo de imagen en uno de los formatos que indica la página [Imágenes](images.md), de 20 MB como máximo. Si en esa ruta no hay ningún archivo, o el archivo está fuera de este límite o no se admite, la sección lo indica y la vista de la estantería toma el mosaico de relleno. Ninguno de estos casos es un error.
+- **Imagen de portada** — la referencia de imagen `cover`, indicada como ruta relativa a la carpeta del libro o de la estantería. Un campo vacío significa: sin imagen de portada. El archivo debe estar en la carpeta de la estantería, incluidas las carpetas de libro que hay debajo, o, en un libro que no está en ninguna estantería, en la carpeta del libro; otro lugar del área circundante no basta. Debe ser un archivo de imagen en uno de los formatos que indica la página [Imágenes](images.md), de 20 MB como máximo. Si en esa ruta no hay ningún archivo, o el archivo está fuera de este límite o no se admite, la sección lo indica y la vista de la estantería toma el mosaico de relleno. Ninguno de estos casos es un error. Al abrir el archivo del libro o de la estantería como documento, la imagen de portada aparece también arriba, encima de su contenido (sección «Imagen de portada» de la página [Frontmatter y propiedades](frontmatter.md)).
 - **Presentación** — solo en la estantería: mosaicos o filas, la misma elección que el conmutador de la vista de la estantería. Vale por estantería y solo en este equipo.
 
 Como en toda la página de configuración, los cambios solo surten efecto con Aplicar u OK.

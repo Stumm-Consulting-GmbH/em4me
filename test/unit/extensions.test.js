@@ -196,7 +196,9 @@ describe('Erweiterungs-Registry: Disabled-Zustand (4T-000292)', () => {
 
   // 4T-000590 (Epic 3E-000109): Tabellen-Werkzeuge — Aus-Zustand filtert alle
   // zwoelf table.*-Kommandos (Kontextmenue-Untermenue, Palette, Keymap).
-  it('reale Registry: table-tools filtert alle zwoelf table.*-Kommandos (4T-000590)', () => {
+  // 4T-002554 (Epic 3E-000389): dazu edit.pasteAsTable «Als Tabelle einfügen»;
+  // das Kern-Kommando edit.pastePlain bleibt.
+  it('reale Registry: table-tools filtert alle table.*-Kommandos und das Einfügen als Tabelle (4T-000590, 4T-002554)', () => {
     expect(extensionById('table-tools').dependencies).toBeUndefined();
     const cmds = disabledCommandIdSet(['table-tools']);
     const ids = [
@@ -212,9 +214,11 @@ describe('Erweiterungs-Registry: Disabled-Zustand (4T-000292)', () => {
       'table.colInsert',
       'table.colDelete',
       'table.transpose',
+      'edit.pasteAsTable',
     ];
     for (const id of ids) expect(cmds.has(id)).toBe(true);
     expect(cmds.has('insert.table')).toBe(false);
+    expect(cmds.has('edit.pastePlain')).toBe(false);
     expect(disabledCommandIdSet([]).has('table.rowUp')).toBe(false);
   });
 
@@ -507,20 +511,30 @@ describe('Abhaengigkeits-Schutz: Sperre der Grundlage (4T-001877)', () => {
 // kommt die Formel-Bibliothek als achtundsechzigste hinzu, auf «Voll» (Story
 // 4S-001124, Konzept-Stufe 4T-002431), mit 4T-002513 das Dashboard als
 // neunundsechzigste, auf «Fortgeschritten» (Entscheidung V7 des Epics 3E-000402).
-const STUFEN_ZAHLEN = { beginner: 24, advanced: 30, full: 15 };
+// Mit 4T-002558 kommt der Inhaltsverzeichnis-Block als siebzigste hinzu, auf
+// «Einsteiger» (Prüfschritt Arbeitsmodus der Konzept-Stufe des Epics
+// 3E-000390); die Zahlen am Bestand gemessen nach dem Nachzug des Zug-Zweigs
+// auf 1.158.0. Mit 4T-002630 kommt das Titelbild als einundsiebzigste hinzu, auf
+// «Fortgeschritten» (Prüfschritt Arbeitsmodus der Konzept-Stufe des Epics
+// 3E-000395).
+const STUFEN_ZAHLEN = { beginner: 25, advanced: 31, full: 15 };
 
 describe('Arbeitsmodi: Modus-Stufe der Registry (4T-001880)', () => {
   it('AK1: jede interne Erweiterung traegt eine gueltige Stufe', () => {
     const intern = internalExtensions();
-    expect(intern).toHaveLength(69);
+    // 4T-002558: siebzig nach dem Nachzug des Zug-Zweigs auf 1.158.0 (Dashboard und
+    // Inhaltsverzeichnis-Block nebeneinander), am Bestand gemessen. 4T-002630:
+    // einundsiebzig mit dem Titelbild.
+    expect(intern).toHaveLength(71);
     const gezaehlt = { beginner: 0, advanced: 0, full: 0 };
     for (const m of intern) {
       expect(EXTENSION_MODE_LEVELS, `${m.id} ohne gueltige Stufe`).toContain(m.modeLevel);
       gezaehlt[m.modeLevel] += 1;
     }
     // Die Zahlen der entschiedenen Tabelle samt Kanban-Tafel, beiden Diagrammen,
-    // Praesentation, Workflows, Formel-Bibliothek und Dashboard: Einsteiger 24 von 69,
-    // Fortgeschritten 54 von 69 (24 + 30), Voll 69 von 69.
+    // Praesentation, Workflows, Formel-Bibliothek, Dashboard und
+    // Inhaltsverzeichnis-Block, dazu das Titelbild: Einsteiger 25 von 71,
+    // Fortgeschritten 56 von 71 (25 + 31), Voll 71 von 71.
     expect(gezaehlt).toEqual(STUFEN_ZAHLEN);
   });
 

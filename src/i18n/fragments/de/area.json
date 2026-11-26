@@ -104,5 +104,9 @@
   "areaPanel.inputDiscarded": "Der Zielordner wird nicht mehr angezeigt; die Eingabe wurde verworfen",
   "area.outsideTitle": "Außerhalb des Bereichs",
   "area.outsideOpenMessage": "Die Auswahl liegt außerhalb des Bereichs und wird nicht geöffnet.",
-  "area.outsideSaveMessage": "Der gewählte Speicherort liegt außerhalb des Bereichs. Bitte einen Ort innerhalb des Bereichs wählen."
+  "area.outsideSaveMessage": "Der gewählte Speicherort liegt außerhalb des Bereichs. Bitte einen Ort innerhalb des Bereichs wählen.",
+  "area.protectedFolderTitle": "Geschützter Ordner",
+  "area.protectedFolderMessage": "Dieser Ordner gehört zum Programm. Hier kann nichts gespeichert werden.",
+  "area.targetUncheckedTitle": "Ziel nicht prüfbar",
+  "area.targetUncheckedMessage": "Ob dieser Ort zum Programm gehört, ließ sich nicht prüfen. Hier wird deshalb nichts gespeichert."
 }

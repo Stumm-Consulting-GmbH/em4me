@@ -12,7 +12,7 @@ I pulsanti il cui comando appartiene a un'estensione disattivata non appaiono (l
 
 ## Nascondi i pulsanti predefiniti
 
-Ogni elemento predefinito della barra di stato può essere nascosto singolarmente: gli interruttori dei pannelli, i tre interruttori dell'editor (piegatura, numeri di riga, a capo automatico), i quattro pulsanti di vista e gli elementi del lato destro (statistiche parole, indicatore dello zoom, modifica, sincronizzazione scorrimento, cronologia del documento, tema, lingua). Solo la riga informativa resta sempre visibile — è l'unico canale per i messaggi brevi come lo stato di salvataggio.
+Ogni elemento predefinito della barra di stato può essere nascosto singolarmente: gli interruttori dei pannelli, i due pulsanti freccia «Indietro» e «Avanti» all’inizio dei pulsanti di comando, i tre interruttori dell'editor (piegatura, numeri di riga, a capo automatico), i quattro pulsanti di vista e gli elementi del lato destro (statistiche parole, indicatore dello zoom, modifica, sincronizzazione scorrimento, cronologia del documento, tema, lingua). Solo la riga informativa resta sempre visibile — è l'unico canale per i messaggi brevi come lo stato di salvataggio.
 
 Nascondere rimuove solo l'accesso, la funzione resta: tutto ciò che è nascosto rimane raggiungibile tramite il menu, la palette dei comandi e le scorciatoie da tastiera. Il pulsante «Mostra tutto» ripristina la barra di stato predefinita. Qui il nascondere è permanente e indipendente dal fatto che un pulsante sia utilizzabile al momento; come la barra tratta i pulsanti che al momento non possono fare nulla è descritto in [Viste e visualizzazione](views-display.md).
 

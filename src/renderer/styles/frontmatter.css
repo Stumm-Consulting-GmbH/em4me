@@ -791,3 +791,44 @@
 .pane-group.is-empty-with-bookmarks .splitter.inner-splitter {
   display: none;
 }
+
+/* 4T-002630 (Epic 3E-000395, V5/V6): Titelbild über die Eigenschaft `cover`.
+   Kopf-Bereich über die volle Breite des Inhalts, vor der Frontmatter-Zeile;
+   Höhe und Ausschnitt kommen als geprüfte Zahlen über zwei Stil-Variablen aus
+   der Pipeline (src/shared/markdown/titelbild.js). Beschnitten, nie verzerrt. */
+.markdown-body figure.titelbild {
+  display: block;
+  margin: 0 0 0.7em 0;
+  text-align: left;
+}
+.markdown-body .titelbild .wiki-embed.wiki-embed-image {
+  margin: 0;
+}
+.markdown-body .titelbild > img.titelbild-bild,
+.markdown-body .titelbild img.wiki-embed-image {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: var(--titelbild-hoehe, 200px);
+  object-fit: cover;
+  object-position: 50% var(--titelbild-lage, 50%);
+  border-radius: 4px;
+}
+/* Ohne Bild schrumpft der Bereich auf die dezente Zeile des Hinweises: das
+   leere Element ohne Adresse (Bild-Auflösung hat sie entfernt), die Form ohne
+   Bild-Element und die nicht gefundene Wiki-Einbettung. */
+.markdown-body .titelbild > img.titelbild-bild:not([src]),
+.markdown-body .titelbild .wiki-embed-broken {
+  display: none;
+}
+.markdown-body .titelbild-hinweis {
+  display: none;
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  font-style: italic;
+}
+.markdown-body .titelbild:has(> img.titelbild-bild:not([src])) > .titelbild-hinweis,
+.markdown-body .titelbild.titelbild-ohne-bild > .titelbild-hinweis,
+.markdown-body .titelbild:has(.wiki-embed-broken) > .titelbild-hinweis {
+  display: block;
+}

@@ -171,7 +171,16 @@ async function readAssembledDocument(absolute, content, opts = {}) {
   // in sie hinein. Taugt er nicht als blanker Datei-Name, ist die Zeile kein
   // gültiger Verweis, und die Datei öffnet als das, was sie ist: ein
   // ungeteiltes Dokument mit einer unverständlichen Zeile im Frontmatter.
-  if (!isBlankPartBase(info.base)) return ungeteilt(absolute, content);
+  // 4T-002783 hatte dieselbe Lücke unabhängig davon mit einer eigenen,
+  // schwächeren Prüfung geschlossen; seit dem Nachzug vom 2026-11-25 gilt
+  // allein die gemeinsame Regel, die Meldung im Protokoll bleibt.
+  if (!isBlankPartBase(info.base)) {
+    console.warn(
+      '[teile] Zuordnungs-Zeile mit ungültigem Grundnamen, als ungeteilt gelesen:',
+      absolute,
+    );
+    return ungeteilt(absolute, content);
+  }
 
   const dir = path.dirname(absolute);
   const ext = path.extname(absolute) || '.md';
@@ -294,7 +303,7 @@ async function readAssembledDocument(absolute, content, opts = {}) {
  * Gesamt-Text, und ein Vergleich gegen die Kopf-Datei allein meldete bei jedem
  * geteilten Dokument einen Konflikt, den es nicht gibt.
  *
- * Liefert { ok:true, geteilt, text, teile, basisName, headPath } oder
+ * Liefert { ok:true, geteilt, text, teile, grenzen, basisName, headPath } oder
  * { ok:false, code, error }. Eine fehlende Datei kommt mit code 'ENOENT'
  * zurück; sie ist eine Neuanlage und kein Fehler, das entscheidet der Aufrufer.
  */
@@ -317,6 +326,9 @@ async function readStateForSave(absolute) {
     geteilt: doc.geteilt,
     text: doc.text,
     teile: doc.teile,
+    // 4T-002813: die Teil-Grenzen des Lese-Wegs, für die Umrechnung einer Zeile
+    // eines Folgeteils in die Zeile des zusammengesetzten Stands.
+    grenzen: doc.grenzen || [],
     basisName: doc.basisName || path.parse(absolute).name,
     headPath: doc.path,
     fehlend: doc.fehlend || [],

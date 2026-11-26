@@ -13,7 +13,7 @@ Une image devient une référence d'image, tout autre fichier un lien ordinaire 
 [Rapport](Compte-rendu/Rapport.pdf)
 ```
 
-`Ctrl+Maj+V` reste un collage simple et ne range rien.
+`Ctrl+Maj+V` et la commande **Coller en texte brut** restent un collage simple et ne rangent rien. Une plage de cellules provenant d'un tableur devient un tableau au lieu d'une pièce jointe, même lorsque le tableur fournit une image des cellules (voir [Outils](tools.md)).
 
 ## Glisser une pièce jointe
 

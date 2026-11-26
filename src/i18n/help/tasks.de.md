@@ -16,7 +16,7 @@ In bearbeitbaren Dateien schließt ein Klick auf die Checkbox die Aufgabe ab bzw
 
 ## Erweiterte Status
 
-Sechs vorbelegte Status; das Zeichen steht zwischen den eckigen Klammern:
+Sieben vorbelegte Status; das Zeichen steht zwischen den eckigen Klammern:
 
 ```markdown
 - [/] in Arbeit
@@ -25,6 +25,7 @@ Sechs vorbelegte Status; das Zeichen steht zwischen den eckigen Klammern:
 - [?] Frage
 - [!] wichtig
 - [*] markiert
+- [»] übertragen
 ```
 
 - [/] in Arbeit
@@ -33,8 +34,11 @@ Sechs vorbelegte Status; das Zeichen steht zwischen den eckigen Klammern:
 - [?] Frage
 - [!] wichtig
 - [*] markiert
+- [»] übertragen
 
 Jeder Status rendert als farbige Box mit Glyph. Ein Klick auf die Status-Box schaltet auf das **Folge-Symbol** des Status weiter (Standard: Abschließen mit `[x]`); so lassen sich Ketten wie „offen → in Arbeit → erledigt" konfigurieren.
+
+Der Status **Übertragen** (`»`) trägt den Typ Keine Aufgabe und wird vom Übertrag offener Aufgaben der Journale gesetzt: Er kennzeichnet im alten Journal-Eintrag eine Aufgabe, die in einen späteren Eintrag weitergewandert ist. Ein Klick auf das Kästchen öffnet die Aufgabe wieder (Seite [Journale](journals.md), Abschnitt „Offene Aufgaben übertragen“).
 
 ## Eigene Status, Typ und Folge-Symbol
 

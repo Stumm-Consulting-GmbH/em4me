@@ -31,12 +31,94 @@ Un esquema modificado no renombra los archivos existentes; los puntos del calend
 
 - **Entrada de diario de hoy** (menú Archivo → Más funciones de archivo): abre o crea la entrada de hoy de un diario de día; con selección si hay varios diarios de día.
 - **Entrada de diario para una fecha…** (menú Archivo → Más funciones de archivo): pide una fecha (AAAA-MM-DD) y el diario; el periodo es el de la fecha en la granularidad del diario.
+- **Trasladar tareas abiertas a la entrada de diario actual** (menú Archivo → Más funciones de archivo): abre o crea la entrada del periodo en curso y traslada a ella las tareas abiertas de la última entrada; véase la sección «Trasladar tareas abiertas».
 
 La creación produce la cadena de carpetas, el contenido de plantilla rellenado (una entrada vacía sin plantilla) y las propiedades de diario en el frontmatter. Una entrada lleva **cuatro** propiedades, sea cual sea su granularidad: el nombre del diario (`journal`), la fecha del periodo (`journal-date`), el inicio (`journal-start-date`) y el fin (`journal-end-date`). La fecha del periodo es siempre su **inicio**; en las entradas diarias, por tanto, las tres fechas coinciden. Los nombres de campo son configurables por diario y están disponibles para la consulta Perspective — como cada entrada lleva el mismo conjunto, una consulta no tiene que distinguir por granularidad. Los marcadores de fecha de la plantilla se evalúan al inicio del periodo: `{{date}}` da la fecha del periodo, no el momento de creación. Cancelar cualquier diálogo de plantilla interrumpe la creación; no se crea ningún archivo.
 
 Una entrada **ya existente** se completa cuando le faltan propiedades, por ejemplo porque procede de otra aplicación o se creó a mano. Esto ocurre de dos maneras. Al **abrirla** mediante comando, calendario o bloque de navegación, las propiedades que faltan se añaden en silencio; si la entrada ya está completa, el archivo queda intacto. El comando **Completar propiedades del diario…** lleva todas las entradas existentes de un diario al mismo estado de una vez; antes indica cuántas entradas se comprueban y pide confirmación.
 
 Crear y completar se comportan a propósito de forma distinta: al **crear**, la aplicación fija las propiedades y sustituye los campos homónimos de la plantilla. Al **completar** solo se añade lo que falta; un valor existente permanece aunque difiera del periodo, pues puede ser una corrección deliberada. Los campos ajenos y el resto del contenido quedan intactos en ambos casos, y un frontmatter dañado no se toca.
+
+## Trasladar tareas abiertas
+
+La aplicación traslada las tareas abiertas de la última entrada existente de un diario a la entrada del periodo en curso: en un diario de día, a la de hoy; en un diario de semana, a la de la semana en curso. Esto vale para diarios de cualquier granularidad, aunque la última entrada sea de hace días. La fuente es siempre la entrada anterior más reciente del mismo diario; las entradas futuras no cuentan.
+
+**Configuración.** En el editor de un diario, en Configuración → Diarios, el grupo «Trasladar tareas abiertas» reúne tres ajustes:
+
+- **Trasladar automáticamente al crear la entrada** (desactivado por defecto): con el interruptor activado, el traslado se produce en cuanto se crea la entrada del periodo en curso, sea cual sea el camino: los comandos, el panel de calendario, el bloque de navegación o de línea de tiempo, o la fecha de una tarjeta de un tablero Kanban. Abrir sin más una entrada existente o crear una entrada para otro periodo no hace nada.
+- **En la entrada anterior**: «marcar como trasladada» (por defecto) pone allí la tarea trasladada en el estado «Trasladado» (`- [»] …`, página [Listas de tareas](tasks.md)); «eliminar» la borra de allí.
+- **Solo de la sección** (vacío por defecto): el texto de un encabezado. Si el campo está relleno, solo se trasladan las tareas bajo ese encabezado y sus subencabezados; si está vacío, todas las tareas abiertas de la entrada.
+
+**Comando a mano.** **Trasladar tareas abiertas a la entrada de diario actual** (menú Archivo → Más funciones de archivo, también en la paleta de comandos) traslada en cualquier momento a la entrada del periodo en curso, aunque el interruptor esté desactivado, y también a una entrada que ya existe; si la entrada falta, se crea. Si hay varios diarios, el comando pregunta cuál se quiere. Una segunda ejecución no traslada nada dos veces, porque las tareas trasladadas quedan marcadas o eliminadas en la entrada anterior.
+
+**Dónde llegan las tareas.** Cada tarea llega a la nueva entrada bajo el encabezado bajo el que estaba en la anterior, al final de esa sección. Del mismo nombre significa el mismo texto, sin distinguir mayúsculas y minúsculas ni el nivel del encabezado; si el encabezado aparece varias veces en la nueva entrada, vale el primero. Si falta allí, se crea con las tareas al final de la entrada. Las tareas que en la entrada anterior estaban antes del primer encabezado van al final de la nueva. El orden se conserva.
+
+**Subelementos.** Una tarea se muda con todo lo que está sangrado directamente debajo de ella, hasta la siguiente línea en blanco: subtareas abiertas y hechas, sus subelementos y líneas de nota. Lo que sigue sangrado después de una línea en blanco ya no le pertenece y se queda en la entrada anterior. Con «marcar como trasladada», cada línea de tarea del bloque mudado se marca en la entrada anterior, también una subtarea hecha; con «eliminar», desaparece el bloque entero. Una tarea abierta bajo una hecha o cancelada, sin tarea abierta por encima, se muda sola y queda sin sangría en la nueva entrada.
+
+**Qué cuenta como abierto.** Las tareas cuyo estado es de tipo Abierto, En curso o En espera (página [Listas de tareas](tasks.md), sección «Estados propios, tipo y símbolo siguiente»); una casilla con un carácter para el que no hay ningún estado configurado también cuenta como abierta. Las tareas hechas y canceladas y las líneas de tipo No es una tarea se quedan donde están. Una línea marcada como «Trasladado» nunca se vuelve a trasladar, aunque ese estado esté desactivado. Las casillas en bloques de código, citas y tablas no son tareas y se quedan donde están. Un Filtro global definido también se aplica aquí.
+
+Ejemplo con «marcar como trasladada». La entrada anterior antes:
+
+```markdown
+## Trabajo
+- [ ] Redactar el presupuesto
+  - [x] Conseguir las cifras
+  - [ ] Esbozar el texto
+- [x] Revisar la factura
+
+## Personal
+- [ ] Llevar la bici al taller
+```
+
+La nueva entrada, creada a partir de la plantilla:
+
+```markdown
+## Trabajo
+
+## Personal
+```
+
+La nueva entrada después del traslado:
+
+```markdown
+## Trabajo
+
+- [ ] Redactar el presupuesto
+  - [x] Conseguir las cifras
+  - [ ] Esbozar el texto
+
+## Personal
+
+- [ ] Llevar la bici al taller
+```
+
+La entrada anterior después del traslado:
+
+```markdown
+## Trabajo
+- [»] Redactar el presupuesto
+  - [»] Conseguir las cifras
+  - [»] Esbozar el texto
+- [x] Revisar la factura
+
+## Personal
+- [»] Llevar la bici al taller
+```
+
+Con «eliminar», en la entrada anterior solo quedarían después los dos encabezados y «Revisar la factura».
+
+**Reglas de detalle.**
+
+- **Cambios sin guardar:** si la entrada anterior o la nueva tiene cambios sin guardar en cualquier ventana, no se traslada nada, y la barra de estado nombra la entrada. En el traslado automático, la nueva entrada se crea entonces sin las tareas; después de guardar, el comando a mano recupera el traslado.
+- **Funciones desactivadas:** si la extensión «Tareas» está desactivada, no se traslada nada, porque entonces nada cuenta como tarea; el comando lo indica en la barra de estado. Si la extensión «Diarios» está desactivada, el comando y los ajustes desaparecen, y no se traslada nada.
+- **Solo la última entrada:** la fuente es exactamente la entrada anterior más reciente. Lo que quedó abierto en entradas aún más antiguas se queda allí.
+- **La tarea ya está:** si la plantilla trae una tarea cada día y la misma tarea sigue abierta en la entrada anterior, no llega una segunda vez a la nueva; en la anterior se marca o se elimina de todos modos. Esto solo vale si la línea es idéntica carácter por carácter, está bajo el mismo encabezado y no tiene nada debajo en la entrada anterior. Si allí ha recibido subelementos, se muda con ellos y entonces aparece dos veces en la nueva entrada.
+- **Sección no encontrada:** si «Solo de la sección» nombra un encabezado que la entrada anterior no tiene, no se traslada nada, y la barra de estado lo indica, también en el traslado automático.
+- **Mensajes:** después de un traslado, la barra de estado indica el número de tareas y la entrada de la que proceden. Que no haya entrada anterior o ninguna tarea abierta solo lo comunica el comando a mano.
+- **Listas numeradas y encabezados vacíos:** una tarea de una lista numerada conserva su número; no se renumera nada. Si tras «eliminar» queda en la entrada anterior un encabezado sin contenido, se mantiene.
+- **Límites:** como máximo 500 tareas por traslado, entradas de hasta 5 MB y como máximo 20 000 archivos Markdown en las carpetas del diario; por encima no se traslada nada, y la barra de estado lo indica.
+- **Vuelta atrás:** no hay un comando propio para deshacer. Ambas entradas reciben una entrada en su [Historial del documento](history.md), donde esté activado para el documento; con «marcar como trasladada», un clic en la casilla vuelve a abrir la tarea en la entrada anterior.
+- **Sin enlace:** la línea marcada en la entrada anterior no recibe ningún enlace a la nueva entrada.
 
 ## Panel de calendario
 

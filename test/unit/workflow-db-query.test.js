@@ -127,7 +127,9 @@ function lege(wurzel, relativ, text) {
 
 const lies = (pfad) => fs.readFileSync(pfad, 'utf8');
 
-async function welt({ datenbankAn = true } = {}) {
+// 4T-002822: `dateien` liegen vor dem Index-Aufbau im Bereich, `tasksConfig`
+// stellt die Aufgaben-Einstellungen des Einstellungs-Speichers.
+async function welt({ datenbankAn = true, dateien = {}, tasksConfig } = {}) {
   const wurzel = path.resolve(fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-dbquery-')));
   wurzeln.push(wurzel);
   const library = lege(wurzel, 'Daten/Library.md', LIBRARY);
@@ -135,6 +137,7 @@ async function welt({ datenbankAn = true } = {}) {
   lege(wurzel, 'Kaputt.md', abfrage(500, 'TABLE RECORDS (\nFROM "Library"'));
   const uebersicht = lege(wurzel, 'Übersicht.md', UEBERSICHT);
   const notiz = lege(wurzel, 'Notiz.md', '# Notiz\n');
+  for (const [relativ, text] of Object.entries(dateien)) lege(wurzel, relativ, text);
   let stand = backlinks.backlinksFor(notiz, BESITZER, wurzel);
   for (let i = 0; i < 500 && stand.status === 'indexing'; i++) {
     await new Promise((r) => setTimeout(r, 10));
@@ -161,6 +164,10 @@ async function welt({ datenbankAn = true } = {}) {
     dateiSchritte: createWorkflowFileSteps({ ...deps, isMarkdownPath: (p) => /\.md$/i.test(p) }),
     tForWindow: (_win, key) => (key in de ? de[key] : key),
     resolveQueryTemplatesFolder: async () => null,
+    getStore:
+      tasksConfig === undefined
+        ? undefined
+        : () => ({ get: (k) => (k === 'tasksConfig' ? tasksConfig : undefined) }),
   });
   const ctx = {
     root: wurzel,
@@ -505,5 +512,38 @@ describe('db-query: Werte bleiben Text in der Ziel-Notiz (4T-002734, AK5, AK9)',
     expect(text).toContain('| a&#96;b |');
     expect(renderMarkdown(text, 'de')).not.toContain('privat2');
     expect(convertMarkdownPortable(text)).not.toContain('privat2');
+  });
+});
+
+// 4T-002822 (Epic 3E-000445, Story 4S-001197): Der Befehl schreibt bei Aufgaben
+// den Text der Aufgaben-Liste der Ansicht; die Einstellungen zum globalen
+// Filter kommen aus dem Einstellungs-Speicher wie in der Ansicht. Den Vergleich
+// mit dem gezeichneten Bild der Ansicht trägt
+// test/unit/renderer/aufgaben-text-ansicht-und-notiz.test.js.
+describe('db-query: Aufgaben mit dem Text der Ansicht (4T-002822)', () => {
+  const dateien = {
+    'Aufgaben-Abfrage.md': abfrage(0, 'LIST TASKS\nFROM "Projekte"'),
+    'Projekte/Plan.md': '# Plan\n\n- [ ] #aufgabe Bericht schreiben #arbeit 📅 2099-12-01 ⏫\n',
+  };
+  // Das Rautezeichen steht als Zeichen-Code (Daten bleiben Text, 4T-002734).
+  const ziel = (w) => lies(path.join(w.wurzel, 'Berichte', 'Aufgaben.md'));
+
+  it('ohne Termin- und Prioritäts-Zeichen, globaler Filter nach der Einstellung ausgeblendet', async () => {
+    const w = await welt({
+      dateien,
+      tasksConfig: { globalFilter: ' #aufgabe ', hideGlobalFilter: true },
+    });
+    const ergebnis = await w.lauf('Aufgaben-Abfrage.md', 'Berichte/Aufgaben.md');
+    expect(ergebnis).toMatchObject({ ok: true, effect: { kind: 'created' } });
+    expect(ziel(w)).toBe('| Aufgabe |\n| --- |\n| Bericht schreiben &#35;arbeit |\n');
+  });
+
+  it('ohne ausgeblendeten Filter bleibt er im Text stehen', async () => {
+    const w = await welt({
+      dateien,
+      tasksConfig: { globalFilter: '#aufgabe', hideGlobalFilter: false },
+    });
+    await w.lauf('Aufgaben-Abfrage.md', 'Berichte/Aufgaben.md');
+    expect(ziel(w)).toBe('| Aufgabe |\n| --- |\n| &#35;aufgabe Bericht schreiben &#35;arbeit |\n');
   });
 });

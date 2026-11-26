@@ -19,11 +19,16 @@ import { openRecordHit, recordHitOf } from '../query/record-hit-click.js';
 // 4T-000409 (Epic 3E-000077): scrollToAnchorAfterOpen/normalizedAnchorId fuer den
 // Anker-Sprung der Block-Treffer der Perspective-Abfrage.
 import {
+  findHeadingLineForSlug,
   normalizedAnchorId,
+  scrollEditorToLine,
   scrollToAnchorAfterOpen,
   scrollToLineAfterOpen,
 } from '../views/anchor-navigation.js';
 import { activateLink } from '../views/link-navigation.js';
+// 4T-002642 (Epic 3E-000397): Der Sprung über den Inhaltsverzeichnis-Block legt
+// einen Eintrag im Verlauf «Zurück» und «Vor» an, wie in der Lese-Ansicht.
+import { merkeSprung } from '../views/navigation-verlauf-bedienung.js';
 // 4T-000504 (Epic 3E-000096): Rueckschreib-Aktionen der Task-Abfrage-Treffer
 // (Status-Toggle, Verschieben, Bearbeiten) — zentraler Klick-Dispatch.
 import { handleTaskQueryAction } from '../task-query-actions.js';
@@ -31,6 +36,8 @@ import { handleTaskQueryAction } from '../task-query-actions.js';
 // importiert nur api/i18n/shared).
 import { performStatusToggle } from '../task-states.js';
 import { liveRebuildEffect } from './live-shared.js';
+// 4T-002558 (Epic 3E-000390): Überschriften für den Sprung aus dem Verzeichnis.
+import { tocUeberschriften } from './live-toc.js';
 import { findFootnoteDefinitionRange, findFootnoteDefinitionText } from './live-scans.js';
 
 // 4T-000087: i18n-Refresh-Hook. Wenn die App-Sprache zur Laufzeit umgeschaltet
@@ -120,12 +127,14 @@ export function bindFrontmatterQueryClicks(container) {
     // 4T-000502 (Epic 3E-000096): Task-Treffer springen zur Quell-Zeile.
     const fmLine = parseInt(fmItem.dataset.fmLine || '', 10);
     // 4T-000631 (Epic 3E-000102): Abfrage-Treffer-Klick im Dokument erbt die Gruppe.
-    Promise.resolve(openInPane(paneIdx, [fmItem.dataset.fmPath], { inheritGroup: true })).then(
-      (realPane) => {
-        if (fmAnchor) scrollToAnchorAfterOpen(realPane, normalizedAnchorId(fmAnchor));
-        else if (Number.isFinite(fmLine)) scrollToLineAfterOpen(realPane, fmLine);
-      },
-    );
+    // 4T-002641: Mit Ziel entsteht keine offene Lese-Stelle.
+    const zielFolgt = !!fmAnchor || Number.isFinite(fmLine);
+    Promise.resolve(
+      openInPane(paneIdx, [fmItem.dataset.fmPath], { inheritGroup: true, zielFolgt }),
+    ).then((realPane) => {
+      if (fmAnchor) scrollToAnchorAfterOpen(realPane, normalizedAnchorId(fmAnchor));
+      else if (Number.isFinite(fmLine)) scrollToLineAfterOpen(realPane, fmLine);
+    });
   });
 }
 
@@ -164,6 +173,47 @@ export function bindDatentabellenVerweisKlicks(container) {
     if (paneIdx < 0) return;
     event.preventDefault();
     activateLink(paneIdx, link.getAttribute('href'), link.classList.contains('wikilink'));
+  });
+}
+
+// 4T-002558 (Epic 3E-000390): Klick-Pfad der Einträge des Inhaltsverzeichnis-
+// Blocks im Live-Widget, nach dem Muster der Datentabellen-Verweise darüber:
+// `mousedown` hält die Auswahl auf, die den Block sonst aufklappte, `click`
+// springt. Die Zeile kommt aus dem Platz des Eintrags in der Liste aller
+// Überschriften (data-toc-index, dieselbe Ermittlung wie für das Verzeichnis);
+// fehlt er, sucht der Anker-Weg der Verweise (findHeadingLineForSlug). Ein
+// Verzeichnis in einer Einbettung bleibt außen vor, es zeigt fremde Überschriften.
+function tocEintrag(target) {
+  if (!(target instanceof Element)) return null;
+  const link = target.closest('.toc-block a[href]');
+  return link && !link.closest('.wiki-embed-md-body') ? link : null;
+}
+
+export function bindTocKlicks(container) {
+  container.addEventListener('mousedown', (event) => {
+    if (event.button === 0 && tocEintrag(event.target)) event.preventDefault();
+  });
+  container.addEventListener('click', (event) => {
+    if (event.button !== 0) return;
+    const link = tocEintrag(event.target);
+    if (!link) return;
+    const editorEl = container.closest('.cm-editor');
+    const view = editorEl ? EditorView.findFromDOM(editorEl) : null;
+    const paneIdx = view ? paneEditors.indexOf(view) : -1;
+    if (paneIdx < 0) return;
+    event.preventDefault();
+    const index = parseInt(link.dataset.tocIndex || '', 10);
+    const liste = tocUeberschriften(view.state);
+    const zeile =
+      index >= 0 && index < liste.length
+        ? liste[index].zeile
+        : findHeadingLineForSlug(view, (link.getAttribute('href') || '').slice(1));
+    if (!zeile) return;
+    // 4T-002642: Vor dem Sprung die Stelle eintragen, danach der Besuch mit der
+    // Ziel-Zeile; derselbe Sprung zu einer Überschrift wie über den Anker der
+    // Lese-Ansicht. Eingehängt hier am Aufrufer, nicht in scrollEditorToLine.
+    merkeSprung(paneIdx, zeile);
+    scrollEditorToLine(paneIdx, zeile);
   });
 }
 

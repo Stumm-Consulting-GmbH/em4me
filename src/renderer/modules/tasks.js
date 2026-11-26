@@ -31,6 +31,7 @@ import {
   modelMatchesGlobalFilter,
 } from '../../shared/tasks/task-markers.js';
 import { buildRecurrenceInstance } from '../../shared/tasks/task-recurrence.js';
+import { taskDisplaySettings } from '../../shared/query/result-display.js';
 
 export const TASKS_CONFIG_DEFAULTS = {
   globalFilter: '',
@@ -63,8 +64,9 @@ export let tasksConfig = { ...TASKS_CONFIG_DEFAULTS };
 export function normalizeTasksConfig(raw) {
   const src = raw && typeof raw === 'object' ? raw : {};
   return {
-    globalFilter: typeof src.globalFilter === 'string' ? src.globalFilter.trim() : '',
-    hideGlobalFilter: !!src.hideGlobalFilter,
+    // Filter und Ausblenden nach der Regel, die auch der Schreiber von
+    // `db-query … into` liest (4T-002822).
+    ...taskDisplaySettings(src),
     autoCreated: src.autoCreated === true,
     autoDone: src.autoDone !== false,
     autoCancelled: src.autoCancelled !== false,

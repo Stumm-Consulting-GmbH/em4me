@@ -21,9 +21,12 @@
 // Anzeige-Prozesses bauen daraus ihr DOM, die Hintergrund-Nutzer des
 // Haupt-Prozesses (Lookup-Feld, Wertevorrat) lesen daraus den Anzeige-Namen,
 // die des Anzeige-Prozesses (Kennungs-Vorschlag, Vorgänger-Suche) die
-// Aufgaben-Treffer.
+// Aufgaben-Treffer. Seit 4T-002822 trägt er zudem den Anzeige-Text einer
+// Aufgabe, den die Aufgaben-Liste der Ansicht und der Workflow-Befehl, der ein
+// Abfrage-Ergebnis in eine Notiz schreibt, gemeinsam lesen.
 
 const { formatValue, formatValueSegments } = require('./query-format.js');
+const { parseTaskLine, stripGlobalFilter } = require('../tasks/task-markers.js');
 
 /**
  * Überschrift einer Spalte: die aufgelöste Beschriftung (E21.6), bei den drei
@@ -130,6 +133,58 @@ function taskHits(resultSet) {
   return hits;
 }
 
+// 4T-000503 (Epic 3E-000096), seit 4T-002822 hier statt in der Aufgaben-Liste
+// der Ansicht: Schlagworte im Text entfernen (`HIDE tags`), dieselbe Form wie
+// beim Index-Lauf; übriger Leerraum fällt zusammen.
+function stripInlineTags(description) {
+  return description
+    .replace(/(^|[\s])#[\p{L}\p{N}_/-]+/gu, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+/**
+ * 4T-002822 (Epic 3E-000445): Die beiden Einstellungen der Aufgaben-Erweiterung,
+ * die den Anzeige-Text einer Aufgabe bestimmen, aus dem gespeicherten Stand
+ * gelesen. Eine Regel für die Ansicht (`normalizeTasksConfig` im
+ * Anzeige-Prozess) und den Schreiber von `db-query … into` im Haupt-Prozess,
+ * damit Notiz und Ansicht nicht auseinanderlaufen.
+ * @param {unknown} raw Gespeicherter Stand `tasksConfig`.
+ * @returns {{ globalFilter: string, hideGlobalFilter: boolean }}
+ */
+function taskDisplaySettings(raw) {
+  const src = raw && typeof raw === 'object' ? raw : {};
+  return {
+    globalFilter: typeof src.globalFilter === 'string' ? src.globalFilter.trim() : '',
+    hideGlobalFilter: !!src.hideGlobalFilter,
+  };
+}
+
+/**
+ * 4T-002822 (Epic 3E-000445): Der Anzeige-Text einer Aufgabe, wie ihn die
+ * Aufgaben-Liste der Abfrage-Ansicht zeigt: die Beschreibung ohne Listen-,
+ * Status-, Termin- und Prioritäts-Zeichen (diese zeigt die Ansicht als
+ * Abzeichen), ohne den globalen Aufgaben-Filter, wenn die Einstellung ihn
+ * ausblendet, und ohne Schlagworte beim Wunsch `HIDE tags`. Eine Stelle für
+ * Ansicht und Schreiber, damit beide denselben Text tragen.
+ * @param {string} raw Roh-Zeile der Aufgabe.
+ * @param {{ hide?: string[] }|null|undefined} wishes Wünsche der Menge.
+ * @param {{ globalFilter?: string, hideGlobalFilter?: boolean }|null|undefined} aufgaben
+ *   Einstellungen der Aufgaben-Erweiterung.
+ * @returns {string|null} null, wenn die Zeile keine Aufgabe ist.
+ */
+function taskText(raw, wishes, aufgaben) {
+  const model = typeof raw === 'string' ? parseTaskLine(raw) : null;
+  if (!model) return null;
+  let description = model.description.trim();
+  if (aufgaben && aufgaben.hideGlobalFilter && aufgaben.globalFilter) {
+    description = stripGlobalFilter(description, aufgaben.globalFilter).trim();
+  }
+  const hide = wishes && Array.isArray(wishes.hide) ? wishes.hide : [];
+  if (hide.includes('tags')) description = stripInlineTags(description);
+  return description;
+}
+
 /**
  * Datei-Zahl des Suchraums aus dem Zustand, wie sie der Hinweis «zu groß»
  * einsetzt; ohne Angabe 0.
@@ -149,5 +204,7 @@ module.exports = {
   groupTitle,
   walkGroups,
   taskHits,
+  taskText,
+  taskDisplaySettings,
   areaFileCount,
 };

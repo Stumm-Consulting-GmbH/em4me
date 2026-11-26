@@ -98,7 +98,7 @@ export function renderPreviewForPane(paneIdx) {
     }
   }
   els.renderedHtml.dataset.previewBase = tab.path || '';
-  els.renderedHtml.innerHTML = api.renderMarkdown(tab.content, tab.path);
+  els.renderedHtml.innerHTML = api.renderMarkdown(tab.content, tab.path, { titelbild: true });
   if (oldPdfEmbeds.size > 0) {
     for (const span of els.renderedHtml.querySelectorAll(
       '.wiki-embed[data-embed-kind="pdf"]:not(.wiki-embed-processed)',

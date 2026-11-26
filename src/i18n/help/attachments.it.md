@@ -13,7 +13,7 @@ Un'immagine diventa un riferimento di immagine, ogni altro file un collegamento 
 [Relazione](Verbale/Relazione.pdf)
 ```
 
-`Ctrl+Maiusc+V` resta un incollaggio semplice e non ripone nulla.
+`Ctrl+Maiusc+V` e il comando **Incolla come testo semplice** restano un incollaggio semplice e non ripongono nulla. Un intervallo di celle da un foglio di calcolo diventa una tabella anziché un allegato, anche quando il foglio di calcolo fornisce un'immagine delle celle (vedi [Strumenti](tools.md)).
 
 ## Trascinare un allegato
 

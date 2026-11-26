@@ -136,5 +136,7 @@
   "canvas.austausch.fehler.keinJson": "Die Datei enthält kein gültiges JSON; es ist kein Dokument entstanden.",
   "canvas.austausch.fehler.keineListen": "Die Datei führt weder Knoten noch Verbindungen; es ist kein Dokument entstanden.",
   "canvas.austausch.fehler.keinFreierName": "Neben der Datei war kein freier Name mehr zu finden; es ist kein Dokument entstanden.",
-  "canvas.austausch.fehler.nichtSchreibbar": "Das neue Dokument ließ sich nicht anlegen; die gewählte Datei bleibt unverändert."
+  "canvas.austausch.fehler.nichtSchreibbar": "Das neue Dokument ließ sich nicht anlegen; die gewählte Datei bleibt unverändert.",
+  "canvas.austausch.fehler.geschuetzterOrdner": "Der Ordner der Datei gehört zum Programm; dort entsteht kein neues Dokument. Die gewählte Datei bleibt unverändert.",
+  "canvas.austausch.fehler.zielNichtPruefbar": "Ob der Ordner der Datei zum Programm gehört, ließ sich nicht prüfen; dort entsteht deshalb kein neues Dokument. Die gewählte Datei bleibt unverändert."
 }

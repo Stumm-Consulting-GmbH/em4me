@@ -13,7 +13,7 @@ Ein Bild erscheint als Bild-Verweis, jede andere Datei als gewöhnlicher Link:
 [Bericht](Protokoll/Bericht.pdf)
 ```
 
-`Strg+Umschalt+V` bleibt reines Einfügen und legt nichts ab.
+`Strg+Umschalt+V` und der Befehl **Als reinen Text einfügen** bleiben reines Einfügen und legen nichts ab. Ein Zellbereich aus einer Tabellenkalkulation wird zur Tabelle statt zur Anlage, auch wenn die Tabellenkalkulation ein Bild der Zellen mitliefert (siehe [Werkzeuge](tools.md)).
 
 ## Anlage hineinziehen
 

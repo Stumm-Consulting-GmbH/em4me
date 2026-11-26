@@ -11,8 +11,8 @@
 // und Attribut-Blöcke längengleich ausgeblendet) samt `istInAdresse` und
 // `isValidTag` aus `src/shared/tag-erkennung.js` — dem Modul, das Index und
 // Umbenennung bereits teilen. Eine zweite Regel entsteht nicht. Vorbild für das
-// Herausnehmen ist das Verfahren von `stripInlineTags` in der Anzeige der
-// Frontmatter-Abfragen; dessen eigener, schlichterer Ausdruck wird bewusst
+// Herausnehmen ist das Verfahren von `stripInlineTags` im Darstellungs-Kern
+// der Abfragen (src/shared/query/result-display.js); dessen eigener, schlichterer Ausdruck wird bewusst
 // nicht übernommen, weil er Code-Spannen und Adressen nicht kennt.
 //
 // **Abhängigkeits-frei wie die Zeichnung** (Injektions-Bauweise): kein

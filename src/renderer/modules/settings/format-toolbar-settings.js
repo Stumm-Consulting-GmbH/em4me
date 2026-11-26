@@ -76,6 +76,9 @@ function entryDisplay(entry) {
   if (entry.type === 'headings') {
     return { icon: COMMAND_ICONS.heading, label: t('settings.formatToolbar.headingsEntry') };
   }
+  if (entry.type === 'mermaid') {
+    return { icon: COMMAND_ICONS.diagram, label: t('settings.formatToolbar.mermaidEntry') };
+  }
   const cmd = COMMANDS.find((c) => c.id === entry.commandId);
   const label =
     entry.label ||
@@ -203,7 +206,22 @@ function buildEntryList(body, draft, rerender) {
       refreshSettingsButtons();
     });
   }
-  addRow.append(addBtn, addSepBtn, addHeadingsBtn);
+  // 4T-002617 (Epic 3E-000391): der Mermaid-Knopf, ebenso höchstens einmal.
+  const hasMermaid = entries.some((e) => e.type === 'mermaid');
+  const addMermaidBtn = document.createElement('button');
+  addMermaidBtn.type = 'button';
+  addMermaidBtn.className = 'btn';
+  addMermaidBtn.id = 'btn-format-toolbar-add-mermaid';
+  addMermaidBtn.textContent = t('settings.formatToolbar.addMermaid');
+  addMermaidBtn.disabled = hasMermaid;
+  if (!hasMermaid) {
+    addMermaidBtn.addEventListener('click', () => {
+      draft.formatToolbar.entries = [...draft.formatToolbar.entries, { type: 'mermaid' }];
+      rerender();
+      refreshSettingsButtons();
+    });
+  }
+  addRow.append(addBtn, addSepBtn, addHeadingsBtn, addMermaidBtn);
   body.appendChild(addRow);
 
   const resetRow = document.createElement('div');

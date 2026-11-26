@@ -60,6 +60,10 @@ const { createMainWiring } = require('./app/wiring');
 // 4T-000971 (Epic 3E-000207): letzte Auffang-Ebene dieser Prozess-Seite.
 const { erstelleAuffangEbene } = require('./app/auffang-ebene');
 const { createStartup, gibWartendeZweitstartDateien } = require('./app/startup');
+// 4T-002647 (Epic 3E-000416): Buch der Freigaben und geschützte Ordner.
+const { createGrantBook } = require('./grants/grant-book');
+const { createBindingGrants, resolveProgramList } = require('./grants/binding-grants');
+const { createListSource } = require('./grants/protected-folders');
 // 4T-001990 (Epic 3E-000188): portabler Betrieb mit Daten-Ordner neben dem
 // Programm, und der Katalog-Lader fuer seine Meldung vor dem ready-Ereignis.
 const {
@@ -119,6 +123,13 @@ const { registerPresentationPptxIpc } = require('./ipc/presentation-export-pptx'
 const { registerPresentationBilderIpc } = require('./ipc/presentation-export-bilder');
 // 4T-002278 (Epic 3E-000348): das Publikums-Fenster der Präsentation.
 const { registerPresentationWindowIpc } = require('./ipc/presentation-window');
+// 4T-002641 (Epic 3E-000397): Lese-Position je Dokument lesen und merken.
+const { registerLesePositionenIpc } = require('./ipc/lese-positionen');
+const lesePositionen = require('./lese-positionen');
+// 4T-002648 (Epic 3E-000416): Erklärungs-Pflicht an der Anmelde-Stelle.
+const { assertRegistrable } = require('./ipc/channel-declarations');
+const { createChannelGuard } = require('./ipc/channel-guard');
+const { createSenderCheck } = require('./ipc/channel-sender');
 // 4T-002292 (Epic 3E-000349): Bild je Folie über das Render-Fenster.
 const { createFolienBilder, bildSchemaPrivilegien } = require('./slide-images');
 
@@ -296,6 +307,38 @@ const appRegistry = createAppRegistry();
 
 let store = null; // electron-store, asynchron geladen (ESM-only)
 
+// 4T-002647 (Epic 3E-000416): Genau ein Buch der Freigaben je Prozess und
+// eine Quelle der aufgelösten Liste der geschützten Ordner. Beides entsteht nach der
+// Umlenkung des Nutzerdaten-Ordners oben; die Liste löst im Hintergrund auf,
+// die Bindungen warten auf sie, der Start nicht. Das Buch wird noch von keinem
+// Endpunkt gelesen. 4T-002648: Dieselbe Liste prüft die Anmelde-Stelle.
+// 4T-002922: Die Liste kommt aus einer Quelle, die eine gescheiterte Ermittlung
+// beim nächsten Aufruf neu versucht. Beim ersten Start mit leerem Profil legt
+// der Einstellungs-Speicher die Einstellungs-Datei während der Ermittlung an;
+// ein einmal festgehaltenes Scheitern sperrte bis dahin jeden Schreib-Kanal bis
+// zum Neustart. Die erste Ermittlung läuft wie bisher sofort im Hintergrund.
+const protectedFolders = createListSource(() =>
+  resolveProgramList({
+    execPath: process.execPath,
+    userDataFolder: app.getPath('userData'),
+    portableMode: portablerBetrieb,
+    portableProgramFile: process.env.PORTABLE_EXECUTABLE_FILE,
+  }),
+);
+protectedFolders().catch(() => {});
+const bindingGrants = createBindingGrants({ book: createGrantBook(), protectedFolders });
+// 4T-002648: Die Absender-Prüfung der Anmelde-Stelle. Die Fenster tragen sich
+// beim Bauen mit ihrer Fenster-Art ein (Fenster-Verwaltung, Publikums-Fenster,
+// Fenster der Folien-Bilder).
+const senderCheck = createSenderCheck();
+// 4T-002648: Die Prüfung der Anmelde-Stelle gegen die geschützten Ordner
+// (channel-guard.js). Review-Befund Z1 vom 2026-11-22 (4T-002827): Sie entsteht
+// vor der Verdrahtung, weil auch die Menü-Befehle «Neues Buch…» und «Neues
+// Bücherregal…» das gewählte Ziel prüfen und ihre Dialoge in app/wiring.js
+// entstehen. areaRootForEvent ist eine Funktions-Deklaration und wird erst
+// beim ersten Kanal-Aufruf gerufen.
+const channelGuard = createChannelGuard({ protectedFolders, areaRootOf: areaRootForEvent });
+
 // --- 4T-001000 (Epic 3E-000196): Verdrahtung -------------------------------------
 //
 // Die Logik-Cluster, die Fenster-Verwaltung und die drei Pruefer entstehen in
@@ -310,6 +353,9 @@ const wiring = createMainWiring({
   isMarkdownPath,
   senderWindow,
   pendingSecondInstanceFiles: gibWartendeZweitstartDateien,
+  bindingGrants,
+  senderCheck,
+  checkTarget: channelGuard.checkTarget,
 });
 const {
   windows,
@@ -380,6 +426,11 @@ function registerIpc() {
   // Der Einstellungs-Speicher kommt als Getter. Die Registrierung laeuft
   // zwar vollstaendig nach loadStore, der Getter haelt die Module aber von
   // der Reihenfolge des Programmstarts unabhaengig.
+  //
+  // 4T-002648: Die Pruefung der Anmelde-Stelle gegen die geschuetzten Ordner
+  // (channel-guard.js) entsteht auf Modul-Ebene vor der Verdrahtung; ihre
+  // Pruef-Funktion fuer errechnete Ziele geht im Deps-Objekt an die Handler
+  // (Review-Befund S1).
   const ipcDeps = {
     // Verdrahtung: Fenster, Bereiche, Buecher, Regale, Menue, Dokumente und
     // die drei Pruefer unter ihren bisherigen Namen.
@@ -392,6 +443,11 @@ function registerIpc() {
     nativeTheme,
     BrowserWindow,
     Notification,
+    // 4T-002649: Protokoll-Weg der Abweisungen am Einstellungs-Kanal.
+    warn: console.warn,
+    // Review-Befund S1 vom 2026-11-22: Pruefung eines Ziels, das der Handler
+    // erst selbst errechnet, gegen die geschuetzten Ordner.
+    checkTarget: channelGuard.checkTarget,
     // Fenster-Kontext einer Anfrage
     senderWindow,
     areaRootForEvent,
@@ -406,6 +462,8 @@ function registerIpc() {
     // 4T-002294: der Erzeuger der Folien-Bilder (unten angelegt, weil sein
     // Schema vor ready angemeldet wird), als Getter wie der Speicher.
     getFolienBilder: () => folienBilder,
+    // 4T-002648: Das Publikums-Fenster trägt sich bei der Absender-Prüfung ein.
+    senderCheck,
     isMarkdownPath,
     pushRecent,
     fullVersion,
@@ -428,16 +486,29 @@ function registerIpc() {
   // fuer dieses Fenster arbeitet — das deckt jeden Dialog ab, auch die
   // Nachfrage nach ungespeicherten Inhalten, vor der ein Anwender beliebig
   // lange sitzen darf.
-  const registriere = (kanal, fn) =>
+  //
+  // 4T-002648 (Epic 3E-000416): Angemeldet wird nur ein Kanal, der in
+  // ipc/channel-declarations.js erklärt ist oder in dessen Übergangs-Liste
+  // steht; sonst wirft die Anmeldung, und das Programm startet nicht. Die
+  // Aufrufe der erklärten Schreib-Kanäle prüft channel-guard.js gegen die
+  // geschützten Ordner (Teil 2); alle übrigen laufen noch ungeprüft durch.
+  // Vor beidem prüft channel-sender.js den Absender (Teil 3): Haupt-Rahmen
+  // einer eigenen Seite und eine Fenster-Art, die den Kanal erreicht; sonst
+  // endet der Aufruf als abgelehntes Versprechen.
+  const registriere = (kanal, fn) => {
+    assertRegistrable(kanal);
+    const handler = channelGuard.wrap(kanal, fn);
     ipcMain.handle(kanal, async (event, ...args) => {
+      senderCheck.assertSender(kanal, event);
       const fensterId = event && event.sender ? event.sender.id : null;
       if (fensterId != null) schliessRueckfall.aufrufBegonnen(fensterId);
       try {
-        return await fn(event, ...args);
+        return await handler(event, ...args);
       } finally {
         if (fensterId != null) schliessRueckfall.aufrufBeendet(fensterId);
       }
     });
+  };
   registerWindowsIpc(registriere, ipcDeps);
   registerSettingsIpc(registriere, ipcDeps);
   registerFilesIpc(registriere, ipcDeps);
@@ -468,6 +539,7 @@ function registerIpc() {
   registerPresentationPptxIpc(registriere, ipcDeps);
   registerPresentationBilderIpc(registriere, ipcDeps);
   registerPresentationWindowIpc(registriere, ipcDeps);
+  registerLesePositionenIpc(registriere, ipcDeps);
 }
 
 // --- App-Lifecycle -----------------------------------------------------------
@@ -496,7 +568,7 @@ app.on('second-instance', (_event, argv, workingDirectory) => {
 // die Privilegien nur einmal und nur vor dem ready-Ereignis an; ein weiteres
 // eigenes Schema gehört in dieselbe Liste (slide-images.js). Den
 // Ladeweg selbst registriert der Erzeuger nach ready, vor dem Start-Ablauf.
-const folienBilder = createFolienBilder({ BrowserWindow, protocol });
+const folienBilder = createFolienBilder({ BrowserWindow, protocol, senderCheck });
 if (!START_ABGEBROCHEN) {
   protocol.registerSchemesAsPrivileged(bildSchemaPrivilegien());
   app.whenReady().then(() => folienBilder.registriereBildSchema());
@@ -534,6 +606,20 @@ app.on('before-quit', () => {
   // gingen die zuletzt im 'close'-Handler gemerkten Bounds verloren (4T-000025).
   if (windows.size > 0) persistAllWindows();
 });
+
+// 4T-002641 (Epic 3E-000397, V4): Die Lese-Positionen werden erst hier
+// geschrieben, wenn alle Fenster geschlossen sind und ihre letzte Stelle
+// gemeldet haben. Über den gemeinsamen asynchronen Schreibweg: Ist etwas
+// offen, hält der erste `will-quit` an, wartet höchstens zwei Sekunden auf das
+// Schreiben und beendet dann erneut; ohne Offenes läuft er unverändert durch.
+// Das erneute Beenden löst `before-quit` ein zweites Mal aus; dort ist es ohne
+// Wirkung, weil keine Fenster mehr offen sind.
+const beimBeendenLesePositionen = lesePositionen.erzeugeBeendenHalt({
+  hatOffenes: lesePositionen.hatOffenes,
+  schreibe: lesePositionen.schreibeJetzt,
+  beende: () => app.quit(),
+});
+app.on('will-quit', (event) => beimBeendenLesePositionen(event));
 
 app.on('window-all-closed', async () => {
   await unwatchAll();

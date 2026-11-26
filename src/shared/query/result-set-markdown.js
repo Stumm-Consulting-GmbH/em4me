@@ -15,10 +15,14 @@
 //
 // **Regeln der Markdown-Form:**
 //   - Kopfzeile aus den Beschriftungen; vorn die Spalte des Treffers («Datei»,
-//     auf der Datensatz-Ebene «Datensatz», bei Aufgaben «Aufgabe»), außer beim
+//     auf der Datensatz-Ebene «Datensatz», bei Aufgaben in Listen «Aufgabe»), außer beim
 //     Wunsch `WITHOUT ID`.
 //   - Der Treffer als Verweis: eine Datei `[[Name]]`, ein Block `[[Name#^Anker]]`,
-//     ein Datensatz `[[Tabelle#^Kennung|Anzeige-Form]]`; eine Aufgabe als ihr Text.
+//     ein Datensatz `[[Tabelle#^Kennung|Anzeige-Form]]`; eine Aufgabe in einer
+//     Liste als ihr Text, seit 4T-002822 derselbe wie in der Aufgaben-Liste der
+//     Ansicht (ohne Termin- und Prioritäts-Zeichen, globaler Filter nach der
+//     Einstellung, Schlagworte nach `HIDE tags`), in einer Tabelle wie die
+//     Ansicht als Verweis auf ihre Datei unter dem Kopf «Datei».
 //   - Ein Wert in seinen Anzeige-Stücken: Text, ein Datei-Verweis `[[Name]]`, ein
 //     Datensatz-Verweis `[[Tabelle#^Kennung|Anzeige-Form]]`, Hervorhebung als
 //     `**…**`, die Meldung einer Formel als ihr Warnzeichen.
@@ -51,6 +55,7 @@ const {
   columnHeader,
   displayName,
   groupTitle,
+  taskText,
   walkGroups,
 } = require('./result-display.js');
 const { INLINE_CALC_ERROR_GLYPH } = require('../markdown/inline-calc.js');
@@ -262,24 +267,25 @@ function wertText(value) {
   return zelle(stueckeText(cellSegments(value)));
 }
 
-// Der Text einer Aufgabe ohne Listen- und Status-Zeichen.
-function aufgabenText(raw) {
-  return String(raw || '')
-    .replace(/^\s*(?:[-*+]|\d+[.)])\s+\[[^\]]\]\s*/, '')
-    .trim();
-}
-
-// Der Treffer einer Zeile als Verweis, bei einer Aufgabe ihr Text. Ein Name,
-// der die Verweis-Schreibweise aufbräche, wird der Anzeige-Name der Ansicht als
-// Text (4T-002734); beim Block zählt der Datei-Name vor `#^`, der Anker trägt
-// nur Buchstaben, Ziffern, Unterstrich und Bindestrich.
-function trefferText(origin) {
+// Der Treffer einer Zeile als Verweis, bei einer Aufgabe in einer Liste ihr
+// Text. Ein Name, der die Verweis-Schreibweise aufbräche, wird der Anzeige-Name
+// der Ansicht als Text (4T-002734); beim Block zählt der Datei-Name vor `#^`,
+// der Anker trägt nur Buchstaben, Ziffern, Unterstrich und Bindestrich.
+// 4T-002822: Der Text einer Aufgabe ist der Anzeige-Text der Aufgaben-Liste
+// (`taskText` des Darstellungs-Kerns, mit den Wünschen der Menge und den
+// Einstellungen der Aufgaben-Erweiterung aus `kontext`), ohne Text ihr
+// Datei-Name wie in der Ansicht. In einer Tabelle zeigt die Ansicht bei
+// Aufgaben den Datei-Namen; dort wird die Aufgabe wie eine Datei geschrieben.
+function trefferText(origin, kontext) {
   if (!origin || typeof origin !== 'object') return '';
   if (origin.kind === 'record') {
     if (brichtVerweis(tabellenName(origin.table))) return zelle(datenText(displayName(origin)));
     return zelle(datensatzVerweis(origin.table, origin.id, origin.display));
   }
-  if (origin.kind === 'task') return zelle(datenText(aufgabenText(origin.raw)));
+  if (origin.kind === 'task' && !kontext.tabelle) {
+    const text = taskText(origin.raw, kontext.wishes, kontext.aufgaben);
+    return zelle(datenText(text || displayName(origin)));
+  }
   const name = displayName(origin);
   if (name === '') return '';
   if (brichtVerweis(origin.name)) return zelle(datenText(name));
@@ -302,9 +308,11 @@ function tabellenZeile(zellen) {
   return `| ${zellen.join(' | ')} |`;
 }
 
-function trefferKopf(rs, t) {
+// 4T-002822: In einer Tabelle über Aufgaben trägt die Treffer-Spalte wie in der
+// Ansicht den Datei-Namen und deren Kopf; nur die Liste schreibt «Aufgabe».
+function trefferKopf(rs, t, tabelle) {
   if (rs.scope === 'records') return t('query.table.recordColumn');
-  if (rs.scope === 'tasks') return t('workflow.dbQuery.taskColumn');
+  if (rs.scope === 'tasks' && !tabelle) return t('workflow.dbQuery.taskColumn');
   return t('query.table.fileColumn');
 }
 
@@ -313,8 +321,8 @@ function listenSpalten(rs) {
   return Array.isArray(rs.columns) && rs.columns.length > 0 ? [rs.columns[0]] : [];
 }
 
-function listenZeile(row, spalten) {
-  return [trefferText(row.origin), ...spalten.map((_, j) => wertText(row.values[j]))];
+function listenZeile(row, spalten, kontext) {
+  return [trefferText(row.origin, kontext), ...spalten.map((_, j) => wertText(row.values[j]))];
 }
 
 // Die gruppierte Tabelle: vorn je Stufe der Gruppen-Wert, dahinter die Werte der Gruppe.
@@ -345,34 +353,34 @@ function gruppierteTabelle(rs, t, mitTreffer) {
 }
 
 // Die gruppierte Liste: je Gruppe eine Zwischenzeile, darunter ihre Treffer.
-function gruppierteListe(rs, t) {
+function gruppierteListe(rs, t, kontext) {
   const spalten = listenSpalten(rs);
-  const kopf = [trefferKopf(rs, t), ...spalten.map(kopfText)];
+  const kopf = [trefferKopf(rs, t, false), ...spalten.map(kopfText)];
   const zeilen = [];
   walkGroups(rs, (group, level) => {
     const titel = `${'› '.repeat(level)}**${gruppenText(group.value, t)}**`;
     zeilen.push([titel, ...spalten.map(() => '')]);
     if (!Array.isArray(group.groups)) {
-      for (const i of group.rows) zeilen.push(listenZeile(rs.rows[i], spalten));
+      for (const i of group.rows) zeilen.push(listenZeile(rs.rows[i], spalten, kontext));
     }
   });
   return { kopf, zeilen };
 }
 
-function einfacheTabelle(rs, t, mitTreffer) {
-  const kopf = [...(mitTreffer ? [trefferKopf(rs, t)] : []), ...rs.columns.map(kopfText)];
+function einfacheTabelle(rs, t, mitTreffer, kontext) {
+  const kopf = [...(mitTreffer ? [trefferKopf(rs, t, true)] : []), ...rs.columns.map(kopfText)];
   const zeilen = rs.rows.map((row) => [
-    ...(mitTreffer ? [trefferText(row.origin)] : []),
+    ...(mitTreffer ? [trefferText(row.origin, { ...kontext, tabelle: true })] : []),
     ...row.values.map(wertText),
   ]);
   return { kopf, zeilen };
 }
 
-function liste(rs, t) {
+function liste(rs, t, kontext) {
   const spalten = listenSpalten(rs);
   return {
-    kopf: [trefferKopf(rs, t), ...spalten.map(kopfText)],
-    zeilen: rs.rows.map((row) => listenZeile(row, spalten)),
+    kopf: [trefferKopf(rs, t, false), ...spalten.map(kopfText)],
+    zeilen: rs.rows.map((row) => listenZeile(row, spalten, kontext)),
   };
 }
 
@@ -382,20 +390,24 @@ function liste(rs, t) {
  *
  * @param {import('./result-set.js').ResultSet} resultSet ausgewertete Menge
  *   (`state.status` «ready», ohne Abfrage-Fehler).
- * @param {{t: (key: string) => string}} umgebung Übersetzung in der Sprache des
- *   Fensters (Kopf der Treffer-Spalte, Gruppe ohne Wert, Satz ohne Treffer).
+ * @param {{t: (key: string) => string,
+ *   aufgaben?: {globalFilter?: string, hideGlobalFilter?: boolean}}} umgebung
+ *   Übersetzung in der Sprache des Fensters (Kopf der Treffer-Spalte, Gruppe
+ *   ohne Wert, Satz ohne Treffer) und, seit 4T-002822, die Einstellungen der
+ *   Aufgaben-Erweiterung zum globalen Filter, die auch die Ansicht liest.
  * @returns {string} Markdown mit abschließendem Zeilenumbruch.
  */
 function resultSetMarkdown(resultSet, umgebung) {
   const t = umgebung && typeof umgebung.t === 'function' ? umgebung.t : (key) => key;
   const rs = resultSet;
+  const kontext = { wishes: rs.wishes, aufgaben: umgebung ? umgebung.aufgaben : undefined };
   const mitTreffer = !(rs.wishes && rs.wishes.withoutId);
   const gruppiert = Array.isArray(rs.groups) && rs.groups.length > 0;
   let form;
   if (rs.type === 'table' && gruppiert) form = gruppierteTabelle(rs, t, mitTreffer);
-  else if (rs.type === 'table') form = einfacheTabelle(rs, t, mitTreffer);
-  else if (gruppiert) form = gruppierteListe(rs, t);
-  else form = liste(rs, t);
+  else if (rs.type === 'table') form = einfacheTabelle(rs, t, mitTreffer, kontext);
+  else if (gruppiert) form = gruppierteListe(rs, t, kontext);
+  else form = liste(rs, t, kontext);
   // Leer wie in der Ansicht: ohne Zeilen, außer die gruppierte Tabelle trägt Gruppen.
   const leer = rs.rows.length === 0 && !(rs.type === 'table' && gruppiert);
   const zeilen = [tabellenZeile(form.kopf), tabellenZeile(form.kopf.map(() => '---'))];

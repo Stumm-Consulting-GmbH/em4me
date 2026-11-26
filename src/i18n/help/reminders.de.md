@@ -20,6 +20,8 @@ Der Uhrzeit-Anteil ist optional. Fehlt er, meldet sich die Erinnerung zur einges
 - [ ] Steuererklärung abgeben ⏰ 2099-04-14
 - [ ] Rückruf Kunde ⏰ 2099-04-14 09:30
 
+Zeilen mit einem Status vom Typ Erledigt, Abgebrochen oder Keine Aufgabe erinnern nicht, auch wenn sie einen Erinnerungs-Marker tragen; dazu gehört der Status «Übertragen», den der Übertrag offener Aufgaben der Journale setzt (Typen auf der Seite [Aufgaben-Listen](tasks.md), Abschnitt „Eigene Status, Typ und Folge-Symbol“).
+
 Für die Eingabe gibt es mehrere Wege:
 
 - **Kommando „Erinnerung setzen"** (Standard `Strg+Alt+R`): öffnet auf einer Aufgaben-Zeile den Datums- und Uhrzeit-Picker und schreibt den Marker.

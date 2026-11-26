@@ -16,6 +16,10 @@ Pressed buttons show the state at the cursor position: list, heading and quote b
 
 The heading button opens the level selection: heading level one to six plus "No heading", with a check mark on the level of the cursor line. The button itself appears pressed as soon as the cursor line is a heading.
 
+## Mermaid diagram
+
+At the end of the default assignment sits the drop-down button **Mermaid diagram**. Outside a Mermaid block it offers the skeletons of the four diagram types, inside a block the building blocks of its type; details are in the section «Inserting building blocks» of [Math and diagrams](math-diagrams.md). The button belongs to the extension «Mermaid diagrams» and does not appear while it is switched off.
+
 ## Table grid
 
 The table button opens a selection grid in the style of word processors: sweeping across it marks rows by columns (the label shows the size, rows including the header row), a click inserts the empty table with a header row and separator row at the cursor. Undo removes the inserted table in one step. At all other access points (context menu, palette, shortcut) the table command inserts its compact default template unchanged.
@@ -28,7 +32,7 @@ If the assignment does not fit the width of the editor column, the trailing entr
 
 ## Customize the assignment
 
-The "File → Settings… → Format toolbar" section maintains the assignment as a list: reorder entries (up/down), edit and remove them; new commands are created in a three-step dialog (command via filter search, icon from the curated set, optional display name). Separators and the heading menu are their own entry types; "Reset to default" restores the default assignment. Entries whose command belongs to a disabled extension do not appear in the bar — the configuration is kept and returns with the extension.
+The "File → Settings… → Format toolbar" section maintains the assignment as a list: reorder entries (up/down), edit and remove them; new commands are created in a three-step dialog (command via filter search, icon from the curated set, optional display name). Separators and the heading menu are their own entry types; "Reset to default" restores the default assignment. If you have customized the assignment, the **Mermaid diagram** button is not added automatically: "Add Mermaid button" appends it to your own assignment, while "Reset to default" brings it back together with the whole default assignment. Entries whose command belongs to a disabled extension do not appear in the bar — the configuration is kept and returns with the extension.
 
 ## Distinction
 

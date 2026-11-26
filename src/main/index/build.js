@@ -286,6 +286,15 @@ function applyParsedFile(entry, filePath, parsed) {
   if (Array.isArray(parsed.tasks) && parsed.tasks.length > 0) {
     entry.tasksPerFile.set(filePath, parsed.tasks);
   }
+  // 4T-002782 (Epic 3E-000392): Verweise auf eigene Anker und in verknüpfte
+  // Bereiche, dazu die Herkunft der Block-Treffer (Kachel, Diagramm,
+  // Text-Zelle einer Datentabelle).
+  const eigenAnker = parsed.eigenAnkerVerweise || [];
+  const verknuepft = parsed.verknuepfungsVerweise || [];
+  const block = parsed.blockVerweise || [];
+  if (eigenAnker.length > 0 || verknuepft.length > 0 || block.length > 0) {
+    entry.pruefVerweisePerFile.set(filePath, { eigenAnker, verknuepft, block });
+  }
   // 4T-001510 (Epic 3E-000250): Marken der Datenbank-Behaelter pro Datei ablegen.
   if (Array.isArray(parsed.dbKinds) && parsed.dbKinds.length > 0) {
     entry.dbKindsPerFile.set(filePath, parsed.dbKinds);
@@ -393,6 +402,7 @@ function removeFileFromIndex(entry, filePath) {
   entry.blockDataPerFile.delete(filePath);
   // 4T-000502 (Epic 3E-000096): Task-Zeilen der Datei mit entfernen.
   entry.tasksPerFile.delete(filePath);
+  entry.pruefVerweisePerFile.delete(filePath); // 4T-002782
   // 4T-001510 (Epic 3E-000250): Datenbank-Marken der Datei mit entfernen.
   entry.dbKindsPerFile.delete(filePath);
   // 4T-001610 (Epic 3E-000252): Datensaetze der Datei mit entfernen. Eine
@@ -590,6 +600,7 @@ function markOversized(entry) {
   entry.propertiesPerFile.clear();
   entry.blockDataPerFile.clear();
   entry.tasksPerFile.clear();
+  entry.pruefVerweisePerFile.clear(); // 4T-002782
   entry.dbKindsPerFile.clear();
   entry.recordsPerFile.clear();
   entry.recordDefSigPerFile.clear();

@@ -45,6 +45,8 @@ const { programmSymbolPfad } = require('./app/portabler-betrieb.js');
  * @param {(win: object) => void} deps.scheduleSaveBoundsAndPersist Debounced Bounds-Sicherung.
  * @param {() => void} deps.persistAllWindows Sitzungs-Persistenz aller Fenster.
  * @param {(id: number) => void} deps.clearSaveBoundsTimer Offenen Bounds-Timer verwerfen.
+ * @param {(aktiv: boolean) => void} deps.setzeBeendenSperre Sitzungs-Sicherung beim Beenden sperren oder freigeben.
+ * @param {() => void} deps.sichereUndSperreBeimBeenden Letzte vollständige Sicherung beim ersten Schließen im Beenden.
  * @param {Map} deps.lastReportedPanes Zuletzt gemeldete Pane-Struktur je Fenster.
  * @param {() => Map} deps.menuStates Menue-Zustand je Fenster.
  * @param {() => Map} deps.activeBooks Aktives Buch je Applikation.
@@ -59,6 +61,8 @@ const { programmSymbolPfad } = require('./app/portabler-betrieb.js');
  * @param {(id: number) => Promise<void>} deps.unwatchAllForOwner Datei-Watcher freigeben.
  * @param {() => string[]} deps.pendingSecondInstanceFiles Warteschlange der Zweitstart-Dateien.
  * @param {() => void} deps.onBacklinksInvalidated Anstoss nach Index-Invalidierung.
+ * @param {object} deps.bindingGrants Bindungen als Freigabe im Buch (4T-002647).
+ * @param {object} deps.senderCheck Absender-Prüfung der Anmelde-Stelle (4T-002648).
  * @returns {object} Fenster-API samt der Zustands-Behaelter dieses Moduls.
  */
 function createWindowManager(deps) {
@@ -70,6 +74,8 @@ function createWindowManager(deps) {
     scheduleSaveBoundsAndPersist,
     persistAllWindows,
     clearSaveBoundsTimer,
+    setzeBeendenSperre,
+    sichereUndSperreBeimBeenden,
     lastReportedPanes,
     menuStates,
     activeBooks,
@@ -85,6 +91,8 @@ function createWindowManager(deps) {
     pendingSecondInstanceFiles,
     onBacklinksInvalidated,
     schliessRueckfall,
+    bindingGrants,
+    senderCheck,
   } = deps;
 
   const windows = new Map();
@@ -236,6 +244,11 @@ function createWindowManager(deps) {
         ? opts.appId
         : appRegistry.createApp(opts.area || null);
     appRegistry.assignWindow(id, appId);
+    // 4T-002647 (Epic 3E-000416): Die Bindung gilt je App, das Buch der
+    // Freigaben je Fenster; jedes Fenster einer Bereichs-App bekommt den
+    // Eintrag, auch ein später geöffnetes.
+    const boundArea = appRegistry.getArea(appId);
+    if (boundArea) void bindingGrants.bindWindow(id, boundArea.rootPath);
     // 4T-000630 (Epic 3E-000102): Arbeitsbereichs-Farbe der Titelleiste sofort
     // nach der App-Zuordnung setzen — vor dem ready-to-show-Anzeigen, damit
     // der Sitzungs-Restore und workspace:create/open ohne Nachflackern
@@ -266,7 +279,12 @@ function createWindowManager(deps) {
     // Fenster einer App bekommt welche; sonst leer).
     pendingInitDrafts.set(id, Array.isArray(opts.initialDrafts) ? opts.initialDrafts : []);
 
-    win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
+    // 4T-002648 (Epic 3E-000416): Fenster-Art und geladene Seite für die
+    // Absender-Prüfung (ipc/channel-sender.js); ausgetragen wird mit dem
+    // webContents, ein Neu-Laden derselben Seite behält den Eintrag.
+    const seite = path.join(__dirname, '..', 'renderer', 'index.html');
+    senderCheck.registerWindow(win.webContents, 'main', seite);
+    win.loadFile(seite);
 
     // 4T-000784 (Epic 3E-000156): Im E2E-Lauf ohne Fokus zeigen. showInactive()
     // bringt das Fenster auf den Bildschirm, ohne es zu aktivieren; es rendert
@@ -345,11 +363,21 @@ function createWindowManager(deps) {
       // steht und nicht destroyed ist. Sonst geht beim Schliessen des letzten
       // Fensters die Position verloren, weil der nachgelagerte 'closed'-Handler
       // nur noch eine leere Map sehen wuerde (4T-000025).
+      // 4T-002788: Beim Beenden sichert das ERSTE schließende Fenster den Stand
+      // ein letztes Mal, solange noch alle Fenster da sind, und sperrt danach
+      // jede weitere Sicherung; sie sähe nur noch die übrigen Fenster.
       if (!isQuitting) persistAllWindows();
+      else sichereUndSperreBeimBeenden();
     });
 
     win.on('closed', async () => {
       schliessRueckfall.beende(id);
+      // 4T-002788: Verschwindet beim Beenden ein Fenster ohne den Weg über
+      // 'close' (etwa über den Schließ-Rückfall), gilt die Sperre ebenso; der
+      // Stand von 'before-quit' bleibt dann der letzte.
+      if (isQuitting) setzeBeendenSperre(true);
+      // 4T-002647: Alle Freigaben des Fensters enden mit ihm.
+      bindingGrants.windowClosed(id);
       windows.delete(id);
       // 4T-000537: Arbeitsbereichs-Zuordnung VOR removeWindow lesen — mit dem
       // letzten Fenster verschwindet die App samt Zuordnung aus der Registry.
@@ -456,8 +484,14 @@ function createWindowManager(deps) {
   }
 
   // Quit-Merker; ab 'before-quit' true, window:cancelClose setzt ihn zurueck.
+  // 4T-002788: Nimmt der Anwender das Beenden zurück, fällt auch die Sperre
+  // der Sitzungs-Sicherung, die der Schließ-Pfad beim ersten geschlossenen
+  // Fenster gesetzt hat; das Aufheben sichert dabei einmal den Stand der noch
+  // offenen Fenster. Gesetzt wird die Sperre nicht hier, sondern erst im
+  // Schließ-Pfad: Solange noch alle Fenster offen sind, darf gesichert werden.
   function setQuitting(value) {
     isQuitting = !!value;
+    if (!isQuitting) setzeBeendenSperre(false);
   }
 
   return {

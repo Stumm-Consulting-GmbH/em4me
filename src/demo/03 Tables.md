@@ -30,6 +30,23 @@ or the split view.
 | Coffee |  2  |  8.00 |
 | Tea    |  1  |  3.50 |
 
+## Paste from a spreadsheet
+
+Copy a few cells in a spreadsheet, at least two rows and two columns, and press Ctrl+V in a
+document: they arrive as a pipe table like the one above, with the first row as the header
+row. One Ctrl+Z gives you the plain text instead. To paste unchanged from the start, use
+Ctrl+Shift+V or **Paste as plain text** in the context menu.
+
+Text separated by semicolons or tabs becomes a table through **Paste as table** in the context
+menu or the command palette. Copy the three lines below and try it on an empty line of any
+document:
+
+```text
+Item;Qty;Price
+Coffee;2;8.00
+Tea;1;3.50
+```
+
 ## Perspective Table — multi-line block cells
 
 A `perspective-table` block puts lists, paragraphs or code inside a single cell. `|-` starts a new row, `!` marks a header cell, `|` a data cell.

@@ -75,7 +75,26 @@ function reconstructParsed(entry, absPath) {
     // inzwischen geänderte Schlüssel-Spalte zugeordnet worden ist.
     records: entry.recordsPerFile.get(absPath) || [],
     recordDefSig: entry.recordDefSigPerFile.get(absPath) ?? null,
+    // 4T-002782 (Epic 3E-000392): Verweise auf eigene Anker und in verknüpfte
+    // Bereiche für den Cache mit rekonstruieren.
+    ...rekonstruierePruefVerweise(entry, absPath),
   };
+}
+
+function rekonstruierePruefVerweise(entry, absPath) {
+  const v = entry.pruefVerweisePerFile ? entry.pruefVerweisePerFile.get(absPath) : null;
+  return {
+    eigenAnkerVerweise: v ? v.eigenAnker : [],
+    verknuepfungsVerweise: v ? v.verknuepft : [],
+    blockVerweise: v ? v.block : [],
+  };
+}
+
+// Liste aus dem Cache auf ihre Objekt-Einträge beschränken.
+function nurObjekte(liste) {
+  return Array.isArray(liste)
+    ? liste.filter((x) => x !== null && typeof x === 'object' && !Array.isArray(x))
+    : [];
 }
 
 // Laedt die Cache-Datei zu Map<relPath, {mtimeMs,size,hash,parsed(in-memory)}>.
@@ -120,6 +139,13 @@ async function loadAreaCache(cachePath, wurzel) {
         // (Schema-Version 5).
         records: Array.isArray(p.records) ? p.records : [],
         recordDefSig: typeof p.recordDefSig === 'string' ? p.recordDefSig : null,
+        // 4T-002782 (Epic 3E-000392): Prüf-Verweise aus dem Cache lesen
+        // (Schema-Version 12).
+        // Zweitblick zu 3E-000392, Hinweis A4: nur Objekt-Einträge, damit ein
+        // beschädigter Eintrag die Erhebung nicht abbricht.
+        eigenAnkerVerweise: nurObjekte(p.eigenAnkerVerweise),
+        verknuepfungsVerweise: nurObjekte(p.verknuepfungsVerweise),
+        blockVerweise: nurObjekte(p.blockVerweise),
       },
     });
   }
@@ -156,6 +182,10 @@ async function writeAreaCache(entry) {
         // 4T-001610 (Epic 3E-000252): Datensatz-Bestand mit persistieren.
         records: parsed.records || [],
         recordDefSig: parsed.recordDefSig ?? null,
+        // 4T-002782 (Epic 3E-000392): Prüf-Verweise mit persistieren.
+        eigenAnkerVerweise: parsed.eigenAnkerVerweise,
+        verknuepfungsVerweise: parsed.verknuepfungsVerweise,
+        blockVerweise: parsed.blockVerweise,
       },
     };
   }

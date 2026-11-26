@@ -129,3 +129,29 @@ A statement with a source[^1] and one with an inline footnote^[noted directly].
 A statement with a source[^1] and one with an inline footnote^[noted directly].
 
 [^1]: The definition lives at the end of the file.
+
+## Table of contents block
+
+A code block with the identifier `toc` shows the headings of the document at its position as an indented list; every entry is a link, and a click jumps to the heading. A line `depth: N` in the block limits the table of contents to levels 1 to N, with valid values from 1 to 6; without this line, all levels appear. Other lines and values outside 1 to 6 have no effect.
+
+````markdown
+```toc
+depth: 2
+```
+````
+
+Rendered, for this page:
+
+```toc
+depth: 2
+```
+
+The table of contents follows every change by itself: new, renamed and deleted headings are updated at once, in the rendered view as well as in live mode. The entries jump to the same anchors as links to the headings, including headings with identical text and custom IDs with `{#id}`. When the [automatic numbering](markdown-basics.md) of headings is active, the numbers appear in the table of contents too. Headings in code blocks and in the frontmatter do not appear. If the document has no heading, the block shows the note «This document has no headings.». Several blocks in the same document show the same table of contents.
+
+The block is inserted from the [editor context menu](context-menu.md): **Insert → Table of contents block** puts a `toc` block without a `depth:` line on a line of its own; add the depth by hand if needed.
+
+Printing, PDF export and HTML export contain the table of contents as the rendered view shows it. The portable export writes it as an ordinary Markdown list with links to the headings, without numbers; a document without headings gets an empty line at this position. In a [presentation](presentation.md), each slide is shown on its own; a block on a slide lists the headings of that slide.
+
+The block belongs to the [internal extension](extensions.md) «Table of contents block», which is switched on from the working mode **Beginner**. When it is off, the block appears as an ordinary code block with its text, and the context menu does not offer **Table of contents block**; the document stays unchanged, and after switching the extension back on the table of contents appears again.
+
+The «Table of Contents» panel of the [sidebar](sidebar.md) is independent of this: it shows the headings of the open document next to the text and is not part of the document. The block, by contrast, sits in the document itself and therefore also appears in print and export.

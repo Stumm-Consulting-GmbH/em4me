@@ -88,6 +88,8 @@ Rige **una sola** regla para todos los tipos de datos:
 
 Por eso se añaden los esquemas de color propios, los temas de diapositivas propios, las macros, las variantes de disposición de la barra lateral, los modos de trabajo propios, los marcadores y los bloques de calendario: se colocan **junto** a lo existente, y el fondo presente no se toca al hacerlo. Se reemplazan los ajustes, la asignación de los atajos de teclado, la barra de formato, las reglas de plantillas, la carpeta de workflows y el estado de las extensiones: un valor no conoce el plural, y dos disposiciones entrelazadas darían una tercera que nadie ha configurado.
 
+Una carpeta de plantillas o de workflows que se encuentra en la carpeta del programa o en la de su configuración, extensiones y archivos de idioma no se adopta: la vista previa indica el tipo de datos como omitido, con el motivo, y los demás tipos de datos llegan como se eligieron. El permiso para ejecutar scripts nunca viene del archivo: se mantiene tal como está configurado aquí, y la vista previa lo indica cuando el archivo prevé otra cosa.
+
 **Con el mismo nombre, la entrada existente queda inalterada**, y la leída llega a su lado con un añadido distintivo: «Muestra» se convierte en «Muestra (2)». La vista previa nombra cada uno de esos cambios de nombre. Las referencias se ajustan con ello: una macro leída que recibe un identificador nuevo sigue siendo encontrada por su botón.
 
 Dos casos especiales se derivan del objeto: un marcador a un archivo ya recordado se omite en lugar de crearse por duplicado; una carpeta de marcadores, en cambio, viene siempre como un todo, porque es su trabajo de ordenación. Y un bloque de calendario cuya definición está incompleta se rechaza y se nombra, en lugar de crear media entrada.

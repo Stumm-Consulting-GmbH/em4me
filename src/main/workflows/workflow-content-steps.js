@@ -9,10 +9,17 @@
 // Fenster nichts mehr lesen muss), dann den Weg wählen (A3, S-c):
 //   - kein ungespeicherter Stand: auf die Platte, mit Historie nach dem
 //     Vorbild `task:applyLineEdit` und OHNE Selbst-Schreib-Marke, damit ein
-//     ungeändert geöffnetes Dokument in jedem Fenster neu lädt;
-//   - das startende Fenster hält den Stand: der Auftrag geht als Antwort zurück
-//     und wird dort auf den Puffer angewendet (Datei unberührt);
-//   - ein anderes Fenster hält ihn: Auftrag mit Kennung, Antwort und Frist über
+//     ungeändert geöffnetes Dokument in jedem Fenster neu lädt. Das gilt seit
+//     4T-002812 auch, wenn das Dokument in einem Fenster unverändert geöffnet
+//     ist, auch im startenden: Ein unveränderter Stand macht kein Fenster zum
+//     Besitzer. Schreibt der Weg in einem geteilten Dokument nur Folgeteile,
+//     meldet er die Änderung selbst an die Fenster
+//     (`workflow-platten-schreibweg.js`, Kopf);
+//   - das startende Fenster hält einen ungespeicherten Stand: der Auftrag geht
+//     als Antwort zurück und wird dort auf den Puffer angewendet (Datei
+//     unberührt);
+//   - ein anderes Fenster hält einen ungespeicherten Stand: Auftrag mit
+//     Kennung, Antwort und Frist über
 //     `workflow-buffer-requests.js`; ohne Antwort wird NICHTS geschrieben.
 // Die Regel, wer den Stand hält, ist die eine in `ipc/puffer-fenster.js`.
 //
@@ -55,12 +62,15 @@
 'use strict';
 
 const fs = require('node:fs/promises');
+const path = require('node:path');
 const { sectionBody } = require('../../shared/workflows/workflow-core.js');
 const { pufferBesitzer } = require('../ipc/puffer-fenster.js');
+const { isInsideArea } = require('../area/area-path.js');
 const { resolveAreaPath } = require('./workflow-area-path.js');
 const {
   createPlattenSchreibweg,
   kopfPfadVon,
+  liesDokument,
   liesQuelle,
 } = require('./workflow-platten-schreibweg.js');
 const { createDbUrteil } = require('./workflow-db-urteil.js');
@@ -125,8 +135,23 @@ async function readStepSource(ctx, source) {
     // sie geteilt ist; sonst käme allein die Kopf-Datei samt Zuordnungs-Zeile.
     return liesQuelle(ctx.backlinks, ctx.root, ort.abs, source.path);
   }
-  const dokument = await readCurrentText(ctx.backlinks, ctx.workflowAbs);
-  if (!dokument.ok) return fehlschlag('sourceMissing', { fsCode: dokument.fsCode });
+  // 4T-002814 (Epic 3E-000444): der Abschnitt aus dem ganzen Workflow-Dokument,
+  // auch wenn es geteilt ist; bisher las der Schritt allein die Kopf-Datei und
+  // fand einen Abschnitt in einem späteren Teil nie. Der Lese-Weg ist der von
+  // `from-file` (Puffer der Kopf-Datei vor der Platte, sonst Kopf-Datei und
+  // Folgeteile; ungeteilt die Datei wortgleich wie bisher). Die Zuordnungs-Zeile
+  // im Dateikopf stört die Suche nicht, weil `sectionBody` den Dateikopf
+  // überspringt. Grenze ist der Bereich; liegt die Workflow-Datei außerhalb,
+  // ihr eigener Ordner, damit ihre Teile neben ihr liegen müssen.
+  const grenze = isInsideArea(ctx.root, ctx.workflowAbs) ? ctx.root : path.dirname(ctx.workflowAbs);
+  const dokument = await liesDokument(
+    ctx.backlinks,
+    grenze,
+    ctx.workflowAbs,
+    path.basename(ctx.workflowAbs),
+    'sourceMissing',
+  );
+  if (!dokument.ok) return dokument;
   const abschnitt = sectionBody(dokument.text, source.name);
   return abschnitt.ok ? abschnitt : fehlschlag(abschnitt.code, { section: source.name });
 }
@@ -162,13 +187,21 @@ async function bearbeitungFuer(ctx, step) {
  * @param {() => boolean} [deps.datenbankAktiv] 4T-002690: Tor der Erweiterung «Datenbank».
  * @param {object} [deps.karteiWeichen] 4T-002690: Weiche des Bereichs-Panels.
  * @param {object} [deps.dbUrteil] 4T-002690: ein fertiges Urteil (Prüffälle).
+ * @param {(pfad: string) => number} [deps.meldeDateiAenderung] 4T-002812: Meldung
+ *   einer Änderung an die beobachtenden Fenster (Datei-Beobachtung).
  * @returns {{runContentStep: Function, runContentEdit: Function}}
  */
 function createWorkflowContentSteps(deps) {
   const { windows, backlinks, resolveHistoryFor, recordMddOnSave } = deps;
   const { bufferRequests } = deps;
   // 4T-002689: der Platten-Weg über den Schreibweg geteilter Dokumente.
-  const platte = createPlattenSchreibweg({ resolveHistoryFor, recordMddOnSave });
+  // 4T-002812: dazu die Meldung an die Fenster, wenn nur Folgeteile geschrieben
+  // wurden (Datei-Beobachtung, über die Verdrahtung in den Abhängigkeiten).
+  const platte = createPlattenSchreibweg({
+    resolveHistoryFor,
+    recordMddOnSave,
+    meldeDateiAenderung: deps.meldeDateiAenderung,
+  });
   // 4T-002690: das Urteil der Datenbank vor allen drei Wegen.
   const urteil = deps.dbUrteil || createDbUrteil(deps);
 

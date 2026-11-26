@@ -136,5 +136,7 @@
   "canvas.austausch.fehler.keinJson": "Il file non contiene JSON valido; non è stato creato alcun documento.",
   "canvas.austausch.fehler.keineListen": "Il file non riporta né nodi né collegamenti; non è stato creato alcun documento.",
   "canvas.austausch.fehler.keinFreierName": "Accanto al file non restava alcun nome libero; non è stato creato alcun documento.",
-  "canvas.austausch.fehler.nichtSchreibbar": "Il nuovo documento non è stato creato; il file scelto resta invariato."
+  "canvas.austausch.fehler.nichtSchreibbar": "Il nuovo documento non è stato creato; il file scelto resta invariato.",
+  "canvas.austausch.fehler.geschuetzterOrdner": "La cartella del file appartiene al programma; lì non viene creato alcun nuovo documento. Il file scelto resta invariato.",
+  "canvas.austausch.fehler.zielNichtPruefbar": "Non è stato possibile verificare se la cartella del file appartiene al programma; per questo lì non viene creato alcun nuovo documento. Il file scelto resta invariato."
 }

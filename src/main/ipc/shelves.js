@@ -36,6 +36,9 @@ function registerShelvesIpc(handle, deps) {
     reportNotAShelf,
     openShelfDialog,
     createShelfDialog,
+    // 4T-002827: Pruefung eines im Dialog gewaehlten Ziels gegen die
+    // geschuetzten Ordner (channel-guard.js).
+    checkTarget,
   } = deps;
 
   // --- 4T-000867 (Epic 3E-000162): Buecherregale ---------------------------------
@@ -82,7 +85,9 @@ function registerShelvesIpc(handle, deps) {
   handle('shelves:openDialog', (event) => openShelfDialog(senderWindow(event)));
 
   // "Neues Buecherregal…": Eltern-Ordner und Name in einem Dialog.
-  handle('shelves:createDialog', (event) => createShelfDialog(senderWindow(event)));
+  handle('shelves:createDialog', (event) =>
+    createShelfDialog(senderWindow(event), { checkTarget }),
+  );
 
   // "Buecherregal schliessen" schliesst die Regal-Applikation (4T-000873).
   handle('shelves:close', (event) => closeActiveShelf(appIdOfWindow(senderWindow(event))));

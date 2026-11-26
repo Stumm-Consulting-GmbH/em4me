@@ -33,6 +33,9 @@ import { runLateInlinePasses } from './live-pass-inline-late.js';
 import { liveBasePathFacet, liveBlockWidgetsField } from './live-block-field.js';
 // 4T-002351 (Epic 3E-000184): Kopfzeile mit Prüf-Anzeige über dem workflow-Block.
 import { workflowKopf } from '../workflows/workflow-kopf.js';
+// 4T-002630 (Epic 3E-000395): Titelbild als Block über dem Kopf des Dokuments.
+import { liveTitelbild } from './live-titelbild.js';
+import { applyWikiEmbedsIfPresent } from '../render-mermaid.js';
 import { liveTabellenScroll, liveTabellenZellFokus } from './live-table-zelle.js';
 import {
   liveAbbrHoverTooltip,
@@ -199,6 +202,8 @@ export const livePreviewExtensions = [
   livePreviewClickHandler,
   liveFootnoteHoverTooltip,
   liveAbbrHoverTooltip,
+  // 4T-002630: vor dem Block-Feld, damit das Titelbild über der Frontmatter-Zeile steht.
+  liveTitelbild({ pfadFacet: liveBasePathFacet, einbetten: applyWikiEmbedsIfPresent }),
   liveBlockWidgetsField,
   // 4T-002258: Eine Browser-Auswahl im Block-Widget wird nie zur Schreibmarke.
   liveWidgetAuswahlFilter,

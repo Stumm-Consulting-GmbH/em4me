@@ -64,6 +64,23 @@ import './modules/workflows/workflow-window.js';
 // verschieben darf; das Modul ist zu diesem Zeitpunkt ohnehin ueber den
 // Import-Graphen der Ansichten geladen.
 import { collectUnsavedDrafts } from './modules/views/untitled-tabs.js';
+// 4T-002641 (Epic 3E-000397): Zugang der Lese-Position zum Fenster-Zustand.
+// Die Module sind zu diesem Zeitpunkt über die Kette oben geladen; die Imports
+// holen nur Funktionen und verschieben keine Seiteneffekte.
+import { getPaneEls, state } from './modules/app/app-state.js';
+import { paneEditors } from './modules/editor/editor.js';
+import { verdrahteLesePosition } from './modules/views/lese-position.js';
+import { liegtInTabellenWidget } from './modules/live/live-table-zelle.js';
+import { findRenderElementForLine, getSourceLineEntries } from './modules/views/scroll-sync.js';
+// 4T-002642 (Epic 3E-000397): Zugang des Verlaufs für «Zurück» und «Vor»; aus
+// demselben Grund gereicht wie bei der Lese-Position.
+import { t } from './i18n.js';
+import { activatePane, activateTab, openInPane, reportMenuStateNow } from './modules/tabs/tabs.js';
+import { showStatusbarHint } from './modules/views/views.js';
+import {
+  HINWEIS_MS,
+  verdrahteNavigationsVerlauf,
+} from './modules/views/navigation-verlauf-bedienung.js';
 
 // 4T-000971 (Weg R2): Was die Auffang-Ebene im Fehlerfall sichert, ist derselbe
 // Entwurfs-Weg, den auch das Schliessen eines Fensters nimmt. Bewusst ohne die
@@ -75,6 +92,32 @@ setzeEntwurfsSicherung(async () => {
   if (!entwuerfe.length) return 0;
   await window.api.saveDrafts(entwuerfe);
   return entwuerfe.length;
+});
+
+// 4T-002641: Die Lese-Position bekommt ihren Zugang gereicht statt importiert,
+// weil die Module, die sie bräuchte, sie selbst importieren (Import-Kreis über
+// Ordner-Grenzen). Verdrahtet vor dem Start, also vor der Sitzungs-
+// Wiederherstellung und dem ersten Darstellen eines Reiters.
+verdrahteLesePosition({
+  spalten: () => state.panes,
+  elemente: getPaneEls,
+  editor: (paneIdx) => paneEditors[paneIdx],
+  kennungen: getSourceLineEntries,
+  elementFuerZeile: findRenderElementForLine,
+  eingebettet: liegtInTabellenWidget,
+});
+
+// 4T-002642: Der Verlauf des Fensters bekommt Fenster-Zustand und Bedienung
+// gereicht; vor dieser Zeile legt er keine Einträge an.
+verdrahteNavigationsVerlauf({
+  spalten: () => state.panes,
+  aktiveSpalte: () => state.activePaneIndex,
+  aktiviereSpalte: activatePane,
+  aktiviereReiter: (paneIdx, tabIdx) => activateTab(paneIdx, tabIdx),
+  oeffne: (paneIdx, pfad, optionen) => openInPane(paneIdx, [pfad], optionen),
+  meldeMenue: reportMenuStateNow,
+  hinweis: (text) => showStatusbarHint(null, { text, duration: HINWEIS_MS }),
+  t,
 });
 
 // Start erst nach Abschluss aller Modul-Bodies (deterministisch, zyklusfest).

@@ -3,7 +3,7 @@
 // Dateisystem über eine Wegwerf-Wurzel, weil genau das Zusammenspiel von
 // Verzeichnis-Durchlauf, Begleitdatei und Zusammensetzen der Gegenstand ist;
 // die reine Logik prüft test/unit/document-assembly.test.js ohne Dateisystem.
-import { describe, it, expect, afterAll } from 'vitest';
+import { describe, it, expect, afterAll, vi } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -12,8 +12,14 @@ import {
   readCatalog,
   mddPathFor,
 } from '../../src/main/documents/document-parts-io.js';
-import { writePartLine, PART_SEP, PART_INFIX } from '../../src/shared/document-parts.js';
+import {
+  writePartLine,
+  readPartLine,
+  PART_SEP,
+  PART_INFIX,
+} from '../../src/shared/document-parts.js';
 import { emptyContainer, serializeContainer } from '../../src/main/documents/mdd-store.js';
+import { registerFilesIpc } from '../../src/main/ipc/files.js';
 
 const wurzeln = [];
 
@@ -286,5 +292,106 @@ describe('document-parts-io: Katalog als Beschleuniger (AK2, AK3)', () => {
     expect(gemeldet).toHaveLength(1);
     expect(gemeldet[0].p).toBe(mddPathFor(kopfPfad));
     expect(gemeldet[0].inhalt).toBe(lies(mddPathFor(kopfPfad)));
+  });
+});
+
+// 4T-002783 (Sicherheits-Review, Befunde 1 und 2): Der Grundname der
+// Zuordnungs-Zeile ist Dokument-Inhalt. Trägt er einen Pfad-Anteil, darf weder
+// der Lese-Weg der Teile noch der Kanal `file:read` eine Datei außerhalb des
+// Ordners lesen oder ihre Begleitdatei schreiben. Der Köder liegt neben dem
+// Bereich und trägt eine gültige Begleitdatei, in die der Katalog sonst
+// geschrieben würde. Die Grundnamen stehen als wörtliche Zeichenketten im
+// Prüffall, damit keine Pfad-Funktion sie vorher auflöst (Entwicklungsrichtlinien,
+// Kapitel 14).
+describe('document-parts-io: Grundname nur als reiner Dateiname (4T-002783)', () => {
+  function legeKoederAn() {
+    const aussen = wegwerfWurzel();
+    const bereich = path.join(aussen, 'Bereich');
+    fs.mkdirSync(bereich);
+    const koeder = path.join(aussen, 'Köder.md');
+    fs.writeFileSync(koeder, '# Köder\n\nGEHEIM\n', 'utf8');
+    fs.writeFileSync(mddPathFor(koeder), serializeContainer(emptyContainer()), 'utf8');
+    return { aussen, bereich, koeder };
+  }
+
+  function legeTeilAn(bereich, base) {
+    const pfad = path.join(bereich, `${teilName('Notiz', 2)}.md`);
+    const text = writePartLine('# Teil\n\nEigener Text.\n', { index: 2, base }).text;
+    fs.writeFileSync(pfad, text, 'utf8');
+    // Gegenprobe: Die Zuordnungs-Zeile trägt den Grundnamen unverändert.
+    expect(readPartLine(text).base).toBe(base);
+    return { pfad, text };
+  }
+
+  // Je Fall die Bildung des Grundnamens; der absolute Pfad hängt am Ort des Köders.
+  const GRUNDNAMEN = [
+    ['../ (Schrägstrich)', () => '../Köder'],
+    ['..\\ (Rückstrich)', () => '..\\Köder'],
+    ['absoluter Pfad', (aussen) => `${aussen}${path.sep}Köder`],
+    ['Laufwerks-Angabe', () => 'C:Köder'],
+    ['nur ..', () => '..'],
+  ];
+
+  it.each(GRUNDNAMEN)(
+    'liest bei %s die Datei als ungeteilt und nichts außerhalb',
+    async (_, bilde) => {
+      const { aussen, bereich, koeder } = legeKoederAn();
+      const begleitVorher = lies(mddPathFor(koeder));
+      const { pfad, text } = legeTeilAn(bereich, bilde(aussen));
+      // Zweitblick Runde 4, Hinweis 1: Die Abweisung steht als Warnung im
+      // Protokoll; ohne den Aufruf bliebe sie sonst unbemerkt.
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      let r;
+      try {
+        r = await readAssembledDocument(pfad, text);
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('ungültigem Grundnamen'), pfad);
+      } finally {
+        warn.mockRestore();
+      }
+      expect(r).toMatchObject({ ok: true, geteilt: false, path: pfad, text });
+      expect(r.teile.map((t) => t.pfad)).toEqual([pfad]);
+      expect(r.text).not.toContain('GEHEIM');
+      expect(lies(mddPathFor(koeder))).toBe(begleitVorher);
+    },
+  );
+
+  it.each(GRUNDNAMEN)('liefert bei %s über file:read nur die geöffnete Datei', async (_, bilde) => {
+    const { aussen, bereich, koeder } = legeKoederAn();
+    const begleitVorher = lies(mddPathFor(koeder));
+    const kanaele = new Map();
+    registerFilesIpc((k, fn) => kanaele.set(k, fn), {
+      senderWindow: () => ({ id: 1 }),
+      areaOfWindow: () => ({ rootPath: bereich }),
+      tForWindow: (_win, k) => k,
+      isMddPath: () => false,
+      isMarkdownPath: (p) => /\.md$/i.test(p),
+      watchFile: () => {},
+      unwatchFile: () => {},
+      resolveHistoryFor: async () => ({ effective: false }),
+      recordMddExternalOnOpen: async () => {},
+      getStore: () => null,
+      readAreaLinks: async () => [],
+    });
+    const { pfad, text } = legeTeilAn(bereich, bilde(aussen));
+    const r = await kanaele.get('file:read')({ sender: { id: 1 } }, pfad);
+    expect(r).toMatchObject({ ok: true, path: pfad, content: text });
+    expect(lies(mddPathFor(koeder))).toBe(begleitVorher);
+  });
+
+  it('liest einen reinen Dateinamen als Grundnamen weiter als geteiltes Dokument', async () => {
+    const { kopfPfad } = legeGeteiltesDokument('Notiz', ['# Notiz\n\neins\n', '## Zwei\n\nzwei\n']);
+    const teil = path.join(path.dirname(kopfPfad), `${teilName('Notiz', 2)}.md`);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    let r;
+    try {
+      r = await readAssembledDocument(teil, lies(teil));
+      expect(warn).not.toHaveBeenCalledWith(
+        expect.stringContaining('ungültigem Grundnamen'),
+        expect.anything(),
+      );
+    } finally {
+      warn.mockRestore();
+    }
+    expect(r).toMatchObject({ ok: true, geteilt: true, path: kopfPfad });
   });
 });

@@ -340,7 +340,7 @@ async function restoreRevision(seq) {
     syncEditorForPane(found.paneIdx);
     const els = getPaneEls(found.paneIdx);
     if (els && els.renderedHtml) {
-      els.renderedHtml.innerHTML = api.renderMarkdown(tab.content, tab.path);
+      els.renderedHtml.innerHTML = api.renderMarkdown(tab.content, tab.path, { titelbild: true });
       applyRenderPipeline(els.renderedHtml, tab.path);
     }
     renderTabbar(found.paneIdx);

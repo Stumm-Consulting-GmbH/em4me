@@ -28,6 +28,7 @@ import {
   datenbankSicht,
   rootForActiveFile,
   releaseRoot,
+  statsFor,
 } from '../../src/main/backlinks.js';
 
 // --- Teil 1: Container (rein) -----------------------------------------------
@@ -125,6 +126,17 @@ describe('mdd-store — Area_Cache-Container', () => {
     expect(MDDA_CACHE_SCHEMA_VERSION).toBeGreaterThanOrEqual(11);
     expect(
       parseCacheContainer(JSON.stringify({ schemaVersion: 10, linkIndex: { files: {} } })).ok,
+    ).toBe(false);
+  });
+
+  // 4T-002782 (Epic 3E-000392): das parsed-Objekt trägt seither die Felder
+  // `eigenAnkerVerweise`, `verknuepfungsVerweise` und `blockVerweise`. Ein Cache der Version 11
+  // kennt sie nicht; der Warmstart aus ihm liesse solche Verweise in der Liste
+  // der Verweise ohne Ziel für unveränderte Dateien fehlen.
+  it('Cache-schemaVersion ist mindestens 12, ein Cache der Version 11 wird verworfen', () => {
+    expect(MDDA_CACHE_SCHEMA_VERSION).toBeGreaterThanOrEqual(12);
+    expect(
+      parseCacheContainer(JSON.stringify({ schemaVersion: 11, linkIndex: { files: {} } })).ok,
     ).toBe(false);
   });
 });
@@ -340,5 +352,153 @@ describe('Warmstart: Marke der Abfrage-Datei (4T-002081)', () => {
     const res = await indexForArea(path.join(root, 'Abfrage.md'), root);
     expect(res.status).toBe('ready');
     expect(markenVon(root)).toEqual([]);
+  });
+});
+
+// 4T-002782 (Epic 3E-000392, Zweitblick Runde 1, Frage b, und Runde 2,
+// Befund 1): Die Prüf-Verweise der Liste «Verweise ohne Ziel» im Warmstart.
+// Unverändert übernimmt der Index sie aus dem Zwischenspeicher; eine geänderte
+// Datei wird neu gelesen, und ihr Stand ersetzt den gespeicherten vollständig,
+// auch wenn er leer ist. Die Herkunft der Block-Treffer (`blockVerweise`) wirkt
+// erst bei ausgeschalteter Block-Erweiterung; deshalb prüfen die Fälle auch mit
+// ausgeschaltetem Dashboard, und ein eigener Fall liest die geschriebene Datei.
+describe('Warmstart: Prüf-Verweise der Liste «Verweise ohne Ziel» (4T-002782)', () => {
+  const NOTIZ = '# Notiz\nohne Verweis\n';
+  const T = '```';
+  // Ein Kachel-Treffer, den es nur im Zwischenspeicher gibt: Erscheint er in
+  // der Liste, stammt der Stand aus dem Zwischenspeicher.
+  const KACHEL_TREFFER = {
+    zeile: 3,
+    linkTyp: 'wiki',
+    zielBasename: 'Fehlt-Abfrage',
+    zielAbsolut: null,
+    anker: null,
+    snippet: '!kachel liste abfrage=Fehlt-Abfrage',
+  };
+
+  function schreibeCacheMitPruefVerweisen(root, overrides = {}) {
+    const st = fs.statSync(path.join(root, 'Notiz.md'));
+    const container = emptyCacheContainer();
+    container.linkIndex.files['Notiz.md'] = {
+      mtimeMs: overrides.mtimeMs !== undefined ? overrides.mtimeMs : st.mtimeMs,
+      size: st.size,
+      hash: 'testhash',
+      parsed: {
+        hits: [KACHEL_TREFFER],
+        aliases: [],
+        headings: ['notiz'],
+        blockIds: [],
+        tags: [],
+        eigenAnkerVerweise: [{ zeile: 2, wortlaut: '[[#Weg]]', anker: 'Weg', art: 'wiki' }],
+        verknuepfungsVerweise: [{ zeile: 2, wortlaut: '[[@zt:Da]]', prefix: 'zt', ziel: 'Da' }],
+        blockVerweise: [{ zeile: 3, art: 'kachel' }],
+      },
+    };
+    fs.writeFileSync(
+      path.join(root, MDDA_CACHE_FILENAME),
+      serializeCacheContainer(container),
+      'utf8',
+    );
+  }
+
+  function pruefVerweise(root, schalter = {}) {
+    const r = statsFor(root, { verweiseOhneZiel: schalter });
+    expect(r.status).toBe('ready');
+    return {
+      eintraege: r.verweiseOhneZiel.eintraege.map((e) => e.verweis).sort(),
+      verknuepfungen: r.verweiseOhneZiel.verknuepfungen.map((v) => v.verweis),
+    };
+  }
+
+  it('übernimmt die Prüf-Verweise einer unveränderten Datei aus dem Zwischenspeicher', async () => {
+    const root = makeRoot();
+    write(root, 'Notiz.md', NOTIZ);
+    schreibeCacheMitPruefVerweisen(root);
+    const res = await indexForArea(path.join(root, 'Notiz.md'), root);
+    expect(res.status).toBe('ready');
+    expect(pruefVerweise(root)).toEqual({
+      eintraege: ['[[#Weg]]', 'abfrage=Fehlt-Abfrage'],
+      verknuepfungen: ['[[@zt:Da]]'],
+    });
+    // Die Herkunft der Kachel kommt aus dem Zwischenspeicher: Ohne sie bliebe
+    // der Treffer bei ausgeschaltetem Dashboard in der Liste.
+    expect(pruefVerweise(root, { dashboardAktiv: false })).toEqual({
+      eintraege: ['[[#Weg]]'],
+      verknuepfungen: ['[[@zt:Da]]'],
+    });
+  });
+
+  // Zweitblick zu 3E-000392, Hinweis A4: Ein beschädigter Eintrag in den
+  // Prüf-Verweisen bricht die Erhebung nicht ab; er fällt beim Laden heraus.
+  it('lässt beschädigte Einträge der Prüf-Verweise beim Laden fallen', async () => {
+    const root = makeRoot();
+    write(root, 'Notiz.md', NOTIZ);
+    schreibeCacheMitPruefVerweisen(root);
+    const cachePfad = path.join(root, MDDA_CACHE_FILENAME);
+    const geparst = parseCacheContainer(fs.readFileSync(cachePfad, 'utf8'));
+    expect(geparst.ok).toBe(true);
+    const parsed = geparst.container.linkIndex.files['Notiz.md'].parsed;
+    parsed.eigenAnkerVerweise = [null, 7, ...parsed.eigenAnkerVerweise];
+    parsed.verknuepfungsVerweise = ['kaputt', ...parsed.verknuepfungsVerweise];
+    parsed.blockVerweise = [[1], ...parsed.blockVerweise];
+    fs.writeFileSync(cachePfad, serializeCacheContainer(geparst.container), 'utf8');
+    const res = await indexForArea(path.join(root, 'Notiz.md'), root);
+    expect(res.status).toBe('ready');
+    expect(pruefVerweise(root)).toEqual({
+      eintraege: ['[[#Weg]]', 'abfrage=Fehlt-Abfrage'],
+      verknuepfungen: ['[[@zt:Da]]'],
+    });
+  });
+
+  it('ersetzt sie bei einer geänderten Datei vollständig durch den neu gelesenen Stand', async () => {
+    const root = makeRoot();
+    write(root, 'Notiz.md', NOTIZ);
+    schreibeCacheMitPruefVerweisen(root, { mtimeMs: 1 });
+    const res = await indexForArea(path.join(root, 'Notiz.md'), root);
+    expect(res.status).toBe('ready');
+    expect(pruefVerweise(root)).toEqual({ eintraege: [], verknuepfungen: [] });
+  });
+
+  it('schreibt die Prüf-Verweise samt Herkunft der Block-Treffer in den Zwischenspeicher', async () => {
+    const root = makeRoot();
+    write(
+      root,
+      'Notiz.md',
+      [
+        '# Notiz', // 1
+        `${T}perspective-dashboard`, // 2
+        '!kachel liste abfrage=Fehlt-Abfrage', // 3
+        T, // 4
+        '[[#Weg]] [[@zt:Da]]', // 5
+        '',
+      ].join('\n'),
+    );
+    const res = await indexForArea(path.join(root, 'Notiz.md'), root);
+    expect(res.status).toBe('ready');
+    // Der Index schreibt den Zwischenspeicher sonst erst drei Sekunden nach dem
+    // Aufbau. Der Abbau der Wurzel schreibt ihn sofort; die Freigabe-Frist wird
+    // dafür wie im afterEach mit vorgestellter Uhr übersprungen, damit der Fall
+    // ohne reale Wartezeit auskommt.
+    vi.useFakeTimers();
+    releaseRoot(rootForActiveFile(path.join(root, 'Notiz.md'), root));
+    vi.advanceTimersByTime(61_000);
+    vi.useRealTimers();
+    openRoots.delete(rootForActiveFile(path.join(root, 'Notiz.md'), root));
+    const cachePfad = path.join(root, MDDA_CACHE_FILENAME);
+    let eintrag = null;
+    for (let i = 0; i < 100 && !eintrag; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      if (!fs.existsSync(cachePfad)) continue;
+      const geparst = parseCacheContainer(fs.readFileSync(cachePfad, 'utf8'));
+      if (geparst.ok) eintrag = geparst.container.linkIndex.files['Notiz.md'] || null;
+    }
+    expect(eintrag).not.toBeNull();
+    expect(eintrag.parsed.eigenAnkerVerweise).toEqual([
+      { zeile: 5, wortlaut: '[[#Weg]]', anker: 'Weg', art: 'wiki' },
+    ]);
+    expect(eintrag.parsed.verknuepfungsVerweise).toEqual([
+      { zeile: 5, wortlaut: '[[@zt:Da]]', prefix: 'zt', ziel: 'Da' },
+    ]);
+    expect(eintrag.parsed.blockVerweise).toEqual([{ zeile: 3, art: 'kachel' }]);
   });
 });

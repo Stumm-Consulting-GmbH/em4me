@@ -3,9 +3,12 @@
 // gefuellt), Esc schliesst es; KP-02: Oeffnen ueber den Menue-Kanal
 // menu:openCommandPalette (Poll-Muster wie die Graph-Suite, weil der
 // Listener erst am Ende des asynchronen init() steht); KP-03: Teilstring-
-// Filter schrumpft die Liste auf den Treffer und zeigt dessen Kuerzel;
-// KP-04: Enter fuehrt das gefilterte Kommando aus (Inhaltsverzeichnis-
-// Sektion erscheint) und schliesst das Popup; KP-05: im Kontext nicht
+// Filter schrumpft die Liste auf die Treffer und zeigt das Kuerzel des
+// Panel-Kommandos (seit 4T-002558, Epic 3E-000390, trifft «Inhaltsverzeichnis»
+// zwei Kommandos: «Inhaltsverzeichnis-Block» der Gruppe Bearbeitung und
+// «Inhaltsverzeichnis» der Gruppe Navigation, in dieser Reihenfolge);
+// KP-04: Pfeil-ab plus Enter fuehrt das gefilterte Panel-Kommando aus
+// (Inhaltsverzeichnis-Sektion erscheint) und schliesst das Popup; KP-05: im Kontext nicht
 // verfuegbare Kommandos (Bereichs-Graph ohne Bereich) sind gedimmt und per
 // Klick nicht ausfuehrbar. describe-Titel tragen die Matrix-ID (S-078).
 'use strict';
@@ -116,11 +119,17 @@ test.describe('KP-03: Teilstring-Filter schrumpft die Liste und zeigt das Kuerze
 
       const before = await page.locator(ITEM).count();
       await page.locator(FILTER).fill('Inhaltsverzeichnis');
-      // Liste schrumpft auf den einen Treffer.
-      await expect(page.locator(ITEM)).toHaveCount(1);
-      expect(before).toBeGreaterThan(1);
+      // Liste schrumpft auf die zwei Treffer: Teilstring-Filter, deshalb auch
+      // «Inhaltsverzeichnis-Block» (insert.toc, Gruppe Bearbeitung) vor dem
+      // Panel-Kommando (Gruppe Navigation).
+      await expect(page.locator(ITEM)).toHaveCount(2);
+      expect(before).toBeGreaterThan(2);
+      await expect(page.locator(ITEM).nth(0).locator('.command-palette-name')).toHaveText(
+        'Inhaltsverzeichnis-Block',
+      );
+      await expect(page.locator(ITEM).nth(0).locator('.command-palette-shortcut')).toHaveCount(0);
 
-      const hit = page.locator(ITEM).first();
+      const hit = page.locator(ITEM).nth(1);
       await expect(hit.locator('.command-palette-name')).toHaveText('Inhaltsverzeichnis');
       // Der Treffer zeigt das effektive Kuerzel als eigenes Element.
       await expect(hit.locator('.command-palette-shortcut')).toHaveText('Strg+Umschalt+I');
@@ -140,7 +149,10 @@ test.describe('KP-04: Enter fuehrt das gefilterte Kommando aus und schliesst (S-
 
       await openPaletteByKey(page);
       await page.locator(FILTER).fill('Inhaltsverzeichnis');
-      await expect(page.locator(ITEM)).toHaveCount(1);
+      await expect(page.locator(ITEM)).toHaveCount(2);
+      // Zweiter Treffer ist das Panel-Kommando (siehe KP-03); Pfeil-ab waehlt es.
+      await page.keyboard.press('ArrowDown');
+      await expect(page.locator(ITEM).nth(1)).toHaveClass(/\bactive\b/);
       await page.keyboard.press('Enter');
 
       // Popup ist zu und die Outline-Sektion erscheint.

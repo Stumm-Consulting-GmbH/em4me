@@ -28,6 +28,7 @@ import {
   replaceMermaidFences,
 } from '../../../shared/mermaid-fence.js';
 import { renderMermaidSvgsForExport } from '../render-mermaid.js';
+import { sonderRumpfOhneKommentare } from '../../../shared/markdown/plugins/comments-block.js';
 // 4T-002025 (Epic 3E-000192): vierte Fence-Ersetzung, die Diagramme zu Tabellen.
 import {
   markiereKartenDiagrammeFuerExport,
@@ -569,13 +570,22 @@ async function replaceMermaidFencesForExport(text) {
   const source = String(text == null ? '' : text);
   if (!isExtensionActive('mermaid')) return source;
   if (!hasMermaidFence(source)) return source;
-  const bilder = await renderMermaidSvgsForExport(collectMermaidSources(source));
+  // 4T-002838 (Epic 3E-000447): Gezeichnet wird der Rumpf, den auch die
+  // Ansicht zeichnet, also nach der Block-Regel des Mermaid-Diagramms. Der
+  // Export-Text trägt die Maske `\%%` weiter, damit ein stehen gebliebener
+  // Block beim Wieder-Öffnen sie als Maske liest (portable-fences.js); im Bild
+  // steht sie wie in der Ansicht als `%%`.
+  const zeichenRumpf = (body) =>
+    isExtensionActive('comments')
+      ? sonderRumpfOhneKommentare('mermaid', body, isExtensionActive)
+      : body;
+  const bilder = await renderMermaidSvgsForExport(collectMermaidSources(source).map(zeichenRumpf));
   if (bilder.size === 0) return source;
   // Die Ersetzung laeuft ueber eine Callback-Funktion, nie ueber einen
   // Ersetzungs-TEXT, in dem Dollar-Folgen des SVG Sonderzeichen waeren
   // (Fehlerklasse L7, Beleg 4T-001423).
   return replaceMermaidFences(source, (body) => {
-    const svgHtml = bilder.get(body);
+    const svgHtml = bilder.get(zeichenRumpf(body));
     return svgHtml ? mermaidSvgBlock(svgHtml, t('export.mermaidAlt')) : null;
   });
 }

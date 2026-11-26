@@ -14,6 +14,8 @@ Au premier démarrage, EM4me crée le dossier `Data` à côté du fichier du pro
 
 **Ne supprimez donc pas le dossier `Data` et ne le renommez pas.** S'il manque au démarrage, EM4me le recrée vide et commence comme au premier démarrage ; ce qui se trouvait dans l'ancien dossier n'est alors pas utilisé.
 
+**Les documents n'ont pas leur place dans le dossier `Data`.** Il contient les paramètres et les extensions avec lesquels EM4me travaille. EM4me n'y enregistre et n'y exporte donc aucun document : si vous choisissez un emplacement à l'intérieur dans la boîte de dialogue d'enregistrement, EM4me signale une erreur et n'écrit rien. Ce qui s'y trouve peut toujours être ouvert et lu. Il en va de même, dans la version installée, pour son dossier de données dans le profil utilisateur et pour le dossier du programme.
+
 L'emporter signifie copier le fichier du programme avec le dossier `Data`, le plus simplement en copiant le dossier qui contient les deux, par exemple sur une clé USB ou vers un autre ordinateur. Les paramètres et la session suivent ainsi.
 
 ## Où se trouvent les données

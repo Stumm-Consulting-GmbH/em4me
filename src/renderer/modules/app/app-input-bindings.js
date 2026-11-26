@@ -51,6 +51,7 @@ import { handleCommandKeydown } from './app-commands.js';
 import { paneIndexAtPoint } from './app-pane-bindings.js';
 // 4T-000952 (Epic 3E-000198, Befund E-04): Rueckverweise am Puffer-Overlay.
 import { activateBacklinksFor } from '../panels/panel-backlinks.js';
+import { behandleMaustaste } from '../views/navigation-verlauf-bedienung.js';
 
 /**
  * Registriert die fensterweiten Eingabe-Listener (zweiter Teil der
@@ -226,6 +227,9 @@ export function bindInputEvents() {
   // window-keydown-Listener, bewusst NACH der Escape-Kaskade. Der Handler
   // selbst liegt bei der Kommando-Tabelle (app-commands.js).
   window.addEventListener('keydown', handleCommandKeydown);
+  // 4T-002642 (Epic 3E-000397): seitliche Maustasten «zurück» (3) und «vor» (4)
+  // beim Loslassen; der eine Weg, der Hauptprozess hat keinen Zuhörer.
+  window.addEventListener('mouseup', behandleMaustaste);
 }
 
 /**

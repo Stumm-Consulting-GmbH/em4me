@@ -66,6 +66,10 @@ const KERN_ZEILEN = [
   'help.feature.exportHtml',
   'help.feature.autoReload',
   'help.feature.restoreSession',
+  // 4T-002643 (Epic 3E-000397): Lese-Position und Vor und Zurueck sind Kern
+  // (Erweiterungs-Pruefschritt des Epics: fester Bestandteil, in jedem
+  // Arbeitsmodus da).
+  'help.feature.readingPosition',
   'help.feature.unsavedDrafts',
   'help.feature.windowState',
   'help.feature.bookToc',
@@ -244,6 +248,7 @@ const KERN_ZEILEN = [
   'help.feature.anchorLinks',
   'help.feature.links',
   'help.feature.areaBookmarks',
+  'help.feature.navigationHistory',
   // help.group.general — Thema, Sprache, Menue, Erweiterungen, Hilfe
   'help.feature.theme',
   'help.feature.colorSchemes',

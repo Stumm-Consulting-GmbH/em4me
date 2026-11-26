@@ -1,8 +1,8 @@
 // 4T-000591 (Epic 3E-000109): Reine Syntax-Helfer der Perspective Table, aus
 // perspective-table.js hierher verschoben. Grund: das Bearbeitungs-Modul
 // perspective-table-edit.js braucht dieselbe Attribut- und Status-Grammatik,
-// darf perspective-table.js aber nicht laden — dessen lazy
-// require('./markdown.js') würde esbuild statisch ins Renderer-Bundle
+// darf perspective-table.js aber nicht laden — dessen verzögertes Laden
+// von markdown.js würde esbuild statisch ins Renderer-Bundle
 // ziehen (markdown.js läuft im Preload-Kontext, dokumentierte Falle aus
 // 4T-000546). Dieses Modul ist abhängigkeitsfrei; perspective-table.js
 // bezieht die Helfer von hier, das Verhalten bleibt identisch.

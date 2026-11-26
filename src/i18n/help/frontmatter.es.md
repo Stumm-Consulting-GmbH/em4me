@@ -47,6 +47,37 @@ Conmutar mediante la barra de estado o el menú Ver escribe el nuevo valor direc
 
 Casos especiales: en destinos de solo lectura (como las páginas del manual) y con YAML defectuoso, el conmutador solo actúa de forma efímera durante la sesión en curso. En las pestañas Sin título también es efímero; al primer guardado la aplicación traslada al frontmatter del nuevo archivo los valores que difieren del valor por defecto.
 
+## Imagen de portada
+
+La propiedad `cover` coloca una imagen al principio del documento: a todo el ancho del contenido, recortada a una altura ajustable y nunca deformada. Otras dos propiedades fijan la altura y el encuadre:
+
+```markdown
+---
+cover: imagenes/playa.jpg
+cover-height: 240
+cover-position: top
+---
+```
+
+La imagen se indica de dos maneras:
+
+- **como ruta relativa al documento**, igual que una imagen corriente: `cover: imagenes/playa.jpg`. Rigen el mismo límite, los mismos formatos y el mismo tope de 20 MB que en la página [Imágenes](images.md).
+- **como nombre entre dobles corchetes, entre comillas**: `cover: "[[playa.jpg]]"`. Así la aplicación encuentra la imagen por su nombre, esté en la carpeta del área que esté.
+
+Si se cambia el nombre de la imagen, la aplicación no ajusta el valor de `cover`; el nuevo nombre se introduce a mano.
+
+`cover-height` es la altura en píxeles, 200 por defecto; los valores por debajo de 80 o por encima de 600 se ajustan al límite más cercano. `cover-position` elige la parte visible de la imagen: un número de 0 a 100, medido desde arriba (0 muestra el borde superior, 100 el inferior), o una de las palabras `top`, `center` y `bottom`; por defecto, el centro. Lo que no se entiende vuelve en silencio al valor por defecto.
+
+La imagen de portada aparece en la vista renderizada, en su mitad de la vista dividida y en el modo Live, debajo de la [línea de título](tools.md) con el nombre de archivo y encima de la línea del frontmatter. En el modo Live permanece en su sitio aunque el cursor esté en las líneas YAML, y un cambio en `cover` muestra al instante la nueva imagen. La imagen de portada no depende de la visualización del frontmatter y aparece aunque esta esté desactivada; un bloque con un error de sintaxis YAML no produce imagen de portada.
+
+La impresión, la exportación a PDF y la exportación a HTML contienen la imagen de portada tal como la muestra la vista renderizada. La [presentación](presentation.md), los documentos incrustados, las tarjetas y las vistas previas no muestran imagen de portada.
+
+Si la aplicación no encuentra la imagen — el archivo falta, está fuera del límite, no es un archivo de imagen o supera los 20 MB —, aparece en su lugar el aviso discreto «Imagen de portada no encontrada», sin mensaje de error. Lo mismo ocurre en un documento que nunca se ha guardado, hasta que se guarda. Una dirección de Internet (`http:` o `https:`) no se carga; en su lugar un aviso pide guardar la imagen como archivo en el área. La impresión y la exportación omiten los avisos; una imagen de portada sin imagen desaparece allí por completo.
+
+Los archivos de libro y de estantería llevan su imagen de portada en la misma propiedad `cover` (véase [Libros](books.md)); al abrir uno de estos archivos como documento, la imagen aparece también arriba, encima de su contenido.
+
+La imagen de portada pertenece a la [extensión interna](extensions.md) «Imagen de portada», que está activada a partir del modo de trabajo **Avanzado**. Si está desactivada, no aparecen ni imagen ni aviso; las propiedades permanecen sin cambios en el documento y en la barra Propiedades, y al volver a activarla la imagen de portada reaparece.
+
 ## Mapa mental por documento
 
 La clave `mindmap` determina cómo dibuja la [vista de mapa mental](mindmap.md) este documento concreto y sustituye así el valor por defecto en Archivo → Configuración… → Mapa mental:

@@ -105,6 +105,13 @@ const SHARED_CONTEXT_FIELDS = [
   // entprellt.
   'inDatentabelle',
   'diagrammGewaehlt',
+  // 4T-002642 (Epic 3E-000397): Ist im Verlauf der besuchten Orte des Fensters
+  // ein Schritt zurück bzw. vor möglich? Weder Eigenschaft des Dokuments noch
+  // des Zustands, sondern des Verlaufs; beide Seiten lesen sie aus derselben
+  // Quelle (navigationsZustand in views/navigation-verlauf-bedienung.js), der
+  // Main über den gemeldeten Menü-Zustand, die Palette direkt.
+  'kannZurueck',
+  'kannVor',
 ];
 // 4T-002406 (Epic 3E-000266, F7 A): `karteikarteTab` — ist das aktive Dokument
 // eine Karteikarte? Renderer-eigen wie die beiden anderen, weil die Antwort aus
@@ -123,12 +130,28 @@ const VIEW_MODE_FIELD = 'viewMode';
 // fehlendes oder defektes Feld faellt auf den Wert zurueck, den ein frisch
 // gestartetes Fenster ohne Reiter haette, statt undefined durch die Regeln zu
 // tragen. Beide Verbraucher rufen sie einmal auf und geben das Ergebnis weiter.
+//
+// 4T-002642 (Epic 3E-000397): Der Kontext entsteht als Kopie einer fertigen
+// Vorlage, nicht durch Anfügen Feld für Feld. Ein leeres Objekt, dem Felder
+// über einen berechneten Namen angefügt werden, stellt die JavaScript-Maschine
+// ab einer bestimmten Feldzahl auf die langsame Wörterbuch-Form um; gemessen
+// kippte es zwischen 18 und 20 Feldern, also mit `kannZurueck` und `kannVor`.
+// In dieser Form kostet jede Kopie `{ ...ctx }` rund das Achtzigfache, und die
+// Aufzählungs-Prüfungen in test/unit/command-availability.test.js und
+// test/unit/renderer/kommando-verfuegbarkeit-palette.test.js liefen rund
+// hundertmal länger. Die Kopie per Spread ergibt dagegen die schnelle Form,
+// unabhängig von der Feldzahl; das Zuweisen auf vorhandene Felder behält sie.
+const KONTEXT_VORLAGE = (() => {
+  const roh = {};
+  for (const feld of AVAILABILITY_CONTEXT_FIELDS) {
+    roh[feld] = feld === VIEW_MODE_FIELD ? null : false;
+  }
+  return { ...roh };
+})();
+
 function availabilityContext(raw) {
   const r = raw && typeof raw === 'object' ? raw : {};
-  const ctx = {};
-  for (const feld of AVAILABILITY_CONTEXT_FIELDS) {
-    ctx[feld] = feld === VIEW_MODE_FIELD ? null : false;
-  }
+  const ctx = { ...KONTEXT_VORLAGE };
   for (const feld of AVAILABILITY_CONTEXT_FIELDS) {
     if (feld === VIEW_MODE_FIELD) {
       ctx[feld] = typeof r[feld] === 'string' && r[feld] !== '' ? r[feld] : null;
@@ -439,6 +462,11 @@ const AVAILABILITY_CATALOG = [
   // Reiter voraus und ist im Aus-Zustand der Erweiterung «Datenbank» falsch; es
   // ist renderer-eigen, die Bedingung deshalb menüfrei.
   { name: 'karteikarte', felder: ['karteikarteTab'], pruefe: (c) => !!c.karteikarteTab },
+  // 4T-002642 (Epic 3E-000397): «Zurück» und «Vor» zwischen besuchten Orten.
+  // Je ein Feld, sonst nichts: Der Verlauf gilt in jeder Ansicht und auch ohne
+  // offenes Dokument (ein geschlossenes öffnet wieder).
+  { name: 'navZurueck', felder: ['kannZurueck'], pruefe: (c) => !!c.kannZurueck },
+  { name: 'navVor', felder: ['kannVor'], pruefe: (c) => !!c.kannVor },
 ];
 
 const AVAILABILITY_NAMES = AVAILABILITY_CATALOG.map((b) => b.name);

@@ -179,10 +179,16 @@ describe('isBlankPartBase: nur ein blanker Datei-Name taugt als Grundname (4T-00
       'lpt³',
       'NUL ',
       'CON .md',
+      // Seit dem Zusammenbau des Funktions-Release am 2026-11-25 liest die
+      // Regel aus ihrer Heimat src/shared/windows-geraetenamen.js, die im
+      // Zweifel abweist und auch COM0, LPT0 und CLOCK$ sperrt.
+      'COM0',
+      'lpt0.md',
+      'CLOCK$',
     ]) {
       expect(isBlankPartBase(name), JSON.stringify(name)).toBe(false);
     }
-    for (const name of ['CONTO', 'Nullpunkt', 'COM0', 'LPT10', 'Konsole', 'CON Bericht', 'COM⁴']) {
+    for (const name of ['CONTO', 'Nullpunkt', 'LPT10', 'Konsole', 'CON Bericht', 'COM⁴']) {
       expect(isBlankPartBase(name), name).toBe(true);
     }
     setPlatformForTests('linux');

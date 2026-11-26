@@ -62,6 +62,8 @@ export const BEDIEN_ELEMENTE = [
   '.block-meta-indicator',
   // Kopfzeile des workflow-Blocks mit Prüf-Ergebnis und Knopf «Starten»
   '.cm-wf-kopf',
+  // Hinweis des Titelbilds auf ein fehlendes Bild (4T-002630)
+  '.titelbild-hinweis',
   // Ereignis-Block: Ansichts-Umschalter, Filter-Leiste und ihr Schalter,
   // Erfassungs-Zeile, Aktions-Spalte und Kalender-Blaetterknoepfe
   '.pev-switcher',
@@ -339,6 +341,13 @@ export function bereiteInhaltVor(wurzel, opts = {}) {
   // Aufgaben-Checkboxen bleiben sichtbar, sind aber nicht bedienbar.
   for (const box of wurzel.querySelectorAll('input[type="checkbox"]')) {
     box.setAttribute('disabled', '');
+  }
+
+  // 4T-002630 (Epic 3E-000395, V8): Ein Titelbild ohne geladenes Bild entfällt
+  // ganz; das leere Element zählte sonst als Verlust und stünde als Text da.
+  for (const kopf of wurzel.querySelectorAll('.titelbild')) {
+    const bild = kopf.querySelector('img');
+    if (!bild || !/^data:/i.test((bild.getAttribute('src') || '').trim())) kopf.remove();
   }
 
   for (const bild of wurzel.querySelectorAll('img')) {

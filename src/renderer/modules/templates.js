@@ -574,7 +574,7 @@ export async function ordnerRegelVorlage(filePath) {
 // auf das erste {{cursor}}-Ziel (wie beim expliziten Vorlagen-Weg).
 export async function openCreatedFileWithRule(paneIdx, filePath) {
   const cursorOffset = await applyFolderRuleToCreatedFile(filePath);
-  const landedPane = await openInPane(paneIdx, [filePath]);
+  const landedPane = await openInPane(paneIdx, [filePath], { zielFolgt: cursorOffset !== null });
   if (cursorOffset !== null) jumpToOffsetInActiveTab(cursorOffset);
   return landedPane;
 }

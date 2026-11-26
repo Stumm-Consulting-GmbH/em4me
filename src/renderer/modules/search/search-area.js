@@ -245,7 +245,8 @@ async function springeZuBereichsDatei(treffer) {
   // Alte Markierungen der zuvor gezeigten Datei entfernen, sonst stehen zwei
   // Sätze im DOM und der Zähler der Pane wäre zu hoch (Muster Handbuch-Sprung).
   clearSearchHighlights();
-  await openInPane(state.activePaneIndex, [pfad]);
+  // 4T-002641: Der Treffer ist das Ziel; die Lese-Stelle wird nicht gelesen.
+  await openInPane(state.activePaneIndex, [pfad], { zielFolgt: true });
   await warteAufInhalt(pfad);
   markiereOffeneDatei({ bewegen: true });
   scrolleZumAktiven();

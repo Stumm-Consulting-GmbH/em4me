@@ -106,7 +106,10 @@ export function resolveStoredTaskStates(stored) {
       enabled: o ? o.enabled !== false : d.enabled,
       label: t(`taskState.${d.name}.label`),
       type: normalizeType(o && o.type, d.type),
-      next: normalizeNext(o && o.next),
+      // 4T-002737 (Epic 3E-000396): Ohne gespeichertes Folge-Symbol gilt das
+      // der Vorgabe, nicht pauschal 'x'; der Status «Übertragen» öffnet die
+      // Aufgabe beim Klick wieder (Folge-Symbol Leerzeichen).
+      next: normalizeNext(o && typeof o.next === 'string' ? o.next : d.next),
     });
   }
   for (const c of storedCustom) {

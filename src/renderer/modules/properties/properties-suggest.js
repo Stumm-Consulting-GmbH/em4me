@@ -206,7 +206,7 @@ export function applyProfileFill(paneIdx, target) {
   }
   const elsR = getPaneEls(paneIdx);
   if (elsR.renderedHtml) {
-    elsR.renderedHtml.innerHTML = api.renderMarkdown(tab.content, tab.path);
+    elsR.renderedHtml.innerHTML = api.renderMarkdown(tab.content, tab.path, { titelbild: true });
     applyRenderPipeline(elsR.renderedHtml, tab.path);
   }
   if (wasDirty !== tab.dirty) {

@@ -16,7 +16,7 @@ En archivos editables, un clic en la casilla completa la tarea o la reabre — e
 
 ## Estados ampliados
 
-Seis estados predefinidos; el carácter va entre los corchetes:
+Siete estados predefinidos; el carácter va entre los corchetes:
 
 ```markdown
 - [/] en curso
@@ -25,6 +25,7 @@ Seis estados predefinidos; el carácter va entre los corchetes:
 - [?] pregunta
 - [!] importante
 - [*] marcada
+- [»] trasladada
 ```
 
 - [/] en curso
@@ -33,8 +34,11 @@ Seis estados predefinidos; el carácter va entre los corchetes:
 - [?] pregunta
 - [!] importante
 - [*] marcada
+- [»] trasladada
 
 Cada estado se muestra como caja de color con glifo. Un clic en la caja avanza al **símbolo siguiente** del estado (por defecto: completar con `[x]`); así se pueden configurar cadenas como «abierta → en curso → hecha».
+
+El estado **Trasladado** (`»`) lleva el tipo No es una tarea y lo pone el traslado de tareas abiertas de los diarios: en la entrada de diario anterior marca una tarea que ha pasado a una entrada posterior. Un clic en la casilla vuelve a abrir la tarea (página [Diarios](journals.md), sección «Trasladar tareas abiertas»).
 
 ## Estados propios, tipo y símbolo siguiente
 

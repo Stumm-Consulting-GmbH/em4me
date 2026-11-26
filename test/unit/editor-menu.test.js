@@ -11,14 +11,16 @@ function byId(states) {
 }
 
 describe('computeClipboardMenuState (4T-000377)', () => {
-  it('editierbar: alle vier Einträge in Menü-Reihenfolge', () => {
+  // 4T-002554 (Epic 3E-000389): «Als reinen Text einfügen» steht als Kern-Eintrag
+  // direkt hinter «Einfügen».
+  it('editierbar: alle Einträge in Menü-Reihenfolge', () => {
     const states = computeClipboardMenuState({
       readOnly: false,
       hasSelection: true,
       hasClipboardText: true,
       docNotEmpty: true,
     });
-    expect(states.map((s) => s.id)).toEqual(['cut', 'copy', 'paste', 'selectAll']);
+    expect(states.map((s) => s.id)).toEqual(['cut', 'copy', 'paste', 'pastePlain', 'selectAll']);
     expect(states.every((s) => s.enabled)).toBe(true);
   });
 
@@ -47,6 +49,7 @@ describe('computeClipboardMenuState (4T-000377)', () => {
       }),
     );
     expect(by.paste).toBe(false);
+    expect(by.pastePlain).toBe(false);
   });
 
   it('leeres Dokument: Alles auswählen inaktiv', () => {
@@ -86,7 +89,47 @@ describe('computeClipboardMenuState (4T-000377)', () => {
 
   it('robust bei fehlenden Flags (alles falsy)', () => {
     const states = computeClipboardMenuState({});
-    expect(states.map((s) => s.id)).toEqual(['cut', 'copy', 'paste', 'selectAll']);
+    expect(states.map((s) => s.id)).toEqual(['cut', 'copy', 'paste', 'pastePlain', 'selectAll']);
     expect(states.every((s) => s.enabled === false)).toBe(true);
+  });
+});
+
+// 4T-002554 (Epic 3E-000389): «Als Tabelle einfügen» erscheint nur bei aktiver
+// Erweiterung table-tools (AK3), «Als reinen Text einfügen» immer.
+describe('computeClipboardMenuState: Einfügen als Tabelle und als reiner Text (4T-002554)', () => {
+  const basis = { readOnly: false, hasSelection: false, hasClipboardText: true, docNotEmpty: true };
+
+  it('Erweiterung an: «Als Tabelle einfügen» hinter «Als reinen Text einfügen»', () => {
+    const states = computeClipboardMenuState({ ...basis, pasteAsTable: true });
+    expect(states.map((s) => s.id)).toEqual([
+      'cut',
+      'copy',
+      'paste',
+      'pastePlain',
+      'pasteAsTable',
+      'selectAll',
+    ]);
+    expect(byId(states).pasteAsTable).toBe(true);
+  });
+
+  it('Erweiterung aus: «Als Tabelle einfügen» fehlt, «Als reinen Text einfügen» bleibt', () => {
+    const ids = computeClipboardMenuState({ ...basis, pasteAsTable: false }).map((s) => s.id);
+    expect(ids).not.toContain('pasteAsTable');
+    expect(ids).toContain('pastePlain');
+  });
+
+  it('ohne Text in der Zwischenablage: beide Einträge inaktiv', () => {
+    const by = byId(
+      computeClipboardMenuState({ ...basis, hasClipboardText: false, pasteAsTable: true }),
+    );
+    expect(by.pastePlain).toBe(false);
+    expect(by.pasteAsTable).toBe(false);
+  });
+
+  it('read-only: keiner der beiden Einträge', () => {
+    const ids = computeClipboardMenuState({ ...basis, readOnly: true, pasteAsTable: true }).map(
+      (s) => s.id,
+    );
+    expect(ids).toEqual(['copy', 'selectAll']);
   });
 });

@@ -12,7 +12,9 @@
 // 4T-002802: Vorgelegt wird der Text mit Kennungen an Stelle der Marker samt
 // Leit-Zeichen, das ganze Dokument oder ein Abschnitt davon. Die Antwort ist
 // ein Objekt mit den Nummern der Kennungen in Code, den unsicheren Nummern,
-// den Anfangs-Zeilen der obersten Bloecke und den Definitionen (Form in
+// den Anfangs-Zeilen der obersten Bloecke und der Neustart-Stellen, je
+// Neustart-Stelle der Kopfzeile ihrer Tabelle und der Spaltenzahl
+// (4T-002837) sowie den Definitionen (Form in
 // comments.js, baueCodeFrage); die fruehere Form, ein Feld von Nummern, bleibt
 // fuer Pruefungen gueltig.
 //

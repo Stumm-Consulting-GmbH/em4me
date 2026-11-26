@@ -9,11 +9,11 @@ De haut en bas, le menu se divise en sept groupes :
 - **Lien** — entourer la sélection d'un lien wiki ou d'un lien externe.
 - **Format** — niveau caractère : gras, italique, barré, surligné, code, maths, commentaire et « effacer la mise en forme ».
 - **Paragraphe** — niveau ligne : liste à puces, liste numérotée, liste de tâches, titre 1 à 6, aucun titre et citation.
-- **Insérer** — modèles : note de bas de page, tableau, encadré, ligne horizontale et bloc de code.
+- **Insérer** — modèles : note de bas de page, tableau, encadré, ligne horizontale et bloc de code, ainsi que bloc table des matières lorsque l'extension « Bloc table des matières » est activée (voir [Constructions de bloc](blocks.md)), ainsi que Diagramme Mermaid avec le choix des structures et des éléments lorsque l'extension « Diagrammes Mermaid » est activée (voir [Mathématiques et diagrammes](math-diagrams.md)).
 - **Tableau** — opérations d'édition pour le tableau au niveau du curseur ; n'apparaît que lorsque le curseur se trouve dans un tableau.
 - **Graphique** — « Insérer un graphique pour cette table » ou « Modifier le graphique » ; n'apparaît que lorsque le curseur se trouve dans une table de données ou dans le bloc d'un graphique.
 - **Convertir une date** — ouvre la boîte de dialogue qui montre une date dans les autres calendriers du même bloc ([Systèmes de calendrier](custom-calendars.md)) ; n'apparaît que si les systèmes de calendrier sont activés et devient actif dès que la zone ouverte définit un calendrier.
-- **Presse-papiers** — couper, copier, coller, tout sélectionner.
+- **Presse-papiers** — couper, copier, coller, coller en texte brut, coller comme tableau, tout sélectionner. **Coller** transforme une plage de cellules d'un tableur en tableau, **Coller en texte brut** insère toujours le presse-papiers sans modification, et **Coller comme tableau** n'apparaît que si l'extension « Outils de tableau » est activée (voir [Outils](tools.md)).
 
 Les raccourcis par défaut pour gras (`Ctrl+B`) et italique (`Ctrl+I`) fonctionnent aussi sans le menu ; toutes les autres actions peuvent être associées à un raccourci dans les paramètres.
 

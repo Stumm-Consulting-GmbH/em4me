@@ -150,6 +150,13 @@ const COMMAND_ICONS = {
     '<path d="M15 3h6v6"/><path d="M10 14 21 3"/>' +
       '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
   ),
+  // 4T-002617 (Epic 3E-000391): Knopf der Mermaid-Bausteine in der Format-
+  // Toolbar (V10): drei Knoten, verbunden zu einer kleinen Verzweigung, als
+  // eigene einfache Geometrie im Stil der Nachbarn.
+  diagram: svg(
+    '<rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2" y="17" width="6" height="5" rx="1"/>' +
+      '<rect x="16" y="17" width="6" height="5" rx="1"/><path d="M12 7v5"/><path d="M5 17v-5h14v5"/>',
+  ),
 };
 
 const COMMAND_ICON_IDS = Object.keys(COMMAND_ICONS);

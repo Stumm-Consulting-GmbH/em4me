@@ -84,6 +84,8 @@ Lorsqu'une ligne a le focus, ces entrées fixes agissent sur le chapitre et ses 
 
 Au bord d'un niveau, l'arbre reste inchangé et ne signale rien : il n'y a tout simplement pas de cible.
 
+Sans ligne de chapitre ayant le focus, `Alt+←` et `Alt+→` reculent et avancent comme partout ailleurs, voir la section « Précédent et suivant » de la page [Liens](linking.md).
+
 ### Menu contextuel
 
 Le clic droit sur une ligne propose :
@@ -157,7 +159,7 @@ Un livre ouvert et une bibliothèque ouverte disent aussi dans les paramètres (
 En première place du bloc se trouve la section **Informations propres**. Elle porte les informations que le livre et la bibliothèque contiennent de toute façon :
 
 - **Titre**, **Auteur** et **Description** — trois champs du front matter du fichier du livre ou de la bibliothèque.
-- **Image de couverture** — la référence d'image `cover`, indiquée comme chemin relatif au dossier du livre ou de la bibliothèque. Un champ vide signifie : pas d'image de couverture. Le fichier doit se trouver dans le dossier de la bibliothèque, dossiers de livre en dessous compris, ou, pour un livre qui ne se trouve dans aucune bibliothèque, dans le dossier du livre ; un autre emplacement dans la zone environnante ne suffit pas. Il doit s'agir d'un fichier image dans l'un des formats indiqués sur la page [Images](images.md), de 20 Mo au plus. Si aucun fichier ne se trouve à ce chemin, s'il se trouve hors de cette limite ou n'est pas admis, la section le signale et la vue de la bibliothèque prend la vignette de substitution. Aucun de ces cas n'est une erreur.
+- **Image de couverture** — la référence d'image `cover`, indiquée comme chemin relatif au dossier du livre ou de la bibliothèque. Un champ vide signifie : pas d'image de couverture. Le fichier doit se trouver dans le dossier de la bibliothèque, dossiers de livre en dessous compris, ou, pour un livre qui ne se trouve dans aucune bibliothèque, dans le dossier du livre ; un autre emplacement dans la zone environnante ne suffit pas. Il doit s'agir d'un fichier image dans l'un des formats indiqués sur la page [Images](images.md), de 20 Mo au plus. Si aucun fichier ne se trouve à ce chemin, s'il se trouve hors de cette limite ou n'est pas admis, la section le signale et la vue de la bibliothèque prend la vignette de substitution. Aucun de ces cas n'est une erreur. Lorsqu'on ouvre le fichier du livre ou de la bibliothèque comme document, l'image de couverture apparaît aussi en tête, au-dessus de son contenu (section « Image de couverture » de la page [Frontmatter et propriétés](frontmatter.md)).
 - **Affichage** — pour la bibliothèque seulement : vignettes ou lignes, le même choix que le commutateur de la vue de la bibliothèque. Il vaut par bibliothèque et uniquement sur cet ordinateur.
 
 Comme partout sur la page des paramètres, les modifications ne prennent effet qu'avec Appliquer ou OK.

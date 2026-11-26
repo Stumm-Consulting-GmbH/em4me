@@ -97,7 +97,7 @@ La fuente y el tamaño se eligen por separado para la superficie de edición y p
 
 ## Estado de la ventana
 
-La posición, el tamaño y el estado maximizado de una ventana se recuerdan al salir y se restauran en el siguiente arranque. Para ello no hay nada que ajustar. Lo que además devuelve una sesión completa con sus pestañas se describe en la página [Aplicaciones, ventanas y áreas](apps-windows.md).
+La posición, el tamaño y el estado maximizado de una ventana se recuerdan al salir y se restauran en el siguiente arranque. Para ello no hay nada que ajustar. Lo que además devuelve una sesión completa con sus pestañas se describe en la página [Aplicaciones, ventanas y áreas](apps-windows.md). La aplicación recuerda para cada documento dónde lo leyó por última vez; se describe en la sección «Posición de lectura» de la página [Aplicaciones, ventanas y áreas](apps-windows.md).
 
 ## Barra de estado
 
@@ -106,6 +106,8 @@ La barra de estado en el borde inferior de la ventana es el punto de manejo que 
 Cuándo se pliega lo determina el ajuste «Plegado» (Archivo → Configuración… → Barra de estado). «Automáticamente cuando falta espacio» es la opción predeterminada y guarda solo lo que ya no cabe; «Siempre plegada» mantiene los botones en los dos menús con independencia del ancho de la ventana y deja la barra permanentemente sobria. La misma sección lleva también los botones de comando propios de la barra y la lista de los botones predeterminados ocultos, véase [Colocación de comandos](command-placement.md).
 
 Cómo trata la barra los botones que en este momento no pueden hacer nada lo determina el ajuste «Botones no utilizables» (Archivo → Configuración… → Barra de estado). Afectados están los selectores de vista y los tres conmutadores de editor del centro, así como Editar, la sincronización del desplazamiento y el historial del documento de la derecha: por ejemplo mientras una página del sistema como los ajustes está delante, o mientras no haya ningún documento abierto. «Mostrar atenuados» es la opción predeterminada: el botón permanece en su sitio, se ve claramente desactivado y no reacciona. «Ocultar» lo retira de la barra mientras no pueda hacer nada, y también de los dos menús de los bordes de la barra plegada; en cuanto vuelve a poder actuar, regresa a su sitio. Los conmutadores de paneles de la izquierda, los botones de comando propios, la selección de idioma y el conmutador claro/oscuro no conocen este estado y nunca se ven afectados por la elección; el menú Ver permanece igualmente sin cambios y sigue mostrando atenuadas las entradas no disponibles.
+
+Los dos botones de flecha «Atrás» y «Adelante» aparecen atenuados mientras no sea posible ningún paso en su dirección. Incluso con «Ocultar» permanecen en su sitio para que la barra no salte con cada paso; véase la sección «Atrás y adelante» de la página [Enlaces](linking.md).
 
 Un botón puede faltar en la barra, por tanto, por tres razones distintas, y solo la tercera depende de este ajuste: está desmarcado en la lista de botones predeterminados ocultos y queda ausente de forma permanente — esa lista actúa antes de la elección, véase [Colocación de comandos](command-placement.md); pertenece a una extensión desactivada, y entonces la función no existe, véase [Extensiones](extensions.md); o no puede hacer nada en este momento y la elección está en «Ocultar», y entonces vuelve por sí solo.
 

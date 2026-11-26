@@ -5,6 +5,14 @@
 //
 // Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: templates:*.
 //
+// 4T-002649 (Epic 3E-000416): Die globale Vorlagen-Konfiguration (Ordner und
+// Ordner-Regeln) schreibt das Fenster über den eigenen Kanal
+// templates:setGlobalConfig statt über den allgemeinen Einstellungs-Weg, der
+// beide Schlüssel seither abweist (Klasse 3, app/settings-classes.js). Den
+// Ordner prüft die Anmelde-Stelle vorher gegen die geschützten Ordner
+// (Erklärung im Teil channel-declarations/templates.js, Umfang `bind`); der
+// Handler prüft die Form.
+//
 // Eigener Zustand: keiner; die Aufloesung des Vorlagen-Ordners kommt als Dep,
 // die reine Pfad- und Regel-Logik aus dem Vorlagen-Modul.
 'use strict';
@@ -25,6 +33,48 @@ const {
 const { splitAreaLink } = require('../../shared/area-link-syntax');
 const selbstSchreib = require('../documents/self-write');
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
+
+// 4T-002649: Grenzen der globalen Konfiguration. Pfad-Länge wie die Kanäle des
+// Workflow-Ordners; die Zahl der Regeln liegt weit über jedem Hand-Bestand.
+const MAX_PATH = 4096;
+const MAX_RULES = 1000;
+const isTextUpTo = (v, max) => typeof v === 'string' && v.length <= max;
+
+/**
+ * Prüft die Form der globalen Vorlagen-Konfiguration aus dem Fenster.
+ *
+ * Ordner: leer (nicht festgelegt) oder ein absoluter Pfad. Regeln: eine Liste
+ * von `{ folder, template }` mit Text-Feldern; die Vorlage ist nicht leer, der
+ * Ordner darf leer sein (Wurzel-Regel). Gespeichert werden nur diese Felder,
+ * getrimmt wie in der Einstellungs-Seite.
+ *
+ * @param {*} config
+ * @returns {{ok: true, folder: string, rules: Array<{folder: string, template: string}>}|{ok: false, error: string}}
+ */
+function checkGlobalTemplatesConfig(config) {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    return { ok: false, error: 'invalid config' };
+  }
+  const folder = isTextUpTo(config.folder, MAX_PATH) ? config.folder.trim() : null;
+  if (folder === null || (folder !== '' && !path.isAbsolute(folder))) {
+    return { ok: false, error: 'invalid folder' };
+  }
+  const raw = config.rules === undefined ? [] : config.rules;
+  if (!Array.isArray(raw) || raw.length > MAX_RULES) return { ok: false, error: 'invalid rules' };
+  const rules = [];
+  for (const r of raw) {
+    const ok =
+      r &&
+      typeof r === 'object' &&
+      !Array.isArray(r) &&
+      isTextUpTo(r.folder, MAX_PATH) &&
+      isTextUpTo(r.template, MAX_PATH) &&
+      r.template.trim() !== '';
+    if (!ok) return { ok: false, error: 'invalid rules' };
+    rules.push({ folder: r.folder.trim(), template: r.template.trim() });
+  }
+  return { ok: true, folder, rules };
+}
 
 // 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
@@ -191,6 +241,18 @@ function registerTemplatesIpc(handle, deps) {
       }),
       area: normalizeTemplatesConfig(areaConfig),
     };
+  });
+
+  // 4T-002649 (Epic 3E-000416): globale Konfiguration schreiben, Ordner und
+  // Regeln zusammen (Muster attachments:setGlobalConfig). Bis hierher schrieb
+  // das Fenster die beiden Schlüssel über settings:set ohne jede Prüfung.
+  handle('templates:setGlobalConfig', async (_event, config) => {
+    if (!store) return { ok: false, error: 'no store' };
+    const checked = checkGlobalTemplatesConfig(config);
+    if (!checked.ok) return { ok: false, error: checked.error };
+    store.set('templates.folder', checked.folder);
+    store.set('templates.rules', checked.rules);
+    return { ok: true };
   });
 
   // 4T-000428: templates-Sektion der Bereichsdatei schreiben (config = Objekt)

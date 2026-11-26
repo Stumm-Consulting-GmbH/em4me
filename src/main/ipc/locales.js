@@ -61,6 +61,7 @@ const { LOCALE_CODES } = require('../../shared/locales');
 // Weg; ein eigenes fs.writeFile liesse bei einem Abbruch eine halbe Datei
 // zurueck (Waechter test/unit/atomares-schreiben-aufrufer.test.js).
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
+const { weiseGeschuetztesZielAb } = require('./protected-dialog-target');
 
 /**
  * Wurzel der eingespielten Sprachdateien im Benutzerprofil.
@@ -121,7 +122,33 @@ function localeDatei(app, code) {
  * @param {() => object|null} deps.getStore Einstellungs-Speicher (steht bei der Registrierung fest).
  */
 function registerLocalesIpc(handle, deps) {
-  const { dialog, app, BrowserWindow, senderWindow, tForWindow, getStore } = deps;
+  const { dialog, app, BrowserWindow, senderWindow, tForWindow, getStore, checkTarget } = deps;
+
+  // 4T-002827 (Epic 3E-000416): Speichern-Dialog der Sprachdateien. Ein Ziel
+  // in einem geschuetzten Ordner wird gemeldet und der Dialog erneut
+  // geoeffnet, wie bei «Speichern unter»; `null` heisst Abbruch.
+  async function waehleSpeicherZiel(owner, kanal, optionen) {
+    let defaultPath = optionen.defaultPath;
+    for (;;) {
+      const dlgResult = await dialog.showSaveDialog(owner || undefined, {
+        ...optionen,
+        defaultPath,
+      });
+      if (dlgResult.canceled || !dlgResult.filePath) return null;
+      const ziel = path.resolve(dlgResult.filePath);
+      const geschuetzt = await weiseGeschuetztesZielAb({
+        checkTarget,
+        dialog,
+        owner,
+        tForWindow,
+        kanal,
+        ziel,
+        umfang: 'write',
+      });
+      if (!geschuetzt) return ziel;
+      defaultPath = path.join(app.getPath('home'), path.basename(ziel));
+    }
+  }
   // 4T-001596: Der Merker des zuletzt gemeldeten Luecken-Standes wohnt in der
   // Konfiguration. registerIpc laeuft nach loadStore, der Speicher steht also
   // fest (Muster ipc/settings.js).
@@ -191,7 +218,7 @@ function registerLocalesIpc(handle, deps) {
     // noch eine Bequemlichkeit. Worauf es ankommt, sagt die Rueckmeldung nach
     // dem Speichern.
     const vorschlag = `${tForWindow(owner, 'locales.template.fileStem')}.json`;
-    const dlgResult = await dialog.showSaveDialog(owner || undefined, {
+    const ziel = await waehleSpeicherZiel(owner, 'locales:saveTemplate', {
       title: tForWindow(owner, 'locales.template.saveDialogTitle'),
       defaultPath: path.join(app.getPath('home'), vorschlag),
       filters: [
@@ -200,9 +227,8 @@ function registerLocalesIpc(handle, deps) {
       ],
     });
     // Abbruch ist kein Fehler: Der Aufrufer zeigt dafuer keinen Hinweis.
-    if (dlgResult.canceled || !dlgResult.filePath) return { ok: false, canceled: true };
+    if (!ziel) return { ok: false, canceled: true };
 
-    const ziel = path.resolve(dlgResult.filePath);
     try {
       await ersetzeDateiOderWirf(ziel, buildLocaleTemplate(dict));
     } catch (err) {
@@ -493,7 +519,7 @@ function registerLocalesIpc(handle, deps) {
     // Der Datei-Name traegt den Sprach-Code voran: Wer zwei eigene Sprachen
     // pflegt, haette sonst zweimal denselben Vorschlag vor sich.
     const vorschlag = `${gelesen.code}-${t('locales.update.fileStem')}.json`;
-    const dlgResult = await dialog.showSaveDialog(owner || undefined, {
+    const ziel = await waehleSpeicherZiel(owner, 'locales:updateDialog', {
       title: t('locales.update.saveDialogTitle'),
       defaultPath: path.join(app.getPath('home'), vorschlag),
       filters: [
@@ -501,10 +527,9 @@ function registerLocalesIpc(handle, deps) {
         { name: t('dialog.filterAll'), extensions: ['*'] },
       ],
     });
-    if (dlgResult.canceled || !dlgResult.filePath) return { ok: false, canceled: true };
+    if (!ziel) return { ok: false, canceled: true };
 
     const fassung = aktualisierteFassung(gelesen.code, gelesen.name, gelesen.werte, referenz);
-    const ziel = path.resolve(dlgResult.filePath);
     try {
       // Serialisiert wird ueber denselben Weg wie Vorlage und abgelegte Datei:
       // Die Fassung TRAEGT die beiden Metadaten-Felder bereits, und sie voran

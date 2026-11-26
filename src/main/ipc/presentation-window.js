@@ -44,14 +44,16 @@ const { createPraesentationFenster } = require('../praesentation-fenster');
  * @param {(win: object, key: string) => string} [deps.tForWindow] Übersetzung.
  * @param {boolean} [deps.imTestlauf] E2E-Lauf erkannt.
  * @param {Function} [deps.erzeuger] Ersatz des Fenster-Erzeugers (Prüfungen).
+ * @param {object} deps.senderCheck Absender-Prüfung der Anmelde-Stelle (4T-002648).
  * @returns {object} der Fenster-Erzeuger (für Prüfungen).
  */
 function registerPresentationWindowIpc(handle, deps) {
-  const { BrowserWindow, senderWindow, tForWindow, imTestlauf } = deps;
+  const { BrowserWindow, senderWindow, tForWindow, imTestlauf, senderCheck } = deps;
   const screen = deps.screen || require('electron').screen;
   const fenster = (deps.erzeuger || createPraesentationFenster)({
     BrowserWindow,
     screen,
+    senderCheck,
     // Ohne eigenes Symbol: Das Fenster zeigt das des Programms. Die Wahl der
     // Symbol-Datei je Plattform bleibt damit allein in window-manager.js.
     imTestlauf: !!imTestlauf,

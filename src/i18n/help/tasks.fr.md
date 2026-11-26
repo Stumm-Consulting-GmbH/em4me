@@ -16,7 +16,7 @@ Dans les fichiers modifiables, un clic sur la case termine la tâche ou la rouvr
 
 ## Statuts étendus
 
-Six statuts prédéfinis ; le caractère se place entre les crochets :
+Sept statuts prédéfinis ; le caractère se place entre les crochets :
 
 ```markdown
 - [/] en cours
@@ -25,6 +25,7 @@ Six statuts prédéfinis ; le caractère se place entre les crochets :
 - [?] question
 - [!] important
 - [*] marqué
+- [»] reporté
 ```
 
 - [/] en cours
@@ -33,8 +34,11 @@ Six statuts prédéfinis ; le caractère se place entre les crochets :
 - [?] question
 - [!] important
 - [*] marqué
+- [»] reporté
 
 Chaque statut s'affiche comme une case colorée avec un glyphe. Un clic sur la case passe au **symbole suivant** du statut (par défaut : terminer avec `[x]`) ; on peut ainsi configurer des chaînes comme « ouvert → en cours → terminé ».
+
+Le statut **Reporté** (`»`) porte le type Pas une tâche et est posé par le report des tâches ouvertes des journaux : dans l'ancienne entrée de journal, il marque une tâche passée dans une entrée ultérieure. Un clic sur la case rouvre la tâche (page [Journaux](journals.md), section « Reporter les tâches ouvertes »).
 
 ## Statuts personnalisés, type et symbole suivant
 

@@ -63,6 +63,28 @@ Defekte Anker-Ziele markiert der [Markdown-Linter](tools.md) im Editor.
 
 In einer Tabellen-Datei der [Datenbank](database.md) zeigt `#^` außerdem auf die Kennung eines einzelnen Datensatzes: `[[Personen#^r-00042]]`. Ein solcher Verweis gilt, wenn die Tabelle den Datensatz führt; ein Block-Anker gleichen Namens behält dabei den Vorrang.
 
+## Vor und Zurück
+
+Wie in einem Browser führt „Zurück“ an die Stelle, an der Sie zuvor waren, und „Vor“ wieder nach vorn. So kehren Sie nach einem Verweis an die Ausgangsstelle zurück, ohne sie zu suchen.
+
+**Bedienung:**
+
+- `Alt+←` und `Alt+→`; umbelegen lassen sich die Kürzel unter Datei → Einstellungen… → Tastenkürzel.
+- Die seitlichen Tasten der Maus.
+- Ansicht → Zurück und Ansicht → Vor.
+- Die Kommandos „Zurück“ und „Vor“ der Kommando-Palette.
+- Die beiden Pfeil-Knöpfe in der Statusleiste. Sie sind ausgegraut, solange in ihre Richtung kein Schritt möglich ist, und lassen sich wie jede Standard-Schaltfläche ausblenden, siehe [Kommando-Platzierung](command-placement.md).
+
+Im Quellcode und im Live-Modus bewegen `Alt+←` und `Alt+→` die Schreibmarke nicht, sondern springen ebenfalls zurück und vor. Nur im Inhaltsverzeichnis eines Buchs rücken sie bei fokussierter Kapitel-Zeile das Kapitel aus und ein, `Alt+←` rückt aus und `Alt+→` rückt ein; innerhalb seiner Ebene verschieben es `Alt+↑` und `Alt+↓`, siehe [Bücher](books.md).
+
+**Was als Besuch zählt.** Jeder Wechsel des gezeigten Dokuments, ob über einen Reiter, `Strg+Tab`, einen Verweis oder das Öffnen eines Dokuments. Dazu die Sprünge innerhalb eines Dokuments: ein Verweis auf eine Überschrift oder einen Block, ein Klick im Panel „Inhaltsverzeichnis“ oder in einem Inhaltsverzeichnis-Block, ein Eintrag im Panel „Backlinks“ und ein Sprung aus der Trefferliste der Suche. Das Weitersuchen in der Suchleiste und der Bildlauf zählen nicht. Liegen zwei Stellen desselben Dokuments weniger als zehn Zeilen auseinander, gelten sie als eine.
+
+**Verlauf.** Gehen Sie zurück und springen von dort an eine neue Stelle, entfällt der Teil, zu dem „Vor“ geführt hätte. Jedes Fenster hat seinen eigenen Verlauf mit höchstens 100 Einträgen; er beginnt mit dem Fenster leer und endet mit ihm. Sind zwei Spalten offen, führt der Schritt auch in die Spalte zurück, in der Sie waren.
+
+**Geschlossene und gelöschte Dokumente.** Ein inzwischen geschlossenes Dokument öffnet „Zurück“ wieder, und zwar an der Stelle, an der Sie es verlassen haben. Ein nicht mehr vorhandenes Dokument wird übersprungen, sofern es nicht noch in einem Reiter geöffnet ist, und die Statusleiste meldet, wie viele Orte übersprungen wurden. Ist kein Schritt mehr möglich, meldet sie „Kein früherer Ort“ oder „Kein späterer Ort“.
+
+Wo ein Dokument beim Öffnen ohne bestimmtes Ziel steht, beschreibt der Abschnitt „Lese-Position“ auf der Seite [Applikationen, Fenster und Bereiche](apps-windows.md).
+
 ## Markdown-Links auf Dateien
 
 Auch klassische Markdown-Links öffnen `.md`-Ziele als Tab; Anker funktionieren ebenso. Dokument-interne Anker-Links springen innerhalb der Seite — hier live: [zum Tags-Kapitel](#tags).
@@ -127,9 +149,9 @@ Gesucht wird zuerst am angegebenen Pfad und, falls dort nichts liegt, über den 
 
 **Einbetten** lässt sich aus einem verknüpften Bereich nichts: `![[@zt:Notiz]]` zeigt an seiner Stelle einen Hinweis, der genau das sagt, gleich ob die Bereichs-Verknüpfungen eingeschaltet sind. Der Verweis `[[@zt:Notiz]]` auf dasselbe Ziel öffnet es wie beschrieben.
 
-**Vorlagen des verknüpften Bereichs** lassen sich zusätzlich zu den eigenen anbieten; dafür gibt es je Verknüpfung einen Schalter. In der Vorlagen-Auswahl erscheinen dann beide Bestände, und jeder fremde Eintrag nennt seine Herkunft. Ohne den Schalter ändert eine Verknüpfung den Vorlagen-Bestand nicht.
+**Vorlagen des verknüpften Bereichs** lassen sich zusätzlich zu den eigenen anbieten; dafür gibt es je Verknüpfung einen Schalter. In der Vorlagen-Auswahl erscheinen dann beide Bestände, und jeder fremde Eintrag nennt seine Herkunft. Ohne den Schalter ändert eine Verknüpfung den Vorlagen-Bestand nicht. Ist die Erweiterung „Vorlagen" ausgeschaltet, fehlt der Schalter; die gespeicherte Wahl bleibt erhalten und gilt wieder, sobald die Erweiterung eingeschaltet ist.
 
-**Workflows des verknüpften Bereichs** lassen sich ebenso anbieten, mit einem eigenen Schalter „Workflows" je Verknüpfung. Sie erscheinen im Menü, in der Kommando-Palette und auf der Seite der Workflow-Läufe mit dem Kürzel der Verknüpfung, starten nur von Hand und wirken im eigenen Bereich; in den verknüpften Bereich wird nichts geschrieben. Einzelheiten auf der Seite [Workflows](workflows.md).
+**Workflows des verknüpften Bereichs** lassen sich ebenso anbieten, mit einem eigenen Schalter „Workflows" je Verknüpfung. Sie erscheinen im Menü, in der Kommando-Palette und auf der Seite der Workflow-Läufe mit dem Kürzel der Verknüpfung, starten nur von Hand und wirken im eigenen Bereich; in den verknüpften Bereich wird nichts geschrieben. Ist die Erweiterung „Workflows" ausgeschaltet, fehlt dieser Schalter ebenso, und seine gespeicherte Wahl bleibt erhalten. Einzelheiten auf der Seite [Workflows](workflows.md).
 
 ### Wenn ein verknüpfter Bereich nicht auffindbar ist
 

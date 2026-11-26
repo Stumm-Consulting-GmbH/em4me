@@ -129,3 +129,29 @@ Una afirmación con fuente[^1] y otra con nota en línea^[anotada directamente].
 Una afirmación con fuente[^1] y otra con nota en línea^[anotada directamente].
 
 [^1]: La definición vive al final del archivo.
+
+## Bloque de índice
+
+Un bloque de código con el identificador `toc` muestra en su posición los encabezados del documento como lista sangrada; cada entrada es un enlace, y un clic salta al encabezado. Una línea `depth: N` en el bloque limita el índice a los niveles 1 a N, con valores válidos de 1 a 6; sin esta línea aparecen todos los niveles. Las demás líneas y los valores fuera de 1 a 6 no tienen efecto.
+
+````markdown
+```toc
+depth: 2
+```
+````
+
+Renderizado, para esta página:
+
+```toc
+depth: 2
+```
+
+El índice sigue cada cambio por sí solo: los encabezados nuevos, renombrados o eliminados se actualizan al instante, en la vista renderizada igual que en el modo En vivo. Las entradas saltan a los mismos anclajes que los enlaces a los encabezados, también con encabezados de igual texto y con identificadores propios mediante `{#id}`. Si la [numeración automática](markdown-basics.md) de los encabezados está activa, los números aparecen también en el índice. Los encabezados dentro de bloques de código y en el frontmatter no aparecen. Si el documento no tiene ningún encabezado, el bloque muestra el aviso «Este documento no tiene encabezados.». Varios bloques en el mismo documento muestran el mismo índice.
+
+El bloque se inserta desde el [menú contextual del editor](context-menu.md): **Insertar → Bloque de índice** coloca un bloque `toc` sin línea `depth:` en una línea propia; la profundidad se añade a mano si hace falta.
+
+La impresión, la exportación a PDF y la exportación a HTML contienen el índice tal como lo muestra la vista renderizada. La exportación portable lo escribe como lista Markdown corriente con enlaces a los encabezados, sin números; un documento sin encabezados recibe una línea vacía en ese lugar. En una [presentación](presentation.md), cada diapositiva se muestra por separado; un bloque en una diapositiva lista los encabezados de esa diapositiva.
+
+El bloque pertenece a la [extensión interna](extensions.md) «Bloque de índice», que está activada a partir del modo de trabajo **Principiante**. Si está desactivada, el bloque aparece como un bloque de código corriente con su texto, y el menú contextual no ofrece **Bloque de índice**; el documento no cambia, y al volver a activarla el índice reaparece.
+
+El panel «Índice» de la [barra lateral](sidebar.md) es independiente: muestra los encabezados del documento abierto junto al texto y no forma parte del documento. El bloque, en cambio, está en el propio documento y por eso aparece también en la impresión y la exportación.

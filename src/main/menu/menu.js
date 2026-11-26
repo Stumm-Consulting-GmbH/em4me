@@ -172,6 +172,10 @@ function buildMenu(win, state, actions) {
     // demselben gemeldeten Zustand; sie tragen die Diagramm-Bedingungen.
     inDatentabelle: !!(state && state.inDatentabelle),
     diagrammGewaehlt: !!(state && state.diagrammGewaehlt),
+    // 4T-002642 (Epic 3E-000397): Verlauf des Fensters, aus demselben gemeldeten
+    // Zustand; die Felder tragen 'navZurueck' und 'navVor'.
+    kannZurueck: !!(state && state.kannZurueck),
+    kannVor: !!(state && state.kannVor),
   });
   // Freigabe eines Menue-Eintrags. Das Argument ist immer die Kommando-Kennung
   // desselben Eintrags; der Waechter prueft, dass sie mit der in acc() gleich
@@ -381,6 +385,14 @@ function buildMenu(win, state, actions) {
             accelerator: acc('journal.openForDate'),
             enabled: avail('journal.openForDate'),
             click: send('menu:journalForDate'),
+          }),
+          unless('journal.carryOver', {
+            // 4T-002738 (Epic 3E-000396): offene Aufgaben in den aktuellen
+            // Journal-Eintrag uebertragen (Bereichs-Bindung wie oben).
+            label: t('menu.file.journalCarryOver'),
+            accelerator: acc('journal.carryOver'),
+            enabled: avail('journal.carryOver'),
+            click: send('menu:journalCarryOver'),
           }),
           { type: 'separator' },
           {
@@ -1377,6 +1389,26 @@ function buildMenu(win, state, actions) {
           enabled: avail('memory.openPage'),
           click: send('menu:openMemoryPage'),
         }),
+        { type: 'separator' },
+        // 4T-002642 (Epic 3E-000397): «Zurück» und «Vor» zwischen besuchten
+        // Orten, als eigener Block über der Kommando-Palette. Das Kürzel wird
+        // angezeigt, aber nicht beim System angemeldet: Der Tastendruck erreicht
+        // so immer den Anzeige-Prozess, wo ein Panel mit eigener Belegung
+        // (Buch-Panel) vorgeht.
+        {
+          label: t('menu.view.navBack'),
+          accelerator: acc('nav.back'),
+          registerAccelerator: false,
+          enabled: avail('nav.back'),
+          click: send('menu:navBack'),
+        },
+        {
+          label: t('menu.view.navForward'),
+          accelerator: acc('nav.forward'),
+          registerAccelerator: false,
+          enabled: avail('nav.forward'),
+          click: send('menu:navForward'),
+        },
         { type: 'separator' },
         {
           // 4T-000480 (Epic 3E-000089): Kommando-Palette — filterbares Popup

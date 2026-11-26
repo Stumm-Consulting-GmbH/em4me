@@ -493,6 +493,8 @@ export function createTab(path, content, settings = {}) {
     originalContent: content,
     scrollSrc: 0,
     scrollRen: 0,
+    schreibmarke: null, // 4T-002641: { zeile, spalte } beim Verlassen, Lese-Position
+    stelleOffen: null, // 4T-002641: gelesene Stelle bis zum ersten Darstellen, nie gespeichert
     missing: false,
     // 4T-001047 (Epic 3E-000151): Der Mindmap-Modus faellt auf die Lese-Ansicht
     // zurueck, wenn seine Erweiterung aus ist. Ohne den Rueckfall traege ein

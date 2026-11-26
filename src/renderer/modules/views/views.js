@@ -8,7 +8,7 @@
 
 import { t } from '../../i18n.js';
 
-import { api } from '../app/api.js';
+import { api, settingWriteAccepted } from '../app/api.js';
 import {
   EDITOR_VIEW_FM_KEYS,
   activeTab,
@@ -91,6 +91,8 @@ import {
 // samt offenem Eingabefeld; die Eingabe wird vorher uebernommen.
 import { uebernimmOffeneZellEingabe } from '../live/live-table-zelle.js';
 import { uebernimmOffeneDatentabellenEingabe } from '../query/perspective-datatable-editor.js';
+// 4T-002641 (Epic 3E-000397): Die Stelle wandert beim Ansichts-Wechsel mit.
+import { verlasseAnzeige } from './lese-position.js';
 
 // 4T-000179: Diese beiden Laufzeit-Flags werden ausschliesslich hier
 // geschrieben und bleiben deshalb modul-privat; ueber die Modul-Grenze fuehrt
@@ -134,6 +136,7 @@ export function setViewMode(mode) {
 
   if (tab.viewMode !== mode && !uebernimmOffeneZellEingabe()) return;
   tab.viewMode = mode;
+  verlasseAnzeige(state.activePaneIndex);
   // 4T-001907: Der Wechsel der Ansicht beendet den Filter der Tafel; wer
   // zurückkommt, sieht wieder alle Karten.
   if (mode !== 'kanban') beendeTafelSuche(state.activePaneIndex);
@@ -324,15 +327,20 @@ export function toggleShowFoldGutter() {
 // (api.setSetting kann rejecten) darf nicht still verpuffen — sonst wirkt die
 // Aenderung im Speicher weiter und geht beim Neustart kommentarlos verloren.
 // Gibt true/false zurueck und zeigt bei Fehler einen Statusbar-Hinweis.
+//
+// 4T-002650 (Epic 3E-000416): Eine Abweisung des Hauptprozesses (`{ ok: false,
+// error }`) meldet die Hülle in der Konsole mit Schlüssel und Grund und gibt
+// false zurück; einen sichtbaren Hinweis gibt es dafür bewusst nicht.
 export async function persistSetting(key, value) {
+  let antwort;
   try {
-    await api.setSetting(key, value);
-    return true;
+    antwort = await api.setSetting(key, value);
   } catch (err) {
     console.warn('setSetting fehlgeschlagen:', key, err);
     showStatusbarHint('statusbar.persistFailed', { duration: 2500, error: true });
     return false;
   }
+  return settingWriteAccepted(key, antwort);
 }
 
 export function showStatusbarHint(messageKey, opts = {}) {
@@ -499,6 +507,7 @@ export function toggleEditMode() {
   if (tab.viewMode === 'rendered') {
     const ziel = zielAnsichtDesAenderungsmodus(state.editViewMode);
     tab.viewMode = ziel;
+    verlasseAnzeige(state.activePaneIndex);
     const els = getPaneEls(state.activePaneIndex);
     applyContentViewClass(els.content, `view-${ziel}`);
     tab.editMode = true;

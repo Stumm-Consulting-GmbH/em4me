@@ -708,6 +708,35 @@ describe('perspective-query — Abhaengigkeiten (TASKS-Scope, 4T-000508)', () =>
   });
 });
 
+// 4T-002737 (Epic 3E-000396): Eine mit dem Status «Übertragen» (», Typ «Keine
+// Aufgabe») gekennzeichnete Zeile zählt bei mehrfach vergebenen Kennungen nicht
+// mit; die übertragene Aufgabe mit derselben Kennung trägt keine Warnung.
+describe('perspective-query — Kennungs-Warnung ohne Zeilen «Keine Aufgabe» (4T-002737)', () => {
+  const ID = '\u{1F194}';
+  const env = { enabled: true, globalFilter: '', statusTypeOf: createTaskStatusTypeResolver(null) };
+  let taskStart;
+  beforeEach(async () => {
+    const root = makeRoot();
+    taskStart = write(root, 'Start.md', '# Start\n');
+    write(root, 'Gestern.md', `# Gestern\n\n- [»] M ${ID} m1\n`);
+    write(root, 'Heute.md', `# Heute\n\n- [ ] M ${ID} m1\n`);
+    await indexFor(taskStart);
+  });
+
+  it('keine der beiden Zeilen trägt duplicateId; die Abfrage führt beide', () => {
+    const alle = frontmatterQueryFor(taskStart, 'LIST TASKS WHERE id.set = "true"', undefined, env);
+    expect(zeilen(alle)).toHaveLength(2);
+    expect(zeilen(alle).every((r) => r.taskInfo.duplicateId === false)).toBe(true);
+    const doppelt = frontmatterQueryFor(
+      taskStart,
+      'LIST TASKS WHERE id.duplicate = "true"',
+      undefined,
+      env,
+    );
+    expect(zeilen(doppelt)).toHaveLength(0);
+  });
+});
+
 // --- 4T-000525 (Epic 3E-000095): Roh-Task-Zeilen des Erinnerungs-Pruefers -----------
 // areaTaskLines liest tasksPerFile des Index (schlanker Lesepfad ohne Query-
 // Auswertung) und liefert pro Task-Zeile { path, zeile, text }. Fixture: eine

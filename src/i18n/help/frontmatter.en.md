@@ -47,6 +47,37 @@ Toggling via the status bar or the View menu writes the new value directly into 
 
 Special cases: in read-only targets (such as manual pages) and with malformed YAML the toggle only takes effect transiently for the running session. In Untitled tabs it is likewise transient; on the first save the app carries the values that differ from the default into the frontmatter of the new file.
 
+## Cover image
+
+The property `cover` places an image at the top of the document: across the full width of the content, cropped to an adjustable height and never distorted. Two more properties set the height and the visible part:
+
+```markdown
+---
+cover: images/beach.jpg
+cover-height: 240
+cover-position: top
+---
+```
+
+The image can be given in two ways:
+
+- **as a path relative to the document**, as with an ordinary image: `cover: images/beach.jpg`. The same boundary, the same formats and the same 20 MB limit apply as on the [Images](images.md) page.
+- **as a name in double square brackets, in quotation marks**: `cover: "[[beach.jpg]]"`. The application then finds the image by its name, whichever folder of the area it is in.
+
+If the image is renamed, the application does not adjust the value of `cover`; enter the new name by hand.
+
+`cover-height` is the height in pixels, default 200; values below 80 or above 600 are set to the nearest limit. `cover-position` picks the visible part of the image: a number from 0 to 100, measured from the top (0 shows the top edge, 100 the bottom edge), or one of the words `top`, `center` and `bottom`; the default is the middle. Anything not understood falls back to the default silently.
+
+The cover image appears in the rendered view, in its half of the split view and in live mode, below the [title line](tools.md) with the file name and above the frontmatter line. In live mode it stays in place even while the cursor is in the YAML lines, and a change to `cover` shows the new image at once. The cover image does not depend on the frontmatter display and appears even when the display is turned off; a block with a YAML syntax error produces no cover image.
+
+Printing, PDF export and HTML export contain the cover image as the rendered view shows it. The [presentation](presentation.md), embedded documents, cards and previews show no cover image.
+
+If the application cannot find the image — the file is missing, lies outside the boundary, is not an image file or is larger than 20 MB —, the unobtrusive note «Cover image not found» takes its place, without an error message. The same applies in a document that has never been saved, until it is saved. An address from the internet (`http:` or `https:`) is not loaded; in its place a note asks to put the image into the area as a file. Printing and export leave the notes out; a cover image without an image is dropped there entirely.
+
+Book and shelf files carry their cover image in the same property `cover` (see [Books](books.md)); when such a file is opened as a document, the image also appears at the top above its content.
+
+The cover image belongs to the [internal extension](extensions.md) «Cover image», which is switched on from the working mode **Advanced**. When it is off, neither image nor note appears; the properties stay unchanged in the document and in the properties sidebar, and after switching the extension back on the cover image is there again.
+
 ## Mind map per document
 
 The key `mindmap` decides how the [mind map view](mindmap.md) draws this particular document and thereby overrides the default under File → Settings… → Mind map:

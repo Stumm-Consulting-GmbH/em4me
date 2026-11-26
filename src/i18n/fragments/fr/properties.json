@@ -65,6 +65,8 @@
   "frontmatter.line.label": "Frontmatter",
   "frontmatter.line.fieldCount": "{count} champs",
   "frontmatter.line.fieldCountOne": "1 champ",
+  "frontmatter.coverImage.missing": "Image de couverture introuvable",
+  "frontmatter.coverImage.remote": "EM4me ne charge pas les images de couverture depuis Internet ; enregistrez l’image comme fichier dans la zone",
   "properties.profileDefined": "Champ du profil « {profile} »",
   "properties.profileTypeLocked": "Type imposé par le profil « {profile} »",
   "properties.profileHint.typeMismatch": "La valeur ne correspond pas au type défini ({type}).",

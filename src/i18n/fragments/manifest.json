@@ -29,6 +29,7 @@
         "inlineCalc",
         "live",
         "callout",
+        "tocBlock",
         "mermaid",
         "script",
         "linter",

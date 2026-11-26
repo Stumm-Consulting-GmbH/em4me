@@ -16,7 +16,7 @@ import { appendContextMenuItem, placeContextMenuAt } from '../dialogs/context-me
 import { computeClipboardMenuState } from '../../../shared/editor-menu.js';
 // 4T-000378 (Epic 3E-000071): Format-/Link-Kommandos — ein Ausführungs-Pfad mit
 // dem Hotkey (siehe editor-format.js).
-import { FORMAT_COMMANDS, getParagraphState } from './editor-format.js';
+import { FORMAT_COMMANDS, getParagraphState, mermaidAuswahlFuer } from './editor-format.js';
 // 4T-000426 (Epic 3E-000080): „Vorlage einfügen" im Einfügen-Submenü — derselbe
 // Ausführungs-Pfad wie das Registry-Kommando; verschwindet mit deaktivierter
 // templates-Erweiterung (Kommando-Filterung der Erweiterungs-Registry).
@@ -58,6 +58,13 @@ import { getTableMenuState, runTableCommand } from './editor-table-tools.js';
 // Schreibmarke in einer Datentabelle oder einem Diagramm-Block steht.
 import { lageFuer } from '../charts/chart-lage.js';
 import { diagrammEintraege } from '../charts/chart-menu.js';
+// 4T-002554 (Epic 3E-000389): «Einfügen» über denselben Zweig wie Strg+V, dazu
+// «Als reinen Text einfügen» und «Als Tabelle einfügen».
+import {
+  fuegeAusKontextmenueEin,
+  fuegeReinenTextEin,
+  fuegeTextAlsTabelleEin,
+} from './editor-tabelle-einfuegen.js';
 
 // --- Klipboard-Aktionen -----------------------------------------------------
 
@@ -88,16 +95,11 @@ export function cutSelection(view) {
   view.focus();
 }
 
+// 4T-002554 (Epic 3E-000389): Bis dahin las «Einfügen» hier nur den Text und
+// umging den Einfüge-Behandler; seither läuft es über denselben Zweig wie
+// Strg+V, sodass ein Zellbereich auch hier zur Tabelle wird.
 export function pasteIntoSelection(view) {
-  const text = api.clipboardReadText();
-  if (text) {
-    view.dispatch({
-      ...view.state.replaceSelection(text),
-      scrollIntoView: true,
-      userEvent: 'input.paste',
-    });
-  }
-  view.focus();
+  fuegeAusKontextmenueEin(view);
 }
 
 export function selectAllInEditor(view) {
@@ -222,6 +224,17 @@ function buildInsertItems(view) {
   // erweiterungs-gebunden: Ist `dashboard` abgeschaltet, entfällt der Eintrag
   // hier wie in Palette und Tastenkürzel-Seite.
   if (!aus.has('insert.dashboard')) submenu.push(ins('dashboard', 'insert-dashboard'));
+  // 4T-002558 (Epic 3E-000390): Inhaltsverzeichnis, ebenso erweiterungs-gebunden.
+  if (!aus.has('insert.toc')) submenu.push(ins('toc', 'insert-toc'));
+  // 4T-002617 (Epic 3E-000391): die Mermaid-Bausteine als Untermenü mit der
+  // Auswahl an der Schreibmarke, gebunden an die Erweiterung mermaid.
+  if (!aus.has('insert.mermaid')) {
+    submenu.push({
+      key: 'editor.contextMenu.mermaid',
+      dataId: 'insert-mermaid',
+      submenu: mermaidAuswahlFuer(view),
+    });
+  }
   // 4T-001309 (Epic 3E-000235): Das Geruest der Perspective-Tabelle steht neben der
   // einfachen Tabelle, erscheint aber nur bei aktiver Erweiterung — deshalb
   // nicht in der festen Liste oben, sondern wie die uebrigen gegateten
@@ -453,6 +466,9 @@ const CLIPBOARD_ACTIONS = {
   cut: { key: 'editor.contextMenu.cut', run: cutSelection },
   copy: { key: 'editor.contextMenu.copy', run: copySelection },
   paste: { key: 'editor.contextMenu.paste', run: pasteIntoSelection },
+  // 4T-002554: Beschriftung aus den Registry-Kommandos, derselbe Ausführungs-Weg.
+  pastePlain: { key: 'command.edit.pastePlain', run: fuegeReinenTextEin },
+  pasteAsTable: { key: 'command.edit.pasteAsTable', run: fuegeTextAlsTabelleEin },
   selectAll: { key: 'editor.contextMenu.selectAll', run: selectAllInEditor },
 };
 
@@ -469,6 +485,7 @@ function buildClipboardItems(view) {
     hasSelection,
     hasClipboardText,
     docNotEmpty,
+    pasteAsTable: !disabledCommandIdSet(getDisabledExtensionIds()).has('edit.pasteAsTable'),
   });
   return states.map(({ id, enabled }) => {
     const spec = CLIPBOARD_ACTIONS[id];

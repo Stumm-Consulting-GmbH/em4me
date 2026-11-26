@@ -16,6 +16,10 @@ Les boutons enfoncés indiquent l'état à la position du curseur : les boutons 
 
 Le bouton Titre ouvre la sélection de niveau : niveau de titre un à six plus « Aucun titre », avec une coche sur le niveau de la ligne du curseur. Le bouton lui-même apparaît enfoncé dès que la ligne du curseur est un titre.
 
+## Diagramme Mermaid
+
+À la fin de l'affectation standard se trouve le bouton déroulant **Diagramme Mermaid**. En dehors d'un bloc Mermaid, il propose les structures des quatre types de diagramme, dans un bloc les éléments de son type ; les détails figurent dans la section « Insérer des éléments » de la page [Mathématiques et diagrammes](math-diagrams.md). Le bouton fait partie de l'extension « Diagrammes Mermaid » et n'apparaît pas tant qu'elle est désactivée.
+
 ## Grille de tableau
 
 Le bouton Tableau ouvre une grille de sélection sur le modèle des logiciels de traitement de texte : le survol marque des lignes sur des colonnes (l'étiquette indique la taille, lignes en-tête comprise), un clic insère le tableau vide avec ligne d'en-tête et ligne de séparation au curseur. Annuler retire le tableau inséré en une étape. À tous les autres accès (menu contextuel, palette, raccourci), la commande Tableau insère sans changement son gabarit standard compact.
@@ -28,7 +32,7 @@ Si l'affectation ne tient pas dans la largeur de la colonne d'éditeur, les entr
 
 ## Personnaliser l'affectation
 
-La section « Fichier → Paramètres… → Barre de format » gère l'affectation sous forme de liste : réordonner les entrées (monter/descendre), les modifier et les retirer ; de nouvelles commandes se créent dans un dialogue en trois étapes (commande par recherche filtrée, icône du jeu sélectionné, nom d'affichage facultatif). Les séparateurs et le menu Titre sont des types d'entrée propres ; « Réinitialiser au standard » rétablit l'affectation standard. Les entrées dont la commande appartient à une extension désactivée n'apparaissent pas dans la barre — la configuration est conservée et revient avec l'extension.
+La section « Fichier → Paramètres… → Barre de format » gère l'affectation sous forme de liste : réordonner les entrées (monter/descendre), les modifier et les retirer ; de nouvelles commandes se créent dans un dialogue en trois étapes (commande par recherche filtrée, icône du jeu sélectionné, nom d'affichage facultatif). Les séparateurs et le menu Titre sont des types d'entrée propres ; « Réinitialiser au standard » rétablit l'affectation standard. Si vous avez personnalisé l'affectation, le bouton **Diagramme Mermaid** n'y est pas ajouté de lui-même : « Ajouter le bouton Mermaid » l'ajoute à votre propre affectation, tandis que « Réinitialiser au standard » le rétablit avec l'ensemble de l'affectation standard. Les entrées dont la commande appartient à une extension désactivée n'apparaissent pas dans la barre — la configuration est conservée et revient avec l'extension.
 
 ## Délimitation
 

@@ -112,12 +112,15 @@ function createWorkflowKarteiWeiche(deps) {
       return { ok: true };
     } catch (err) {
       // Review Runde 1, Nr. 4: Die Weiche meldet `EEXIST` auch, wenn allein der
-      // Schlüssel in der Tabelle vergeben ist; ihre Lagen gibt sie dann nicht
-      // her. Im Workflow ist das Ziel fest genannt: Liegt die Datei da, ist es
-      // `targetExists`, sonst eine Abweisung der Datenbank (ohne Lagen, also mit
-      // dem allgemeinen Satz von `dbRejected`).
+      // Schlüssel in der Tabelle vergeben ist. Im Workflow ist das Ziel fest
+      // genannt: Liegt die Datei da, ist es `targetExists`, sonst eine
+      // Abweisung der Datenbank. 4T-002821 (Epic 3E-000445): Die Weiche gibt ihr
+      // Ergebnis am Fehler mit (`err.datenbank`); dann trägt der Fehlschlag die
+      // Lagen, und das Fenster nennt den Grund, etwa den vergebenen Schlüssel.
+      // Fehlt das Ergebnis, bleibt der allgemeine Satz von `dbRejected`.
       if (err && err.code === 'EEXIST') {
         if (await liegtDa(neu)) return { belegt: true };
+        if (err.datenbank) return alsFehlschlag({ datenbank: err.datenbank }, karte);
         return {
           ok: false,
           code: DB_REJECTED,

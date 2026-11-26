@@ -119,15 +119,18 @@ function bildschirm(liste, hauptId = 1) {
 
 function aufbau(liste = EIN_BILDSCHIRM, extra = {}) {
   const { BrowserWindow, erzeugt } = attrappe();
+  // 4T-002648: Stellvertreter der Absender-Prüfung (ipc/channel-sender.js).
+  const senderCheck = { registerWindow: vi.fn() };
   const fenster = createPraesentationFenster({
     BrowserWindow,
     screen: bildschirm(liste),
     preloadPfad: '/x/preload-publikum.js',
     seitenPfad: '/x/publikum.html',
     titel: () => 'Vorführung',
+    senderCheck,
     ...extra,
   });
-  return { fenster, erzeugt };
+  return { fenster, erzeugt, senderCheck };
 }
 
 const FOLIE = { html: '<!doctype html><p>A</p>', index: 1, gesamt: 3, breite: 1280, hoehe: 720 };
@@ -194,6 +197,25 @@ describe('Fenster-Optionen und Navigations-Sperre (AK4)', () => {
     expect(pub.removeMenu).toHaveBeenCalled();
     expect(pub.loadFile).toHaveBeenCalledWith('/x/publikum.html');
     expect(pub.setTitle).toHaveBeenCalledWith('Vorführung');
+  });
+
+  it('trägt sich vor dem Laden als Publikums-Fenster mit seiner Seite ein (4T-002648)', () => {
+    const { fenster, erzeugt, senderCheck } = aufbau();
+    fenster.oeffne(hauptfenster());
+    const [pub] = erzeugt;
+    expect(senderCheck.registerWindow).toHaveBeenCalledTimes(1);
+    expect(senderCheck.registerWindow).toHaveBeenCalledWith(
+      pub.webContents,
+      'audience',
+      '/x/publikum.html',
+    );
+    expect(senderCheck.registerWindow.mock.invocationCallOrder[0]).toBeLessThan(
+      pub.loadFile.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('ohne Absender-Prüfung lässt sich der Erzeuger nicht bauen (4T-002648)', () => {
+    expect(() => aufbau(EIN_BILDSCHIRM, { senderCheck: undefined })).toThrow(/senderCheck/);
   });
 
   it('window.open abgewiesen, Navigation an Ort und Stelle abgewiesen', () => {

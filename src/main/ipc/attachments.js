@@ -35,6 +35,8 @@ const markSelfWriting = selbstSchreib.merke;
  * @param {Function} deps.readAreaAttachmentsConfig Anlagen-Sektion der Bereichsdatei lesen.
  * @param {Function} deps.resolveAttachmentsConfig Wirksame Anlagen-Konfiguration aufloesen.
  * @param {Function} deps.bereinigterQuellName Dateiname aus der mitgebrachten Quelle.
+ * @param {Function} deps.checkTarget Pruefung eines errechneten Ziels gegen die
+ *   geschuetzten Ordner (`channel-guard.js`); `null` oder die Abweisung.
  */
 function registerAttachmentsIpc(handle, deps) {
   const {
@@ -48,6 +50,7 @@ function registerAttachmentsIpc(handle, deps) {
     readAreaAttachmentsConfig,
     resolveAttachmentsConfig,
     bereinigterQuellName,
+    checkTarget,
   } = deps;
   // 4T-000999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
   // Der Bezeichner bleibt `store`, damit die Handler-Rumpfe unveraendert sind.
@@ -80,6 +83,13 @@ function registerAttachmentsIpc(handle, deps) {
       konfig,
     });
     if (!ort.ok) return { ok: false, error: ort.grund };
+    // Review-Befund S1 vom 2026-11-22: Die Anmelde-Stelle prueft den Ordner des
+    // Dokuments und einen mitgegebenen Namen; den Ablage-Ordner errechnet erst
+    // dieser Handler aus der Anlagen-Einstellung, und er kann neben dem Ordner
+    // des Dokuments oder in der Bereichs-Wurzel liegen. Er wird deshalb hier
+    // gegen die geschuetzten Ordner geprueft, bevor etwas angelegt wird.
+    const ordnerAbweisung = await checkTarget('attachment:store', ort.verzeichnis, 'create');
+    if (ordnerAbweisung) return ordnerAbweisung;
 
     // Der Dateiname stammt entweder aus der mitgebrachten Datei oder wird aus
     // Dokumentname und Zeitstempel erzeugt.
@@ -114,6 +124,8 @@ function registerAttachmentsIpc(handle, deps) {
       // Doppelte Absicherung der Grenze: die Pfad-Rechnung hat sie bereits
       // geprueft, der Schreibvorgang prueft das Ergebnis erneut.
       if (!isInsideArea(ort.wurzel, ziel)) return { ok: false, error: 'ausserhalb-der-wurzel' };
+      const zielAbweisung = await checkTarget('attachment:store', ziel, 'create');
+      if (zielAbweisung) return zielAbweisung;
       if (quellPfad) {
         // COPYFILE_EXCL: eine bestehende Datei bleibt unangetastet, falls
         // zwischen Namenssuche und Kopie jemand anders geschrieben hat.

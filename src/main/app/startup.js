@@ -24,6 +24,7 @@ const { assignDraftsToApps } = require('../documents/draft-store');
 const { isSamePath, areaFromRootPath } = require('../area/area-path');
 const { konfiguriereBereichsSuche } = require('../area/area-search');
 const { konfiguriereMemoryStats } = require('../memory/memory-stats');
+const lesePositionen = require('../lese-positionen');
 const netzPfade = require('../documents/network-paths');
 const books = require('../books/books');
 const shelves = require('../books/shelves');
@@ -249,6 +250,9 @@ function createStartup(deps) {
     // Gefaesse, die gerade nicht erreichbar sind, und dort laege nichts zu
     // lesen.
     konfiguriereMemoryStats({ userDataDir: app.getPath('userData') });
+    // 4T-002641 (Epic 3E-000397, V4): Ablage der Lese-Positionen, eine eigene
+    // Datei neben config.json im selben Nutzerdaten-Verzeichnis.
+    lesePositionen.konfiguriere(app.getPath('userData'));
 
     // 4T-000525 (Epic 3E-000095): Erinnerungs-Takt starten (Gates pro Lauf:
     // Erweiterungs-Zustand, Index-Bereitschaft; zusaetzlicher Anstoss ueber

@@ -47,6 +47,10 @@ const FEHLER_HINWEIS = {
   exists: 'workflow.neu.existiert',
   folderMissing: 'workflow.neu.ordnerFehlt',
   noFolder: 'workflow.neu.ordnerFehlt',
+  // Review-Befund S1 vom 2026-11-22 (4T-002827): Ziel in einem geschützten
+  // oder nicht prüfbaren Ordner.
+  protectedFolder: 'area.protectedFolderMessage',
+  targetUnchecked: 'area.targetUncheckedMessage',
 };
 
 let wiring = null; // { executeCommand, registerHandler, unregisterHandler, refreshHotkeys }

@@ -33,7 +33,7 @@ vi.mock(
   }),
 );
 
-const { navigateToAnchorInPane, findBlockAnchorLine } =
+const { navigateToAnchorInPane, findBlockAnchorLine, scrollRenderedToLine } =
   await import('../../../src/renderer/modules/views/anchor-navigation.js');
 const { state } = await import('../../../src/renderer/modules/app/app-state.js');
 const { paneEditors } = await import('../../../src/renderer/modules/editor/editor.js');
@@ -237,5 +237,121 @@ describe('findBlockAnchorLine: Anker-Erkennung (4T-002057, Charakterisierung)', 
     expect(zeileVon('Text^ziel\n', 'ziel')).toBe(0);
     expect(zeileVon('Absatz. ^da\n', 'fehlt')).toBe(0);
     expect(findBlockAnchorLine(null, 'x')).toBe(0);
+  });
+});
+
+// 4T-002783 (Epic 3E-000392, Befund der Abnahme 3E-000392/001): Die Titelzeile
+// klebt am oberen Rand der Lese-Fläche. Ein Sprung legte das Ziel genau unter
+// sie, sichtbar war die Folge-Zeile. Geprüft wird hier, dass vor dem Rollen
+// die Höhe der sichtbaren Titelzeile als oberer Bildlauf-Innenabstand der
+// Fläche gilt; dass der Browser das Ziel damit sichtbar unter die Titelzeile
+// legt, belegt der Ablauf-Fall in der Bereichs-Statistik an der laufenden
+// Anwendung.
+describe('Lese-Ansicht: Sprungziel nicht unter der Titelzeile (4T-002783)', () => {
+  // Lese-Fläche wie im Fenster: Titelzeile als direktes Kind, darunter der
+  // Inhalt. jsdom misst keine Höhen; die Titelzeile meldet eine feste.
+  function leseFlaeche(html, { titelHoehe = 52.4, titelVerborgen = false } = {}) {
+    const renderedEl = document.createElement('section');
+    renderedEl.className = 'pane pane-rendered';
+    const kopf = document.createElement('div');
+    kopf.className = 'title-line';
+    kopf.hidden = titelVerborgen;
+    kopf.getBoundingClientRect = () => ({ height: titelVerborgen ? 0 : titelHoehe });
+    const renderedHtml = document.createElement('article');
+    renderedHtml.className = 'markdown-body';
+    renderedHtml.innerHTML = html;
+    renderedEl.append(kopf, renderedHtml);
+    document.body.append(renderedEl);
+    for (const el of renderedHtml.querySelectorAll('*')) {
+      el.scrollIntoView = () => gerollt.push({ el, abstand: renderedEl.style.scrollPaddingTop });
+    }
+    paneEls[0] = { renderedEl, renderedHtml };
+    return renderedEl;
+  }
+
+  // Gliederung und Titelzeile werden über app-state selbst geladen (Ring über
+  // Editor und Reiter), bevor der Ersatz von getPaneEls greift; sie sehen die
+  // echten Pane-Elemente. Für ihre Fälle wird die Lese-Fläche deshalb in das
+  // echte Objekt eingesetzt und danach zurückgestellt.
+  // jsdom kennt CSS.escape nicht; Vorbild workspaces-page.test.js.
+  if (!globalThis.CSS) globalThis.CSS = {};
+  if (typeof globalThis.CSS.escape !== 'function') {
+    globalThis.CSS.escape = (wert) => String(wert).replace(/["\\]/g, '\\$&');
+  }
+
+  async function mitEchtenPaneEls(fall) {
+    const echt = (
+      await vi.importActual('../../../src/renderer/modules/app/app-state.js')
+    ).getPaneEls(0);
+    const schluessel = Object.keys(paneEls[0]);
+    const alt = Object.fromEntries(schluessel.map((k) => [k, echt[k]]));
+    Object.assign(echt, paneEls[0]);
+    try {
+      await fall();
+    } finally {
+      Object.assign(echt, alt);
+    }
+  }
+
+  const ZEILEN =
+    '<p data-source-line="1">Eins</p>' +
+    '<p data-source-line="3">Drei</p>' +
+    '<p data-source-line="5" id="fuenf">Fünf</p>';
+
+  it('Zeilen-Sprung: Abstand der Titelzeile steht vor dem Rollen', () => {
+    vi.useFakeTimers();
+    try {
+      setzeReiter('rendered');
+      leseFlaeche(ZEILEN);
+      scrollRenderedToLine(0, 3);
+      vi.advanceTimersByTime(150);
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(gerollt).toHaveLength(1);
+    expect(gerollt[0].el.textContent).toBe('Drei');
+    expect(gerollt[0].abstand).toBe('53px');
+  });
+
+  it('Anker-Sprung: ebenso', () => {
+    setzeReiter('rendered');
+    leseFlaeche(ZEILEN, { titelHoehe: 40 });
+    navigateToAnchorInPane(0, 'fuenf');
+    expect(gerollt.map((g) => [g.el.id, g.abstand])).toEqual([['fuenf', '40px']]);
+  });
+
+  it('ausgeblendete Titelzeile: kein Abstand, auch nicht vom Sprung davor', () => {
+    setzeReiter('rendered');
+    const flaeche = leseFlaeche(ZEILEN, { titelVerborgen: true });
+    flaeche.style.scrollPaddingTop = '53px';
+    navigateToAnchorInPane(0, 'fuenf');
+    expect(gerollt.map((g) => g.abstand)).toEqual(['']);
+  });
+
+  it('Gliederungs-Klick: ebenso, sofort gerollt', async () => {
+    const { jumpToHeading } = await import('../../../src/renderer/modules/panels/panel-outline.js');
+    setzeReiter('rendered');
+    leseFlaeche('<h1 id="eins">Eins</h1><p>Text</p><h2 id="zwei">Zwei</h2>', {
+      titelHoehe: 33.2,
+    });
+    const doc = '# Eins\n\nText\n\n## Zwei\n';
+    editor(doc);
+    paneEditors[0].focus = () => {};
+    await mitEchtenPaneEls(() => jumpToHeading(0, 5));
+    expect(gerollt.map((g) => [g.el.id, g.abstand])).toEqual([['zwei', '34px']]);
+  });
+
+  it('Titelzeile beim Ansichtswechsel ausgeblendet: Abstand zurückgesetzt', async () => {
+    const { updateTitleLineForPane } =
+      await import('../../../src/renderer/modules/views/title-line.js');
+    setzeReiter('split');
+    const flaeche = leseFlaeche(ZEILEN);
+    const kopf = flaeche.querySelector(':scope > .title-line');
+    kopf.dataset.host = 'rendered';
+    paneEls[0].titleLines = [kopf];
+    flaeche.style.scrollPaddingTop = '53px';
+    await mitEchtenPaneEls(() => updateTitleLineForPane(0));
+    expect(kopf.hidden).toBe(true);
+    expect(flaeche.style.scrollPaddingTop).toBe('');
   });
 });

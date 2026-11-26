@@ -612,18 +612,20 @@ describe('copy einer Karteikarte über die Weiche (AK3)', () => {
   });
 
   // Review Runde 1, Nr. 4: allein der Schlüssel vergeben, keine Datei dieses Namens.
-  it('ist allein der Schlüssel vergeben, ist es eine Abweisung der Datenbank, nicht targetExists', async () => {
+  // 4T-002821 (Epic 3E-000445): Der Fehlschlag trägt die Lage der Datenbank,
+  // damit das Fenster den Grund nennt statt des allgemeinen Satzes.
+  it('ist allein der Schlüssel vergeben, ist es eine Abweisung der Datenbank mit dem Grund, nicht targetExists', async () => {
     const w = welt();
     w.schreibe(
       'Autoren/Zweit.md',
       ['---', 'db-record: r-00002', 'name: Ada 2', '---', ''].join('\n'),
     );
     const res = await w.lauf('copy', ['Autoren/Ada.md', 'Autoren/Ada 2.md']);
-    expect(res).toEqual({
-      ok: false,
-      code: 'dbRejected',
-      detail: { table: 'Autoren', record: 'r-00001' },
-    });
+    expect(res.ok).toBe(false);
+    expect(res.code).toBe('dbRejected');
+    expect(res.detail).toMatchObject({ table: 'Autoren', record: 'r-00001' });
+    expect(res.detail.lagen).toHaveLength(1);
+    expect(res.detail.lagen[0].naht.code).toBe(REGEL_LAGEN.schluesselDoppeltImBestand);
     expect(w.da('Autoren/Ada 2.md')).toBe(false);
     expect(w.lies('Autoren/Autoren.md')).toBe(AUTOREN);
   });

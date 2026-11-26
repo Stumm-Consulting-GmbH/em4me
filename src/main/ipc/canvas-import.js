@@ -34,6 +34,7 @@ const { canvasFenceBlock, parseCanvasFence } = require('../../shared/canvas/canv
 const { containmentWurzel } = require('../documents/embed-path.js');
 const { isInsideArea } = require('../area/area-path.js');
 const { freierDateiname } = require('../documents/attachment-path.js');
+const { textArtDerAbweisung, weiseGeschuetztesZielAb } = require('./protected-dialog-target');
 
 // Die Fehler-Kennzeichen, die eine einzelne Datei scheitern lassen. Sie sind
 // Kennungen und keine Saetze: Die Texte entstehen im Bericht-Modul aus
@@ -46,6 +47,11 @@ const DATEI_FEHLER = Object.freeze({
   keineListen: 'keineListen',
   keinFreierName: 'keinFreierName',
   nichtSchreibbar: 'nichtSchreibbar',
+  // 4T-002827: Das neue Dokument laege in einem geschuetzten Ordner.
+  geschuetzterOrdner: 'geschuetzterOrdner',
+  // Review-Befund Z1 der Runde 5 vom 2026-11-22: Das Ziel liess sich nicht
+  // pruefen (etwa ein Verweis ohne Ziel); es entsteht ebenfalls nichts.
+  zielNichtPruefbar: 'zielNichtPruefbar',
 });
 
 /**
@@ -60,7 +66,7 @@ const DATEI_FEHLER = Object.freeze({
  * @param {number} deps.MAX_EMBED_BYTES Groessen-Limit fuer gelesenen Text.
  */
 function registerCanvasImportIpc(handle, deps) {
-  const { dialog, senderWindow, areaOfWindow, tForWindow, MAX_EMBED_BYTES } = deps;
+  const { dialog, senderWindow, areaOfWindow, tForWindow, MAX_EMBED_BYTES, checkTarget } = deps;
 
   /**
    * Der fremde Pfad als eigenes Ziel, oder `null`, wenn er sich nicht
@@ -189,6 +195,31 @@ function registerCanvasImportIpc(handle, deps) {
     const dateiname = await freierName(quellOrdner, `${stamm}.md`);
     if (!dateiname) return { name, fehler: DATEI_FEHLER.keinFreierName };
     const ziel = path.join(quellOrdner, dateiname);
+    // 4T-002827 (Epic 3E-000416): Das Dokument entsteht neben der gewaehlten
+    // Datei. Liegt die in einem geschuetzten Ordner, darf sie gelesen werden,
+    // das neue Dokument aber nicht entstehen; der Bericht nennt den Grund.
+    const geschuetzt = await weiseGeschuetztesZielAb({
+      checkTarget,
+      dialog,
+      owner: null,
+      tForWindow,
+      kanal: 'canvas:importJsonCanvas',
+      ziel,
+      umfang: 'create',
+      melden: false,
+    });
+    if (geschuetzt) {
+      // «gehoert zum Programm» nur beim Grund protectedFolder, wie die
+      // Meldung der uebrigen Dialog-Wege (textArtDerAbweisung).
+      const art = textArtDerAbweisung(geschuetzt);
+      return {
+        name,
+        fehler:
+          art === 'protectedFolder'
+            ? DATEI_FEHLER.geschuetzterOrdner
+            : DATEI_FEHLER.zielNichtPruefbar,
+      };
+    }
     try {
       // wx: Eine bestehende Datei bleibt unangetastet, auch wenn zwischen
       // Namens-Suche und Schreiben jemand anders geschrieben hat.

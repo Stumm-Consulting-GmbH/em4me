@@ -40,6 +40,11 @@ const { zaunOeffnung, schliesstZaun } = require('./fence-level.js');
 // 4T-002072 (Epic 3E-000192), Nachbesserung F5: die Heimat der Block-Kennungen,
 // für die Frage, ob unter einer Datentabelle schon die Zeile ihres Namens steht.
 const { extractBlockAnchors } = require('../block-anchors.js');
+// 4T-002558 (Epic 3E-000390): das Inhaltsverzeichnis als Markdown-Liste.
+const { TOC_FENCE, tocPortabelKonverter } = require('./plugins/toc.js');
+// 4T-002838 (Epic 3E-000447): die Regel je Sonder-Block für private Kommentare.
+const { sonderRumpfOhneKommentare } = require('./plugins/comments-block.js');
+const { stripPercentComments } = require('./plugins/comments.js');
 
 // 4T-002037 (Epic 3E-000360): **Erkannt wird jedes Konstrukt nach der
 // Zaun-Regel der Anwendung** (src/shared/markdown/fence-level.js), nicht mehr
@@ -107,10 +112,12 @@ function trennerNachBlock(src, ab) {
 // Offset, damit ein Konverter die Umgebung des Blocks befragen kann).
 // `optionen.ausklang` ist `block` (Vorgabe) oder `zeile` (Kopf-Kommentar).
 // Ein Block, dessen Schluss unmittelbar auf den Öffner folgt, hat keinen Rumpf
-// und bleibt wie bisher stehen.
+// und bleibt wie bisher stehen; mit `optionen.leererRumpf` wird auch er ersetzt
+// (4T-002558: das Inhaltsverzeichnis braucht keinen Rumpf, ```toc ohne Zeile).
 function ersetzeObersteEbene(text, sprache, konverter, optionen = {}) {
   const src = String(text == null ? '' : text);
   const trennen = optionen.ausklang !== 'zeile';
+  const mindestRumpf = optionen.leererRumpf ? 0 : 1;
   let getroffen = false;
   let aus = '';
   let kopiertBis = 0;
@@ -122,8 +129,11 @@ function ersetzeObersteEbene(text, sprache, konverter, optionen = {}) {
     const zeile = src.slice(pos, ende);
     if (offen) {
       if (schliesstZaun(zeile, offen.oeffnung)) {
-        if (offen.passt && pos > offen.rumpfStart && offen.start >= kopiertBis) {
-          const html = konverter(src.slice(offen.rumpfStart, pos - 1), offen.start);
+        if (offen.passt && pos >= offen.rumpfStart + mindestRumpf && offen.start >= kopiertBis) {
+          const html = konverter(
+            src.slice(offen.rumpfStart, Math.max(offen.rumpfStart, pos - 1)),
+            offen.start,
+          );
           if (html !== null) {
             const bis = trefferEnde(src, pos, ende, zeile);
             const trenner = trennen ? trennerNachBlock(src, bis) : '';
@@ -145,6 +155,65 @@ function ersetzeObersteEbene(text, sprache, konverter, optionen = {}) {
   }
   if (!getroffen) return { text: src, getroffen };
   return { text: aus + src.slice(kopiertBis), getroffen };
+}
+
+// 4T-002838 (Epic 3E-000447): Der Text mit den Rümpfen aller Sonder-Blöcke
+// ohne private Kommentare, nach der Regel ihrer Sprache
+// (plugins/comments-block.js). Der Fließtext ist vorher bereinigt; dort gilt
+// ein Block als Code und bleibt unberührt. Welche Zeilen Rumpf eines Blocks
+// sind, sagt der Zerleger der Anzeige (`zerleger.parse`), wie bei der
+// Code-Frage der Kommentare: auf jeder Ebene, also auch in einem Zitat, einem
+// Listen-Eintrag oder ohne Schluss-Zaun. Ersetzt wird je Rumpf-Zeile allein
+// der Inhalt hinter ihrem Vorspann (Zitat-Zeichen, Einrückung); Zäune und
+// alles außerhalb bleiben Zeichen für Zeichen stehen. Lässt sich eine Zeile
+// nicht als Vorspann und Inhalt lesen (etwa bei Tabulatoren in der
+// Einrückung), gilt die sichere Seite: Der Rumpf dieses Blocks entfällt ganz,
+// sein Vorspann bleibt. `aktiv(id)` sagt, ob eine Erweiterung an ist; die
+// Erweiterung «comments» prüft der Aufrufer.
+function sonderRuempfeOhneKommentare(text, aktiv, zerleger) {
+  const src = String(text == null ? '' : text);
+  if (!src.includes('%%')) return src;
+  // Zeilen wie der Zerleger sie zählt: Er macht aus `\r\n` und einzelnem `\r`
+  // je ein Zeilenende. Die Enden selbst bleiben getrennt erhalten.
+  const stuecke = src.split(/(\r\n|\r|\n)/);
+  const zeilen = stuecke.filter((_, k) => k % 2 === 0);
+  const enden = stuecke.filter((_, k) => k % 2 === 1);
+  let geaendert = false;
+  for (const t of zerleger.parse(src, {})) {
+    if (t.type !== 'fence' || !t.map || !t.content.includes('%%')) continue;
+    const sprache = (t.info || '').trim().split(/\s+/g)[0];
+    // Die Maskierung `\%%` bleibt im Export-Text stehen, damit ein erneutes
+    // Zeichnen (Export-Instanz, Wieder-Öffnen) den Marker nicht als Kommentar liest.
+    const neu = sonderRumpfOhneKommentare(sprache, t.content, aktiv, { maskeBehalten: true });
+    if (neu === t.content) continue;
+    geaendert = true;
+    const alt = t.content.split('\n');
+    const ersatz = neu.split('\n');
+    const anzahl = t.content.endsWith('\n') ? alt.length - 1 : alt.length;
+    const erste = t.map[0] + 1;
+    const teile = [];
+    for (let i = 0; i < anzahl && ersatz.length === alt.length; i++) {
+      const z = zeilen[erste + i] || '';
+      if (!z.endsWith(alt[i])) break;
+      teile.push(z.slice(0, z.length - alt[i].length) + ersatz[i]);
+    }
+    for (let i = 0; i < anzahl; i++) {
+      const z = zeilen[erste + i] || '';
+      zeilen[erste + i] = teile.length === anzahl ? teile[i] : z.match(/^[ \t>]*/)[0];
+    }
+  }
+  return geaendert ? zeilen.map((z, k) => z + (enden[k] || '')).join('') : src;
+}
+
+// 4T-002838: Der Export-Text ohne private Kommentare, erst der Fließtext
+// (code-bewusst, Blöcke gelten dort als Code), dann die Rümpfe der
+// Sonder-Blöcke. `deaktiviert` ist die Menge der abgeschalteten Erweiterungen;
+// steht «comments» darin, bleibt der Text unverändert. `zerleger` ist die
+// Instanz der Anzeige.
+function textOhneKommentare(text, deaktiviert, zerleger) {
+  if (deaktiviert.has('comments')) return text;
+  const aktiv = (id) => !deaktiviert.has(id);
+  return sonderRuempfeOhneKommentare(stripPercentComments(text), aktiv, zerleger);
 }
 
 // 4T-002072, Nachbesserung F5: Der Konverter der Datentabelle für den Text
@@ -174,12 +243,27 @@ function datentabellenKonverter(text, zellHtml) {
 // 4T-002014 (Epic 3E-000332): `opts.zellHtml` ist der Zell-Renderer der
 // Datentabelle für den Export; die Pipeline baut ihn mit ihrem Schalter-Stand.
 //
-// Liefert `{ text, table, datatable, events, records }`; die vier Schalter
+// Liefert `{ text, table, datatable, events, records, toc }`; die Schalter
 // sagen, welche Art konvertiert hat.
 function convertPortableFences(text, opts) {
   const o = opts || {};
   let aktuell = String(text == null ? '' : text);
-  const stand = { table: false, datatable: false, events: false, records: false };
+  const stand = { table: false, datatable: false, events: false, records: false, toc: false };
+
+  // 4T-002558 (Epic 3E-000390, V7): Das Inhaltsverzeichnis wird zur statischen
+  // verschachtelten Liste `- [Text](#anker)`, ohne Überschriften zu einer leeren
+  // Zeile. Es steht als erste Ersetzung, damit seine Überschriften aus dem Text
+  // kommen, bevor die übrigen Zäune zu HTML werden; die Zerlegung macht die
+  // Anzeige-Instanz der Pipeline (lazy, wie perspective-table.js), deren Anker
+  // der portable Zweig ebenso setzt. An die Erweiterung toc-block gebunden.
+  if (o.tocEnabled) {
+    const { md } = require('./markdown.js');
+    const r = ersetzeObersteEbene(aktuell, TOC_FENCE, tocPortabelKonverter(md, aktuell), {
+      leererRumpf: true,
+    });
+    aktuell = r.text;
+    stand.toc = r.getroffen;
+  }
 
   if (o.tableEnabled) {
     const r = ersetzeObersteEbene(aktuell, 'perspective-table', (content) =>
@@ -230,4 +314,6 @@ function convertPortableFences(text, opts) {
 module.exports = {
   convertPortableFences,
   ersetzeObersteEbene,
+  sonderRuempfeOhneKommentare,
+  textOhneKommentare,
 };

@@ -16,6 +16,10 @@ Los botones pulsados muestran el estado en la posición del cursor: los botones 
 
 El botón de encabezado abre la selección de nivel: nivel de encabezado uno a seis más «Sin encabezado», con una marca en el nivel de la línea del cursor. El propio botón aparece pulsado en cuanto la línea del cursor es un encabezado.
 
+## Diagrama Mermaid
+
+Al final de la asignación estándar está el botón desplegable **Diagrama Mermaid**. Fuera de un bloque Mermaid ofrece los esqueletos de los cuatro tipos de diagrama y, dentro de un bloque, los bloques de su tipo; los detalles están en la sección «Insertar bloques» de la página [Matemáticas y diagramas](math-diagrams.md). El botón forma parte de la extensión «Diagramas Mermaid» y no aparece mientras esté desactivada.
+
 ## Cuadrícula de tabla
 
 El botón de tabla abre una cuadrícula de selección siguiendo el modelo de los procesadores de texto: al pasar por encima se marcan filas por columnas (la etiqueta muestra el tamaño, filas incluida la de encabezado), un clic inserta la tabla vacía con fila de encabezado y fila de separación en el cursor. Deshacer quita la tabla insertada en un solo paso. En todos los demás accesos (menú contextual, paleta, atajo), el comando de tabla inserta sin cambios su plantilla estándar compacta.
@@ -28,7 +32,7 @@ Si la asignación no cabe en el ancho de la columna de editor, las entradas fina
 
 ## Personalizar la asignación
 
-La sección «Archivo → Configuración… → Barra de formato» gestiona la asignación como una lista: reordenar las entradas (subir/bajar), editarlas y quitarlas; los comandos nuevos se crean en un diálogo de tres pasos (comando mediante búsqueda con filtro, icono del conjunto seleccionado, nombre visible opcional). Los separadores y el menú de encabezado son tipos de entrada propios; «Restablecer al estándar» restablece la asignación estándar. Las entradas cuyo comando pertenece a una extensión desactivada no aparecen en la barra — la configuración se conserva y vuelve con la extensión.
+La sección «Archivo → Configuración… → Barra de formato» gestiona la asignación como una lista: reordenar las entradas (subir/bajar), editarlas y quitarlas; los comandos nuevos se crean en un diálogo de tres pasos (comando mediante búsqueda con filtro, icono del conjunto seleccionado, nombre visible opcional). Los separadores y el menú de encabezado son tipos de entrada propios; «Restablecer al estándar» restablece la asignación estándar. Si ha personalizado la asignación, el botón **Diagrama Mermaid** no se añade por sí solo: «Añadir botón Mermaid» lo agrega a su propia asignación, y «Restablecer al estándar» lo devuelve junto con toda la asignación estándar. Las entradas cuyo comando pertenece a una extensión desactivada no aparecen en la barra — la configuración se conserva y vuelve con la extensión.
 
 ## Delimitación
 

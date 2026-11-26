@@ -135,6 +135,15 @@ function externalExtensionInfo(root, id) {
   return cached ? { name: cached.manifest.name, version: cached.manifest.version } : null;
 }
 
+// 4T-002650 (Epic 3E-000416): Kennung, Version und Ordner eines Pakets des
+// letzten Scans für die Prüfung der Erlaubnisse (extension-trust.js).
+function scannedPackage(root, id) {
+  const cached = cachedExtension(root, id);
+  return cached
+    ? { id: cached.manifest.id, version: cached.manifest.version, dir: cached.dir }
+    : null;
+}
+
 // Entfernt das Verzeichnis einer gescannten Erweiterung endgültig.
 // Bestätigungs-Dialog verantwortet der Aufrufer (main.js, lokalisiert).
 async function removeExtensionDirectory(root, id) {
@@ -149,5 +158,6 @@ module.exports = {
   scanExtensionsRoot,
   readMarkdownPluginSource,
   externalExtensionInfo,
+  scannedPackage,
   removeExtensionDirectory,
 };

@@ -58,6 +58,9 @@ function registerBooksIpc(handle, deps) {
     renameSingleFile,
     renamesFromPairs,
     applyLinkUpdatesForRename,
+    // 4T-002827: Pruefung eines im Dialog gewaehlten Ziels gegen die
+    // geschuetzten Ordner (channel-guard.js).
+    checkTarget,
   } = deps;
 
   // --- 4T-000843 (Epic 3E-000147): Buecher ----------------------------------------
@@ -105,7 +108,7 @@ function registerBooksIpc(handle, deps) {
 
   // "Neues Buch…": Eltern-Ordner und Name in einem Dialog, danach Anlage und
   // Oeffnen.
-  handle('books:createDialog', (event) => createBookDialog(senderWindow(event)));
+  handle('books:createDialog', (event) => createBookDialog(senderWindow(event), { checkTarget }));
 
   // "Buch schliessen": loest die Bindung, die Reiter bleiben offen.
   handle('books:close', (event) => closeActiveBook(appIdOfWindow(senderWindow(event))));

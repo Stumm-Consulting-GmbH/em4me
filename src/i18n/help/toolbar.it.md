@@ -16,6 +16,10 @@ I pulsanti premuti mostrano lo stato alla posizione del cursore: i pulsanti di e
 
 Il pulsante Titolo apre la selezione del livello: livello di titolo da uno a sei più «Nessun titolo», con un segno di spunta sul livello della riga del cursore. Il pulsante stesso appare premuto non appena la riga del cursore è un titolo.
 
+## Diagramma Mermaid
+
+Alla fine dell'assegnazione standard si trova il pulsante a discesa **Diagramma Mermaid**. Fuori da un blocco Mermaid offre gli scheletri dei quattro tipi di diagramma, dentro un blocco i blocchi del suo tipo; i dettagli sono nella sezione «Inserire blocchi» della pagina [Matematica e diagrammi](math-diagrams.md). Il pulsante fa parte dell'estensione «Diagrammi Mermaid» e non compare finché è disattivata.
+
 ## Griglia della tabella
 
 Il pulsante Tabella apre una griglia di selezione sul modello dei programmi di videoscrittura: passandovi sopra si marcano righe per colonne (l'etichetta indica la dimensione, righe inclusa quella di intestazione), un clic inserisce la tabella vuota con riga di intestazione e riga di separazione al cursore. Annulla rimuove la tabella inserita in un solo passaggio. In tutti gli altri accessi (menu contestuale, palette, scorciatoia), il comando Tabella inserisce senza modifiche il suo modello standard compatto.
@@ -28,7 +32,7 @@ Se l'assegnazione non entra nella larghezza della colonna di editor, le voci fin
 
 ## Personalizzare l'assegnazione
 
-La sezione «File → Impostazioni… → Barra di formattazione» gestisce l'assegnazione come elenco: riordinare le voci (su/giù), modificarle e rimuoverle; i nuovi comandi si creano in un dialogo a tre passaggi (comando tramite ricerca con filtro, icona dal set curato, nome visualizzato facoltativo). I separatori e il menu Titolo sono tipi di voce propri; «Ripristina lo standard» ripristina l'assegnazione standard. Le voci il cui comando appartiene a un'estensione disattivata non appaiono nella barra — la configurazione viene conservata e torna con l'estensione.
+La sezione «File → Impostazioni… → Barra di formattazione» gestisce l'assegnazione come elenco: riordinare le voci (su/giù), modificarle e rimuoverle; i nuovi comandi si creano in un dialogo a tre passaggi (comando tramite ricerca con filtro, icona dal set curato, nome visualizzato facoltativo). I separatori e il menu Titolo sono tipi di voce propri; «Ripristina lo standard» ripristina l'assegnazione standard. Chi ha personalizzato l'assegnazione non riceve il pulsante **Diagramma Mermaid** da sé: «Aggiungi pulsante Mermaid» lo aggiunge alla propria assegnazione, mentre «Ripristina lo standard» lo riporta insieme all'intera assegnazione standard. Le voci il cui comando appartiene a un'estensione disattivata non appaiono nella barra — la configurazione viene conservata e torna con l'estensione.
 
 ## Distinzione
 

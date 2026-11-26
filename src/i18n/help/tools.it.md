@@ -114,6 +114,34 @@ Cambiare sezione nelle impostazioni non salva nulla, una bozza iniziata si conse
 
 Nelle tabelle pipe, `Tab` salta alla cella successiva e `Maiusc+Tab` alla precedente. Alla fine dell'ultima riga, `Tab` o `Invio` creano una nuova riga di tabella con lo stesso numero di colonne; due `Invio` su una riga vuota escono dalla tabella. Vengono riconosciute anche le tabelle senza bordi (senza pipe esterni). Le operazioni di struttura (spostare, inserire ed eliminare righe e colonne, allineamento, trasposizione) sono offerte dal sottomenu **Tabella** nel [Menu contestuale dell'editor](context-menu.md).
 
+## Tabelle da un foglio di calcolo
+
+Un intervallo di celle copiato in un foglio di calcolo diventa una tabella pipe con `Ctrl+V`, e così anche con **Incolla** nel [menu contestuale dell'editor](context-menu.md). La prima riga dell'intervallo diventa la riga di intestazione, e la barra di stato segnala la conversione.
+
+La conversione avviene quando gli appunti contengono la forma di tabella di un foglio di calcolo e l'intervallo ha almeno due righe e due colonne con lo stesso numero di celle in ogni riga. Un a capo all'interno di una cella diventa uno spazio, una barra verticale viene protetta come `\|` perché non divida la cella, e una cella vuota resta vuota. Se il cursore si trova a metà di una riga, la tabella va su righe proprie, con una riga vuota rispetto al testo prima e dopo; in una citazione o in un riquadro ogni riga della tabella riceve il prefisso della riga in cui si incolla. Nelle aree di codice sorgente, nel frontmatter, in una tabella esistente e con più cursori si incolla il testo semplice; un'immagine delle celle fornita dal foglio di calcolo non viene salvata come [allegato](attachments.md).
+
+### Annullamento in due passi
+
+Il primo `Ctrl+Z` dopo la conversione ripristina il testo semplice incollato, con tabulazioni tra le celle; il secondo rimuove anche questo.
+
+### Incolla come testo semplice
+
+`Ctrl+Maiusc+V` e il comando **Incolla come testo semplice** del menu contestuale dell'editor e della palette dei comandi inseriscono sempre gli appunti senza modifiche, senza tabella, link o allegato.
+
+### Incolla come tabella
+
+Il comando **Incolla come tabella** del menu contestuale dell'editor e della palette dei comandi converte anche un testo che non proviene da un foglio di calcolo: celle separate da tabulazioni o punti e virgola, un record per riga. Come separatore vale il più frequente dei due. Anche qui servono almeno due righe e due colonne con lo stesso numero di celle; inoltre nessuna riga può iniziare con il separatore, perché il codice sorgente rientrato resti testo. Se gli appunti non soddisfano queste condizioni, la barra di stato lo segnala e non viene incollato nulla. L'annullamento funziona in due passi, come sopra.
+
+```text
+Articolo;Quantità;Prezzo
+Caffè;2;8,00
+Tè;1;3,50
+```
+
+### Estensione
+
+La conversione appartiene all'estensione commutabile «Strumenti tabella» (Impostazioni → Estensioni). Una volta disattivata, `Ctrl+V` incolla un intervallo di celle copiato come testo semplice, e **Incolla come tabella** manca nel menu contestuale e nella palette dei comandi; **Incolla come testo semplice** resta disponibile.
+
 ## Stampa
 
 «File → Altre funzioni file → Stampa…» (predefinito `Ctrl+P`) stampa il contenuto della scheda attiva direttamente su una stampante, senza il giro attraverso un file PDF da aprire poi in un secondo programma. Si apre la finestra di stampa del sistema operativo: stampante, intervallo di pagine, numero di copie, fronte-retro e tutto il resto si scelgono lì, nell’interfaccia che conoscete da ogni altro programma. Formato pagina, orientamento e margini sono precompilati dalla sezione «Esportazione» delle impostazioni.

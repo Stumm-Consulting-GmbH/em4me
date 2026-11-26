@@ -97,7 +97,7 @@ Font family and size can be chosen separately for the editing surface and for th
 
 ## Window state
 
-Position, size and maximized state of a window are remembered on quit and restored on the next start. Nothing needs to be set for that. What brings back a whole session with its tabs beyond this is described on the page [Applications, windows and areas](apps-windows.md).
+Position, size and maximized state of a window are remembered on quit and restored on the next start. Nothing needs to be set for that. What brings back a whole session with its tabs beyond this is described on the page [Applications, windows and areas](apps-windows.md). The application remembers, per document, where you last read it; this is described in the section "Reading position" on the [Applications, windows and areas](apps-windows.md) page.
 
 ## Status bar
 
@@ -106,6 +106,8 @@ The status bar at the bottom edge of the window is the place of control that sta
 When the bar collapses is set by "Collapsing" (File → Settings… → Status bar). "Automatically when space is tight" is the default and stows away only what no longer fits; "Always collapsed" keeps the buttons in the two menus regardless of the window width and leaves the bar permanently slim. The same section also carries the custom command buttons of the bar and the list of hidden default buttons, see [Command placement](command-placement.md).
 
 How the bar handles buttons that can do nothing at the moment is set by "Buttons that cannot be used" (File → Settings… → Status bar). Affected are the view switches and the three editor switches in the middle as well as Edit, scroll synchronisation and document history on the right — while a system page such as the settings is in front, for instance, or as long as no document is open. "Show dimmed" is the default: the button stays in its place, is visibly deactivated and does not react. "Hide" takes it out of the bar for as long as it can do nothing, and out of the two edge menus of the collapsed bar as well; as soon as it can act again, it returns to its place. The panel switches on the left, the custom command buttons, the language selection and the light/dark toggle do not know this state and are never affected by the choice; the View menu likewise remains unchanged and keeps showing unavailable entries dimmed.
+
+The two arrow buttons "Back" and "Forward" are greyed out as long as no step is possible in their direction. Even with "Hide" they stay in place so that the bar does not jump with every step; see the section "Back and forward" on the [Linking](linking.md) page.
 
 A button can therefore be missing from the bar for three different reasons, and only the third depends on this setting: it is deselected in the list of hidden default buttons and stays away permanently — that list takes effect before the choice, see [Command placement](command-placement.md); it belongs to a disabled extension, in which case the function does not exist, see [Extensions](extensions.md); or it can do nothing at the moment and the choice is set to "Hide", in which case it comes back by itself.
 

@@ -114,6 +114,34 @@ Switching sections in the settings saves nothing, a started draft is preserved. 
 
 In pipe tables `Tab` jumps to the next and `Shift+Tab` to the previous cell. At the end of the last row, `Tab` or `Enter` create a new table row with the same column count; pressing `Enter` twice on an empty row leaves the table. Borderless tables (without outer pipes) are recognised as well. Structural operations (moving, inserting and deleting rows and columns, alignment, transposing) are offered by the **Table** submenu in the [Editor context menu](context-menu.md).
 
+## Tables from a spreadsheet
+
+A cell range copied in a spreadsheet becomes a pipe table with `Ctrl+V`, and likewise with **Paste** in the [editor context menu](context-menu.md). The first row of the range becomes the header row, and the status bar reports the conversion.
+
+The conversion takes place when the clipboard carries the table form of a spreadsheet and the range has at least two rows and two columns with the same number of cells in each row. A line break inside a cell becomes a space, a vertical bar is protected as `\|` so that it does not split the cell, and an empty cell stays empty. If the cursor is in the middle of a line, the table goes on lines of its own, with a blank line to the text before and after it; inside a quote or a callout, every table row carries the prefix of the line where it is pasted. Inside source code areas, in the frontmatter, in an existing table and with several cursors, plain text is pasted; an image of the cells supplied by the spreadsheet is not stored as an [attachment](attachments.md).
+
+### Undo in two steps
+
+The first `Ctrl+Z` after the conversion restores the pasted plain text, with tabs between the cells; the second one removes it as well.
+
+### Paste as plain text
+
+`Ctrl+Shift+V` and the command **Paste as plain text** in the editor context menu and in the command palette always insert the clipboard unchanged, without a table, link or attachment.
+
+### Paste as table
+
+The command **Paste as table** in the editor context menu and in the command palette also converts text that does not come from a spreadsheet: cells separated by tabs or semicolons, one record per line. The more frequent of the two counts as the separator. Again at least two rows and two columns with the same number of cells are required; in addition, no line may begin with the separator, so that indented source code stays text. If the clipboard does not meet this, the status bar says so and nothing is pasted. Undo works in two steps as above.
+
+```text
+Item;Qty;Price
+Coffee;2;8.00
+Tea;1;3.50
+```
+
+### Extension
+
+The conversion belongs to the switchable extension "Table tools" (Settings → Extensions). When it is switched off, `Ctrl+V` pastes a copied cell range as plain text, and **Paste as table** is missing from the context menu and the command palette; **Paste as plain text** remains.
+
 ## Printing
 
 "File → More File Functions → Print…" (default `Ctrl+P`) prints the content of the active tab directly on a printer — without the detour via a PDF file that would then have to be opened in a second program. The print dialog of your operating system opens: printer, page range, number of copies, duplex and everything else are chosen there, in the interface you know from every other program. Page size, orientation and margins are pre-filled from the "Export" settings section.

@@ -129,3 +129,29 @@ Un'affermazione con fonte[^1] e una con nota in linea^[annotata direttamente].
 Un'affermazione con fonte[^1] e una con nota in linea^[annotata direttamente].
 
 [^1]: La definizione vive alla fine del file.
+
+## Blocco sommario
+
+Un blocco di codice con l'identificatore `toc` mostra nella sua posizione i titoli del documento come elenco rientrato; ogni voce è un collegamento, e un clic porta al titolo. Una riga `depth: N` nel blocco limita il sommario ai livelli da 1 a N, con valori validi da 1 a 6; senza questa riga compaiono tutti i livelli. Le altre righe e i valori fuori da 1 a 6 restano senza effetto.
+
+````markdown
+```toc
+depth: 2
+```
+````
+
+Renderizzato, per questa pagina:
+
+```toc
+depth: 2
+```
+
+Il sommario segue da solo ogni modifica: i titoli nuovi, rinominati o eliminati vengono aggiornati subito, nella vista renderizzata come nella modalità Live. Le voci portano alle stesse ancore dei collegamenti ai titoli, anche con titoli dallo stesso testo e con ID propri tramite `{#id}`. Se la [numerazione automatica](markdown-basics.md) dei titoli è attiva, i numeri compaiono anche nel sommario. I titoli all'interno di blocchi di codice e nel frontmatter non compaiono. Se il documento non ha alcun titolo, il blocco mostra l'avviso «Questo documento non contiene titoli.». Più blocchi nello stesso documento mostrano lo stesso sommario.
+
+Il blocco si inserisce dal [menu contestuale dell'editor](context-menu.md): **Inserisci → Blocco sommario** colloca un blocco `toc` senza riga `depth:` su una riga a sé; la profondità si aggiunge a mano se serve.
+
+La stampa, l'esportazione PDF e l'esportazione HTML contengono il sommario così come lo mostra la vista renderizzata. L'esportazione portabile lo scrive come normale elenco Markdown con collegamenti ai titoli, senza numeri; un documento senza titoli riceve in quel punto una riga vuota. In una [presentazione](presentation.md) ogni diapositiva viene mostrata a sé; un blocco su una diapositiva elenca i titoli di quella diapositiva.
+
+Il blocco fa parte dell'[estensione interna](extensions.md) «Blocco sommario», attiva a partire dalla modalità di lavoro **Principiante**. Se è disattivata, il blocco compare come un normale blocco di codice con il suo testo, e il menu contestuale non offre **Blocco sommario**; il documento resta invariato e, dopo la riattivazione, il sommario ricompare.
+
+Il pannello «Sommario» della [barra laterale](sidebar.md) ne è indipendente: mostra i titoli del documento aperto accanto al testo e non fa parte del documento. Il blocco, invece, si trova nel documento stesso e compare quindi anche nella stampa e nell'esportazione.

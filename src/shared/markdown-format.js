@@ -505,6 +505,20 @@ function insertDashboard(text, pos, titel) {
   return { ...r, selTo: r.selFrom + 'LIST'.length };
 }
 
+// 4T-002558 (Epic 3E-000390): Inhaltsverzeichnis-Block, ein Zaun mit der
+// Kennung `toc` ohne Körper auf eigener Zeile, mit Leerzeile davor und danach.
+// Die Schreibmarke steht hinter dem Block, damit er in der Live-Ansicht gleich
+// als Verzeichnis erscheint und nicht zum Quelltext aufklappt.
+function insertToc(text, pos) {
+  const body = '```toc\n```';
+  const { lead, trail } = blockPadding(text, pos);
+  // Am Dokument-Ende entsteht die Zeile hinter dem Block mit.
+  const nachspann = trail || (pos === text.length ? '\n' : '');
+  const cur = pos + lead.length + body.length + 1;
+  const insert = lead + body + nachspann;
+  return { changes: [{ from: pos, to: pos, insert }], selFrom: cur, selTo: cur };
+}
+
 module.exports = {
   INLINE_FORMATS,
   wordRangeAt,
@@ -532,4 +546,8 @@ module.exports = {
   insertCodeBlock,
   insertCanvas,
   insertDashboard,
+  insertToc,
+  // 4T-002617 (Epic 3E-000391): Leerzeilen-Puffer für den Mermaid-Gerüst-Zaun,
+  // damit mermaid-bausteine.js dieselbe Regel nutzt statt einer Kopie.
+  blockPadding,
 };

@@ -19,7 +19,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 - [Markdown basics](markdown-basics.md) — the Markdown core: headings, emphasis, lists, tables, links, plus CommonMark specialties.
 - [Editor context menu](context-menu.md) — formatting by right-click: menu structure, selection semantics, toggles with check marks, read-only and live mode.
 - [Format toolbar](toolbar.md) — formatting by button: visibility in edit mode, state display, heading menu, table grid, custom assignment.
-- [Block constructs](blocks.md) — callouts, custom containers, definition lists, line blocks, footnotes.
+- [Block constructs](blocks.md) — callouts, custom containers, definition lists, line blocks, footnotes, table of contents block.
 - [Inline constructs](inline.md) — highlight, sub-/superscript, underline, spoiler, Critic Markup, spans and abbreviations.
 - [Images](images.md) — image syntax, size hints, implicit figures, enlarging an image.
 - [Attachments](attachments.md) — pasting and dragging files in: storage location and setting, naming, opening in the default program.

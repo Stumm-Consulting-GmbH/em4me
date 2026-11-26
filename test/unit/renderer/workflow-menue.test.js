@@ -178,6 +178,10 @@ describe('«Neuer Workflow …» (Task AK5)', () => {
     ['invalidName', 'areaPanel.newNameInvalid'],
     ['folderMissing', 'workflow.neu.ordnerFehlt'],
     ['writeFailed', 'workflow.neu.fehler'],
+    // Review-Befund Z2 der Runde 5 vom 2026-11-22 (4T-002827): Ziel in einem
+    // geschützten oder nicht prüfbaren Ordner.
+    ['protectedFolder', 'area.protectedFolderMessage'],
+    ['targetUnchecked', 'area.targetUncheckedMessage'],
   ])('meldet den Code %s mit dem Hinweis %s und öffnet nichts', async (code, schluessel) => {
     angelegt = { ok: false, code };
     expect(await menue.neuerWorkflow()).toBe(false);

@@ -25,6 +25,7 @@ import { state } from '../app/app-state.js';
 import { openInPane } from '../tabs/tabs.js';
 import { showStatusbarHint } from '../views/views.js';
 import { showNameInputDialog } from '../dialogs/dialogs.js';
+import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import {
   collectAnswers,
   jumpToOffsetInActiveTab,
@@ -173,6 +174,117 @@ async function pflegeEigenschaftenNach(journal, period, relPath, absPath) {
   }
 }
 
+// --- 4T-002738 (Epic 3E-000396): Übertrag offener Aufgaben ----------------------------
+
+// Das Sprung-Ziel der Vorlage ist am Text VOR dem Übertrag gerechnet. Jede
+// Einfügung an einer Stelle bis einschließlich des Sprung-Ziels schiebt es um
+// ihre Länge nach hinten; spätere Einfügungen lassen es stehen. `einfuegungen`
+// ist die Liste { offset, laenge } aus der Antwort des Kanals.
+export function verschiebeSprungZiel(cursorOffset, einfuegungen) {
+  if (typeof cursorOffset !== 'number' || !Number.isFinite(cursorOffset)) return cursorOffset;
+  let summe = 0;
+  for (const e of Array.isArray(einfuegungen) ? einfuegungen : []) {
+    if (!e || !Number.isFinite(e.offset) || !Number.isFinite(e.laenge)) continue;
+    if (e.offset <= cursorOffset) summe += e.laenge;
+  }
+  return cursorOffset + summe;
+}
+
+// Meldung zur Antwort des Kanals: { key, text, error, duration } oder null (keine
+// Meldung). `vonHand` unterscheidet den Befehl vom selbsttätigen Übertrag beim
+// Anlegen; «kein früherer Eintrag», «nichts offen» und «Aufgaben-Funktionen aus»
+// meldet nur der Befehl (V15). Ohne Antwort (Fehler im Aufruf) gilt «fehlgeschlagen».
+export function uebertragMeldung(antwort, journal, vonHand) {
+  const a = antwort && typeof antwort === 'object' ? antwort : { ok: false };
+  const fuelle = (key, werte = {}) => {
+    let text = t(key);
+    for (const [name, wert] of Object.entries(werte)) {
+      text = text.split(`{${name}}`).join(String(wert));
+    }
+    return text;
+  };
+  // AUSLEGUNG: Erfolg und die Hinweise mit Handlungs-Aufforderung stehen so
+  // lange wie das Ergebnis des Nachtragens (6000), die übrigen wie die
+  // bestehenden Journal-Hinweise (3500).
+  const meldung = (key, werte, error, duration = 3500) => ({
+    key,
+    text: fuelle(key, werte),
+    error,
+    duration,
+  });
+  if (a.ok === true) {
+    if (!(a.anzahl > 0)) return null;
+    return meldung('journal.carryOver.done', { count: a.anzahl, entry: a.quelle }, false, 6000);
+  }
+  switch (a.grund) {
+    case 'kein-frueherer-eintrag':
+      return vonHand ? meldung('journal.carryOver.noPrevious', {}, false) : null;
+    case 'nichts-offen':
+      return vonHand ? meldung('journal.carryOver.nothingOpen', { entry: a.quelle }, false) : null;
+    case 'erweiterung-aus':
+      return vonHand ? meldung('journal.carryOver.tasksOff', {}, true) : null;
+    case 'abschnitt-fehlt':
+      return meldung(
+        'journal.carryOver.sectionMissing',
+        { section: (journal && journal.carryOverSection) || '', entry: a.quelle },
+        true,
+      );
+    case 'ungespeichert':
+      return meldung('journal.carryOver.unsaved', { entry: a.eintrag }, true, 6000);
+    case 'geaendert':
+      return meldung('journal.carryOver.changed', {}, true, 6000);
+    case 'zu-gross':
+      return meldung('journal.carryOver.tooLarge', {}, true);
+    case 'zu-viele-dateien':
+      return meldung('journal.carryOver.tooManyFiles', {}, true);
+    default:
+      return meldung('journal.carryOver.failed', {}, true);
+  }
+}
+
+// Absolute Pfade aller ungespeichert geänderten Reiter DIESES Fensters, über
+// alle Spalten, aktive wie inaktive Reiter. Das Fenster kennt seinen Stand
+// sofort, der Hauptprozess erst rund 0,3 Sekunden nach der Eingabe (V8).
+function ungespeicherteReiter() {
+  const pfade = [];
+  for (const pane of state.panes || []) {
+    for (const tab of (pane && pane.tabs) || []) {
+      if (tab && tab.path && tab.dirty && !pfade.includes(tab.path)) pfade.push(tab.path);
+    }
+  }
+  return pfade;
+}
+
+// Ruft den Kanal des Übertrags und zeigt die Meldung. Wirft nie: Ein Fehler wird
+// zur Antwort «fehlgeschlagen», damit der Aufrufer weiterarbeiten kann.
+async function uebertrageUndMelde(journal, periodStartMs, vonHand) {
+  let antwort;
+  try {
+    antwort = await api.journalsUebertrageAufgaben(
+      journal.id,
+      periodStartMs,
+      ungespeicherteReiter(),
+    );
+  } catch {
+    antwort = null;
+  }
+  try {
+    const m = uebertragMeldung(antwort, journal, vonHand);
+    if (m) showStatusbarHint(m.key, { duration: m.duration, error: m.error, text: m.text });
+  } catch {
+    // Die Meldung ist eine Zugabe; ihr Fehlschlag ändert am Ergebnis nichts.
+  }
+  return antwort && typeof antwort === 'object' ? antwort : { ok: false };
+}
+
+// Selbsttätiger Übertrag beim Anlegen (V13, J1 = A): Schalter des Journals an,
+// Erweiterung «Journale» aktiv und der Eintrag gehört zur laufenden Periode.
+function uebertraegtBeimAnlegen(journal, period) {
+  if (journal.carryOverAuto !== true || !isExtensionActive('journals')) return false;
+  const laufend = periodOf(Date.now(), journal.granularity);
+  return !!laufend && laufend.startMs === period.startMs;
+}
+
 // --- Der gemeinsame Öffnen-/Anlage-Pfad ----------------------------------------------
 
 // Öffnet den Eintrag eines Journals für eine Periode bzw. legt ihn an.
@@ -188,7 +300,7 @@ async function pflegeEigenschaftenNach(journal, period, relPath, absPath) {
 export async function openJournalEntry(
   journal,
   period,
-  { inheritGroup = false, imSelbenReiter = false, quellPfad = null } = {},
+  { inheritGroup = false, imSelbenReiter = false, quellPfad = null, ohneUebertrag = false } = {},
 ) {
   // Zeigt den Eintrag: im vorhandenen Reiter oder in einem neuen. Liefert
   // false, wenn der Nutzer den Wechsel abgebrochen hat.
@@ -236,12 +348,36 @@ export async function openJournalEntry(
     showStatusbarHint('journal.createFailed', { duration: 3500, error: true });
     return false;
   }
+  // 4T-002738 (Epic 3E-000396): Übertrag offener Aufgaben VOR dem Zeigen, damit
+  // der Anwender den fertigen Eintrag sieht. Nur bei wirklich neu entstandener
+  // Datei; `ohneUebertrag` setzt der Befehl von Hand, der danach selbst überträgt.
+  // Eine Ablehnung oder ein Fehler des Kanals verhindert das Öffnen nie.
+  let cursorOffset = content.cursorOffset;
+  if (!created.existed && !ohneUebertrag && uebertraegtBeimAnlegen(journal, period)) {
+    const antwort = await uebertrageUndMelde(journal, period.startMs, false);
+    if (antwort.ok === true)
+      cursorOffset = verschiebeSprungZiel(cursorOffset, antwort.einfuegungen);
+  }
   if (!(await zeige(created.path))) return false;
   // Race (existed): Datei war inzwischen da — nur öffnen, kein Cursor-Sprung.
-  if (!created.existed && content.cursorOffset !== null) {
-    jumpToOffsetInActiveTab(content.cursorOffset);
+  if (!created.existed && cursorOffset !== null) {
+    jumpToOffsetInActiveTab(cursorOffset);
   }
   return true;
+}
+
+// 4T-002738 (Epic 3E-000396): Befehl «Offene Aufgaben in den aktuellen
+// Journal-Eintrag übertragen» (V14). Auswahl unter allen Journalen (J2 = A),
+// Eintrag der laufenden Periode öffnen oder anlegen, dabei ohne selbsttätigen
+// Übertrag, dann übertragen; arbeitet unabhängig vom Schalter (J1 = A).
+export async function uebertrageOffeneAufgaben() {
+  const config = await journalsConfigOrHint();
+  if (!config) return;
+  const journal = await pickJournal(config.journals, t('journal.pick.title'));
+  if (!journal) return;
+  const period = periodOf(Date.now(), journal.granularity);
+  if (!(await openJournalEntry(journal, period, { ohneUebertrag: true }))) return;
+  await uebertrageUndMelde(journal, period.startMs, true);
 }
 
 // --- 4T-001407 (Epic 3E-000244): Massen-Nachpflege eines ganzen Journals ------------

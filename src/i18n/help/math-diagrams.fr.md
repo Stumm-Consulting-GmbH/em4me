@@ -84,6 +84,28 @@ classDiagram
   Pane "1" --> "*" Tab
 ```
 
+### Insérer des éléments
+
+Les diagrammes se composent par clics, sans connaître la syntaxe par cœur. Trois chemins mènent à la même offre : le bouton déroulant **Diagramme Mermaid** à la fin de la [barre de format](toolbar.md), **Insérer → Diagramme Mermaid** dans le [menu contextuel de l'éditeur](context-menu.md) et la commande **Diagramme Mermaid…** dans la palette de commandes. Ce qui est proposé dépend de la position du curseur :
+
+- **En dehors de tout bloc de code**, les quatre structures **Déroulement (Flowchart)**, **Séquence (Sequence)**, **Planning (Gantt)** et **Classes (Class)** ; chacune insère un bloc complet et valide.
+- **Dans un bloc Mermaid**, les éléments de son type : pour un déroulement **Nœud**, **Décision**, **Liaison** et **Liaison étiquetée** ; pour une séquence **Participant**, **Message**, **Réponse**, **Boucle** et **Alternative** ; pour un planning **Section**, **Tâche** et **Jalon** ; pour des classes **Classe**, **Classe avec membres**, **Héritage**, **Association** et **Fait partie de**.
+- **Dans un autre bloc de code, sur la première ou la dernière ligne d'un bloc Mermaid (les lignes aux trois accents graves), dans un bloc Mermaid sans ligne d'en-tête indiquant le type de diagramme (par exemple `flowchart TD`) ou dans un bloc Mermaid d'un autre type de diagramme**, seule l'indication grisée « Aucun élément Mermaid à cet endroit » apparaît.
+
+Les nouveaux éléments reçoivent des identifiants consécutifs (`N1`, `N2` …), et un élément de liaison comme liaison, message ou héritage se rapporte aux deux éléments créés en dernier. Un élément reprend l'indentation de la ligne où se trouve le curseur. Après l'insertion, le premier espace réservé est sélectionné et peut être remplacé aussitôt ; un clic correspond à une seule étape d'annulation. Deux nœuds et une liaison dans la structure de déroulement donnent par exemple :
+
+```mermaid
+flowchart TD
+  N1[Début] --> N2[Fin]
+  N3[Étape]
+  N4[Étape]
+  N3 --> N4
+```
+
+En mode Direct, une structure fraîchement insérée est dessinée dès que le curseur quitte le bloc.
+
+Les éléments font partie de l'[extension interne](extensions.md) « Diagrammes Mermaid », activée à partir du mode de travail **Avancé**. Si elle est désactivée, le bouton, l'entrée du menu contextuel et la commande disparaissent. Si vous avez personnalisé l'affectation de la barre de format, le bouton n'y est pas ajouté de lui-même ; la section « Personnaliser l'affectation » de la page [Barre de format](toolbar.md) explique comment l'ajouter.
+
 ## Blocs de code avec coloration syntaxique
 
 Une balise de langue après les accents graves ouvrants active la palette de couleurs (suit le thème) :

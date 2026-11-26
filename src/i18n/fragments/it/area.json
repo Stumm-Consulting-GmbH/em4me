@@ -104,5 +104,9 @@
   "areaPanel.inputDiscarded": "La cartella di destinazione non è più visualizzata; l'inserimento è stato annullato",
   "area.outsideTitle": "Fuori dall'area",
   "area.outsideOpenMessage": "La selezione si trova fuori dall'area e non verrà aperta.",
-  "area.outsideSaveMessage": "La posizione scelta si trova fuori dall'area. Scegliere una posizione all'interno dell'area."
+  "area.outsideSaveMessage": "La posizione scelta si trova fuori dall'area. Scegliere una posizione all'interno dell'area.",
+  "area.protectedFolderTitle": "Cartella protetta",
+  "area.protectedFolderMessage": "Questa cartella appartiene al programma. Qui non è possibile salvare nulla.",
+  "area.targetUncheckedTitle": "Posizione non verificabile",
+  "area.targetUncheckedMessage": "Non è stato possibile verificare se questa posizione appartiene al programma. Per questo qui non viene salvato nulla."
 }

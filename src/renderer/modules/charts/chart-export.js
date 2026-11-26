@@ -59,6 +59,7 @@ import {
   sammleDiagrammQuellen,
   stelleKartenMarkenWiederHer,
 } from '../../../shared/markdown/perspective-chart-export.js';
+import { stripBlockComments } from '../../../shared/markdown/plugins/comments-block.js';
 import { auslassSatz } from './chart-hint.js';
 import { CHART_IDLE_TIMEOUT_MS } from './chart-view.js';
 
@@ -113,6 +114,16 @@ function bildBlock(erg) {
   const bild = mermaidSvgBlock(erg.svg, t('export.chartAlt'));
   const zeile = kursiveZeile(auslassSatz(erg.omitted, t));
   return bild && zeile ? `${bild}\n${zeile}\n` : bild;
+}
+
+// 4T-002838 (Epic 3E-000447): Gezeichnet wird der Rumpf, den auch die Ansicht
+// zeichnet (chart-view.js, `zeichne`), also nach der Block-Regel der privaten
+// Kommentare. Der Export-Text trägt die Maske `\%%` weiter, damit ein erneutes
+// Zeichnen sie als Maske liest (portable-fences.js); im Bild steht sie wie in
+// der Ansicht als `%%`. Ein Karten-Diagramm kommt aus dem Text vor der
+// Umwandlung und verliert hier zugleich seine Kommentare, wie in der Canvas.
+function zeichenRumpf(body) {
+  return isExtensionActive('comments') ? stripBlockComments(body) : body;
 }
 
 // Ein Block-Inhalt: zeichnen, bei einer Tabelle in einem anderen Dokument erst
@@ -210,7 +221,7 @@ export async function replaceChartFencesForExport(text, kontext = {}) {
       };
       try {
         auftrag.ersatz = await ersatzFuer(
-          auftrag.body,
+          zeichenRumpf(auftrag.body),
           angaben,
           { dokumentText: auftrag.dokumentText, basePath },
           lesungen,

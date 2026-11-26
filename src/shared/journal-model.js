@@ -31,6 +31,9 @@
 //       dateProp      Frontmatter-Feldname des Perioden-Datums
 //       startProp     Feldname des Perioden-Starts
 //       endProp       Feldname des Perioden-Endes
+//       carryOverAuto    Übertrag offener Aufgaben beim Anlegen (Vorgabe false)
+//       carryOverMode    'mark' | 'remove': Umgang mit der Aufgabe im alten Eintrag
+//       carryOverSection Überschrift, auf die der Übertrag sich beschränkt ('' = alle)
 //     }, …]
 //   }
 //
@@ -103,6 +106,12 @@ function normalizeJournal(value) {
     dateProp: cleanString(value.dateProp) || DEFAULT_DATE_PROP,
     startProp: cleanString(value.startProp) || DEFAULT_START_PROP,
     endProp: cleanString(value.endProp) || DEFAULT_END_PROP,
+    // 4T-002738 (Epic 3E-000396): Einstellung des Übertrags offener Aufgaben je
+    // Journal. Streng normalisiert, weil der Übertrag Dateien des Anwenders
+    // ändert: Nur ein echtes true schaltet ihn ein, nur genau 'remove' entfernt.
+    carryOverAuto: value.carryOverAuto === true,
+    carryOverMode: value.carryOverMode === 'remove' ? 'remove' : 'mark',
+    carryOverSection: cleanString(value.carryOverSection),
   };
 }
 

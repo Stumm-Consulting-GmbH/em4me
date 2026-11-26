@@ -4,6 +4,13 @@
 // (Quelltext-Vorverarbeitung, keine markdown-it-Regel).
 'use strict';
 
+const {
+  kennung,
+  baueCodeFrage,
+  MAX_LAENGE,
+  MAX_ERGAENZTE_ZELLEN,
+} = require('./comments-codefrage.js');
+
 // ---------------------------------------------------------------------------
 // 4T-000479 (Epic 3E-000089): %%-Kommentare. Text zwischen %%-Markern (im
 // Fließtext und über Zeilen) erscheint in keiner gezeichneten Ansicht und
@@ -37,7 +44,9 @@
 //   und ist Code beteiligt, sind seine Kennungen unsicher (belegt: die
 //   E-Mail-Erkennung in spitzen Klammern nimmt `%` an, das Zeichen der
 //   Kennung nicht). Die Antwort nennt außerdem die Neustart-Stellen (Anfänge
-//   der obersten Blöcke und der Einträge oberster Listen) und die Definitionen von Verweisen und Fußnoten.
+//   der obersten Blöcke, der Einträge oberster Listen, der Blöcke oberster
+//   Zitate und der Zeilen oberster Tabellen, istUnterAnfang) und die
+//   Definitionen von Verweisen und Fußnoten.
 // - Entschieden wird der Reihe nach: Ein Marker wird so beurteilt, wie die
 //   Anzeige ihn sähe, wenn die Kommentare vor ihm entfernt sind und der Text ab
 //   ihm unverändert folgt. Ein Marker in Code bleibt wörtlich, ein unsicherer
@@ -47,9 +56,12 @@
 //   den Abschnitt um ihn (Variante B, nach Runde 1 des Sicherheits-Reviews;
 //   die frühere eigene Regel, wann das Entfernen nichts ändert, ließ sich mit
 //   einem Verweis täuschen). Eine Neustart-Stelle beginnt in der Anzeige mit
-//   frischem Zustand: Stimmen im Block vor und im Block nach dem Kommentar die
-//   Block-Anfänge und die Antworten mit der bisherigen Zerlegung überein,
-//   zerlegt die Anzeige alles außerhalb des Abschnitts wie bisher. Sonst wird
+//   frischem Zustand, eine Tabellen-Zeile mit Kopf- und Trennzeile ihrer
+//   Tabelle davor: Stimmen im Block vor und im Block nach dem Kommentar die
+//   Block-Anfänge und die Antworten mit der bisherigen Zerlegung überein und
+//   lässt der Kommentar die Kopfzeile einer Tabelle über das Abschnitts-Ende
+//   hinaus unberührt, zerlegt die Anzeige alles außerhalb des Abschnitts wie
+//   bisher. Sonst wird
 //   der Abschnitt verdoppelt, zuletzt bis zum ganzen Dokument. Verweis- und
 //   Fußnoten-Definitionen wirken im ganzen Dokument: Der Abschnitt bekommt die
 //   bisherigen mit, und steht `]:` im Kommentar oder im Abschnitt, wird das
@@ -85,8 +97,8 @@
 // Höchstzahl der Durchgänge: Jeder Durchgang nach dem ersten beginnt an einem
 // Marker, den die Schluss-Prüfung als nicht in Code erkannt hat.
 const MAX_DURCHGAENGE = 6;
-// Längste Eingabe, die dem Zerleger vorgelegt wird; darüber sichere Seite.
-const MAX_LAENGE = 4000000;
+// Längste Eingabe, die dem Zerleger vorgelegt wird, MAX_LAENGE in
+// comments-codefrage.js; darüber sichere Seite.
 // Aufwand eines Aufrufs: Summe der vorgelegten Zeichen über alle Zerlegungen,
 // jede Vorlage zweimal zerlegt (mit Kennungen und mit Markern). Ein Dokument
 // mit Kommentaren und wörtlich gelassenen Markern braucht drei Vorlagen des
@@ -118,214 +130,6 @@ function setzeCodeFrage(frage, fragePortabel) {
 
 function codeFrageFuer(portabel) {
   return (portabel && angemeldeteCodeFragePortabel) || angemeldeteCodeFrage;
-}
-
-// Kennung des Markers n: Leit-Zeichen und zwei Zeichen aus dem privaten Bereich.
-function kennung(leit, n) {
-  return leit + String.fromCharCode(0xe100 + (n >> 12)) + String.fromCharCode(0xe900 + (n & 4095));
-}
-
-function liesKennungen(text, leit, treffer) {
-  let p = text.indexOf(leit);
-  while (p !== -1) {
-    const hoch = text.charCodeAt(p + 1) - 0xe100;
-    const tief = text.charCodeAt(p + 2) - 0xe900;
-    if (hoch >= 0 && hoch < 2048 && tief >= 0 && tief < 4096) treffer.add((hoch << 12) | tief);
-    p = text.indexOf(leit, p + 1);
-  }
-}
-
-// Der Text mit jeder Kennung wieder als Marker.
-function alsMarker(text, leit) {
-  let aus = '';
-  let pos = 0;
-  let p = text.indexOf(leit);
-  while (p !== -1) {
-    aus += `${text.slice(pos, p)}%%`;
-    pos = p + 3;
-    p = text.indexOf(leit, pos);
-  }
-  return aus + text.slice(pos);
-}
-
-const IST_CODE = new Set(['fence', 'code_block', 'code_inline']);
-
-// Gleiche Gliederung zweier Token-Folgen: Art, Schachtelung, bei Code der
-// Inhalt (mit Kennungen als Marker gelesen) und bei obersten Blöcken und
-// Einträgen oberster Listen die Anfangs-Zeile.
-function gleichGegliedert(a, b, leit) {
-  if (a.length !== b.length) return false;
-  let eltern = null;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i].type !== b[i].type || a[i].nesting !== b[i].nesting) return false;
-    if (IST_CODE.has(a[i].type) && alsMarker(a[i].content, leit) !== b[i].content) return false;
-    if (a[i].level === 0 && a[i].nesting === 1) eltern = a[i].type;
-    const anfang = a[i].level === 0 || istListenEintrag(a[i], eltern);
-    if (anfang && (a[i].map ? a[i].map[0] : -1) !== (b[i].map ? b[i].map[0] : -1)) return false;
-  }
-  return true;
-}
-
-// Inhalte der Code-Stücke einer Token-Folge, Kennungen als Marker gelesen.
-function codeInhalte(liste, leit) {
-  const aus = [];
-  for (const tok of liste) if (IST_CODE.has(tok.type)) aus.push(alsMarker(tok.content, leit));
-  return aus.join('\u0000');
-}
-
-// Ein Eintrag einer obersten Liste. Er beginnt in der Anzeige so frisch wie ein
-// oberster Block: Er hängt allein an seinen eigenen Zeilen und seinem
-// Listen-Zeichen, nicht an den Einträgen davor (die Dichte der Liste ändert nur
-// das Zeichnen der Absätze, nie Code). Blöcke in Zitaten und Zeilen von
-// Tabellen sind bewusst keine Neustart-Stellen: Eine Folgezeile eines Zitats
-// darf vor `>` beliebig weit eingerückt sein und wäre für sich gelesen ein
-// eingerückter Code-Block (Zweitblick Runde 3, Befund 1); lange Zitate und
-// Tabellen bleiben deshalb auf der sicheren Seite (Entscheidung der Steuerung).
-const LISTE = new Set(['bullet_list_open', 'ordered_list_open']);
-function istListenEintrag(tok, eltern) {
-  return tok.level === 1 && tok.type === 'list_item_open' && LISTE.has(eltern);
-}
-
-// Zeilen, an denen ein Eintrag einer obersten Liste für sich gelesen wieder so
-// beginnt: höchstens drei Leerzeichen, kein Tabulator, dann das Listen-Zeichen.
-// Der Zerleger erlaubt einem obersten Eintrag ohnehin nicht mehr; die Prüfung
-// ist eine zweite Sicherung. Ein Wagenrücklauf vor dem Zeilenende zählt wie
-// das Zeilenende, damit ein leerer Eintrag mit Windows-Zeilenende Neustart-Stelle
-// bleibt (Zweitblick, gezielte Nachprüfung).
-const NEUSTART_LISTE_RE = /^ {0,3}(?:[-+*]|\d{1,9}[.)])(?:[ \t\r]|$)/;
-
-// Anfangs-Zeilen der obersten Blöcke und der Einträge oberster Listen,
-// aufsteigend. An jeder lässt sich ein Abschnitt neu fragen. Ein Eintrag zählt
-// nur, wenn seine Zeile in `text` für sich gelesen wieder so beginnt
-// (NEUSTART_LISTE_RE).
-function blockAnfaenge(tokens, text) {
-  const aus = [];
-  let eltern = null;
-  let zeilen = null;
-  const zeile = (n) => {
-    if (!zeilen) {
-      zeilen = [0];
-      for (let p = text.indexOf('\n'); p !== -1; p = text.indexOf('\n', p + 1)) zeilen.push(p + 1);
-    }
-    if (n >= zeilen.length) return '';
-    const ende = text.indexOf('\n', zeilen[n]);
-    return text.slice(zeilen[n], ende === -1 ? text.length : ende);
-  };
-  for (const tok of tokens) {
-    if (tok.level === 0 && tok.nesting === 1) eltern = tok.type;
-    const oben = tok.level === 0 && tok.nesting !== -1;
-    if (!oben && !istListenEintrag(tok, eltern)) continue;
-    if (!tok.map) continue;
-    if (!oben && !NEUSTART_LISTE_RE.test(zeile(tok.map[0]))) continue;
-    if (aus.length === 0 || aus[aus.length - 1] < tok.map[0]) aus.push(tok.map[0]);
-  }
-  return aus;
-}
-
-// Umgebung des Zerlegers mit den Definitionen des ganzen Dokuments, die ein
-// Abschnitt allein nicht kennt: Verweis-Definitionen und Fußnoten. Nur
-// Zeichenketten werden übernommen, die Tafeln haben keinen Prototyp.
-function umgebungAus(definitionen) {
-  const env = {};
-  if (!definitionen || typeof definitionen !== 'object') return env;
-  const verweise = definitionen.verweise;
-  if (verweise && typeof verweise === 'object') {
-    env.references = Object.create(null);
-    for (const name of Object.keys(verweise)) {
-      const v = verweise[name];
-      if (typeof name !== 'string' || !v || typeof v.href !== 'string') continue;
-      env.references[name] = { href: v.href, title: typeof v.title === 'string' ? v.title : '' };
-    }
-  }
-  if (Array.isArray(definitionen.fussnoten)) {
-    const refs = Object.create(null);
-    for (const name of definitionen.fussnoten) if (typeof name === 'string') refs[name] = -1;
-    env.footnotes = { refs, list: [] };
-  }
-  return env;
-}
-
-// Definitionen einer Zerlegung in der Form, die umgebungAus wieder liest.
-function definitionenAus(env) {
-  const verweise = {};
-  if (env.references) {
-    for (const name of Object.keys(env.references)) {
-      const v = env.references[name];
-      verweise[name] = { href: String(v.href), title: v.title == null ? '' : String(v.title) };
-    }
-  }
-  const fussnoten = env.footnotes && env.footnotes.refs ? Object.keys(env.footnotes.refs) : [];
-  return { verweise, fussnoten };
-}
-
-// Code-Frage aus einer markdown-it-Instanz der Anzeige.
-//
-// Mit `optionen` als Objekt (die Erkennung fragt so): Zerlegt den Text mit
-// Kennungen und denselben Text mit Markern und vergleicht beide. Weicht die
-// Block-Gliederung ab, gibt es keine Antwort. Weicht ein Absatz ab, liegt
-// keine seiner Kennungen sicher in Code oder sicher außerhalb: Sie gelten als
-// unsicher, es sei denn, in keiner der beiden Fassungen liegt ein Marker darin
-// in Code (dann außerhalb, belegt: die E-Mail-Erkennung in spitzen Klammern
-// nimmt `%` an, das Zeichen der Kennung nicht). So prüft die Anzeige die Treue
-// der Kennung in beiden Richtungen. Die Antwort ist
-// `{ code, unsicher, bloecke, definitionen }`: Nummern der Kennungen in Code,
-// Nummern der unsicheren, Neustart-Stellen (blockAnfaenge) und die
-// Definitionen des Textes. `optionen.definitionen` gibt einem Abschnitt die
-// Definitionen des ganzen Dokuments mit.
-//
-// Ohne Objekt (frühere Form, für Prüfungen): Feld der Nummern in Code; mit
-// `true` ohne Vergleich, sonst mit Vergleich, unsichere Kennungen außerhalb.
-function baueCodeFrage(mdInstanz) {
-  return function kennungenImCode(text, leit, optionen) {
-    if (typeof text !== 'string' || typeof leit !== 'string' || leit.length !== 1) return null;
-    // Eine Kennung ist drei Zeichen lang, ein Marker zwei: Die Vorlage ist
-    // höchstens anderthalbmal so lang wie das Dokument.
-    if (text.length > MAX_LAENGE * 1.5) return null;
-    const gliederung = optionen !== null && typeof optionen === 'object';
-    const treu = gliederung || optionen !== true;
-    const definitionen = gliederung ? optionen.definitionen : null;
-    const env = umgebungAus(definitionen);
-    let tokens;
-    let woertlich;
-    try {
-      tokens = mdInstanz.parse(text, env);
-      woertlich = treu ? mdInstanz.parse(alsMarker(text, leit), umgebungAus(definitionen)) : null;
-    } catch {
-      return null;
-    }
-    if (treu && !gleichGegliedert(tokens, woertlich, leit)) return null;
-    const treffer = new Set();
-    const besuche = (liste, ziel) => {
-      for (const tok of liste) {
-        if (IST_CODE.has(tok.type)) liesKennungen(tok.content, leit, ziel);
-        if (tok.children) besuche(tok.children, ziel);
-      }
-    };
-    const unsicher = new Set();
-    for (let i = 0; i < tokens.length; i++) {
-      const tok = tokens[i];
-      if (treu && tok.children) {
-        const andere = woertlich[i].children || [];
-        if (!gleichGegliedert(tok.children, andere, leit)) {
-          const imCode = new Set();
-          besuche(tok.children, imCode);
-          const ruhig =
-            imCode.size === 0 && codeInhalte(tok.children, leit) === codeInhalte(andere, leit);
-          if (!ruhig) liesKennungen(tok.content, leit, unsicher);
-          continue;
-        }
-      }
-      besuche([tok], treffer);
-    }
-    for (const n of unsicher) treffer.delete(n);
-    if (!gliederung) return Array.from(treffer);
-    return {
-      code: Array.from(treffer),
-      unsicher: Array.from(unsicher),
-      bloecke: blockAnfaenge(tokens, text),
-      definitionen: definitionenAus(env),
-    };
-  };
 }
 
 // Meldet die Zerleger beider Fassungen der Anzeige als Code-Fragen an.
@@ -482,12 +286,69 @@ function findPercentCommentRanges(text, optionen) {
   const zeileVon = (stelle) => ersterUeber(zeilen, stelle) - 1;
   const stelleVon = (zeile) => (zeile >= nZeilen ? len : zeilen[zeile]);
 
+  // Schutzgrenze einer Tabelle mit Kopfzeile `kopf` und `spaltenZahl` Spalten:
+  // Ihre Zeilen enden spätestens an der ersten Zeile ab dem Kopf, die im
+  // Original leer ist. Eine solche Zeile bleibt in jeder Sicht leer, weil eine
+  // Sicht nur Zeichen entfernt oder einen Marker durch eine Kennung ersetzt.
+  // Jede Zeile ergänzt höchstens `spaltenZahl` Zellen; bleibt das Produkt unter
+  // der Obergrenze der Anzeige, kann keine Teilsumme sie erreichen, und die
+  // Zeilen hängen nicht von den Zeilen davor ab.
+  const leerAb = new Map();
+  const ohneZellGrenze = (kopf, spaltenZahl) => {
+    let leere = leerAb.get(kopf);
+    if (leere === undefined) {
+      leere = kopf;
+      while (leere < nZeilen && src.slice(zeilen[leere], stelleVon(leere + 1)).trim() !== '')
+        leere++;
+      leerAb.set(kopf, leere);
+    }
+    return spaltenZahl * (leere - kopf) <= MAX_ERGAENZTE_ZELLEN;
+  };
+
+  // Neustart-Stellen einer Antwort in Zeilen des ganzen Dokuments, als
+  // { bloecke, koepfe }; bei einer Antwort außer Form ist bloecke null. Die
+  // Vorlage begann an Zeile `versatz`. Mit `kopfZeile` (ab 0) waren ihr Kopf- und
+  // Trennzeile dieser Tabelle vorangestellt: Vorlagen-Zeile z ab 2 ist Zeile
+  // z - 2 + versatz, und Kopf 0 ist die Kopfzeile. Eine Antwort ohne Köpfe
+  // (frühere Form) nennt keine Tabellen-Zeilen. Eine Tabellen-Zeile zählt nur,
+  // wo die Schutzgrenze hält (ohneZellGrenze).
+  const neustarts = (antwort, versatz, kopfZeile) => {
+    const bl = antwort.bloecke;
+    const kp = antwort.koepfe === undefined ? null : antwort.koepfe;
+    const sp = antwort.spalten === undefined ? null : antwort.spalten;
+    const kaputt = { bloecke: null, koepfe: null };
+    if (kp !== null && (!Array.isArray(kp) || kp.length !== bl.length)) return kaputt;
+    if (kp !== null && (!Array.isArray(sp) || sp.length !== bl.length)) return kaputt;
+    const bloecke = [];
+    const koepfe = [];
+    for (let i = 0; i < bl.length; i++) {
+      const z = bl[i];
+      if (!Number.isInteger(z) || z < 0 || (i > 0 && bl[i - 1] >= z)) return kaputt;
+      const h = kp === null ? -1 : kp[i];
+      if (!Number.isInteger(h) || (h !== -1 && (h < 0 || h > z - 2))) return kaputt;
+      if (h >= 0 && !(Number.isInteger(sp[i]) && sp[i] >= 1)) return kaputt;
+      let zeile = z + versatz;
+      let kopf = h < 0 ? -1 : h + versatz;
+      if (kopfZeile >= 0) {
+        if (z < 2) continue;
+        if (h === 1) return kaputt;
+        zeile = z - 2 + versatz;
+        kopf = h < 0 ? -1 : h === 0 ? kopfZeile : h - 2 + versatz;
+      }
+      if (kopf >= 0 && !ohneZellGrenze(kopf, sp[i])) continue;
+      bloecke.push(zeile);
+      koepfe.push(kopf);
+    }
+    return { bloecke, koepfe };
+  };
+
   let aufwand = 0;
   // Legt der Anzeige eine Vorlage vor. Liefert { code, unsicher, bloecke,
-  // definitionen } oder null (keine Antwort, Aufwand erschöpft). Eine Antwort
-  // als Feld (frühere Form) trägt keine Block-Grenzen; dann wird nach jedem
-  // Kommentar das ganze Dokument gefragt.
-  const frage = (vorlage, definitionen) => {
+  // koepfe, definitionen } oder null (keine Antwort, Aufwand erschöpft);
+  // `versatz` und `kopfZeile` wie bei neustarts. Eine Antwort als Feld (frühere
+  // Form) trägt keine Block-Grenzen; dann wird nach jedem Kommentar das ganze
+  // Dokument gefragt.
+  const frage = (vorlage, definitionen, versatz = 0, kopfZeile = -1) => {
     aufwand += vorlage.length;
     if (aufwand > MAX_AUFWAND_ZEICHEN) return null;
     let antwort;
@@ -498,15 +359,17 @@ function findPercentCommentRanges(text, optionen) {
     }
     if (!antwort) return null;
     if (Array.isArray(antwort))
-      return { code: new Set(antwort), unsicher: new Set(), bloecke: null, definitionen: null };
-    const bl = antwort.bloecke;
-    const geordnet = bl.every(
-      (z, i) => Number.isInteger(z) && z >= 0 && (i === 0 || bl[i - 1] < z),
-    );
+      return {
+        code: new Set(antwort),
+        unsicher: new Set(),
+        bloecke: null,
+        koepfe: null,
+        definitionen: null,
+      };
     return {
       code: new Set(antwort.code),
       unsicher: new Set(antwort.unsicher),
-      bloecke: geordnet ? bl.slice() : null,
+      ...neustarts(antwort, versatz, kopfZeile),
       definitionen: antwort.definitionen || null,
     };
   };
@@ -519,44 +382,74 @@ function findPercentCommentRanges(text, optionen) {
       null,
     );
 
+  // Gleiche Neustart-Stellen samt Kopfzeilen zweier Stände in [von, bis).
   const gleicheAnfaenge = (alt, neu, von, bis) => {
-    const a = alt.slice(ersterAb(alt, von), ersterAb(alt, bis));
-    const n = neu.slice(ersterAb(neu, von), ersterAb(neu, bis));
-    return a.length === n.length && a.every((z, i) => z === n[i]);
+    const i = ersterAb(alt.bloecke, von);
+    const j = ersterAb(neu.bloecke, von);
+    const n = ersterAb(alt.bloecke, bis) - i;
+    if (ersterAb(neu.bloecke, bis) - j !== n) return false;
+    for (let x = 0; x < n; x++) {
+      if (alt.bloecke[i + x] !== neu.bloecke[j + x] || alt.koepfe[i + x] !== neu.koepfe[j + x])
+        return false;
+    }
+    return true;
   };
 
   // Neue Antwort nach dem Entfernen des Kommentars `bereich`, für die Marker ab
-  // Nummer k. Vorgelegt wird der Abschnitt um den Kommentar: vom Anfang des
-  // Blocks vor dem, in dem er beginnt, bis zum Anfang des zweiten Blocks nach
-  // seinem Ende. Block heißt hier ein oberster Block oder ein Eintrag
-  // einer obersten Liste; beide beginnen in der Anzeige mit frischem Zustand (blockAnfaenge). Stimmen die
-  // Block-Anfänge im Block davor und im Block danach mit der bisherigen
-  // Zerlegung überein, zerlegt die Anzeige das ganze
-  // Dokument davor und danach wie bisher. Sonst wird der Abschnitt verdoppelt,
-  // zuletzt bis zum ganzen Dokument. Definitionen (`]:`) wirken im ganzen
-  // Dokument: Steht eine im Kommentar oder im Abschnitt, wird das ganze
-  // Dokument gefragt; sonst bekommt der Abschnitt die bisherigen mit.
+  // Nummer k. Vorgelegt wird der Abschnitt um den Kommentar: von der
+  // Neustart-Stelle vor der, in deren Block er beginnt, bis zur zweiten
+  // Neustart-Stelle nach seinem Ende (blockAnfaenge). Beginnt der Abschnitt an
+  // einer Tabellen-Zeile, stehen Kopf- und Trennzeile ihrer Tabelle davor.
+  // Stimmen die Neustart-Stellen samt Kopfzeilen im Block davor und im Block
+  // danach und die Antworten im Block danach mit der bisherigen Zerlegung
+  // überein, zerlegt die Anzeige das ganze Dokument davor und danach wie
+  // bisher. Eine Tabelle liest ihre Zeilen gegen Kopf- und Trennzeile, auch
+  // jenseits des Abschnitts-Endes: Berührt der Kommentar Kopf- oder Trennzeile
+  // einer Tabelle mit Zeilen im Block danach, gleich ob sie über das Ende
+  // reicht, gilt die Übereinstimmung nicht (kopfBeruehrt). Die Prüfung ist eine
+  // vorsichtige Schranke: Nach der Lesung im Zweitblick, Runde 1 zu 4T-002837,
+  // behält ein Kommentar allein im Kopf die Spaltenzahl, oder die Tabelle
+  // zerfällt, und den Zerfall fängt schon der Vergleich der Block-Anfänge; ein
+  // Prüffall, der nur an ihr rot wird, ist nicht bekannt. Sie kostet allein bei
+  // Kommentaren im Tabellen-Kopf, dort aber das Verdoppeln bis zum ganzen
+  // Dokument, solange die Tabelle nach dem Kommentar Zeilen hat (Zweitblick
+  // Runde 2). Sonst wird der Abschnitt verdoppelt, zuletzt bis zum ganzen
+  // Dokument.
+  // Definitionen (`]:`) wirken im ganzen Dokument: Steht eine im Kommentar oder
+  // in der Vorlage, wird das ganze Dokument gefragt; sonst bekommt der
+  // Abschnitt die bisherigen mit.
   const nachKommentar = (stand, bereich, ranges, k, woertlich) => {
     const bl = stand.bloecke;
     if (!bl || src.slice(bereich.from, bereich.to).includes(']:'))
       return ganz(ranges, k, woertlich);
     const istKennung = (j) => j >= k || woertlich.has(j);
-    const bi = ersterUeber(bl, zeileVon(bereich.from)) - 1;
-    const fi = ersterUeber(bl, zeileVon(bereich.to - 1));
+    const kv = zeileVon(bereich.from);
+    const kb = zeileVon(bereich.to - 1);
+    const bi = ersterUeber(bl, kv) - 1;
+    const fi = ersterUeber(bl, kb);
     const anfang = bi >= 0 ? bl[bi] : 0;
     const folge = fi < bl.length ? bl[fi] : nZeilen;
     for (let weite = 1; ; weite *= 2) {
       const s = bi - weite >= 0 ? bl[bi - weite] : 0;
+      const h = bi - weite >= 0 ? stand.koepfe[bi - weite] : -1;
       const e = fi + weite < bl.length ? bl[fi + weite] : nZeilen;
       if (s === 0 && e === nZeilen) return ganz(ranges, k, woertlich);
       const a = stelleVon(s);
       const b = stelleVon(e);
-      const vorlage = sicht(src, marker, ranges, istKennung, leit, a, b);
+      const kopf =
+        h >= 0 ? sicht(src, marker, ranges, istKennung, leit, stelleVon(h), stelleVon(h + 2)) : '';
+      const vorlage = kopf + sicht(src, marker, ranges, istKennung, leit, a, b);
       if (vorlage.includes(']:')) return ganz(ranges, k, woertlich);
-      const antwort = frage(vorlage, stand.definitionen);
+      const antwort = frage(vorlage, stand.definitionen, s, h);
       if (!antwort || !antwort.bloecke) return null;
-      const neu = antwort.bloecke.map((z) => z + s);
-      if (!gleicheAnfaenge(bl, neu, s, anfang) || !gleicheAnfaenge(bl, neu, folge, e)) continue;
+      if (!gleicheAnfaenge(stand, antwort, s, anfang) || !gleicheAnfaenge(stand, antwort, folge, e))
+        continue;
+      let kopfBeruehrt = false;
+      for (let i = ersterAb(antwort.bloecke, folge); i < antwort.bloecke.length; i++) {
+        const hk = antwort.koepfe[i];
+        if (hk >= 0 && kv <= hk + 1 && kb >= hk) kopfBeruehrt = true;
+      }
+      if (kopfBeruehrt) continue;
       // Auch die Antworten im Block danach stimmen mit den bisherigen überein.
       const ersterMarker = Math.max(k, ersterAb(marker, a));
       let gleich = true;
@@ -577,7 +470,10 @@ function findPercentCommentRanges(text, optionen) {
         if (antwort.code.has(j)) stand.code.add(j);
         if (antwort.unsicher.has(j)) stand.unsicher.add(j);
       }
-      stand.bloecke = bl.slice(0, ersterAb(bl, s)).concat(neu, bl.slice(ersterAb(bl, e)));
+      const vor = ersterAb(bl, s);
+      const nach = ersterAb(bl, e);
+      stand.bloecke = bl.slice(0, vor).concat(antwort.bloecke, bl.slice(nach));
+      stand.koepfe = stand.koepfe.slice(0, vor).concat(antwort.koepfe, stand.koepfe.slice(nach));
       return stand;
     }
   };
@@ -709,6 +605,10 @@ function stripPercentComments(text, optionen) {
 }
 
 module.exports = {
+  // 4T-002838: Stellen und Paarung ohne Code für die Sonder-Blöcke
+  // (comments-block.js), damit Maskierung und Paarung nur hier stehen.
+  markerStellen: kandidaten,
+  paareOhneCode,
   findPercentCommentRanges,
   stripPercentComments,
   setzeCodeFrage,
@@ -718,4 +618,5 @@ module.exports = {
   MAX_DURCHGAENGE,
   MAX_LAENGE,
   MAX_AUFWAND_ZEICHEN,
+  MAX_ERGAENZTE_ZELLEN,
 };

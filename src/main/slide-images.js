@@ -183,6 +183,8 @@ function folienFehler(grund, folie, zusatz, ursache) {
  * @param {Function} [deps.setTimer] Vorgabe setTimeout.
  * @param {Function} [deps.clearTimer] Vorgabe clearTimeout.
  * @param {{info: Function, warn: Function, error: Function}} [deps.logger] Vorgabe console.
+ * @param {{registerWindow: Function}} deps.senderCheck Absender-Prüfung der
+ *   Anmelde-Stelle (4T-002648, ipc/channel-sender.js).
  * @returns {{registriereBildSchema: Function, erzeugeFolienBilder: Function, offeneAuftraege: Function}}
  */
 function createFolienBilder(deps) {
@@ -194,7 +196,11 @@ function createFolienBilder(deps) {
     setTimer = setTimeout,
     clearTimer = clearTimeout,
     logger = console,
+    senderCheck,
   } = deps;
+  if (!senderCheck || typeof senderCheck.registerWindow !== 'function') {
+    throw new TypeError('Folien-Bilder: senderCheck mit registerWindow erforderlich.');
+  }
 
   // Auftrags-Kennung -> geprüfte Folien; nur während eines laufenden Exports.
   const auftraege = new Map();
@@ -359,6 +365,10 @@ function createFolienBilder(deps) {
     try {
       win.removeMenu();
       const wc = win.webContents;
+      // 4T-002648 (Epic 3E-000416): Fenster-Art für die Absender-Prüfung; sie
+      // erreicht keinen Kanal. Ausgetragen wird mit dem webContents beim
+      // Zerstören unten.
+      senderCheck.registerWindow(wc, 'slideImages');
       // Navigation gesperrt: kein window.open, keine Navigation aus der Seite.
       // Das Laden über loadURL löst will-navigate nicht aus.
       wc.setWindowOpenHandler(() => ({ action: 'deny' }));

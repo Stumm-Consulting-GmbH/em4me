@@ -83,6 +83,10 @@ const { attachAufgabenUmgebung } = require('../index/aufgaben-erledigt');
  * @param {(p: string) => boolean} deps.isMarkdownPath Markdown-Erkennung am Pfad.
  * @param {(event: object) => object|null} deps.senderWindow Fenster des Absenders.
  * @param {() => string[]} deps.pendingSecondInstanceFiles Warteschlange der Zweitstart-Dateien.
+ * @param {object} deps.bindingGrants Bindungen als Freigabe im Buch der Freigaben
+ *   (4T-002647); eine Instanz je Prozess, angelegt in main.js.
+ * @param {object} deps.senderCheck Absender-Prüfung der Anmelde-Stelle
+ *   (4T-002648, ipc/channel-sender.js); das Hauptfenster trägt sich dort ein.
  * @returns {object} API-Buendel aller verdrahteten Module unter den bisherigen Namen.
  */
 function createMainWiring(deps) {
@@ -93,6 +97,9 @@ function createMainWiring(deps) {
     isMarkdownPath,
     senderWindow,
     pendingSecondInstanceFiles,
+    bindingGrants,
+    senderCheck,
+    checkTarget,
   } = deps;
   // Pfade, die wir gerade selbst schreiben (Save bzw. Auto-Save). Der Watcher
   // soll nach dem Eigen-Schreiben keinen Change-Event an den Renderer melden,
@@ -362,6 +369,8 @@ function createMainWiring(deps) {
     isBoundsVisibleOnAnyDisplay,
     scheduleSaveBoundsAndPersist,
     clearSaveBoundsTimer,
+    setzeBeendenSperre,
+    sichereUndSperreBeimBeenden,
     persistAllWindows,
   } = windowPersistence;
 
@@ -399,12 +408,16 @@ function createMainWiring(deps) {
   const windowManager = createWindowManager({
     appRegistry,
     schliessRueckfall,
+    bindingGrants,
+    senderCheck,
     imTestlauf,
     getStore,
     isBoundsVisibleOnAnyDisplay,
     scheduleSaveBoundsAndPersist,
     persistAllWindows,
     clearSaveBoundsTimer,
+    setzeBeendenSperre,
+    sichereUndSperreBeimBeenden,
     lastReportedPanes,
     menuStates: () => menuStates,
     activeBooks: () => activeBooks,
@@ -524,6 +537,7 @@ function createMainWiring(deps) {
     // ihr bezieht der Bereichs-Watcher den wirksamen Namen des Sperr-Ordners.
     readAreaDatabaseConfig: (rootPath) => areaConfig.readAreaDatabaseConfig(rootPath),
     normalisiereDatenbankKonfig: (roh) => areaConfig.normalisiereDatenbankKonfig(roh),
+    bindingGrants,
     // 4T-001824 (Epic 3E-000254): der zweite Auslöser des Wiederanlaufs.
     wiederanlauf,
   });
@@ -555,6 +569,8 @@ function createMainWiring(deps) {
     createWindow,
     closeAppWindows,
     recentLists,
+    bindingGrants,
+    checkTarget,
   });
   const {
     activeBooks,
@@ -588,6 +604,8 @@ function createMainWiring(deps) {
     createWindow,
     closeAppWindows,
     recentLists,
+    bindingGrants,
+    checkTarget,
   });
   const {
     activeShelves,

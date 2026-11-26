@@ -14,6 +14,8 @@ At the first start, EM4me creates the folder `Data` next to the program file. It
 
 **Therefore do not delete or rename the `Data` folder.** If it is missing at start-up, EM4me creates it again, empty, and begins as at the first start; whatever lay in the previous folder is then not used.
 
+**Documents do not belong in the `Data` folder.** It holds the settings and extensions EM4me works with. EM4me therefore does not save or export documents there: if you choose a location inside it in the save dialog, EM4me reports an error and writes nothing. Whatever lies there can still be opened and read. The same applies in the installed version to its data folder in the user profile and to the program folder.
+
 Taking it along means copying the program file together with the `Data` folder, most simply the folder in which both lie, for example onto a USB stick or to another computer. Settings and session come along with it.
 
 ## Where the data lies

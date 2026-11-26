@@ -9,6 +9,8 @@
 //
 // Eigentuemer-Zustand dieses Moduls:
 //   saveBoundsTimers   : Map<ownerId, Timer> der laufenden Debounce-Timer
+//   beendenLaeuft      : true, sobald beim Beenden das erste Fenster schließt;
+//                        ab dann sichert nichts mehr (4T-002788)
 //   lastReportedPanes  : Map<ownerId, panes-Array>, zuletzt vom Renderer
 //                        gemeldete Pane-Struktur je Fenster
 //
@@ -34,6 +36,19 @@ function createWindowPersistence(deps) {
   const { appRegistry, getStore, windows, activeBooks, activeShelves, workspacesState } = deps;
 
   const saveBoundsTimers = new Map(); // ownerId -> Timer
+
+  // 4T-002788 (Epic 3E-000397): Sperre der Sicherung, sobald beim Beenden das
+  // erste Fenster schließt. 'before-quit' sichert den vollständigen Stand aller
+  // Fenster; danach schließen die Fenster einzeln, jedes nach der Rückfrage an
+  // seinen Anzeige-Prozess. Solange noch alle offen sind, sieht jede Sicherung
+  // den vollständigen Stand und darf schreiben (etwa eine Datei, die in der
+  // Rückfrage eben gespeichert wurde). Ab dem ersten geschlossenen Fenster
+  // sähe eine Sicherung nur noch die übrigen und schriebe sie über den
+  // vollständigen Stand: Ein Timer der verzögerten Sicherung, der feuert,
+  // nachdem das erste von zwei Fenstern geschlossen ist, ließ beim nächsten
+  // Start ein Fenster statt zwei zurückkommen (nachgestellt am Modul und
+  // gemessen an den Prüffällen der Mehr-Fenster-Sitzung, Task 4T-002788).
+  let beendenLaeuft = false;
 
   // Der Renderer meldet seine Pane-Struktur per IPC. Wir speichern hier den
   // letzten gemeldeten Stand pro Fenster, damit ein Bounds-Save auch immer die
@@ -75,6 +90,7 @@ function createWindowPersistence(deps) {
   }
 
   function scheduleSaveBoundsAndPersist(win) {
+    if (beendenLaeuft) return;
     if (!win || win.isDestroyed()) return;
     const id = win.webContents.id;
     const existing = saveBoundsTimers.get(id);
@@ -145,6 +161,7 @@ function createWindowPersistence(deps) {
   // Arbeitsbereiche bleiben unangetastet. Beide Keys gehen in EINEM
   // store.set-Aufruf raus (ein Dateischreibvorgang, kein Zwischenzustand).
   function persistAllWindows() {
+    if (beendenLaeuft) return;
     const store = getStore();
     if (!store) return;
     const appsList = [];
@@ -159,11 +176,48 @@ function createWindowPersistence(deps) {
     store.set({ apps: appsList, workspaces: workspacesState() });
   }
 
+  // 4T-002788: Sperre setzen oder aufheben. Beim Setzen fallen alle
+  // ausstehenden Timer. Aufgehoben wird sie, wenn der Anwender das Beenden
+  // abbricht (window:cancelClose): Dann wird einmal gesichert, damit der Store
+  // die Fenster zeigt, die noch offen sind. Ohne lebendes Fenster bleibt der
+  // Store dabei unberührt, wie bei 'before-quit' (4T-000025: keine leere Liste
+  // über den letzten Stand). War die Sperre nicht gesetzt, tut das Aufheben
+  // nichts.
+  function setzeBeendenSperre(aktiv) {
+    if (aktiv) {
+      beendenLaeuft = true;
+      for (const timer of saveBoundsTimers.values()) clearTimeout(timer);
+      saveBoundsTimers.clear();
+      return;
+    }
+    if (!beendenLaeuft) return;
+    beendenLaeuft = false;
+    for (const win of windows().values()) {
+      if (win && !win.isDestroyed()) {
+        persistAllWindows();
+        break;
+      }
+    }
+  }
+
+  // 4T-002788: Aufruf des Schließ-Pfads, wenn beim Beenden ein Fenster
+  // schließt und noch in der Fenster-Liste steht. Beim ERSTEN solchen Fenster
+  // sind noch alle da: Der Stand wird ein letztes Mal vollständig gesichert,
+  // samt allem, was die Fenster seit 'before-quit' gemeldet haben, und danach
+  // gesperrt. Jeder weitere Aufruf findet die Sperre und tut nichts.
+  function sichereUndSperreBeimBeenden() {
+    if (beendenLaeuft) return;
+    persistAllWindows();
+    setzeBeendenSperre(true);
+  }
+
   return {
     lastReportedPanes,
     isBoundsVisibleOnAnyDisplay,
     scheduleSaveBoundsAndPersist,
     clearSaveBoundsTimer,
+    setzeBeendenSperre,
+    sichereUndSperreBeimBeenden,
     liveAppSnapshot,
     persistAllWindows,
   };

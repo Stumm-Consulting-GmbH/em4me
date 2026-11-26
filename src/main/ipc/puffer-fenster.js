@@ -2,7 +2,13 @@
 // an das Fenster geht, das den ungespeicherten Stand einer Datei hält.
 //
 // Der Hauptprozess merkt sich je Datei, welches Fenster ihren geschriebenen
-// Stand zuletzt gemeldet hat (`bufferOwnerFor`, src/main/index/overlay.js).
+// Stand zuletzt gemeldet hat und ob dieser Stand ungespeichert ist
+// (`bufferOwnerFor`, src/main/index/overlay.js). Besitzer ist nur ein Fenster
+// mit UNGESPEICHERTEM Stand (4T-002812, Epic 3E-000444): Hält das Fenster das
+// Dokument unverändert, gibt es keinen Besitzer, geschrieben wird auf die
+// Platte, und jedes Fenster lädt den neuen Stand über die Datei-Beobachtung
+// nach. Vorher galt jedes meldende Fenster als Besitzer, und ein unverändertes
+// Dokument wurde durch den Auftrag zu einem ungespeicherten.
 // Eine Bearbeitung aus einem ANDEREN Fenster gehört dorthin: Auf der Platte
 // steht die Zeile so nicht, und ein Schreiben dort holte im Fenster des Stands
 // den Konflikt-Dialog. Seit 4T-001727 nutzen das die Erinnerungen

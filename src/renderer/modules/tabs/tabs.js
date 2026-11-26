@@ -127,6 +127,18 @@ import {
 } from './tab-selection.js';
 // 4T-002106: Nach dem Schließen wird das zuvor aktive Dokument aktiv.
 import { aktivNachSchliessen, merkeAktivierung } from './aktivierungs-folge.js';
+// 4T-002641 (Epic 3E-000397): Lese-Position beim Öffnen; `zielFolgt` unterdrückt sie.
+import { leseOffeneStelle } from '../views/lese-position.js';
+// 4T-002642 (Epic 3E-000397): Einhänge-Punkte des Verlaufs für «Zurück» und «Vor».
+import {
+  kannVor,
+  kannZurueck,
+  merkeAnkunft,
+  merkeSpaltenWechsel,
+  merkeVerlassen,
+  merkeVorSchliessen,
+  ohneVerlauf,
+} from '../views/navigation-verlauf-bedienung.js';
 
 // K-04 (4T-000310): Tab-Drag-Payload parsen — gehoert fachlich zum Tab-System
 // (zuvor Fremdkoerper in settings-search.js). Verwirft Payloads mit fremdem
@@ -180,7 +192,7 @@ export function meldeFehlendeTeile(fehlend) {
 }
 
 export async function openInPane(targetPaneIdx, paths, optionen = {}) {
-  const { inheritGroup = false, ausserhalbErlaubt = false } = optionen;
+  const { inheritGroup = false, ausserhalbErlaubt = false, zielFolgt = false } = optionen;
   // R4-09 (4T-000186): tatsaechliche Ziel-Pane zurueckgeben — wenn die Datei
   // bereits in der anderen Spalte offen ist, landet die Aktivierung dort,
   // und Anker-/Zeilen-Sprünge der Aufrufer muessen dieser Pane folgen.
@@ -226,7 +238,10 @@ export async function openInPane(targetPaneIdx, paths, optionen = {}) {
       continue;
     }
     try {
-      const data = await api.readFile(p);
+      const [data, stelle] = await Promise.all([
+        api.readFile(p),
+        zielFolgt ? null : leseOffeneStelle(p),
+      ]);
       // W-01 (4T-000309): {ok,error}-Vertrag — Lesefehler ueber den vorhandenen
       // catch (Statusbar-Hinweis) statt frueherer IPC-Exception.
       if (!data || !data.ok) throw new Error((data && data.error) || 'read failed');
@@ -241,6 +256,7 @@ export async function openInPane(targetPaneIdx, paths, optionen = {}) {
         readOnly: !!data.nurLesen,
         fehlendeTeile: data.fehlend,
       });
+      tab.stelleOffen = stelle;
       if (data.nurLesen === 'partsMissing') meldeFehlendeTeile(data.fehlend);
       // 4T-000648: unmittelbar rechts neben dem Herkunfts-Tab einfügen (Gruppe
       // wird dabei aus ihm übernommen); ohne Herkunft — oder wenn sie
@@ -301,6 +317,7 @@ export function activatePane(paneIdx) {
   // gewordene Menge spaeter auf Reiter, die der Anwender laengst vergessen hat.
   const vorherigePane = state.panes[state.activePaneIndex];
   if (vorherigePane) clearSelection(vorherigePane);
+  merkeSpaltenWechsel(state.activePaneIndex); // 4T-002642: verlassene Spalte für den Verlauf
   state.activePaneIndex = paneIdx;
   updateActivePaneClasses();
   syncToolbarToActiveTab();
@@ -551,6 +568,9 @@ export function reportMenuStateNow() {
     // „Sidebar-Anordnungen" ({ global, area, areaName }; der Main baut
     // daraus die Eintraege — Muster Panel-Untermenue).
     sidebarVariants: sidebarVariantsMenuState(),
+    // 4T-002642: «Zurück» und «Vor» im Verlauf des Fensters möglich.
+    kannZurueck: kannZurueck(),
+    kannVor: kannVor(),
     // 4T-000019: Haekchen-Stand fuer Fokus-Modus und Typewriter-Scroll im
     // Ansicht-Menue (beide pro Fenster wirksam, global persistiert).
     focusMode: !!state.focusMode,
@@ -580,6 +600,7 @@ export function reportMenuStateNow() {
 export function activateTab(paneIdx, tabIdx, opts = {}) {
   const pane = state.panes[paneIdx];
   if (!pane || tabIdx < 0 || tabIdx >= pane.tabs.length) return;
+  merkeVerlassen();
   // 4T-001712: bleibt eine Zell-Eingabe wegen eines Konflikts offen, bleibt
   // auch das Dokument, sonst ginge sie mit ihm.
   if (pane.activeIndex !== tabIdx && !uebernimmOffeneZellEingabe()) return;
@@ -612,6 +633,7 @@ export function activateTab(paneIdx, tabIdx, opts = {}) {
   }
   // 4T-000075: Statusbar-Stern an den Bookmark-Stand der aktiven Datei anpassen.
   updateBookmarksToggleButton();
+  merkeAnkunft();
   persistState();
 }
 
@@ -636,8 +658,11 @@ export async function bestaetigeAufgabeDesInhalts(paneIdx, tabIdx, opts = {}) {
   flushPendingPropertiesSave(paneIdx);
   if (!uebernimmOffeneZellEingabe()) return false;
   if (!tab.dirty || opts.skipDirtyCheck) return true;
-  activatePane(paneIdx);
-  activateTab(paneIdx, tabIdx);
+  // 4T-002642: Die Rückfrage zeigt den Reiter, sie besucht ihn nicht.
+  ohneVerlauf(() => {
+    activatePane(paneIdx);
+    activateTab(paneIdx, tabIdx);
+  });
   const detail = tab.path || tabDisplayName(tab);
   const result = await withDialog(() => api.confirmCloseDirty({ detail }));
   if (result === 'cancel') return false;
@@ -670,6 +695,7 @@ export async function closeTab(paneIdx, tabIdx, opts = {}) {
   if (tab.path && !stillElsewhere) void clearIndexOverlayFor(tab.path);
 
   const warAktiv = tabIdx === pane.activeIndex;
+  if (warAktiv) merkeVorSchliessen();
   pane.tabs.splice(tabIdx, 1);
   // 4T-000279: System-Seiten (Einstellungen) raeumen beim Schliessen auf —
   // Tab-Schliessen ohne Anwenden entspricht Abbrechen (Revert der
@@ -750,8 +776,11 @@ export function moveTabBetweenPanes(fromPane, fromIdx, toPane, toIdx) {
     // 4T-000765 (Epic 3E-000158): ein Reiter, der die Leiste verlaesst, verlaesst
     // auch ihre Auswahl.
     pruneSelection(pane);
-    activatePane(toPane);
-    activateTab(toPane, targetExisting);
+    // 4T-002642: Verschieben ist kein Besuch.
+    ohneVerlauf(() => {
+      activatePane(toPane);
+      activateTab(toPane, targetExisting);
+    });
     collapseEmptyPanes();
     applyAllLayouts();
     persistState();

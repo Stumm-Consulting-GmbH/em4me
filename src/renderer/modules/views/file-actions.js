@@ -45,6 +45,8 @@ import { saveTab } from './save-export.js';
 import { updateSubpageBreadcrumb } from './subpage-breadcrumb.js';
 import { renderTabbar } from './tabbar.js';
 import { persistState, showStatusbarHint } from './views.js';
+// 4T-002642 (Epic 3E-000397): Verlaufs-Einträge folgen einem umbenannten Dokument.
+import { benenneVerlaufUm } from './navigation-verlauf-bedienung.js';
 
 // --- Unterseite anlegen (4T-000338, Epic 3E-000061) ------------------------------
 // Kommando 'file.newSubpage' bzw. Menue 'Datei -> Neue Unterseite...':
@@ -396,6 +398,7 @@ export function renameActiveFile() {
 // Backlinks-Anmeldung; die Sitzungs-Persistenz schreibt den neuen Stand.
 export async function handleFileRenamed(oldPath, newPath) {
   if (!oldPath || !newPath) return;
+  benenneVerlaufUm(oldPath, newPath);
   let touchedActive = false;
   for (let p = 0; p < state.panes.length; p++) {
     const pane = state.panes[p];

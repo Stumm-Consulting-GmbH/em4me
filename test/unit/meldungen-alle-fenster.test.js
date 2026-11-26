@@ -17,12 +17,16 @@
 //   3c. (4T-001978) dieselbe Regel für einen Handgriff am Treffer der
 //      Aufgaben-Abfrage (taskQuery:edit, gemeinsame Regel in
 //      src/main/ipc/puffer-fenster.js);
+//   3d. (4T-002812) Erinnerungen und Aufgaben-Abfrage am echten Index: Hält
+//      das andere Fenster das Dokument unverändert, schreibt das klickende
+//      Fenster die Datei; nur ein ungespeicherter Stand zieht den Auftrag an.
 //   4. (4T-001728) Wecker und Timer über dasselbe Register: Zustellung an alle
 //      Fenster, Schlummern und Bestätigen bzw. der Anspruch des Timers wirken
 //      einmal, Nachholen und einmalige Benachrichtigung.
 //
 // Datumswerte in 2020 (weit vergangen), nie der Kalendertag des Laufs.
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
+import { createRequire } from 'node:module';
 import { createDueDelivery } from '../../src/main/checks/due-delivery.js';
 import { createCheckers } from '../../src/main/checks/checkers.js';
 import { registerRemindersIpc } from '../../src/main/ipc/reminders.js';
@@ -688,6 +692,106 @@ describe('Aufgaben-Abfrage — Handgriff dort, wo der ungespeicherte Stand liegt
         daten: { hit: { ...abfrageTreffer, line: 1 }, bearbeitung: { art: 'toggle' } },
       },
     ]);
+  });
+});
+
+// --- 3d. Merkmal «ungespeichert» am echten Index (4T-002812) ------------------------
+//
+// Die ganze Kette im Hauptprozess: Fenster 7 meldet seinen Stand über den Kanal
+// index:overlay mit dem Merkmal «ungespeichert» (tab.dirty), der echte Index
+// führt es, und die Weiche entscheidet für reminders:edit und taskQuery:edit
+// danach. Vorher zog jedes meldende Fenster den Auftrag an, auch mit einem
+// unveränderten Dokument, und machte es zu einem ungespeicherten.
+
+const index = createRequire(import.meta.url)('../../src/main/backlinks.js');
+
+function merkmalWelt() {
+  const gesendet = [];
+  const fenster = (id) => ({
+    isDestroyed: () => false,
+    webContents: { id, send: (kanal, daten) => gesendet.push({ an: id, kanal, daten }) },
+  });
+  const windows = new Map([
+    [1, fenster(1)],
+    [7, fenster(7)],
+  ]);
+  const handler = new Map();
+  const registriere = (kanal, fn) => handler.set(kanal, fn);
+  registerIndexViewsIpc(registriere, {
+    senderWindow: () => null,
+    areaOfWindow: () => null,
+    areaRootForEvent: () => null,
+    getStore: () => null,
+    windows,
+    backlinks: index,
+  });
+  registerRemindersIpc(registriere, {
+    Notification: FakeNotification,
+    senderWindow: () => null,
+    areaRootForEvent: () => null,
+    inDenVordergrund: () => {},
+    windows,
+    alarmChecker: { snooze: () => true, confirm: () => {} },
+    backlinks: index,
+  });
+  const von =
+    (id) =>
+    (kanal, ...args) =>
+      handler.get(kanal)({ sender: { id } }, ...args);
+  return { gesendet, von };
+}
+
+const MERKMAL_PFAD = 'C:/A/a.md';
+const erinnerung = { ...pufferItem, path: MERKMAL_PFAD };
+const abfrage = { hit: { ...abfrageTreffer, path: MERKMAL_PFAD }, bearbeitung: { art: 'toggle' } };
+const melde = (welt, ungespeichert) =>
+  welt.von(7)('index:overlay', {
+    filePath: MERKMAL_PFAD,
+    content: '- [ ] Newsletter ⏰ 2020-01-01 08:00\n',
+    ...(ungespeichert === undefined ? {} : { ungespeichert }),
+  });
+
+describe('Erinnerungen und Aufgaben-Abfrage: Schreibziel nach dem Merkmal «ungespeichert» (4T-002812)', () => {
+  afterEach(() => index.clearAllBufferOverlays());
+
+  it('AK3: unverändert im anderen Fenster: das klickende Fenster schreibt die Datei', async () => {
+    const w = merkmalWelt();
+    melde(w, false);
+    const auftrag = { item: erinnerung, bearbeitung: { art: 'erledigt' } };
+    expect(await w.von(1)('reminders:edit', auftrag)).toEqual({ delegiert: false });
+    expect(w.gesendet.filter((g) => g.kanal === 'reminders:edit')).toEqual([]);
+  });
+
+  it('AK3: geändert im anderen Fenster: der Auftrag geht wie bisher dorthin', async () => {
+    const w = merkmalWelt();
+    melde(w, true);
+    const auftrag = { item: erinnerung, bearbeitung: { art: 'erledigt' } };
+    expect(await w.von(1)('reminders:edit', auftrag)).toEqual({ delegiert: true });
+    expect(w.gesendet.filter((g) => g.kanal === 'reminders:edit')).toEqual([
+      { an: 7, kanal: 'reminders:edit', daten: auftrag },
+    ]);
+  });
+
+  it('AK4: unverändert im anderen Fenster: das anfragende Fenster schreibt die Datei', async () => {
+    const w = merkmalWelt();
+    melde(w, false);
+    expect(await w.von(1)('taskQuery:edit', abfrage)).toEqual({ delegiert: false });
+    expect(w.gesendet.filter((g) => g.kanal === 'taskQuery:edit')).toEqual([]);
+  });
+
+  it('AK4: geändert im anderen Fenster: der Handgriff geht wie bisher dorthin', async () => {
+    const w = merkmalWelt();
+    melde(w, true);
+    expect(await w.von(1)('taskQuery:edit', abfrage)).toEqual({ delegiert: true });
+    expect(w.gesendet.filter((g) => g.kanal === 'taskQuery:edit')).toEqual([
+      { an: 7, kanal: 'taskQuery:edit', daten: abfrage },
+    ]);
+  });
+
+  it('eine Meldung ohne Merkmal (bisherige Form) gilt als ungespeichert', async () => {
+    const w = merkmalWelt();
+    melde(w, undefined);
+    expect(await w.von(1)('taskQuery:edit', abfrage)).toEqual({ delegiert: true });
   });
 });
 

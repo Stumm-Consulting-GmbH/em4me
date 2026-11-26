@@ -14,13 +14,17 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
-const fsSync = require('node:fs');
 const { isInsideArea } = require('../area/area-path');
 const { normalizeJournalsConfig } = require('../../shared/journal-core');
 // 4T-001406 (Epic 3E-000244): die Nachpflege-Regel liegt in einem eigenen Modul.
 const { ergaenzeJournalProperties } = require('../../shared/journal-nachpflege');
 const selbstSchreib = require('../documents/self-write');
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
+// 4T-002737 (Epic 3E-000396): Übertrag offener Aufgaben und die gemeinsame
+// Auflistung der Eintrags-Dateien; der ungespeicherte Stand je Pfad kommt aus
+// der Puffer-Schicht des Index (fensterübergreifend).
+const { fuehreUebertragAus, listeMarkdownDateien } = require('./area-journals-uebertrag');
+const { bufferTexteAllerFenster } = require('../index/overlay');
 
 const markSelfWriting = selbstSchreib.merke;
 
@@ -35,9 +39,23 @@ const markSelfWriting = selbstSchreib.merke;
  * @param {(channel: string, ...args: any[]) => void} deps.broadcast Meldung an alle Fenster.
  * @param {object} deps.mddStore Container-Kern der Begleitdateien.
  * @param {Function} deps.readAreaJournalsConfig Journal-Sektion der Bereichsdatei lesen.
+ * @param {() => object|null} [deps.getStore] Einstellungs-Speicher (4T-002737).
+ * @param {Function} [deps.resolveHistoryFor] Aufloesung der Historisierungs-Schaltung.
+ * @param {Function} [deps.readPreviousTextFor] Datei-Stand vor dem Ueberschreiben.
+ * @param {Function} [deps.recordMddOnSave] Historien-Paket beim Speichern schreiben.
  */
 function registerJournalIpc(handle, deps) {
-  const { senderWindow, areaOfWindow, broadcast, mddStore, readAreaJournalsConfig } = deps;
+  const {
+    senderWindow,
+    areaOfWindow,
+    broadcast,
+    mddStore,
+    readAreaJournalsConfig,
+    getStore,
+    resolveHistoryFor,
+    readPreviousTextFor,
+    recordMddOnSave,
+  } = deps;
 
   // --- 4T-000431 (Epic 3E-000081): Journal-Konfiguration (journals-Sektion) -------
 
@@ -187,37 +205,52 @@ function registerJournalIpc(handle, deps) {
   handle('journals:scanEintraege', async (event, params) => {
     const area = areaOfWindow(senderWindow(event));
     if (!area) return { ok: false, error: 'no area' };
+    // 4T-002737 (Epic 3E-000396): Die Auflistung liegt seit dem Übertrag
+    // offener Aufgaben im Nachbar-Modul, das sie mit diesem Kanal teilt.
     const roh = params && params.ordner;
-    const ordner = typeof roh === 'string' ? roh : '';
-    const wurzel = ordner === '' ? area.rootPath : path.resolve(area.rootPath, ordner);
-    if (!isInsideArea(area.rootPath, wurzel) && wurzel !== area.rootPath) {
-      return { ok: false, error: 'outside-area' };
-    }
-    const MAX = 20000;
-    const gefunden = [];
-    let gekappt = false;
-    const lauf = (abs) => {
-      if (gekappt) return;
-      let eintraege;
-      try {
-        eintraege = fsSync.readdirSync(abs, { withFileTypes: true });
-      } catch {
-        return; // fehlender oder unlesbarer Ordner: nichts zu holen
-      }
-      for (const e of eintraege) {
-        if (gefunden.length >= MAX) {
-          gekappt = true;
-          return;
-        }
-        const kind = path.join(abs, e.name);
-        if (e.isDirectory()) lauf(kind);
-        else if (e.isFile() && e.name.toLowerCase().endsWith('.md')) {
-          gefunden.push(path.relative(area.rootPath, kind).split(path.sep).join('/'));
-        }
-      }
-    };
-    lauf(wurzel);
-    return { ok: true, relPaths: gefunden, gekappt };
+    return listeMarkdownDateien(area.rootPath, typeof roh === 'string' ? roh : '');
+  });
+
+  // 4T-002737 (Epic 3E-000396): Offene Aufgaben des jüngsten früheren Eintrags
+  // eines Journals in den Eintrag der Ziel-Periode übertragen. Der Ablauf liegt
+  // in area-journals-uebertrag.js; hier werden die echten Abhängigkeiten
+  // hineingereicht. Geschrieben wird atomar und OHNE Self-Write-Merker, damit
+  // offene, gespeicherte Reiter in allen Fenstern still neu laden (V9).
+  handle('journals:uebertrageAufgaben', async (event, params) => {
+    const fenster = senderWindow(event);
+    return fuehreUebertragAus(
+      {
+        bereich: areaOfWindow(fenster),
+        fenster,
+        leseJournalsKonfig: readAreaJournalsConfig,
+        listeEintraege: listeMarkdownDateien,
+        istDatei: async (abs) => {
+          try {
+            return (await fs.stat(abs)).isFile();
+          } catch {
+            return false;
+          }
+        },
+        groesse: async (abs) => (await fs.stat(abs)).size,
+        leseDatei: (abs) => fs.readFile(abs, { encoding: 'utf8' }),
+        schreibeDatei: (abs, text) => ersetzeDateiOderWirf(abs, text),
+        pufferTexte: (abs) => bufferTexteAllerFenster(abs),
+        // AUSLEGUNG: Ohne Einstellungs-Speicher gelten die Vorgaben, wie in
+        // den übrigen Aufrufern von buildTaskEnv (etwa wiring.js).
+        einstellungen: () => {
+          const store = typeof getStore === 'function' ? getStore() : null;
+          if (!store) return {};
+          return {
+            disabledExtensions: store.get('extensions.disabled'),
+            tasksConfig: store.get('tasksConfig'),
+            taskStates: store.get('taskStates'),
+          };
+        },
+        historie: { resolveHistoryFor, readPreviousTextFor, recordMddOnSave },
+        protokoll: (meldung, fehler) => console.warn(meldung, fehler),
+      },
+      params,
+    );
   });
 
   // 4T-001407: Massen-Nachpflege. Ein Aufruf statt einer IPC-Runde je Eintrag —

@@ -62,6 +62,8 @@ import { lageFuer } from './charts/chart-lage.js';
 // 4T-002406 (Epic 3E-000266, F7 A): Ist das aktive Dokument eine Karteikarte?
 // Aus dem Blatt-Modul der Erkennung, das weder Reiter noch Ansichten importiert.
 import { karteikarteImReiterSofort } from './database/karteikarte-erkennung.js';
+// 4T-002642 (Epic 3E-000397): «Zurück» und «Vor» möglich, dieselbe Quelle wie die Menü-Meldung.
+import { kannVor, kannZurueck } from './views/navigation-verlauf-bedienung.js';
 
 function $(sel) {
   return document.querySelector(sel);
@@ -153,6 +155,8 @@ export function rendererAvailabilityContext() {
     // und vierzehntes Feld des gemeinsamen Vertrags.
     inDatentabelle: lage.inDatentabelle,
     diagrammGewaehlt: lage.diagrammGewaehlt,
+    kannZurueck: kannZurueck(),
+    kannVor: kannVor(),
     // 4T-002406 (Epic 3E-000266): renderer-eigenes Feld, trägt «In der Maske öffnen».
     karteikarteTab: karteikarteImReiterSofort(tab) !== null,
   });

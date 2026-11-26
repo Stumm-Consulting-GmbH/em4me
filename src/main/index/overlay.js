@@ -48,7 +48,7 @@ const { ohneVerdeckteFolgeteile } = require('./part-files.js');
 // 4T-002462 (Epic 3E-000367): Der Puffer-Stand ist eine der beiden Schichten,
 // aus denen das Ereignis «Aufgabe erledigt» entsteht (Klick auf das Kästchen
 // ändert nur den Puffer); Setzen und Rücknahme melden sich dort.
-const { meldePuffer, meldePufferEnde } = require('./aufgaben-erledigt.js');
+const { meldePuffer, meldePufferEnde, meldePufferNachPlatte } = require('./aufgaben-erledigt.js');
 // 4T-002387 (Epic 3E-000265): Eine offene Karteikarte trägt ihren Datensatz im
 // Dateikopf; der Parser kennt die Kartei-Tabellen nicht und ergänzt ihn nicht.
 const { mitKarteikarte } = require('./karteikarten-erfassung.js');
@@ -70,21 +70,139 @@ function overlayStand() {
   return overlayZaehler;
 }
 
+// 4T-002740 (Epic 3E-000396): Ablage der gemeldeten Stände JE FENSTER, neben
+// der Schicht. Die Schicht hält je Datei nur den zuletzt gemeldeten Stand; ein
+// Fenster, das dieselbe Datei unverändert offen hat und nach einem
+// Dokument-Wechsel seinen Text meldet, überdeckt dort den ungespeicherten Stand
+// eines anderen Fensters. Wer wissen muss, ob IRGENDEIN Fenster einen Stand
+// hält, der vom Platten-Stand abweicht (der Übertrag offener Aufgaben schreibt
+// sonst unter einem ungespeicherten Editor-Stand weg), fragt deshalb diese
+// Ablage und nicht den Eintrag der Schicht. Sie ändert nichts an dem, was die
+// Verbraucher der Schicht sehen. Ein Stand fällt mit der Rücknahme durch sein
+// Fenster (Speichern, Verwerfen, Schließen, Neuladen) und mit dem Schließen
+// des Fensters. Schlüssel des Fensters ist die Kennung seines
+// Anzeige-Prozesses, `null` für einen Melder ohne Kennung.
+const staendeJeFenster = new Map(); // Datei-Pfad -> Map(Fenster -> Text)
+
+function merkeStandJeFenster(filePath, besitzer, text) {
+  let jeFenster = staendeJeFenster.get(filePath);
+  if (!jeFenster) {
+    jeFenster = new Map();
+    staendeJeFenster.set(filePath, jeFenster);
+  }
+  jeFenster.set(besitzer, text);
+}
+
+// Ohne `besitzer` (undefined) fallen alle Stände der Datei.
+function vergissStandJeFenster(filePath, besitzer) {
+  const jeFenster = staendeJeFenster.get(filePath);
+  if (!jeFenster) return;
+  if (besitzer === undefined) jeFenster.clear();
+  else jeFenster.delete(besitzer);
+  if (jeFenster.size === 0) staendeJeFenster.delete(filePath);
+}
+
+// Die Stände aller Fenster für diese Datei, als Liste von Texten (leer, wenn
+// kein Fenster einen hält). Schreibweise wie bei bufferTextFor: auf
+// Dateisystemen ohne Unterscheidung der Schreibung auch der anders
+// geschriebene Pfad.
+function bufferTexteAllerFenster(absPath) {
+  if (typeof absPath !== 'string' || !absPath) return [];
+  const texte = [];
+  const ohneSchreibung = isFilesystemCaseInsensitive();
+  const gesucht = ohneSchreibung ? absPath.toLowerCase() : absPath;
+  for (const [pfad, jeFenster] of staendeJeFenster) {
+    if ((ohneSchreibung ? pfad.toLowerCase() : pfad) === gesucht) texte.push(...jeFenster.values());
+  }
+  return texte;
+}
+
+// Zusammenbau des Funktions-Release (Zweitblick Runde 2, Befund Z5): Folgt der
+// Eintrag der Schicht dem geschriebenen Plattenstand (folgePlattenStand), folgen
+// auch die Stände je Fenster, die bis dahin den alten Plattenstand hielten, also
+// die unverändert geöffneten Fenster. Sonst wiche ihr Stand von der Platte ab,
+// und der Übertrag offener Aufgaben (pufferWeichtAb) lehnte bis zum Nachladen
+// im Fenster grundlos ab. Ein Fenster mit abweichendem, ungespeichertem Stand
+// bleibt unberührt. Schreibweise wie bei bufferTexteAllerFenster.
+function folgeStaendeJeFenster(absPath, alterText, neuerText) {
+  const ohneSchreibung = isFilesystemCaseInsensitive();
+  const gesucht = ohneSchreibung ? absPath.toLowerCase() : absPath;
+  for (const [pfad, jeFenster] of staendeJeFenster) {
+    if ((ohneSchreibung ? pfad.toLowerCase() : pfad) !== gesucht) continue;
+    for (const [fenster, stand] of jeFenster) {
+      if (stand === alterText) jeFenster.set(fenster, neuerText);
+    }
+  }
+}
+
 // 4T-001727 (Epic 3E-000305): Der Eintrag merkt sich, WELCHES Fenster den Stand
 // gemeldet hat (Kennung seines Anzeige-Prozesses, optional). Eine Erinnerung,
 // die aus dem ungespeicherten Stand faellig wird, muss dort bearbeitet werden,
 // wo dieser Stand liegt; auf der Platte steht ihre Zeile so nicht. Es gilt
 // derselbe Grundsatz wie oben: der zuletzt meldende Besitzer.
-function setBufferOverlay(filePath, content, besitzer = null) {
+//
+// 4T-002812 (Epic 3E-000444): Der Eintrag führt zusätzlich das Merkmal
+// «ungespeichert» aus dem Reiter des Melders (tab.dirty). Gemeldet wird auch
+// ein unveränderter Stand, etwa beim Öffnen oder nach dem Zurücktippen auf den
+// gespeicherten Text; die Anzeige-Schicht braucht ihn so. Ein Schreibziel ist
+// ein solches Fenster aber nicht: bufferOwnerFor nennt nur den Besitzer eines
+// ungespeicherten Stands. Ohne Angabe gilt der Stand als ungespeichert, das
+// bisherige Verhalten.
+function setBufferOverlay(filePath, content, besitzer = null, ungespeichert = true) {
   if (typeof filePath !== 'string' || !filePath) return false;
   if (typeof content !== 'string') return false;
   const parsed = mitKarteikarte(
     filePath,
     parseContent(filePath, content, definitionFuerSegment(filePath)),
   );
-  bufferOverlays.set(filePath, { parsed, text: content, besitzer: besitzer ?? null });
+  bufferOverlays.set(filePath, {
+    parsed,
+    text: content,
+    besitzer: besitzer ?? null,
+    ungespeichert: ungespeichert !== false,
+  });
+  merkeStandJeFenster(filePath, besitzer ?? null, content);
   overlayZaehler += 1;
   meldePuffer(filePath, parsed.tasks);
+  return true;
+}
+
+// Der Schlüssel eines Eintrags zu einem Pfad, in der Schreibweise wie bei
+// bufferTextFor; null, wenn keiner vorliegt.
+function eintragsPfad(absPath) {
+  if (bufferOverlays.has(absPath)) return absPath;
+  if (!isFilesystemCaseInsensitive()) return null;
+  const gesucht = absPath.toLowerCase();
+  for (const pfad of bufferOverlays.keys()) if (pfad.toLowerCase() === gesucht) return pfad;
+  return null;
+}
+
+// 4T-002812 (Epic 3E-000444, Zweitblick Runde 1, Befund 1): Ein Schreibweg hat
+// eine Datei auf die Platte geschrieben, die ein Fenster unverändert geöffnet
+// hält. Der Eintrag dieses Fensters übernimmt den geschriebenen Stand sofort.
+// Sonst läse ein nachfolgender Schritt desselben Laufs (bufferTextFor, etwa
+// beim Abhaken oder als Quelle) bis zum Nachladen im Fenster den Stand vor dem
+// Schreiben, und ein Anhängen mit anschließendem Abhaken fände die eben
+// angehängte Aufgabe nicht. Ein ungespeicherter Stand bleibt unberührt: Er geht
+// der Platte vor, und auf ihn schreibt der Weg ohnehin nicht. Besitzer und
+// Merkmal bleiben, das Nachladen im Fenster meldet danach denselben Stand.
+// Wie jede Änderung der Schicht geht sie an alle Fenster
+// (`meldeOverlayAenderung`), damit Einbettungen und Abfragen desselben Ziels
+// nicht bis zum Nachladen den alten Stand zeigen (Zweitblick Runde 2,
+// Hinweis 3). Rückgabe: ob ein Eintrag gefolgt ist.
+function folgePlattenStand(filePath, text) {
+  if (typeof filePath !== 'string' || !filePath) return false;
+  if (typeof text !== 'string') return false;
+  const pfad = eintragsPfad(filePath);
+  if (pfad === null) return false;
+  const eintrag = bufferOverlays.get(pfad);
+  if (!eintrag || eintrag.ungespeichert !== false) return false;
+  const parsed = mitKarteikarte(pfad, parseContent(pfad, text, definitionFuerSegment(pfad)));
+  bufferOverlays.set(pfad, { ...eintrag, parsed, text });
+  folgeStaendeJeFenster(pfad, eintrag.text, text);
+  overlayZaehler += 1;
+  meldePufferNachPlatte(pfad, eintrag.parsed && eintrag.parsed.tasks, parsed.tasks);
+  meldeOverlayAenderung(pfad);
   return true;
 }
 
@@ -96,8 +214,13 @@ function pufferEndeMelden(filePath) {
   );
 }
 
-function clearBufferOverlay(filePath) {
+// 4T-002740 (Epic 3E-000396): Mit `besitzer` nimmt ein Fenster in der Ablage
+// je Fenster nur seinen eigenen Stand zurück; ohne ihn (Aufrufer ohne
+// Fenster-Bezug) fallen dort alle Stände der Datei. Am Eintrag der Schicht
+// selbst ändert der Besitzer nichts: Er fällt wie bisher.
+function clearBufferOverlay(filePath, besitzer) {
   const entfernt = bufferOverlays.delete(filePath);
+  vergissStandJeFenster(filePath, besitzer);
   if (entfernt) overlayZaehler += 1;
   pufferEndeMelden(filePath);
   return entfernt;
@@ -124,6 +247,9 @@ function clearBufferOverlaysOfOwner(besitzer) {
     bufferOverlays.delete(pfad);
     pufferEndeMelden(pfad);
   }
+  // Die Ablage je Fenster verliert jeden Stand dieses Fensters, auch für
+  // Dateien, deren Eintrag in der Schicht inzwischen ein anderes Fenster hält.
+  for (const pfad of [...staendeJeFenster.keys()]) vergissStandJeFenster(pfad, besitzer);
   if (pfade.length > 0) overlayZaehler += 1;
   return pfade;
 }
@@ -132,6 +258,7 @@ function clearAllBufferOverlays() {
   if (bufferOverlays.size > 0) overlayZaehler += 1;
   const pfade = [...bufferOverlays.keys()];
   bufferOverlays.clear();
+  staendeJeFenster.clear();
   for (const pfad of pfade) pufferEndeMelden(pfad);
 }
 
@@ -180,14 +307,27 @@ function bufferTextFor(absPath) {
 // 4T-001727: Das Fenster, dessen ungespeicherter Stand fuer diese Datei gilt,
 // oder null, wenn keiner vorliegt oder der Melder unbekannt ist. Schreibweise
 // wie bei bufferTextFor.
+//
+// 4T-002812 (Epic 3E-000444): Hält der Melder das Dokument unverändert, gibt
+// es keinen ungespeicherten Stand, und die Antwort ist null. Die Weiche
+// (ipc/puffer-fenster.js) schreibt dann auf die Platte, und jedes Fenster lädt
+// den neuen Stand über die Datei-Beobachtung nach. Vorher landete ein
+// Text-Befehl, eine Erinnerung oder ein Handgriff der Aufgaben-Abfrage im
+// Fenster und machte ein unverändertes Dokument zu einem ungespeicherten.
+// bufferTextFor bleibt unberührt: Gelesen wird der gemeldete Stand weiter.
+function besitzerVon(eintrag) {
+  if (!eintrag || eintrag.ungespeichert === false) return null;
+  return eintrag.besitzer ?? null;
+}
+
 function bufferOwnerFor(absPath) {
   if (typeof absPath !== 'string' || !absPath) return null;
   const genau = bufferOverlays.get(absPath);
-  if (genau) return genau.besitzer ?? null;
+  if (genau) return besitzerVon(genau);
   if (!isFilesystemCaseInsensitive()) return null;
   const gesucht = absPath.toLowerCase();
   for (const [pfad, e] of bufferOverlays) {
-    if (pfad.toLowerCase() === gesucht) return e.besitzer ?? null;
+    if (pfad.toLowerCase() === gesucht) return besitzerVon(e);
   }
   return null;
 }
@@ -292,7 +432,9 @@ module.exports = {
   meldeOverlayAenderung,
   overlaysUnder,
   bufferTextFor,
+  bufferTexteAllerFenster,
   bufferOwnerFor,
+  folgePlattenStand,
   entryWithOverlay,
   // 4T-000952: Aenderungs-Stand der Schicht fuer Zwischenspeicher darueber.
   overlayStand,

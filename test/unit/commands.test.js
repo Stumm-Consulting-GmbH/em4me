@@ -98,13 +98,19 @@ describe('Registry-Invarianten', () => {
   // ein Einfüge-Kommando wie seine Nachbarn und deshalb ebenfalls an die
   // CodeMirror-View gebunden.
   // 4T-001716 (Epic 3E-000301): plus list.lineBreak, der Zeilenumbruch im
-  // Listenpunkt. 4T-002513 (Epic 3E-000402): plus insert.dashboard, das Gerüst
+  // Listenpunkt. 4T-002554 (Epic 3E-000389): plus edit.pastePlain und
+  // edit.pasteAsTable, das Einfügen als reiner Text und als Tabelle.
+  // 4T-002513 (Epic 3E-000402): plus insert.dashboard, das Gerüst
   // eines Dashboards, aus demselben Grund wie insert.canvas.
+  // 4T-002558 (Epic 3E-000390): plus insert.toc, der Inhaltsverzeichnis-Block.
+  // 4T-002617 (Epic 3E-000391): plus insert.mermaid, die Auswahl der Mermaid-Bausteine.
   it('editorScoped-Kommandos sind Fold, Format/Link, Absatz, Einfügen, Tabelle und Liste', () => {
     const scoped = COMMANDS.filter((c) => c.editorScoped)
       .map((c) => c.id)
       .sort();
     expect(scoped).toEqual([
+      'edit.pasteAsTable',
+      'edit.pastePlain',
       'editor.fold',
       'editor.foldAll',
       'editor.unfold',
@@ -123,8 +129,10 @@ describe('Registry-Invarianten', () => {
       'insert.dashboard',
       'insert.footnote',
       'insert.horizontalRule',
+      'insert.mermaid',
       'insert.perspectiveTable',
       'insert.table',
+      'insert.toc',
       'link.insertExternal',
       'link.insertWiki',
       'list.lineBreak',
@@ -587,5 +595,44 @@ describe('Kommando der erzeugten Profil-Abfrage (4T-001176)', () => {
       'utf8',
     );
     expect(quelle).toContain("'edit.insertProfileQuery':");
+  });
+});
+
+// 4T-002642 (Epic 3E-000397, Schritt 5): Alt+Pfeil links und rechts gehören
+// «Zurück» und «Vor». Die Grund-Belegung beider Editoren trägt die beiden
+// Tasten nicht mehr, und die beiden Kommando-Vorgaben sind mit keiner anderen
+// doppelt belegt.
+describe('Belegungen von Zurück und Vor (4T-002642)', () => {
+  it('die Editor-Grund-Belegung enthält Alt+Pfeil links und rechts nicht', async () => {
+    const { defaultKeymap } = await import('@codemirror/commands');
+    const { editorGrundBelegung, VERLAUF_TASTEN } =
+      await import('../../src/renderer/modules/editor/editor-grundbelegung.js');
+    // Gegenprobe: Die Standard-Belegung trug beide Tasten.
+    for (const taste of VERLAUF_TASTEN) {
+      expect(defaultKeymap.some((b) => b.key === taste)).toBe(true);
+      expect(editorGrundBelegung.some((b) => b.key === taste)).toBe(false);
+    }
+    expect(editorGrundBelegung.length).toBe(defaultKeymap.length - VERLAUF_TASTEN.length);
+  });
+
+  it('nav.back und nav.forward tragen Alt+Left und Alt+Right, ohne Doppel', () => {
+    const zurueck = COMMANDS.find((c) => c.id === 'nav.back');
+    const vor = COMMANDS.find((c) => c.id === 'nav.forward');
+    expect(zurueck.defaultBindings).toEqual(['Alt+Left']);
+    expect(vor.defaultBindings).toEqual(['Alt+Right']);
+    expect(zurueck.editorScoped).toBe(false);
+    expect(vor.editorScoped).toBe(false);
+    const d = {};
+    for (const cmd of COMMANDS) d[cmd.id] = cmd.defaultBindings[0] || '';
+    const doppelt = findDuplicateBindings(d).filter((x) =>
+      x.commandIds.some((id) => id === 'nav.back' || id === 'nav.forward'),
+    );
+    expect(doppelt).toEqual([]);
+    for (const cmd of COMMANDS) {
+      if (cmd.id === 'nav.back' || cmd.id === 'nav.forward') continue;
+      for (const b of cmd.defaultBindings) {
+        expect(['Alt+Left', 'Alt+Right']).not.toContain(normalizeBinding(b));
+      }
+    }
   });
 });

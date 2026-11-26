@@ -30,13 +30,14 @@ import { t } from '../../i18n.js';
 // Marker-Kern geparst, die Optik kommt aus der gemeinsamen Badge-Spec
 // (Parität zu Render-Pane und Live-Modus). Bewusst nur shared-Importe neben
 // `t`, damit der jsdom-Unit-Test ohne Preload-Brücke läuft.
-import { parseTaskLine, stripGlobalFilter } from '../../../shared/tasks/task-markers.js';
+import { parseTaskLine } from '../../../shared/tasks/task-markers.js';
 import { primaryDateField } from '../../../shared/tasks/task-recurrence.js';
 import { taskMarkerBadgeSpec, getTaskMarkersConfig } from '../../../shared/markdown/plugins.js';
 import {
   cellSegments,
   displayName,
   roundUrgency,
+  taskText,
   walkGroups,
 } from '../../../shared/query/result-display.js';
 // 4T-002077: Gruppen-Hülle und -Überschrift teilt die gruppierte Liste der
@@ -53,6 +54,7 @@ function taskLayout(wishes) {
   const hide = new Set(Array.isArray(wishes && wishes.hide) ? wishes.hide : []);
   const show = new Set(Array.isArray(wishes && wishes.show) ? wishes.show : []);
   return {
+    wishes,
     short: !!(wishes && wishes.short),
     visible(element) {
       if (hide.has(element)) return false;
@@ -71,15 +73,6 @@ function segmentElement(seg) {
   if (seg.kind === 'id') return 'id';
   if (seg.kind === 'dependsOn') return 'dependson';
   return null;
-}
-
-// 4T-000503: Inline-Tags aus der Beschreibung entfernen (HIDE tags) —
-// dieselbe Tag-Form wie der Index-Scan; Rest-Weißraum kollabiert.
-function stripInlineTags(description) {
-  return description
-    .replace(/(^|[\s])#[\p{L}\p{N}_/-]+/gu, '$1')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
 }
 
 /**
@@ -175,11 +168,9 @@ function buildRowItem(row, layout, withExtra, cfg) {
   status.textContent = isDone ? '✓' : model.statusChar === ' ' ? '' : model.statusChar;
   if (isDone) li.classList.add('perspective-query-task-done');
   li.appendChild(status);
-  let description = model.description.trim();
-  if (cfg && cfg.hideGlobalFilter && cfg.globalFilter) {
-    description = stripGlobalFilter(description, cfg.globalFilter).trim();
-  }
-  if (!layout.visible('tags')) description = stripInlineTags(description);
+  // 4T-002822: der Anzeige-Text aus dem Darstellungs-Kern, dieselbe Stelle wie
+  // beim Schreiben eines Abfrage-Ergebnisses in eine Notiz.
+  const description = taskText(raw, layout.wishes, cfg);
   li.appendChild(taskItemLink(origin, description || name));
   appendMarkerBadges(li, model, layout, cfg);
   // 4T-000505 (Epic 3E-000096): einblendbarer Dringlichkeits-Score (SHOW

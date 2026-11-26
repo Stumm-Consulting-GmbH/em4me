@@ -9,6 +9,20 @@ topic: syntax
 
 Beyond the core ([[01 Markdown Basics]]), the app adds a handful of writing constructs. Back to [[00 Welcome]].
 
+## Table of contents
+
+A code block with the identifier `toc` lists the headings of this document as linked entries and follows every change by itself; click an entry to jump to its heading. The line `depth: 2` limits the list to the first two levels; without it, all levels appear. In the editor, the context menu adds a block via Insert → Table of contents block.
+
+````markdown
+```toc
+depth: 2
+```
+````
+
+```toc
+depth: 2
+```
+
 ## Callouts
 
 ```markdown

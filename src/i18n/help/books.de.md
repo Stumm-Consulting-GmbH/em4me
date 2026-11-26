@@ -84,6 +84,8 @@ Ist eine Zeile fokussiert, wirken diese festen Eingaben auf das Kapitel samt sei
 
 Am Rand einer Ebene bleibt der Baum unverändert und meldet nichts: Dort gibt es schlicht kein Ziel.
 
+Ohne fokussierte Kapitel-Zeile springen `Alt+←` und `Alt+→` wie überall zurück und vor, siehe den Abschnitt „Vor und Zurück“ auf der Seite [Vernetzung](linking.md).
+
 ### Kontextmenü
 
 Der Rechtsklick auf eine Zeile bietet:
@@ -157,7 +159,7 @@ Ein geöffnetes Buch und ein geöffnetes Bücherregal sagen auch in den Einstell
 An erster Stelle des Blocks steht der Abschnitt **Eigene Angaben**. Er führt die Angaben, die Buch und Regal ohnehin tragen:
 
 - **Titel**, **Autor** und **Beschreibung** — drei Frontmatter-Felder der Buch- beziehungsweise Regal-Datei.
-- **Titelbild** — der Bild-Verweis `cover`, angegeben als Pfad relativ zum Buch- oder Regal-Ordner. Ein leeres Feld heißt: kein Titelbild. Die Datei muss im Regal-Ordner liegen, die Buch-Ordner darunter eingeschlossen, bei einem Buch, das in keinem Regal liegt, im Buch-Ordner; anderswo im umgebenden Bereich genügt nicht. Sie muss eine Bilddatei in einem der Formate sein, die die Seite [Bilder](images.md) nennt, und darf höchstens 20 MB groß sein. Liegt unter dem Pfad keine Datei, liegt sie außerhalb dieser Grenze oder ist sie unzulässig, sagt der Abschnitt das und die Regal-Ansicht nimmt die Platzhalter-Kachel. Ein Fehler ist es in keinem dieser Fälle.
+- **Titelbild** — der Bild-Verweis `cover`, angegeben als Pfad relativ zum Buch- oder Regal-Ordner. Ein leeres Feld heißt: kein Titelbild. Die Datei muss im Regal-Ordner liegen, die Buch-Ordner darunter eingeschlossen, bei einem Buch, das in keinem Regal liegt, im Buch-Ordner; anderswo im umgebenden Bereich genügt nicht. Sie muss eine Bilddatei in einem der Formate sein, die die Seite [Bilder](images.md) nennt, und darf höchstens 20 MB groß sein. Liegt unter dem Pfad keine Datei, liegt sie außerhalb dieser Grenze oder ist sie unzulässig, sagt der Abschnitt das und die Regal-Ansicht nimmt die Platzhalter-Kachel. Ein Fehler ist es in keinem dieser Fälle. Öffnet man die Buch- oder Regal-Datei als Dokument, steht das Titelbild auch oben über ihrem Inhalt (Abschnitt «Titelbild» der Seite [Frontmatter und Properties](frontmatter.md)).
 - **Darstellung** — nur beim Regal: Kacheln oder Zeilen, dieselbe Wahl wie der Umschalter der Regal-Ansicht. Sie gilt je Regal und nur an diesem Rechner.
 
 Wie überall auf der Einstellungs-Seite wirken Änderungen erst mit Anwenden oder OK.

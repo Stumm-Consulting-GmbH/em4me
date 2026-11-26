@@ -801,8 +801,8 @@ describe('4T-002425 — der Workflow-Ordner beim Einlesen', () => {
       const geschrieben = writeExchangeFile({
         kind: EXCHANGE_KIND,
         sections: [
-          { name: 'templates', value: { templates: { folder: 'T', rules: [] } } },
-          { name: 'workflows', value: { 'workflows.folder': 'D:/Neu/Workflows' } },
+          { name: 'templates', value: { templates: { folder: path.join(dir, 'T'), rules: [] } } },
+          { name: 'workflows', value: { 'workflows.folder': path.join(dir, 'Workflows') } },
         ],
       });
       fs.writeFileSync(datei, geschrieben.text, 'utf8');
@@ -819,6 +819,7 @@ describe('4T-002425 — der Workflow-Ordner beim Einlesen', () => {
         tForWindow: (_win, key) => key,
         fullVersion: () => '0.0.0',
         app: { getName: () => 'EM4me' },
+        checkTarget: async () => null,
       });
       const vorschau = await handler['exchange:plan']({}, datei);
       expect(vorschau.ok).toBe(true);

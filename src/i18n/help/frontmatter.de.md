@@ -47,6 +47,37 @@ Das Umschalten über die Statusbar oder das Ansicht-Menü schreibt den neuen Wer
 
 Sonderfälle: In schreibgeschützten Zielen (etwa Handbuch-Seiten) und bei fehlerhaftem YAML wirkt der Schalter nur flüchtig für die laufende Sitzung. In Unbenannt-Tabs gilt er ebenfalls flüchtig; beim ersten Speichern übernimmt die App die Werte, die von der Voreinstellung abweichen, in das Frontmatter der neuen Datei.
 
+## Titelbild
+
+Die Eigenschaft `cover` stellt dem Dokument ein Bild voran: über die ganze Breite des Inhalts, auf eine einstellbare Höhe beschnitten und nie verzerrt. Zwei weitere Eigenschaften legen Höhe und Ausschnitt fest:
+
+```markdown
+---
+cover: bilder/strand.jpg
+cover-height: 240
+cover-position: top
+---
+```
+
+Das Bild lässt sich auf zwei Arten angeben:
+
+- **als Pfad relativ zum Dokument**, wie bei einem gewöhnlichen Bild: `cover: bilder/strand.jpg`. Es gelten dieselbe Grenze, dieselben Formate und dieselbe Obergrenze von 20 MB wie auf der Seite [Bilder](images.md).
+- **als Name in doppelten eckigen Klammern, in Anführungszeichen**: `cover: "[[strand.jpg]]"`. So findet die Anwendung das Bild über seinen Namen, gleich in welchem Ordner des Bereichs es liegt.
+
+Wird das Bild umbenannt, passt die Anwendung den Wert von `cover` nicht an; der neue Name wird von Hand eingetragen.
+
+`cover-height` ist die Höhe in Bildpunkten, Vorgabe 200; Werte unter 80 oder über 600 werden auf die nächste Grenze gesetzt. `cover-position` wählt den sichtbaren Ausschnitt des Bildes: eine Zahl von 0 bis 100, gemessen von oben (0 zeigt den oberen Rand, 100 den unteren), oder eines der Wörter `top`, `center` und `bottom`; Vorgabe ist die Mitte. Was nicht verstanden wird, fällt still auf die Vorgabe zurück.
+
+Das Titelbild erscheint in der gerenderten Ansicht, in deren Hälfte der geteilten Ansicht und im Live-Modus, unter der [Titelzeile](tools.md) mit dem Dateinamen und über der Frontmatter-Zeile. Im Live-Modus bleibt es stehen, auch während der Cursor in den YAML-Zeilen steht, und eine Änderung an `cover` zeigt sofort das neue Bild. Das Titelbild hängt nicht an der Frontmatter-Anzeige und erscheint auch, wenn sie abgeschaltet ist; ein Block mit YAML-Syntaxfehler ergibt kein Titelbild.
+
+Druck, PDF-Export und HTML-Export enthalten das Titelbild so, wie die gerenderte Ansicht es zeigt. Die [Präsentation](presentation.md), eingebettete Dokumente, Karten und Vorschauen zeigen kein Titelbild.
+
+Findet die Anwendung das Bild nicht — die Datei fehlt, liegt außerhalb der Grenze, ist keine Bilddatei oder größer als 20 MB —, steht an seiner Stelle der unauffällige Hinweis «Titelbild nicht gefunden», ohne Fehlermeldung. Ebenso ist es in einem noch nie gespeicherten Dokument, bis es gespeichert ist. Eine Adresse aus dem Netz (`http:` oder `https:`) lädt die Anwendung nicht; an ihrer Stelle steht ein Hinweis, das Bild als Datei in den Bereich zu legen. Druck und Export lassen die Hinweise weg; ein Titelbild ohne Bild entfällt dort ganz.
+
+Buch- und Regal-Dateien tragen ihr Titelbild in derselben Eigenschaft `cover` (siehe [Bücher](books.md)); öffnet man eine solche Datei als Dokument, steht das Bild auch oben über ihrem Inhalt.
+
+Das Titelbild gehört zur [internen Erweiterung](extensions.md) «Titelbild», die ab dem Arbeitsmodus **Fortgeschritten** eingeschaltet ist. Ist sie aus, erscheinen weder Bild noch Hinweis; die Eigenschaften bleiben unverändert im Dokument und in der Properties-Sidebar, und nach dem Einschalten ist das Titelbild wieder da.
+
 ## Mindmap pro Dokument
 
 Der Schlüssel `mindmap` legt fest, wie die [Mindmap-Ansicht](mindmap.md) genau dieses Dokument zeichnet, und übersteuert damit die Voreinstellung unter Datei → Einstellungen… → Mindmap:

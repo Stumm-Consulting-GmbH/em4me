@@ -10,11 +10,36 @@
 // und dem Einlesen einer Austausch-Datei, das im Hauptprozess schreibt.
 // Begruendung und Verhaltens-Zusicherung stehen dort.
 //
+// 4T-002649 (Epic 3E-000416): settings:set nimmt nur noch Schlüssel der
+// Klasse 1 mit einem Wert der erklärten Art an (Tabelle in
+// app/settings-classes.js). Die Abweisung ist `{ ok: false, error:
+// 'settings:<Grund>' }`, der Erfolg `{ ok: true }`; bis dahin gab der Kanal
+// nichts zurück, und der Anzeige-Code wertet die Antwort nirgends aus, ein
+// abgewiesener Aufruf bleibt für ihn also folgenlos. Je Abweisung schreibt der
+// Hauptprozess eine Warnung mit Schlüssel und Grund, nie mit dem Wert.
+//
+// 4T-002650 (Epic 3E-000416): Der Schalter «Skript-Blöcke ausführen» hat einen
+// eigenen Kanal, `settings:setScriptsRun`. Das Einschalten bestätigt der
+// Anwender in einem Dialog des Hauptprozesses (Wortlaut der Anforderung
+// 4S-001212, Vorgabe «Abbrechen»), das Ausschalten braucht keine Bestätigung.
+// Den allgemeinen Weg weist die Tabelle der Klassen für `scripts.run` ab.
+//
 // Eigener Zustand: keiner.
 'use strict';
 
 const path = require('node:path');
 const { createSettingsVerteilung } = require('./settings-verteilung');
+const { checkWindowWrite } = require('../app/settings-classes');
+
+// 4T-002650: Schlüssel des Schalters «Skript-Blöcke ausführen».
+const SCRIPTS_RUN_KEY = 'scripts.run';
+
+// Länge des Schlüssels in der Warnung; ein fremder Aufrufer bestimmt ihn.
+const MAX_LOGGED_KEY = 200;
+
+function loggedKey(key) {
+  return typeof key === 'string' ? key.slice(0, MAX_LOGGED_KEY) : `<${typeof key}>`;
+}
 
 /**
  * Registriert die Einstellungs-, Zuletzt-Listen- und Theme-Kanaele.
@@ -33,6 +58,9 @@ const { createSettingsVerteilung } = require('./settings-verteilung');
  * @param {Function} deps.bindBookIfBookFile Buch-Erkennung einer geoeffneten Datei.
  * @param {Function} deps.bindShelfIfShelfFile Regal-Erkennung einer geoeffneten Datei.
  * @param {(channel: string, ...args: any[]) => void} deps.broadcast Meldung an alle Fenster.
+ * @param {(...args: unknown[]) => void} [deps.warn] Protokoll-Weg der Abweisungen.
+ * @param {object} deps.dialog Electron-Dialog-Modul (Bestätigung der Skript-Blöcke).
+ * @param {(win: object, key: string) => string} deps.tForWindow Übersetzung im Fenster-Kontext.
  */
 function registerSettingsIpc(handle, deps) {
   const {
@@ -45,6 +73,9 @@ function registerSettingsIpc(handle, deps) {
     bindBookIfBookFile,
     bindShelfIfShelfFile,
     broadcast,
+    warn = console.warn,
+    dialog,
+    tForWindow,
   } = deps;
   // 4T-000999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
   // Der Bezeichner bleibt `store`, damit die Handler-Rumpfe unveraendert sind.
@@ -54,6 +85,12 @@ function registerSettingsIpc(handle, deps) {
 
   handle('settings:get', (_event, key) => store?.get(key));
   handle('settings:set', (event, key, value) => {
+    // 4T-002649: erst die Klasse und die Art des Werts, dann der Speicher.
+    const check = checkWindowWrite(key, value);
+    if (!check.ok) {
+      warn('Einstellung abgewiesen:', loggedKey(key), check.reason);
+      return { ok: false, error: `settings:${check.reason}` };
+    }
     store?.set(key, value);
     // 4T-001588 (Epic 3E-000160): Die Verteilung an die offenen Fenster liegt
     // seit dem Einlese-Weg in settings-verteilung.js — unveraendert, nur
@@ -62,6 +99,37 @@ function registerSettingsIpc(handle, deps) {
     // dieselbe Verteilung braucht. Ein zweiter Verteil-Block waere ein
     // Doppel-Mechanismus ohne gemeinsame Heimat (Fehlerklasse L5).
     verteileEinstellung(key, value, event.sender);
+    return { ok: true };
+  });
+
+  // 4T-002650 (Epic 3E-000416): Schalter «Skript-Blöcke ausführen». Antwort
+  // `{ ok: true, enabled }` mit dem Stand nach dem Aufruf; nach «Abbrechen»
+  // bleibt er, wie er war. Die Verteilung meldet ihn allen Fenstern.
+  handle('settings:setScriptsRun', async (event, on) => {
+    if (typeof on !== 'boolean') return { ok: false, error: 'settings:invalidValue' };
+    const before = store?.get(SCRIPTS_RUN_KEY) === true;
+    if (on && !before) {
+      const owner = senderWindow(event);
+      const t = (k) => tForWindow(owner, k);
+      const result = await dialog.showMessageBox(owner || undefined, {
+        type: 'warning',
+        title: t('settings.runScriptBlocks.confirmTitle'),
+        message: t('settings.runScriptBlocks.confirmMessage'),
+        buttons: [
+          t('settings.runScriptBlocks.confirmEnable'),
+          t('settings.runScriptBlocks.confirmCancel'),
+        ],
+        defaultId: 1,
+        cancelId: 1,
+        noLink: true,
+      });
+      if (result.response !== 0) return { ok: true, enabled: false };
+    }
+    if (on !== before) {
+      store?.set(SCRIPTS_RUN_KEY, on);
+      verteileEinstellung(SCRIPTS_RUN_KEY, on, event.sender);
+    }
+    return { ok: true, enabled: on };
   });
 
   // Renderer meldet ein aktives Datei-Oeffnen, damit der Pfad in die Recent-

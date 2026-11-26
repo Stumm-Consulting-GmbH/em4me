@@ -65,6 +65,8 @@
   "frontmatter.line.label": "Frontmatter",
   "frontmatter.line.fieldCount": "{count} fields",
   "frontmatter.line.fieldCountOne": "1 field",
+  "frontmatter.coverImage.missing": "Cover image not found",
+  "frontmatter.coverImage.remote": "EM4me does not load cover images from the internet; save the image as a file in the area",
   "properties.profileDefined": "Field from profile «{profile}»",
   "properties.profileTypeLocked": "Type set by profile «{profile}»",
   "properties.profileHint.typeMismatch": "Value does not match the defined type ({type}).",

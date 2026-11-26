@@ -52,6 +52,15 @@ import { renderTabbar } from './tabbar.js';
 import { updateEmptyState } from './views.js';
 import { SYSTEM_VIEW_CLASS, applyContentViewClass } from './view-modes.js';
 import { raeumePraesentationAuf } from '../presentation/presentation-pane.js';
+// 4T-002641 (Epic 3E-000397): Lese-Position beim Verlassen und nach dem Bildlauf.
+import {
+  notiereAnzeige,
+  planeMerkenNachRuhe,
+  stelleOffeneHer,
+  verlasseAnzeige,
+  zeigtEditor,
+  zeigtGerendert,
+} from './lese-position.js';
 
 // 4T-000179: Dieses Laufzeit-Flag wird ausschliesslich hier geschrieben und
 // bleibt deshalb modul-privat; ueber die Modul-Grenze fuehrt kein
@@ -88,6 +97,8 @@ export function invalidatePaneRenderCache() {
 export function renderPaneContent(paneIdx) {
   const els = getPaneEls(paneIdx);
   const pane = state.panes[paneIdx];
+  // 4T-002641: Noch zeigt die Spalte den alten Reiter bzw. die alte Ansicht.
+  verlasseAnzeige(paneIdx);
 
   // Suppress save während wir DOM-Updates machen, die scroll-Events auslösen.
   suppressScrollSave = true;
@@ -152,7 +163,7 @@ export function renderPaneContent(paneIdx) {
     cached.lang === (state.language || '') &&
     cached.theme === (document.documentElement.getAttribute('data-theme') || '');
   if (!canSkip) {
-    els.renderedHtml.innerHTML = api.renderMarkdown(tab.content, tab.path);
+    els.renderedHtml.innerHTML = api.renderMarkdown(tab.content, tab.path, { titelbild: true });
     // R2-13/R5-07 (4T-000179): vereinheitlichte Render-Nachverarbeitung
     // (inkl. Search-Refresh, der hier zuvor fehlte).
     applyRenderPipeline(els.renderedHtml, tab.path);
@@ -169,10 +180,15 @@ export function renderPaneContent(paneIdx) {
   // Scroll-Position wiederherstellen — und erst danach den Save wieder freigeben.
   requestAnimationFrame(() => {
     const view = paneEditors[paneIdx];
-    if (view) view.scrollDOM.scrollTop = tab.scrollSrc || 0;
+    // 4T-002783: Ein Sprung an eine Zeile in diesem Bild geht der gemerkten
+    // Lage vor (`placeCursorAtLine`).
+    if (view && !tab.sprungImEditor) view.scrollDOM.scrollTop = tab.scrollSrc || 0;
     els.renderedEl.scrollTop = tab.scrollRen || 0;
+    // 4T-002641: Ein neu geöffneter Reiter erscheint gleich an seiner Lese-Stelle.
+    stelleOffeneHer(paneIdx);
     requestAnimationFrame(() => {
       suppressScrollSave = false;
+      notiereAnzeige(paneIdx);
       // Suche nach DOM-Wechsel neu ausfuehren (Tab-/View-Wechsel, Reload).
       if (paneIdx === state.activePaneIndex) refreshSearchIfVisible();
     });
@@ -220,8 +236,11 @@ export function saveScroll(paneIdx) {
   if (!pane || pane.activeIndex < 0) return;
   const tab = pane.tabs[pane.activeIndex];
   const view = paneEditors[paneIdx];
-  if (view) tab.scrollSrc = view.scrollDOM.scrollTop;
-  tab.scrollRen = els.renderedEl.scrollTop;
+  // 4T-002641: Nur sichtbare Ansichten; eine verborgene liefert 0 und löschte
+  // sonst ihren gemerkten Wert.
+  if (view && zeigtEditor(tab.viewMode)) tab.scrollSrc = view.scrollDOM.scrollTop;
+  if (zeigtGerendert(tab.viewMode)) tab.scrollRen = els.renderedEl.scrollTop;
+  planeMerkenNachRuhe(paneIdx);
 }
 
 // --- Auto-Reload ------------------------------------------------------------

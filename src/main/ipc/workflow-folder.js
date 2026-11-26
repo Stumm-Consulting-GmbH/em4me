@@ -14,6 +14,9 @@
 //   workflow:setFolder      Fenster -> Hauptprozess (invoke), Nutzlast { folder }
 //                           (absolut); mit Bereich in dessen Sektion (innerhalb
 //                           wurzel-relativ), sonst anwendungsweit; Antwort { ok, error? };
+//                           4T-002649: mit { folder, target: 'global' } immer
+//                           anwendungsweit, und dort heißt `folder: ''` «nicht
+//                           festgelegt» (Einstellungs-Abschnitt «Workflows»);
 //   workflow:create         Fenster -> Hauptprozess (invoke), Nutzlast { name };
 //                           legt im wirksamen Ordner eine Workflow-Datei an,
 //                           Antwort { ok, path } oder { ok: false, code };
@@ -32,12 +35,13 @@
 
 const path = require('node:path');
 const fsp = require('node:fs/promises');
-const { isInsideArea } = require('../area/area-path');
+const { isInsideArea, sanitizeNewFileName } = require('../area/area-path');
 const { readWorkflowDocument } = require('../../shared/workflows/workflow-document.js');
 const { createWorkflowFolderService } = require('../workflows/workflow-folder-service.js');
 const { MAX_WORKFLOW_BYTES, normalizeWorkflowsConfig } = require('../workflows/workflow-folder.js');
 const { createWorkflowMenuLists } = require('../workflows/workflow-menu-lists.js');
 const { createNewWorkflow } = require('../workflows/workflow-new-file.js');
+const { textArtDerAbweisung } = require('./protected-dialog-target.js');
 
 // Längen-Grenzen der Nutzlast (Muster der Ausführungs-Kanäle in workflows.js).
 const MAX_PFAD = 4096;
@@ -64,6 +68,7 @@ function bereichsAngabe(rootPath, folder) {
  * @param {(lists: object) => void} deps.setWorkflowMenuLists Menü-Listen an den Menü-Aufbau geben.
  * @param {(win: object, key: string) => string} deps.tForWindow Text in der Sprache des Fensters.
  * @param {object} [deps.workflowFolders] Dienst des Workflow-Ordners (Verdrahtung, Prüffälle).
+ * @param {Function} [deps.checkTarget] Prüfung gegen die geschützten Ordner (channel-guard.js).
  * @returns {object} Der Dienst, damit der Menü-Aufbau ihn mitnutzen kann.
  */
 function registerWorkflowFolderIpc(handle, deps) {
@@ -75,6 +80,7 @@ function registerWorkflowFolderIpc(handle, deps) {
     applyMenuToWindow,
     setWorkflowMenuLists,
     tForWindow,
+    checkTarget,
   } = deps;
   const dienst = deps.workflowFolders || createWorkflowFolderService(deps);
   // Die Liste je Fenster für das Untermenü «Datei → Workflows»; ohne
@@ -117,14 +123,22 @@ function registerWorkflowFolderIpc(handle, deps) {
   });
 
   // «Neuer Workflow …» ohne festgelegten Ordner: die Wahl festhalten.
+  // 4T-002649 (Epic 3E-000416): Seit der allgemeine Einstellungs-Weg den
+  // Schlüssel workflows.folder abweist (Klasse 3, app/settings-classes.js),
+  // schreibt auch der Einstellungs-Abschnitt hierüber, mit dem Ziel 'global':
+  // Er stellt den anwendungsweiten Ordner auch in einem Fenster mit Bereich
+  // ein und darf ihn leeren. Den Ordner prüft die Anmelde-Stelle vorher gegen
+  // die geschützten Ordner (channel-declarations/workflows.js).
   handle('workflow:setFolder', async (event, nutzlast) => {
     const win = senderWindow(event);
     const folder = nutzlast && nutzlast.folder;
+    const global = !!nutzlast && nutzlast.target === 'global';
     if (!win) return { ok: false, error: 'no window' };
-    if (!istText(folder, MAX_PFAD) || !path.isAbsolute(folder)) {
+    const leeren = global && folder === '';
+    if (!leeren && (!istText(folder, MAX_PFAD) || !path.isAbsolute(folder))) {
       return { ok: false, error: 'invalid folder' };
     }
-    const area = areaOfWindow(win);
+    const area = global ? null : areaOfWindow(win);
     if (area) {
       const angabe = bereichsAngabe(area.rootPath, path.resolve(folder));
       const ergebnis = await dienst.writeAreaWorkflowsConfig(area.rootPath, { folder: angabe });
@@ -133,7 +147,7 @@ function registerWorkflowFolderIpc(handle, deps) {
     }
     const store = getStore();
     if (!store) return { ok: false, error: 'no store' };
-    store.set('workflows.folder', path.resolve(folder));
+    store.set('workflows.folder', leeren ? '' : path.resolve(folder));
     await dienst.refreshAll();
     return { ok: true };
   });
@@ -146,6 +160,19 @@ function registerWorkflowFolderIpc(handle, deps) {
     const lage = await dienst.resolveForWindow(win);
     if (!lage.enabled) return { ok: false, code: 'disabled' };
     if (!lage.folder) return { ok: false, code: 'noFolder' };
+    // Review-Befund S1 vom 2026-11-22 (4T-002827): Der Ordner kommt aus der
+    // Bereichsdatei (workflow:setAreaConfig, noch nicht erklärt) oder aus einer
+    // älteren Einstellung und ist damit ungeprüft. Geprüft wird hier das Ziel
+    // der neuen Datei, mit demselben Umfang wie die übrigen Anlege-Wege.
+    const fileName = sanitizeNewFileName(name);
+    if (fileName && typeof checkTarget === 'function') {
+      const abweisung = await checkTarget(
+        'workflow:create',
+        path.join(lage.folder, fileName),
+        'create',
+      );
+      if (abweisung) return { ok: false, code: textArtDerAbweisung(abweisung) };
+    }
     const t = (k) => tForWindow(win, k);
     return createNewWorkflow({
       fsp,

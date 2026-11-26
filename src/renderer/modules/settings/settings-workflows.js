@@ -7,18 +7,18 @@
 // Entwurf `draft.workflows`, persistiert wird über den Haken des
 // anwendungsweiten Abschnitts; der Bereichs-Ordner ersetzt den anwendungsweiten
 // vollständig und wird relativ zur Bereichs-Wurzel in der Bereichsdatei
-// gespeichert. Anwendungsweit unter `workflows.folder` im Einstellungs-Speicher.
+// gespeichert. Anwendungsweit unter `workflows.folder` im Einstellungs-Speicher,
+// seit 4T-002649 geschrieben über den Kanal `workflow:setFolder` mit dem Ziel
+// 'global', weil der allgemeine Einstellungs-Weg den Schlüssel abweist.
 'use strict';
 
 import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { state } from '../app/app-state.js';
-import { persistSetting, showStatusbarHint } from '../views/views.js';
+import { showStatusbarHint } from '../views/views.js';
 import { refreshSettingsButtons, renderActiveSection } from './settings-mount.js';
 import { kontextSchluessel } from './settings-kontext.js';
 import { buildSettingsRow, jsonEqual, pageState } from './settings-shared.js';
-
-const GLOBAL_KEY = 'workflows.folder';
 
 // Persistenz-Form eines Ordners: getrimmt, leer heißt «nicht festgelegt».
 function ordnerAus(part) {
@@ -209,8 +209,21 @@ export async function applyWorkflowsSection(draft) {
   const values = draft.workflows;
   if (!values) return;
   const snap = draft.workflowsSnapshot || {};
-  const globalOut = ordnerAus(values.global);
-  if (globalOut !== snap.global) await persistSetting(GLOBAL_KEY, globalOut);
+  let globalOut = ordnerAus(values.global);
+  if (globalOut !== snap.global) {
+    let result;
+    try {
+      result = await api.workflowSetFolder(globalOut, 'global');
+    } catch {
+      result = null;
+    }
+    if (!result || !result.ok) {
+      // Abgewiesen (etwa ein relativer Pfad oder ein geschützter Ordner): der
+      // alte Stand bleibt der Vergleich, die Änderung offen.
+      showStatusbarHint('statusbar.persistFailed', { duration: 4000, error: true });
+      globalOut = snap.global;
+    }
+  }
   let areaOut = snap.area === undefined ? null : snap.area;
   if (values.hasArea) {
     const gewuenscht = bereichsAusgabe(values);

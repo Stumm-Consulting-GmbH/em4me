@@ -244,11 +244,7 @@ import {
 // Laden beim Start (vor dem Sidebar-Layout, damit Erweiterungs-Panels
 // ihre persistierte Position behalten), App-Andockpunkte über das
 // attach-Muster, Angleichen beim Multi-Window-Broadcast.
-import {
-  attachExtensionHostRuntime,
-  attachExternalPersistence,
-  initExternalExtensions,
-} from './extensions/extension-host.js';
+import { attachExtensionHostRuntime, initExternalExtensions } from './extensions/extension-host.js';
 import { bindSearchUi, initSearchFromSettings } from './search/search.js';
 // 4T-000644 (Epic 3E-000127): Erststart-Anlauf der geführten Produkt-Tour.
 import { maybeStartTourOnFirstRun } from './tour/tour.js';
@@ -567,8 +563,8 @@ async function init() {
   // 4T-000298 (Epic 3E-000053): externe Erweiterungen scannen und die
   // aktivierten, bestaetigten laden — nach den internen (Registry-
   // Anbindung), vor dem Sidebar-Layout (Panel-Positionen) und vor dem
-  // Erst-Render (Markdown-Plugins wirken ab dem ersten Aufbau).
-  attachExternalPersistence(persistSetting);
+  // Erst-Render (Markdown-Plugins wirken ab dem ersten Aufbau). 4T-002650: Die
+  // Erlaubnisse schreibt der Hauptprozess; der Host braucht keine Persistenz mehr.
   attachExtensionHostRuntime({
     commandHandlers,
     registerSettingsSection,

@@ -28,6 +28,18 @@ sequenceDiagram
   A-->>U: rendered view
 ```
 
+## Building blocks
+
+You do not have to type Mermaid from memory. While editing, the **Mermaid diagram** button at the end of the format toolbar — also **Insert → Mermaid diagram** in the editor context menu and **Mermaid diagram…** in the command palette — inserts the skeleton of a flow, sequence, schedule or class diagram. Inside a Mermaid block it offers the building blocks of that type instead. The diagram below was built that way: the flow skeleton, two nodes and a connection, which joins the two most recently added nodes.
+
+```mermaid
+flowchart TD
+  N1[Start] --> N2[End]
+  N3[Step]
+  N4[Step]
+  N3 --> N4
+```
+
 ## Inline formula
 
 ```markdown

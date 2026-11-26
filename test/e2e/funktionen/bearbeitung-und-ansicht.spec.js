@@ -560,9 +560,21 @@ test.describe('FA-06: Zentrierte Editor- und Ansicht-Schalter', () => {
       // Zentrier-Grenze jetzt bei rund 1460 Pixeln. Der Product Owner hat am
       // 2026-09-17 entschieden, die verschobene Grenze hinzunehmen und den
       // Prueffall zu verbreitern statt das Layout zu aendern.
+      // 4T-002644 (Epic 3E-000397): 1600 -> 1800 Pixel. Die zwei Pfeil-Knoepfe
+      // «Zurück» und «Vor» am Ende der linken Zone verbreitern sie um 60 Pixel
+      // (zwei 28-Pixel-Knoepfe plus 4 Pixel Abstand). Gemessen am 2026-11-14:
+      // linke Zone 616 Pixel, Mitte 340, rechte Zone 430; die Zentrier-Grenze
+      // liegt bei 1640 Pixeln Fensterbreite (mit ausgeblendeten Pfeil-Knoepfen
+      // bei 1520), bei 1600 Pixeln misst der Lauf 20 Pixel Versatz. Der Product
+      // Owner hat am 2026-11-14 auf die Vorlage dazu entschieden, im Wortlaut
+      // «A, links lassen»: Die Knoepfe bleiben links, die Gruppe steht erst ab
+      // 1640 Pixeln mittig, der Prueffall misst breiter. 1800 Pixel passen in
+      // die Windows-Pruefmaschine (feste Aufloesung 1920 x 1080). Die Ursache,
+      // die wachsende linke Zone, steht als Zeile im Befund-Eingang der
+      // laufenden Fehlerbehebung an der Anwendung.
       await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
-        if (win) win.setSize(1600, 800);
+        if (win) win.setSize(1800, 800);
       });
       const readGeometry = () =>
         page.evaluate(() => {

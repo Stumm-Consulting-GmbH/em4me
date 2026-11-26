@@ -214,6 +214,35 @@ describe('workflow:setFolder («Neuer Workflow …» ohne Ordner)', () => {
       });
     }
   });
+
+  // 4T-002649: der Weg des Einstellungs-Abschnitts «Workflows».
+  it('mit Ziel global anwendungsweit, auch in einem Fenster mit Bereich', async () => {
+    const { root, rufe, werte } = welt();
+    expect(await rufe('workflow:setFolder', { folder: root, target: 'global' })).toEqual({
+      ok: true,
+    });
+    expect(werte['workflows.folder']).toBe(path.resolve(root));
+    expect(fs.existsSync(path.join(root, mddStore.MDDA_FILENAME))).toBe(false);
+  });
+
+  it('mit Ziel global leert ein leerer Ordner die Einstellung', async () => {
+    const { rufe, werte } = welt({ globalFolder: '/alt' });
+    expect(await rufe('workflow:setFolder', { folder: '', target: 'global' })).toEqual({
+      ok: true,
+    });
+    expect(werte['workflows.folder']).toBe('');
+  });
+
+  it('mit Ziel global weist eine relative oder falsche Angabe ab', async () => {
+    const { rufe, werte } = welt({ globalFolder: '/alt' });
+    for (const folder of ['Abläufe', null, 42]) {
+      expect(await rufe('workflow:setFolder', { folder, target: 'global' })).toEqual({
+        ok: false,
+        error: 'invalid folder',
+      });
+    }
+    expect(werte['workflows.folder']).toBe('/alt');
+  });
 });
 
 describe('workflow:create', () => {
@@ -244,6 +273,37 @@ describe('workflow:create', () => {
       ok: false,
       code: 'invalidName',
     });
+  });
+
+  // Review-Befund S1 vom 2026-11-22 (4T-002827): Der Ordner kommt ungeprüft aus
+  // der Bereichsdatei; geprüft wird das Ziel der neuen Datei.
+  it.each([
+    ['guard:protectedFolder', 'protectedFolder'],
+    ['guard:danglingLink', 'targetUnchecked'],
+  ])('legt bei der Abweisung %s nichts an und meldet %s', async (grund, code) => {
+    const aufrufe = [];
+    const checkTarget = async (...args) => {
+      aufrufe.push(args);
+      return { ok: false, error: grund };
+    };
+    const { root, rufe } = welt({ extra: { tForWindow, checkTarget } });
+    fs.mkdirSync(path.join(root, 'Abläufe'));
+    await rufe('workflow:setAreaConfig', { folder: 'Abläufe' });
+    expect(await rufe('workflow:create', { name: 'Wochenrückblick' })).toEqual({
+      ok: false,
+      code,
+    });
+    const ziel = path.join(root, 'Abläufe', 'Wochenrückblick.md');
+    expect(aufrufe).toEqual([['workflow:create', ziel, 'create']]);
+    expect(fs.existsSync(ziel)).toBe(false);
+  });
+
+  it('legt mit freigegebenem Ziel an', async () => {
+    const { root, rufe } = welt({ extra: { tForWindow, checkTarget: async () => null } });
+    fs.mkdirSync(path.join(root, 'Abläufe'));
+    await rufe('workflow:setAreaConfig', { folder: 'Abläufe' });
+    const antwort = await rufe('workflow:create', { name: 'W' });
+    expect(antwort).toEqual({ ok: true, path: path.join(root, 'Abläufe', 'W.md') });
   });
 });
 

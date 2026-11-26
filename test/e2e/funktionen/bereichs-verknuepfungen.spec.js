@@ -631,3 +631,59 @@ test.describe('BV-06: Aus-Zustand der Erweiterung area-links (4T-001457)', () =>
     }
   });
 });
+
+// 4T-002440 (Epic 3E-000445): Die Schalter «Vorlagen» und «Workflows» eines
+// Verknüpfungs-Eintrags erscheinen nur, solange ihre Erweiterung an ist. Die
+// gespeicherte Wahl bleibt beim Ausblenden und beim Anwenden der Seite
+// erhalten und steht nach dem Wiedereinschalten wieder am Schalter.
+test.describe('BV-07: Schalter der Verknüpfung bei ausgeschalteter Erweiterung (4T-002440)', () => {
+  test('Ausgeschaltet verschwindet der Schalter, die Wahl bleibt und kehrt zurück', async () => {
+    const eigen = tmpDir('em4me-bv-schalter-');
+    const fremd = tmpDir('em4me-bv-schalter-ziel-');
+    const fremd2 = tmpDir('em4me-bv-schalter-ziel2-');
+    schreibeBereichsdatei(eigen, {
+      areaLinks: [{ prefix: 'zt', path: fremd, templates: true, workflows: true }],
+    });
+    const mdda = path.join(eigen, 'Area_Settings.mdda');
+    const leseEintrag = () => JSON.parse(fs.readFileSync(mdda, 'utf8')).settings.areaLinks[0];
+
+    const { app, page, userData } = await launchApp();
+    try {
+      await bindeBereich(page, eigen);
+
+      for (const [kennung, schalterId, anderesId] of [
+        ['templates', '#settings-area-links-templates-0', '#settings-area-links-workflows-0'],
+        ['workflows', '#settings-area-links-workflows-0', '#settings-area-links-templates-0'],
+      ]) {
+        await page.evaluate((ids) => window.api.setSetting('extensions.disabled', ids), [kennung]);
+        await oeffneEinstellungen(page);
+        await page.locator('.settings-nav-entry[data-section-id="areaLinks"]').click();
+        await expect(page.locator('#settings-area-links-prefix-0')).toBeVisible();
+        await expect(page.locator(schalterId), kennung).toHaveCount(0);
+        await expect(page.locator(anderesId), kennung).toBeChecked();
+
+        // Anwenden mit einer anderen Änderung schreibt die Wahl unverändert zurück.
+        await page.locator('#settings-area-links-path-0').fill(fremd2);
+        await page.locator('#btn-settings-ok').click();
+        await expect(page.locator(SETTINGS_PAGE)).toBeHidden();
+        await expect.poll(() => leseEintrag().path, kennung).toBe(fremd2);
+        expect(leseEintrag(), kennung).toMatchObject({ templates: true, workflows: true });
+
+        // Wieder einschalten bei offener Seite: Der Schalter erscheint mit der Wahl.
+        await oeffneEinstellungen(page);
+        await page.locator('.settings-nav-entry[data-section-id="areaLinks"]').click();
+        await page.evaluate(() => window.api.setSetting('extensions.disabled', []));
+        await expect(page.locator(schalterId), kennung).toBeChecked();
+        await page.locator('#settings-area-links-path-0').fill(fremd);
+        await page.locator('#btn-settings-ok').click();
+        await expect(page.locator(SETTINGS_PAGE)).toBeHidden();
+        await expect.poll(() => leseEintrag().path, kennung).toBe(fremd);
+      }
+    } finally {
+      await closeApp(app, userData, { force: true });
+      removeDir(eigen);
+      removeDir(fremd);
+      removeDir(fremd2);
+    }
+  });
+});

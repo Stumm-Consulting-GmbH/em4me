@@ -174,6 +174,16 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.callouts',
     descKey: 'help.feature.callouts',
   },
+  // 4T-002558 (Epic 3E-000390): Inhaltsverzeichnis als Block, Zaun `toc`. Aus:
+  // Zaun als Code-Block, Kommando weg, Live-Widget allgemein.
+  {
+    id: 'toc-block',
+    category: 'render',
+    modeLevel: 'beginner',
+    nameKey: 'help.featureName.tocBlock',
+    descKey: 'help.feature.tocBlock',
+    commands: ['insert.toc'],
+  },
   {
     id: 'custom-containers',
     category: 'render',
@@ -284,6 +294,16 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.headingNumbering',
     descKey: 'help.feature.headingNumbering',
     settingsSections: ['headingNumbering'],
+  },
+  {
+    // 4T-002630 (Epic 3E-000395, V1): Titelbild über die Eigenschaft `cover`.
+    // Aus-Zustand: kein Kopf-Bereich in Pipeline und Live-Ansicht; die
+    // Eigenschaft bleibt unverändert im Dokument und im Eigenschaften-Panel.
+    id: 'cover-image',
+    category: 'render',
+    modeLevel: 'advanced',
+    nameKey: 'help.featureName.coverImage',
+    descKey: 'help.feature.coverImage',
   },
   {
     id: 'task-states',
@@ -414,6 +434,11 @@ const INTERNAL_EXTENSIONS = [
     modeLevel: 'advanced',
     nameKey: 'help.featureName.mermaid',
     descKey: 'help.feature.mermaid',
+    // 4T-002617 (Epic 3E-000391): Gerüste und Bausteine (V8). Ist die
+    // Erweiterung aus, entfallen Kommando, Kontextmenü-Eintrag und Knopf, und
+    // die Katalog-Zeile trägt die Kennzeichnung der Funktions-Seite.
+    commands: ['insert.mermaid'],
+    featureKeys: ['help.feature.mermaidBuildingBlocks'],
   },
   {
     id: 'code-highlight',
@@ -969,7 +994,16 @@ const INTERNAL_EXTENSIONS = [
     modeLevel: 'advanced',
     nameKey: 'help.featureName.journals',
     descKey: 'help.feature.journals',
-    commands: ['journal.openToday', 'journal.openForDate', 'journal.nachtragen'],
+    // 4T-002739 (Epic 3E-000396): Die Katalog-Zeile des Übertrags entfällt mit
+    // der Erweiterung; die Funktions-Seite kennzeichnet sie im Aus-Zustand.
+    featureKeys: ['help.feature.journalCarryOver'],
+    // 4T-002738 (Epic 3E-000396): dazu der Übertrag offener Aufgaben.
+    commands: [
+      'journal.openToday',
+      'journal.openForDate',
+      'journal.nachtragen',
+      'journal.carryOver',
+    ],
     // 4T-000436: der Einstellungs-Bereich "Journale" gehört zur Erweiterung
     // und erscheint nur bei aktivem Schalter (Muster templates).
     settingsSections: ['journals'],
@@ -1497,6 +1531,9 @@ const INTERNAL_EXTENSIONS = [
     modeLevel: 'beginner',
     nameKey: 'help.featureName.tableTools',
     descKey: 'help.feature.tableTools',
+    // 4T-002556: zweite Katalog-Zeile der Erweiterung (Einfügen aus einer
+    // Tabellenkalkulation); help.feature.tableTools ergibt sich aus dem descKey.
+    featureKeys: ['help.feature.tableFromSpreadsheet'],
     commands: [
       'table.alignLeft',
       'table.alignCenter',
@@ -1510,6 +1547,8 @@ const INTERNAL_EXTENSIONS = [
       'table.colInsert',
       'table.colDelete',
       'table.transpose',
+      // 4T-002554 (Epic 3E-000389): Einfügen als Tabelle.
+      'edit.pasteAsTable',
     ],
   },
 ];

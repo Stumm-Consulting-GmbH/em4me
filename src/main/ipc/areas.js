@@ -12,6 +12,7 @@
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { createDemoAreaAt } = require('../area/demo-area.js');
+const { weiseGeschuetztesZielAb } = require('./protected-dialog-target');
 // 4T-000645 (Epic 3E-000127): Zustands-Vorlage der Beispiel-Sammlung.
 const { loadDemoWorkspaces } = require('../area/demo-workspace.js');
 const {
@@ -113,6 +114,9 @@ function registerAreasIpc(handle, deps) {
     sperrVerwaltung,
     // 4T-002405 (Epic 3E-000266, F4 A): Löschen einer Karteikarte über die Datenbank.
     karteiWeichen,
+    // 4T-002827: Pruefung eines im Dialog gewaehlten Ziels gegen die
+    // geschuetzten Ordner (channel-guard.js).
+    checkTarget,
   } = deps;
 
   // 4T-001787: Der wirksame Name des Sperr-Ordners, bei jedem Aufruf frisch
@@ -250,6 +254,18 @@ function registerAreasIpc(handle, deps) {
       return { ok: false, canceled: true };
     }
     const targetDir = result.filePaths[0];
+    // 4T-002827 (Epic 3E-000416): Der Ziel-Ordner wird angelegt und gefuellt;
+    // in einem geschuetzten Ordner meldet der Dialog das und legt nichts an.
+    const geschuetzt = await weiseGeschuetztesZielAb({
+      checkTarget,
+      dialog,
+      owner,
+      tForWindow,
+      kanal: 'demoArea:create',
+      ziel: targetDir,
+      umfang: 'create',
+    });
+    if (geschuetzt) return geschuetzt;
     const created = await createDemoAreaAt(targetDir);
     if (!created.ok) {
       if (created.error === 'not-empty') {

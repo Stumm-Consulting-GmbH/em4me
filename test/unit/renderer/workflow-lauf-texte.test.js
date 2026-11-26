@@ -142,6 +142,28 @@ describe('Abweisung der Datenbank (4T-002545)', () => {
     );
   });
 
+  // 4T-002821 (Epic 3E-000445): Die Lage, die `copy` einer Karteikarte bei
+  // vergebenem Schlüssel jetzt mitgibt, wird zum Satz der Maske, nicht zum
+  // allgemeinen Text.
+  it('ein vergebener Schlüssel nennt Wert und Datensatz statt des allgemeinen Texts', () => {
+    const lage = {
+      code: 'auftragPruefBefund',
+      naht: {
+        code: 'regelSchluesselDoppeltImBestand',
+        tabelle: 'Autoren/Autoren.md',
+        id: 'r-00003',
+        felder: ['name'],
+        wert: 'Ada 2',
+        vorhanden: 'r-00002',
+        anzeige: 'Zweit',
+      },
+    };
+    const text = grundText({ code: DB_REJECTED, detail: { table: 'Autoren', lagen: [lage] } });
+    expect(text).not.toBe(de['workflow.fehlschlag.dbRejected']);
+    expect(text).toContain('Ada 2');
+    expect(text).toContain('Zweit');
+  });
+
   it('ohne Lagen der allgemeine Text des Codes; die eigenen Fehlschläge mit Tabelle und Datensatz', () => {
     expect(grundText({ code: DB_REJECTED, detail: {} })).toBe(de['workflow.fehlschlag.dbRejected']);
     expect(

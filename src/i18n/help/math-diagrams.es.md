@@ -84,6 +84,28 @@ classDiagram
   Pane "1" --> "*" Tab
 ```
 
+### Insertar bloques
+
+Los diagramas se pueden montar con clics, sin conocer la sintaxis de memoria. Tres caminos llevan a la misma oferta: el botón desplegable **Diagrama Mermaid** al final de la [barra de formato](toolbar.md), **Insertar → Diagrama Mermaid** en el [menú contextual del editor](context-menu.md) y el comando **Diagrama Mermaid…** en la paleta de comandos. Lo que se ofrece depende de la posición del cursor:
+
+- **Fuera de cualquier bloque de código**, los cuatro esqueletos **Flujo (Flowchart)**, **Secuencia (Sequence)**, **Cronograma (Gantt)** y **Clases (Class)**; cada uno inserta un bloque completo y válido.
+- **Dentro de un bloque Mermaid**, los bloques de su tipo: en un flujo **Nodo**, **Decisión**, **Conexión** y **Conexión con etiqueta**; en una secuencia **Participante**, **Mensaje**, **Respuesta**, **Bucle** y **Alternativa**; en un cronograma **Sección**, **Tarea** e **Hito**; en clases **Clase**, **Clase con miembros**, **Herencia**, **Asociación** y **Parte de**.
+- **En otro bloque de código, en la primera o la última línea de un bloque Mermaid (las líneas con los tres acentos graves), en un bloque Mermaid sin línea de cabecera con el tipo de diagrama (por ejemplo `flowchart TD`) o en un bloque Mermaid de otro tipo de diagrama** solo aparece la indicación atenuada «No hay bloques de Mermaid en esta posición».
+
+Los elementos nuevos reciben identificadores consecutivos (`N1`, `N2` …), y un bloque de unión como conexión, mensaje o herencia se refiere a los dos elementos creados en último lugar. Un bloque adopta la sangría de la línea en la que está el cursor. Tras la inserción, el primer marcador de posición queda seleccionado y se puede sobrescribir enseguida; un clic es un único paso de deshacer. Dos nodos y una conexión en el esqueleto de flujo dan, por ejemplo:
+
+```mermaid
+flowchart TD
+  N1[Inicio] --> N2[Fin]
+  N3[Paso]
+  N4[Paso]
+  N3 --> N4
+```
+
+En el modo En vivo, un esqueleto recién insertado se dibuja en cuanto el cursor sale del bloque.
+
+Los bloques forman parte de la [extensión interna](extensions.md) «Diagramas Mermaid», que está activada a partir del modo de trabajo **Avanzado**. Si está desactivada, desaparecen el botón, la entrada del menú contextual y el comando. Si ha personalizado la asignación de la barra de formato, el botón no se añade por sí solo; la sección «Personalizar la asignación» de la página [Barra de formato](toolbar.md) explica cómo añadirlo.
+
 ## Bloques de código con resaltado de sintaxis
 
 Una etiqueta de idioma tras los acentos graves de apertura activa la paleta de colores (sigue el tema):

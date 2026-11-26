@@ -540,3 +540,62 @@ describe('resolveImagesForBase: Grenze nach der Schreibweise-Regel der Plattform
     }
   });
 });
+
+// 4T-002630 (Epic 3E-000395, V4, AK2, AK6): Das Titelbild ist eine neue
+// Bild-Stelle auf derselben Fläche. Der Kopf-Bereich geht aus der Pipeline mit
+// der Option der Vollansicht durch dieselbe Umwandlung wie jedes Bild; ein Bild
+// innerhalb der Grenze wird Daten-Adresse, alles andere verliert die Adresse,
+// und der Hinweis bleibt stehen. Ein Wert aus dem Netz ergibt gar kein Bild.
+describe('Titelbild: Kopf-Bereich durch die Bild-Umwandlung (4T-002630)', () => {
+  const kopf = (wert) =>
+    renderMarkdown(`---\ncover: ${wert}\n---\nText\n`, 'de', {
+      titelbild: true,
+      frontmatterBlock: false,
+    });
+  const titelQuelle = (html) => {
+    const m = /<img class="titelbild-bild"[^>]*>/.exec(html);
+    return m ? quelleVon(m[0]) : undefined;
+  };
+
+  it('ein Bild innerhalb der Grenze wird Daten-Adresse samt Herkunft', () => {
+    const html = resolveImagesForBase(kopf('bild.png'), dokPfad, bereich);
+    expect(titelQuelle(html)).toBe(`data:image/png;base64,${BILD_BASE64}`);
+    expect(html).toContain('data-src-original="bild.png"');
+    const anlage = resolveImagesForBase(kopf('../anlagen/anlage.png'), dokPfad, bereich);
+    expect(titelQuelle(anlage)).toBe(`data:image/png;base64,${BILD_BASE64}`);
+  });
+
+  it('Leerzeichen, Umlaute, Prozent und Anführungszeichen im Namen kommen kodiert an (AK6)', () => {
+    const name = "mein Bild ä ß 50% 'x'.png";
+    schreibe(path.join(dokOrdner, name));
+    const html = resolveImagesForBase(kopf(`"${name}"`), dokPfad, bereich);
+    expect(titelQuelle(html)).toBe(`data:image/png;base64,${BILD_BASE64}`);
+  });
+
+  it('außerhalb der Grenze, fremde Endung, fehlend und über 20 MB: keine Adresse, Hinweis bleibt (AK2)', () => {
+    const gross = path.join(dokOrdner, 'gross.png');
+    const fd = fs.openSync(gross, 'w');
+    fs.ftruncateSync(fd, 20 * 1024 * 1024 + 1);
+    fs.closeSync(fd);
+    for (const wert of ['../../aussen/fremd.png', 'text.txt', 'fehlt.png', 'gross.png']) {
+      const html = resolveImagesForBase(kopf(wert), dokPfad, bereich);
+      expect(titelQuelle(html), wert).toBeNull();
+      expect(html, wert).toContain('<img class="titelbild-bild" alt="">');
+      expect(html, wert).toContain('data-i18n="frontmatter.coverImage.missing"');
+    }
+    expect(zugriffAusserhalb()).toEqual([]);
+    expect(fs.readFileSync).not.toHaveBeenCalledWith(gross);
+  });
+
+  it('eine Adresse aus dem Netz ergibt kein Bild-Element, nur den Hinweis (P3 = A)', () => {
+    const html = resolveImagesForBase(kopf('https://127.0.0.1:9/a.png'), dokPfad, bereich);
+    expect(html).not.toContain('<img');
+    expect(html).toContain('data-i18n="frontmatter.coverImage.remote"');
+  });
+
+  it('ein unbenanntes Dokument zeigt kein Bild des Bereichs, nur den Hinweis (V13)', () => {
+    const html = resolveImagesForBase(kopf('bild.png'), null, bereich);
+    expect(titelQuelle(html)).toBeNull();
+    expect(zugriffAusserhalb()).toEqual([]);
+  });
+});

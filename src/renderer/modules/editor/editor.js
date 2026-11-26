@@ -68,7 +68,9 @@ import { lintField, lintHoverTooltip, lintUpdateListener, scheduleLint } from '.
 import { imageOpenHandler, pasteLinkHandler } from './editor-paste.js';
 // 4T-001002: Vorschau-Aufbau des Render-Pane.
 import { schedulePreviewUpdate } from './editor-preview.js';
-import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import { history, historyKeymap } from '@codemirror/commands';
+// 4T-002642 (Epic 3E-000397): Grund-Belegung ohne Alt+Pfeil links und rechts.
+import { editorGrundBelegung } from './editor-grundbelegung.js';
 import { markdown } from '@codemirror/lang-markdown';
 
 import { mdHighlightStyle } from '../live/live-deco.js';
@@ -127,6 +129,7 @@ import { schedulePresentationRender } from '../presentation/presentation-pane.js
 import { updateSubpageBreadcrumb } from '../views/subpage-breadcrumb.js';
 import { saveScroll } from '../views/pane-render.js';
 import { setupScrollSyncForPane } from '../views/scroll-sync.js';
+import { wendeSchreibmarkeAn } from '../views/lese-position.js';
 import { renderTabbar } from '../views/tabbar.js';
 import { scheduleAutoSave } from '../views/views.js';
 import { renderProperties } from '../properties/properties-fields.js';
@@ -302,7 +305,7 @@ export function createNotesEditorState({ content = '', placeholderText = '', onD
       editorCompartments.spellcheck.of(spellcheckContentAttributes()),
       editorCompartments.notesPlaceholder.of(placeholderText ? placeholder(placeholderText) : []),
       buildEditorCommandKeymap(),
-      keymap.of([...defaultKeymap, ...historyKeymap]),
+      keymap.of([...editorGrundBelegung, ...historyKeymap]),
       drawSelection(),
       EditorView.updateListener.of((update) => {
         if (update.docChanged) {
@@ -364,6 +367,10 @@ export function scheduleIndexOverlay(tab) {
   if (!tab || !tab.path || tab.manualPage || tab.systemPage) return;
   const filePath = tab.path;
   const content = tab.content;
+  // 4T-002812 (Epic 3E-000444): Das Merkmal «ungespeichert» reist mit dem
+  // Inhalt und wird wie er zum Planungszeitpunkt festgehalten. Der
+  // Editor-Listener hat tab.dirty zu diesem Zeitpunkt schon neu berechnet.
+  const ungespeichert = !!tab.dirty;
   const laufend = indexOverlayTimers.get(filePath);
   if (laufend) clearTimeout(laufend);
   const timer = setTimeout(async () => {
@@ -373,7 +380,7 @@ export function scheduleIndexOverlay(tab) {
       // in ALLEN Fenstern aus, dieses eingeschlossen (app-input-bindings.js,
       // bindOverlayAndBlurEvents); eine Selbst-Meldung hier wäre die zweite.
       // Der gemeldete Pfad reist weiter mit (4T-000948, Befund E-01).
-      await api.setIndexOverlay(filePath, content);
+      await api.setIndexOverlay(filePath, content, ungespeichert);
     } catch (err) {
       console.warn('Index-Overlay konnte nicht gesetzt werden:', err);
     }
@@ -393,7 +400,7 @@ export async function flushIndexOverlay(tab) {
   clearTimeout(laufend);
   indexOverlayTimers.delete(tab.path);
   try {
-    await api.setIndexOverlay(tab.path, tab.content);
+    await api.setIndexOverlay(tab.path, tab.content, !!tab.dirty);
   } catch (err) {
     console.warn('Index-Overlay konnte nicht gesetzt werden:', err);
   }
@@ -507,7 +514,7 @@ export function createEditorState(opts = {}) {
       // Belegung haengt am Editor als Ganzes und gilt damit in Quellcode-,
       // geteilter und Live-Ansicht (E2 des Epics).
       cursorSprungKeymap,
-      keymap.of([...defaultKeymap, ...historyKeymap]),
+      keymap.of([...editorGrundBelegung, ...historyKeymap]),
       // 4T-000020: Markdown-Linter-Light. lintField haelt die Decorations,
       // lintUpdateListener triggert mit Debounce einen neuen Lauf,
       // lintHoverTooltip zeigt Regel-Beschreibungen beim Hover.
@@ -722,6 +729,8 @@ export function syncEditorForPane(paneIdx) {
       ),
     ],
   });
+  // 4T-002641 (Epic 3E-000397): Ein zurückgekehrter Reiter bekommt seine Schreibmarke.
+  wendeSchreibmarkeAn(paneIdx, view, tab);
   if (els && els.sourceEditor) {
     els.sourceEditor.classList.toggle('read-only', !tab.editMode);
   }

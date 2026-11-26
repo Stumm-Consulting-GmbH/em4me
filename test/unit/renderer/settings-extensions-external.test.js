@@ -66,6 +66,15 @@ function makeEntry(id, manifestOverrides = {}, entryOverrides = {}) {
   };
 }
 
+// 4T-002650: Attrappe des Hauptprozesses für Scan, Bestätigung und
+// Ein- und Ausschalten.
+let main;
+
+function useEntries(list) {
+  main.entries = list;
+  host.resetExternalHostForTests(list);
+}
+
 beforeEach(() => {
   host.resetExternalHostForTests();
   host.attachExtensionHostRuntime({
@@ -73,7 +82,15 @@ beforeEach(() => {
     registerSettingsSection: settingsPage.registerSettingsSection,
     unregisterSettingsSection: settingsPage.unregisterSettingsSection,
   });
-  host.attachExternalPersistence(async () => true);
+  main = { entries: [], enabled: [], trusted: {} };
+  window.api.scanExternalExtensions = async () =>
+    main.entries.map((e) =>
+      e.ok ? { ...e, trusted: main.trusted[e.manifest.id] === e.manifest.version } : e,
+    );
+  window.api.setExternalExtensionEnabled = async (id, on) => {
+    main.enabled = on ? [...new Set([...main.enabled, id])] : main.enabled.filter((x) => x !== id);
+    return { ok: true, enabled: main.enabled };
+  };
 });
 
 describe('Bereich Erweiterungen (extern) (4T-000300)', () => {
@@ -128,11 +145,12 @@ describe('Bereich Erweiterungen (extern) (4T-000300)', () => {
   });
 
   it('Aktivieren läuft über den Warn-Dialog; Abbrechen ändert nichts', async () => {
-    host.resetExternalHostForTests([makeEntry('demo')]);
+    useEntries([makeEntry('demo')]);
     let confirmCalls = 0;
     let confirmResult = false;
-    window.api.confirmExternalExtensionTrust = async () => {
+    window.api.confirmExternalExtensionTrust = async (id) => {
       confirmCalls += 1;
+      if (confirmResult) main.trusted[id] = '1.0.0';
       return confirmResult;
     };
     const container = mountPage();
@@ -150,7 +168,8 @@ describe('Bereich Erweiterungen (extern) (4T-000300)', () => {
   });
 
   it('Deaktivieren wirkt sofort und die Zeile wechselt den Status', async () => {
-    host.resetExternalHostForTests([makeEntry('demo')]);
+    useEntries([makeEntry('demo')]);
+    main.enabled = ['demo'];
     await host.applyExternalStateForTests({
       enabled: ['demo'],
       trusted: { demo: '1.0.0' },

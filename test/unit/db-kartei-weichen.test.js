@@ -443,6 +443,33 @@ describe('Kopieren einer Karteikarte im Bereichs-Panel (4T-002405, F5 A)', () =>
     expect(fs.existsSync(path.join(path.dirname(k.ada), 'Ada-2.md'))).toBe(false);
   });
 
+  // 4T-002821 (Epic 3E-000445): Bei vergebenem Schlüssel trägt der Fehler
+  // `EEXIST` das Ergebnis der Datenbank; `abweisung()` bleibt null, damit die
+  // Namensfindung des Panels unverändert zur nächsten Nummer geht.
+  it('wirft bei vergebenem Schlüssel EEXIST mit dem Ergebnis der Datenbank; abweisung() bleibt null', async () => {
+    const k = kartei();
+    lege(
+      k.wurzel,
+      'Autoren/Zweit.md',
+      ['---', 'db-record: r-00005', 'name: Ada 2', '---', ''].join('\n'),
+    );
+    const p = prozess(k);
+    const handlung = await p.karteiWeichen.kopierHandlung(k.ada, k.wurzel);
+
+    let fehler = null;
+    try {
+      await handlung.kopiere(path.join(path.dirname(k.ada), 'Ada 2.md'));
+    } catch (err) {
+      fehler = err;
+    }
+
+    expect(fehler && fehler.code).toBe('EEXIST');
+    expect(fehler.datenbank.ok).toBe(false);
+    expect(fehler.datenbank.lagen[0].naht.code).toBe(REGEL_LAGEN.schluesselDoppeltImBestand);
+    expect(handlung.abweisung()).toBeNull();
+    expect(fs.existsSync(path.join(path.dirname(k.ada), 'Ada 2.md'))).toBe(false);
+  });
+
   it('legt bei einer Abweisung nichts an und liefert den Grund (AK3)', async () => {
     const k = kartei();
     const { rollen } = legeRollenAus({ roles: { gast: { Autoren: ['update'] } } });

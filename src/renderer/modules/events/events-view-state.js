@@ -41,7 +41,7 @@ import { applyPerspectiveEventsIfPresent } from './events-view.js';
 import {
   abortWithHint,
   locateFence,
-  normalizeBody,
+  anzeigeRumpf,
   resolveContext,
   writeBody,
 } from './events-editor.js';
@@ -176,7 +176,7 @@ export function applyEventsViewState(ctx) {
   const display = ctx.container.querySelector('.pev-display');
   if (!display) return;
   const st = viewStateFor(ctx, false);
-  const parsed = parsePerspectiveEvents(normalizeBody(ctx.container.dataset.evSource));
+  const parsed = parsePerspectiveEvents(anzeigeRumpf(ctx.container.dataset.evSource));
   let model = parsed;
   if (ctx.aggregation) {
     // 4T-000515: Einträge kommen aus dem Aggregations-Zustand; solange die
@@ -355,7 +355,7 @@ export function switchView(ctx, view) {
 export function navigateCalendar(ctx, btn) {
   const st = viewStateFor(ctx, true);
   if (!st) return;
-  const model = parsePerspectiveEvents(normalizeBody(ctx.container.dataset.evSource));
+  const model = parsePerspectiveEvents(anzeigeRumpf(ctx.container.dataset.evSource));
   const effective = st.viewOverride || effectiveEventsView(model);
   if (effective !== 'month' && effective !== 'week') return;
   const todayIso = ctx.container.dataset.evToday || localTodayIso();

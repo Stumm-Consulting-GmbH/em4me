@@ -37,7 +37,13 @@
 //   file:changed-Reload nach, dirty Tabs anderer Fenster nur noch im
 //   Rückfall über den Konflikt-Dialog. Konflikte (Zeile
 //   verändert/verschwunden) melden einen Statusbar-Hinweis statt blind zu
-//   schreiben.
+//   schreiben. 4T-002813 (Epic 3E-000444): Gehört die Datei des Treffers zu
+//   einem in Teile zerlegten Dokument, schreibt der Kanal das ganze Dokument
+//   über seine Teile, gleich ob der Treffer den Pfad der Kopf-Datei oder eines
+//   Folgeteils trägt, und führt die Historie unter der Kopf-Datei. Bleibt
+//   dabei die Kopf-Datei unverändert, meldet der Kanal die Änderung selbst
+//   unter ihrem Pfad, und ein geöffnetes, nicht geändertes Dokument zieht
+//   über denselben Reload nach.
 //
 // Der Bearbeiten-Knopf delegiert an einen registrierbaren Handler (Dialog
 // aus 4T-000506); ohne Handler oeffnet er die Quelldatei an der Zeile.
@@ -400,7 +406,7 @@ export async function editTaskFromQuery(hit, paneIdx) {
   // 4T-000631 (Epic 3E-000102): Bearbeiten-Klick im Abfrage-Treffer des Dokuments
   // erbt die Gruppe (beide Aufruf-Pfade sind Dokument-Klicks: Render-Pane und
   // Live-Widget).
-  const realPane = await openInPane(target, [hit.path], { inheritGroup: true });
+  const realPane = await openInPane(target, [hit.path], { inheritGroup: true, zielFolgt: true });
   scrollToLineAfterOpen(realPane, hit.line);
 }
 

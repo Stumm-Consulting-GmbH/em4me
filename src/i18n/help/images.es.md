@@ -42,6 +42,8 @@ Resultado: la imagen aparece con la leyenda «Cifras trimestrales comparadas» c
 
 Alternativamente, `![[imagen.png]]` incrusta una imagen mediante la sintaxis wiki, incluido el modificador de tamaño `![[imagen.png|300]]` — detalles en la página [Enlaces](linking.md).
 
+Una imagen encima de todo el documento se fija con la propiedad `cover` del frontmatter, en ambas escrituras — sección «Imagen de portada» de la página [Frontmatter y propiedades](frontmatter.md).
+
 ## Ampliar una imagen
 
 Un clic en una imagen en la vista «Renderizado» — igualmente en su mitad de la vista «Dividido» — la muestra ampliada sobre toda la ventana. El fondo se oscurece y la imagen aparece tan grande como lo permiten la ventana y su propia resolución: completa, sin deformar y nunca por encima de su propio tamaño. Por eso una imagen pequeña se queda en su tamaño, en el centro. Una indicación de tamaño en el documento (`=300x`) no limita la ampliación. Esto vale para toda imagen mostrada, también en tablas, callouts e incrustaciones, y también para una imagen que es en sí un enlace.

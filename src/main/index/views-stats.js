@@ -20,6 +20,8 @@ const { buildLinkGraph, logicalNameFor } = require('./link-graph.js');
 // 4T-001516: Datei-Identitaet vergleicht sich nach den Regeln der Plattform,
 // nicht nach einer festen Kleinschreibung (Befund B1 des Epics 3E-000232).
 const { pathCompareKey } = require('../../shared/platform.js');
+// 4T-002782 (Epic 3E-000392): Erhebung der Verweise ohne Ziel.
+const { erhebeVerweiseOhneZiel } = require('./verweise-ohne-ziel.js');
 
 // 4T-000619 (Epic 3E-000117): Index-Anteil der Bereichs-Statistik — alle
 // Kennzahlen, die der Index ohnehin fuehrt. Read-only-View wie graphFor:
@@ -32,6 +34,8 @@ const { pathCompareKey } = require('../../shared/platform.js');
 // festen Basis-Zeichen ' ' = offen und 'x'/'X' = erledigt.
 // env.startPage ist die Start-Seite des Bereichs als absoluter Pfad (4T-001516,
 // siehe unten); ohne sie gilt jede Datei ohne eingehenden Verweis als Waise.
+// env.verweiseOhneZiel sind die Optionen der Erhebung der Verweise ohne Ziel
+// (4T-002782); ohne sie entfällt das Feld.
 function statsFor(areaRoot, env) {
   let root;
   try {
@@ -146,6 +150,13 @@ function statsFor(areaRoot, env) {
       unverlinkt,
     },
     uebersprungeneOrdner: entry.skippedDirs || 0,
+    // 4T-002782 (Epic 3E-000392, V6): Verweise ohne Ziel, nur auf Anforderung
+    // der Bereichs-Statistik (env.verweiseOhneZiel); die Gedächtnis-Statistik
+    // ruft statsFor ohne sie und zahlt die Erhebung nicht mit. Am selben
+    // Eintrag wie die übrigen Zahlen, also ohne Teilstand.
+    ...(env && env.verweiseOhneZiel
+      ? { verweiseOhneZiel: erhebeVerweiseOhneZiel(entry, env.verweiseOhneZiel) }
+      : {}),
   };
 }
 

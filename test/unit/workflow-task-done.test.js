@@ -312,6 +312,39 @@ describe('am echten Bereichs-Index', () => {
     });
   });
 
+  // 4T-002812 (Epic 3E-000444, Zweitblick Runde 1, Befund 1): Ein Schreibweg
+  // schreibt eine unverändert geöffnete Datei auf die Platte, und der Eintrag
+  // des Fensters folgt sofort (`folgePlattenStand`). Ausgewertet wird wie ein
+  // Wechsel auf der Platte, das Nachladen im Fenster danach meldet nichts mehr.
+  describe('Unverändert geöffnetes Dokument folgt der Platte (4T-002812)', () => {
+    const { folgePlattenStand } = require('../../src/main/index/overlay.js');
+
+    it('Abhaken in der Abfrage: eine Meldung, das Nachladen im Fenster keine zweite', () => {
+      const abs = path.join(wurzel, 'Wochenplan.md');
+      backlinks.setBufferOverlay(abs, '# Woche\n\n- [ ] Probe-Aufgabe\n', 7, false);
+      const erledigt = '# Woche\n\n- [x] Probe-Aufgabe ✅ 2026-11-22\n';
+      fs.writeFileSync(abs, erledigt, 'utf8');
+      expect(folgePlattenStand(abs, erledigt)).toBe(true);
+      expect(meldungen.map((m) => [m.path, m.task])).toEqual([[abs, 'Probe-Aufgabe']]);
+      onWatcherChange(eintrag, abs, 'change');
+      backlinks.setBufferOverlay(abs, erledigt, 7, false);
+      expect(meldungen).toHaveLength(1);
+    });
+
+    it('Workflow-Schreibvorgang (Lauf-Stand): keine Meldung, auch nicht beim Nachladen', async () => {
+      const abs = path.join(wurzel, 'Wochenplan.md');
+      backlinks.setBufferOverlay(abs, '# Woche\n\n- [ ] Probe-Aufgabe\n', 7, false);
+      const text = '# Woche\n\n- [x] Probe-Aufgabe\n';
+      merkeLaufStand(abs, text);
+      fs.writeFileSync(abs, text, 'utf8');
+      expect(folgePlattenStand(abs, text)).toBe(true);
+      await ruhe();
+      onWatcherChange(eintrag, abs, 'change');
+      backlinks.setBufferOverlay(abs, text, 7, false);
+      expect(meldungen).toEqual([]);
+    });
+  });
+
   describe('Lauf-Marke: Was ein Workflow abhakt, ist ein Lauf-Schreibvorgang (AK4)', () => {
     it('complete-task: Die Meldung trägt die Beschreibung, die die Einmal-Marke erkennt', async () => {
       const abs = path.join(wurzel, 'Wochenplan.md');

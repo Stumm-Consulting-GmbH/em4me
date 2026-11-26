@@ -65,6 +65,8 @@
   "frontmatter.line.label": "Frontmatter",
   "frontmatter.line.fieldCount": "{count} Felder",
   "frontmatter.line.fieldCountOne": "1 Feld",
+  "frontmatter.coverImage.missing": "Titelbild nicht gefunden",
+  "frontmatter.coverImage.remote": "Titelbilder aus dem Netz lädt EM4me nicht; legen Sie das Bild als Datei in den Bereich",
   "properties.profileDefined": "Feld aus Profil «{profile}»",
   "properties.profileTypeLocked": "Typ durch Profil «{profile}» vorgegeben",
   "properties.profileHint.typeMismatch": "Wert entspricht nicht dem definierten Typ ({type}).",

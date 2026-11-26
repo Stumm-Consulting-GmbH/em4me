@@ -13,7 +13,8 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
 
 - **Four views, one keystroke apart** — read the rendered page, edit the raw
   source, put both side by side, or work in the live view where formatting
-  appears as you type and only the current line shows its Markdown.
+  appears as you type and only the current line shows its Markdown. Every
+  document opens where you last left it, in every view and after a restart.
 - **Links that lead somewhere** — wiki links, headline and block anchors,
   embedded documents, tags and backlinks turn your notes into a connected
   set instead of a folder of loose files; a wiki link kept as a property in
@@ -23,6 +24,9 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   pick, which lays the same links out in order. A file can also be found by
   typing its name, and the area statistics list the files nothing points to.
   A tag can be renamed everywhere it occurs at once, its hierarchy included.
+  Back and Forward move between the places you visited, as in a browser,
+  from the keyboard, the side mouse buttons, the View menu or two buttons in
+  the status bar.
 - **A surface for when order is not enough** — some thoughts have no
   sequence. A canvas is a surface inside an ordinary Markdown file: cards with
   their own text, placed where you put them and joined by labelled, coloured
@@ -95,7 +99,9 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   extension «Formula library» adds 45 checked formulas and natural
   constants in six categories, each with a named source and a stated
   range of validity; a value outside that range gives a notice instead
-  of a silent number. All of it
+  of a silent number. A cell range copied from a spreadsheet becomes a
+  table with a header row when you paste it, and one undo brings back the
+  plain text. All of it
   stays plain text inside your file.
 - **A database made of Markdown files** — a file can state in its own head
   that it is a table: which fields it has, of what type, with labels in
@@ -125,7 +131,9 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   author.
 - **Journals from day to year** — daily, weekly, monthly, quarterly and
   yearly entries from your own folder and naming scheme, with built-in
-  navigation through the periods.
+  navigation through the periods. Open tasks of the last entry move on to
+  the entry of the current period, by themselves when it is created or with
+  a command, and are marked as carried over where they came from.
 - **Routine steps written down once** — a workflow is an ordinary Markdown
   file with one step per line: create files and folders, also from your
   templates, rename, move with all links updated, append and insert text,
@@ -216,7 +224,9 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   entry, so an unfinished translation is already usable.
 
 Markdown rendering follows CommonMark plus a set of extensions, with math
-(KaTeX), diagrams (Mermaid) and syntax highlighting (highlight.js).
+(KaTeX), diagrams (Mermaid) that can be put together from ready-made building
+blocks, a table of contents block that keeps itself current, a cover image
+set by a property in the file head, and syntax highlighting (highlight.js).
 
 ## Download
 

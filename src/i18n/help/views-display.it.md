@@ -97,7 +97,7 @@ Carattere e dimensione si scelgono separatamente per la superficie di modifica e
 
 ## Stato della finestra
 
-Posizione, dimensione e stato ingrandito di una finestra vengono memorizzati alla chiusura e ripristinati al successivo avvio. Non c'è nulla da impostare. Che cosa riporti inoltre un'intera sessione con le sue schede è descritto nella pagina [Applicazioni, finestre e aree](apps-windows.md).
+Posizione, dimensione e stato ingrandito di una finestra vengono memorizzati alla chiusura e ripristinati al successivo avvio. Non c'è nulla da impostare. Che cosa riporti inoltre un'intera sessione con le sue schede è descritto nella pagina [Applicazioni, finestre e aree](apps-windows.md). L'applicazione memorizza per ogni documento il punto in cui l'avete letto l'ultima volta; lo descrive la sezione «Posizione di lettura» della pagina [Applicazioni, finestre e aree](apps-windows.md).
 
 ## Barra di stato
 
@@ -106,6 +106,8 @@ La barra di stato sul bordo inferiore della finestra è il punto di comando che 
 Quando la barra si compatta lo stabilisce l'impostazione «Compattazione» (File → Impostazioni… → Barra di stato). «Automaticamente quando lo spazio è scarso» è il valore predefinito e ripone solo ciò che non trova più posto; «Sempre compattata» mantiene i pulsanti nei due menu indipendentemente dalla larghezza della finestra e lascia la barra permanentemente sobria. La stessa sezione porta anche i pulsanti di comando propri della barra e l'elenco dei pulsanti predefiniti nascosti, vedi [Posizionamento dei comandi](command-placement.md).
 
 Come la barra tratta i pulsanti che al momento non possono fare nulla lo stabilisce l'impostazione «Pulsanti non utilizzabili» (File → Impostazioni… → Barra di stato). Sono interessati i selettori di vista e i tre interruttori dell'editor al centro, oltre a Modifica, alla sincronizzazione dello scorrimento e alla cronologia del documento a destra: per esempio mentre è in primo piano una pagina di sistema come le impostazioni, oppure finché non è aperto alcun documento. «Mostra in grigio» è il valore predefinito: il pulsante resta al suo posto, è visibilmente disattivato e non reagisce. «Nascondi» lo toglie dalla barra finché non può fare nulla, e anche dai due menu ai bordi della barra compattata; appena può agire di nuovo, torna al suo posto. Gli interruttori dei pannelli a sinistra, i pulsanti di comando propri, la scelta della lingua e il commutatore chiaro/scuro non conoscono questo stato e non sono mai interessati dalla scelta; anche il menu Visualizza rimane invariato e continua a mostrare in grigio le voci non disponibili.
+
+I due pulsanti freccia «Indietro» e «Avanti» sono disattivati finché nella loro direzione non è possibile alcun passo. Anche con «Nascondi» restano al loro posto, perché la barra non salti a ogni passo; vedere la sezione «Indietro e avanti» della pagina [Collegamenti](linking.md).
 
 Un pulsante può quindi mancare nella barra per tre motivi diversi, e solo il terzo dipende da questa impostazione: è deselezionato nell'elenco dei pulsanti predefiniti nascosti e resta assente in modo permanente — quell'elenco agisce prima della scelta, vedi [Posizionamento dei comandi](command-placement.md); appartiene a un'estensione disattivata, e allora la funzione non esiste, vedi [Estensioni](extensions.md); oppure al momento non può fare nulla e la scelta è su «Nascondi», e allora torna da sé.
 

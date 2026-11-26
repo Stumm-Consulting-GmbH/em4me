@@ -63,7 +63,6 @@ import {
 import {
   EXTENSION_API_VERSION,
   EXTERNAL_ENABLED_KEY,
-  EXTERNAL_TRUSTED_KEY,
   EXTERNAL_ERRORS_KEY,
   // 4T-001589 (Epic 3E-000160): Der Namensraum steht seit dem
   // Geheimnis-Ausschluss im geteilten Modul, weil ihn auch die Ausgabe kennen
@@ -92,26 +91,18 @@ export function attachExtensionHostRuntime(hooks) {
   if (hooks && typeof hooks === 'object') runtime = hooks;
 }
 
-// --- Persist-Helfer -----------------------------------------------------------------
-// Wie extension-lifecycle: schlanker api-Fallback, app-init hängt
-// persistSetting (Statusbar-Feedback) an.
-let persistFn = async (key, value) => {
-  try {
-    await api.setSetting(key, value);
-    return true;
-  } catch (err) {
-    console.warn('setSetting fehlgeschlagen:', key, err);
-    return false;
-  }
-};
-
-export function attachExternalPersistence(fn) {
-  if (typeof fn === 'function') persistFn = fn;
-}
+// --- Erlaubnisse im Hauptprozess (4T-002650, Epic 3E-000416) -------------------------
+// Bestätigung, Einschalten und letzten Fehler schreibt allein der Hauptprozess
+// (src/main/ipc/extensions.js); der allgemeine Einstellungs-Weg weist die drei
+// Schlüssel ab. Dieses Modul ruft die eigenen Kanäle und schreibt keinen der
+// Schlüssel. Ob die Bestätigung eines Pakets gilt, sagt der Scan
+// (`entry.trusted`); die Einstiegs-Adresse liefert er nur für ein
+// eingeschaltetes und bestätigtes oder mitgeliefertes Paket.
 
 // --- Laufzeit-Zustand ---------------------------------------------------------------
-// entries: letzter Scan-Stand aus dem Main (inkl. entryUrl je gültigem
-// Paket). enabledIds/trustedMap/errorMap spiegeln die Store-Schlüssel.
+// entries: letzter Scan-Stand aus dem Main (inkl. entryUrl je ladbarem Paket).
+// enabledIds/errorMap spiegeln die Store-Schlüssel, trustedMap die Pakete,
+// deren Bestätigung nach dem Scan gilt ({ id: version }).
 // activeExtensions: tatsächlich geladene Erweiterungen mit Rollback-Daten.
 let entries = [];
 let enabledIds = [];
@@ -121,6 +112,39 @@ const activeExtensions = new Map(); // id -> { module, disposer }
 
 function entryById(id) {
   return entries.find((e) => e.ok && e.manifest.id === id) || null;
+}
+
+// Übernimmt einen Scan des Hauptprozesses samt der geltenden Bestätigungen.
+function applyScan(list) {
+  entries = Array.isArray(list) ? list : [];
+  trustedMap = {};
+  for (const e of entries)
+    if (e.ok && e.trusted === true) trustedMap[e.manifest.id] = e.manifest.version;
+}
+
+async function scanFromMain() {
+  try {
+    applyScan(await api.scanExternalExtensions());
+  } catch (err) {
+    console.warn('Erweiterungs-Scan fehlgeschlagen:', err);
+  }
+}
+
+// Ein- oder Ausschalten über den Hauptprozess; übernimmt die neue Liste.
+async function switchInMain(id, on) {
+  let res;
+  try {
+    res = await api.setExternalExtensionEnabled(id, on);
+  } catch (err) {
+    console.warn('Erweiterung schalten fehlgeschlagen:', id, err);
+    return false;
+  }
+  if (!res || res.ok !== true) {
+    console.warn('Erweiterung schalten abgewiesen:', id, res && res.error);
+    return false;
+  }
+  enabledIds = normalizeEnabledIds(res.enabled);
+  return true;
 }
 
 // Anzeige-Zustand für den Einstellungs-Bereich (4T-000300): Scan-Einträge
@@ -148,22 +172,26 @@ export function isExternalExtensionActive(id) {
 
 // --- Fehler-Protokoll ---------------------------------------------------------------
 // Lade-Fehler deaktivieren automatisch (Enabled-Liste) und persistieren
-// den Fehlertext für die Anzeige — auch über den Neustart hinweg.
+// den Fehlertext für die Anzeige — auch über den Neustart hinweg. 4T-002650:
+// Beides hält der Hauptprozess fest (Text dort gekürzt); hier nur der Spiegel.
 async function recordLoadError(id, message) {
-  errorMap = { ...errorMap, [id]: String(message || 'Unbekannter Fehler') };
-  await persistFn(EXTERNAL_ERRORS_KEY, errorMap);
-  if (enabledIds.includes(id)) {
-    enabledIds = enabledIds.filter((x) => x !== id);
-    await persistFn(EXTERNAL_ENABLED_KEY, enabledIds);
+  const text = String(message || 'Unbekannter Fehler');
+  errorMap = { ...errorMap, [id]: text };
+  enabledIds = enabledIds.filter((x) => x !== id);
+  try {
+    await api.reportExternalExtensionError(id, text);
+  } catch (err) {
+    console.warn('Fehler-Meldung an den Hauptprozess fehlgeschlagen:', id, err);
   }
   console.warn(`Externe Erweiterung '${id}' deaktiviert:`, message);
 }
 
-async function clearLoadError(id) {
+// 4T-002650: Den gespeicherten Fehler nimmt der Hauptprozess beim Einschalten
+// zurück; hier nur der Spiegel.
+function clearLoadError(id) {
   if (!errorMap[id]) return;
   errorMap = { ...errorMap };
   delete errorMap[id];
-  await persistFn(EXTERNAL_ERRORS_KEY, errorMap);
 }
 
 // --- Übersetzungs-Verwaltung ---------------------------------------------------------
@@ -664,15 +692,14 @@ async function syncActiveExtensions({ notify = true } = {}) {
   return changed;
 }
 
+// 4T-002650: Die Bestätigungen kommen mit dem Scan (applyScan), nicht von hier.
 async function reloadStoreState() {
   try {
     enabledIds = normalizeEnabledIds(await api.getSetting(EXTERNAL_ENABLED_KEY));
-    trustedMap = normalizeTrustedMap(await api.getSetting(EXTERNAL_TRUSTED_KEY));
     errorMap = normalizeErrorMap(await api.getSetting(EXTERNAL_ERRORS_KEY));
   } catch (err) {
     console.warn('Externe Erweiterungs-Einstellungen laden fehlgeschlagen:', err);
     enabledIds = [];
-    trustedMap = {};
     errorMap = {};
   }
 }
@@ -685,12 +712,7 @@ async function reloadStoreState() {
 export async function initExternalExtensions() {
   if (typeof api.scanExternalExtensions !== 'function') return;
   await reloadStoreState();
-  try {
-    entries = await api.scanExternalExtensions();
-  } catch (err) {
-    console.warn('Erweiterungs-Scan fehlgeschlagen:', err);
-    entries = [];
-  }
+  await scanFromMain();
   await syncActiveExtensions({ notify: false });
 }
 
@@ -699,18 +721,16 @@ export async function initExternalExtensions() {
 // werden deaktiviert, neue erscheinen als 'inactive'.
 export async function rescanExternalExtensions() {
   if (typeof api.scanExternalExtensions !== 'function') return externalExtensionEntries();
-  try {
-    entries = await api.scanExternalExtensions();
-  } catch (err) {
-    console.warn('Erweiterungs-Scan fehlgeschlagen:', err);
-  }
+  await scanFromMain();
   await syncActiveExtensions();
   return externalExtensionEntries();
 }
 
 // Aktivierung durch den Nutzer. Zeigt bei unbestätigter Version den
 // Warn-Dialog (Main, lokalisiert); ohne Bestätigung passiert nichts.
-// Rückgabe: 'active' | 'canceled' | 'error'.
+// Rückgabe: 'active' | 'canceled' | 'error'. 4T-002650: Die Bestätigung
+// speichert der Hauptprozess, das Einschalten prüft er; danach liefert der
+// neue Scan die Einstiegs-Adresse.
 export async function enableExternalExtension(id) {
   const entry = entryById(id);
   if (!entry) return 'error';
@@ -724,28 +744,24 @@ export async function enableExternalExtension(id) {
       console.warn('Warn-Dialog fehlgeschlagen:', err);
     }
     if (!confirmed) return 'canceled';
-    trustedMap = { ...trustedMap, [id]: entry.manifest.version };
-    await persistFn(EXTERNAL_TRUSTED_KEY, trustedMap);
   }
-  await clearLoadError(id);
-  if (!enabledIds.includes(id)) {
-    enabledIds = [...enabledIds, id];
-    await persistFn(EXTERNAL_ENABLED_KEY, enabledIds);
-  }
+  if (!(await switchInMain(id, true))) return 'error';
+  clearLoadError(id);
+  await scanFromMain();
   await syncActiveExtensions();
   return activeExtensions.has(id) ? 'active' : 'error';
 }
 
 export async function disableExternalExtension(id) {
   if (!enabledIds.includes(id)) return false;
-  enabledIds = enabledIds.filter((x) => x !== id);
-  await persistFn(EXTERNAL_ENABLED_KEY, enabledIds);
+  if (!(await switchInMain(id, false))) return false;
   await syncActiveExtensions();
   return true;
 }
 
 // Entfernen: deaktivieren, Verzeichnis über den Main löschen (der zeigt
-// die Bestätigung), Store-Spuren aufräumen, neu scannen.
+// die Bestätigung), Store-Spuren aufräumen, neu scannen. 4T-002650: Die
+// Store-Spuren räumt der Hauptprozess ab; hier nur der Spiegel.
 export async function removeExternalExtension(id) {
   if (typeof api.removeExternalExtension !== 'function') return false;
   let result;
@@ -756,16 +772,8 @@ export async function removeExternalExtension(id) {
     return false;
   }
   if (!result || result.removed !== true) return false;
-  if (enabledIds.includes(id)) {
-    enabledIds = enabledIds.filter((x) => x !== id);
-    await persistFn(EXTERNAL_ENABLED_KEY, enabledIds);
-  }
-  if (trustedMap[id]) {
-    trustedMap = { ...trustedMap };
-    delete trustedMap[id];
-    await persistFn(EXTERNAL_TRUSTED_KEY, trustedMap);
-  }
-  await clearLoadError(id);
+  enabledIds = enabledIds.filter((x) => x !== id);
+  clearLoadError(id);
   await rescanExternalExtensions();
   return true;
 }
@@ -776,13 +784,7 @@ export async function removeExternalExtension(id) {
 // ist ein No-op.
 export async function syncExternalExtensionsFromBroadcast() {
   await reloadStoreState();
-  if (typeof api.scanExternalExtensions === 'function') {
-    try {
-      entries = await api.scanExternalExtensions();
-    } catch (err) {
-      console.warn('Erweiterungs-Scan fehlgeschlagen:', err);
-    }
-  }
+  if (typeof api.scanExternalExtensions === 'function') await scanFromMain();
   await syncActiveExtensions();
 }
 
@@ -797,9 +799,8 @@ export function resetExternalHostForTests(testEntries = []) {
   translationState.clear();
   renderCallbacks.clear();
   stopRenderObservers();
-  entries = testEntries;
+  applyScan(testEntries);
   enabledIds = [];
-  trustedMap = {};
   errorMap = {};
 }
 

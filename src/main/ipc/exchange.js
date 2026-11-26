@@ -20,6 +20,7 @@
 'use strict';
 
 const fs = require('node:fs/promises');
+const path = require('node:path');
 const { collectDataKinds, buildExchangeSections } = require('../../shared/exchange-collect');
 const { EXCHANGE_KIND, DATA_KIND_IDS } = require('../../shared/exchange-data-kinds');
 const {
@@ -28,6 +29,7 @@ const {
   FORMAT_VERSION,
 } = require('../../shared/exchange-file');
 const { planeUebernahme, planSignatur } = require('../../shared/exchange-merge');
+const { PERMISSION_KEYS, PROTECTED_KEYS, related } = require('../app/settings-classes');
 const {
   createSettingsVerteilung,
   verteilSchluesselUnter,
@@ -47,6 +49,86 @@ const {
 //   `workflow:folderChanged`; Menü und Kommando-Palette ziehen sofort nach.
 const SOFORT_UEBER_SPEICHER = ['workflows.folder'];
 
+// Review-Befunde S2 (Runde 1) und Runde 2 vom 2026-11-22 (Epic 3E-000416):
+// Das Einlesen schreibt in den Speicher und damit an den eigenen Kanälen der
+// Klassen 2 und 3 (`app/settings-classes.js`) vorbei. **Jeder** Schlüssel
+// dieser Klassen, den eine Datenart erreicht (der Pfad selbst, ein Schlüssel
+// darunter oder darüber), bekommt deshalb hier eine Behandlung; ohne Eintrag
+// gilt «bleibt»: Der vorhandene Wert wird behalten und in Vorschau und
+// Bericht benannt (fail closed). Anlass der Regel: Die Behebung aus Runde 1
+// nahm nur die beiden Ordner auf, und über den Pfad `scripts` der Einstellungen
+// schaltete eine Einrichtungs-Datei weiter `scripts.run` ohne Dialog ein.
+//
+// - `ordner`: Der Ordner wird wie in seinem eigenen Kanal gegen die
+//   geschützten Ordner geprüft (`workflow:setFolder`, `templates:setGlobalConfig`,
+//   Umfang `bind`); die Stelle des Ordners im Wert leitet `ordnerIm` aus dem
+//   Schlüssel ab, für jeden Pfad, der ihn erreicht (Hinweis der Runde 3).
+// - `mit`: reist ohne Prüfung mit, mit Begründung.
+//   - `templates.rules`: Die Ordner der Regeln werden nur mit dem Pfad einer
+//     neu angelegten Datei verglichen; nichts liest oder schreibt dort
+//     (`channel-declarations/templates.js`).
+//   - `extensionsExternal.enabled`: Der Schalt-Zustand kann kein Add-on
+//     ausliefern lassen, das nicht bestätigt ist, weil die Auslieferung allein
+//     an `mayDeliver` in `extensions/extension-trust.js` hängt, die die
+//     Bestätigung selbst prüft; die Bestätigung reist nicht mit.
+const BEIM_EINLESEN = Object.freeze({
+  'templates.folder': 'ordner',
+  'workflows.folder': 'ordner',
+  'templates.rules': 'mit',
+  'extensionsExternal.enabled': 'mit',
+});
+const GESCHUETZTE_SCHLUESSEL = Object.freeze([...PERMISSION_KEYS, ...PROTECTED_KEYS]);
+
+// Die geschützten Schlüssel, die ein Pfad erreicht, ohne Behandlung «ordner»
+// oder «mit», also die, deren vorhandener Wert bleibt.
+// Die Beziehung «gleich, darüber oder darunter» ist `related` aus
+// `settings-classes.js`, keine zweite Fassung (Hinweis der Runde 3, Klasse L5).
+function bleibendeUnter(pfad) {
+  return GESCHUETZTE_SCHLUESSEL.filter((k) => !BEIM_EINLESEN[k] && related(k, pfad));
+}
+
+// Setzt im Objekt-Wert eines Pfads den Teil unter `rest` (Punkt-Pfad) auf den
+// vorhandenen Wert oder entfernt ihn, wenn es keinen gibt. Arbeitet auf einer
+// Kopie; der eingelesene Abschnitt bleibt unverändert für die Übernahme.
+function mitVorhandenem(wert, rest, vorhanden) {
+  const kopie = structuredClone(wert);
+  const teile = rest.split('.');
+  let knoten = kopie;
+  for (const teil of teile.slice(0, -1)) {
+    if (!knoten[teil] || typeof knoten[teil] !== 'object') {
+      if (vorhanden === undefined) return kopie;
+      knoten[teil] = {};
+    }
+    knoten = knoten[teil];
+  }
+  const letzter = teile[teile.length - 1];
+  if (vorhanden === undefined) delete knoten[letzter];
+  else knoten[letzter] = vorhanden;
+  return kopie;
+}
+
+function liesTeil(wert, rest) {
+  return rest.split('.').reduce((k, t) => (k && typeof k === 'object' ? k[t] : undefined), wert);
+}
+
+// Die Ordner der Behandlung «ordner», die ein Pfad mit seinem Wert erreicht,
+// abgeleitet aus dem Schlüssel statt aus einer Tabelle je Pfad (Hinweis der
+// Runde 3 beider Prüfer): Ist der Schlüssel der Pfad selbst, ist der Wert der
+// Ordner; liegt er darunter, steht der Ordner an der Stelle des Rests. Liegt
+// der Pfad unter dem Schlüssel, wäre er ein Teil eines Ordner-Textes; das
+// gibt es nicht, und `ungueltig` weist ihn ab (fail closed).
+function ordnerIm(pfad, wert) {
+  const ordner = [];
+  let ungueltig = false;
+  for (const [k, art] of Object.entries(BEIM_EINLESEN)) {
+    if (art !== 'ordner' || !related(k, pfad)) continue;
+    if (k === pfad) ordner.push(wert);
+    else if (k.startsWith(`${pfad}.`)) ordner.push(liesTeil(wert, k.slice(pfad.length + 1)));
+    else ungueltig = true;
+  }
+  return { ordner, ungueltig };
+}
+
 /**
  * Registriert die Kanäle des Einrichtungs-Austauschs.
  *
@@ -62,6 +144,9 @@ const SOFORT_UEBER_SPEICHER = ['workflows.folder'];
  * @param {(win: object, key: string) => string} deps.tForWindow Übersetzung im Fenster-Kontext.
  * @param {() => string} deps.fullVersion Volle Anzeige-Version.
  * @param {object} deps.app Electron-App (Produkt-Name der Herkunft).
+ * @param {(channel: string, targetPath: string, scope: string) => Promise<object|null>} deps.checkTarget
+ *   Prüfung eines Ordners gegen die geschützten Ordner (`channel-guard.js`);
+ *   `null` heißt erlaubt (Review-Befund S2).
  */
 function registerExchangeIpc(handle, deps) {
   const {
@@ -75,6 +160,7 @@ function registerExchangeIpc(handle, deps) {
     tForWindow,
     fullVersion,
     app,
+    checkTarget,
   } = deps;
 
   // Dieselbe Verteilung, die auch `settings:set` fährt. Kein zweiter Weg.
@@ -219,6 +305,83 @@ function registerExchangeIpc(handle, deps) {
     );
   }
 
+  // Behandlung «bleibt» (Kopf der Datei): Der eingelesene Wert eines
+  // geschützten Schlüssels wird durch den vorhandenen ersetzt, bevor die
+  // Signatur entsteht. Weicht er ab, nennt `behalten` den Schlüssel in
+  // Vorschau und Bericht. Ein Pfad, der selbst ein solcher Schlüssel ist oder
+  // unter einem liegt, fällt ganz weg, ebenso ein Pfad darüber, dessen Wert
+  // kein Objekt ist.
+  function behalteGeschuetzte(plan) {
+    const store = getStore();
+    for (const eintrag of plan.kinds) {
+      eintrag.behalten = [];
+      if (eintrag.action === 'skip' || eintrag.areaSection) continue;
+      for (const pfad of Object.keys(eintrag.values)) {
+        for (const schluessel of bleibendeUnter(pfad)) {
+          const vorhanden = store ? store.get(schluessel) : undefined;
+          if (!schluessel.startsWith(`${pfad}.`)) {
+            delete eintrag.values[pfad];
+            eintrag.behalten.push(schluessel);
+            break;
+          }
+          const wert = eintrag.values[pfad];
+          // Hinweis der Runde 3: Ist der Wert kein Objekt, etwa `scripts: true`,
+          // löschte er den Schlüssel darunter still. Dann fällt der Pfad weg.
+          if (!wert || typeof wert !== 'object' || Array.isArray(wert)) {
+            delete eintrag.values[pfad];
+            eintrag.behalten.push(schluessel);
+            break;
+          }
+          const rest = schluessel.slice(pfad.length + 1);
+          if (JSON.stringify(liesTeil(wert, rest)) === JSON.stringify(vorhanden)) continue;
+          eintrag.values[pfad] = mitVorhandenem(wert, rest, vorhanden);
+          eintrag.behalten.push(schluessel);
+        }
+      }
+    }
+  }
+
+  // Review-Befund S2: Eine Datenart mit einem Ordner in einem geschützten Ordner
+  // wird ganz übersprungen und in Vorschau und Bericht so benannt. Vorschau
+  // und Übernahme rufen dieselbe Prüfung; das Ergebnis geht vor der Signatur
+  // in den Plan ein. Ein leerer Wert heißt «nicht festgelegt» und wird nicht
+  // geprüft; ein relativer wird abgewiesen (Grund `invalid-folder`). Ohne
+  // Prüf-Funktion gilt der Ordner als abgewiesen (fail closed).
+  async function pruefeOrdner(plan, kanal) {
+    for (const eintrag of plan.kinds) {
+      if (eintrag.action === 'skip' || eintrag.areaSection) continue;
+      const funde = Object.entries(eintrag.values).map(([pfad, wert]) => ordnerIm(pfad, wert));
+      const ordnerListe = funde.flatMap((f) => f.ordner);
+      if (funde.some((f) => f.ungueltig)) {
+        eintrag.action = 'skip';
+        eintrag.grund = 'invalid-folder';
+        eintrag.values = {};
+        continue;
+      }
+      for (const ordner of ordnerListe) {
+        if (typeof ordner !== 'string' || ordner.trim() === '') continue;
+        // Hinweis aus Runde 2: Wie die eigenen Kanäle nimmt auch das Einlesen
+        // nur einen absoluten Ordner an.
+        if (!path.isAbsolute(ordner.trim())) {
+          eintrag.action = 'skip';
+          eintrag.grund = 'invalid-folder';
+          eintrag.values = {};
+          break;
+        }
+        const abweisung =
+          typeof checkTarget === 'function'
+            ? await checkTarget(kanal, ordner.trim(), 'bind')
+            : { ok: false };
+        if (abweisung) {
+          eintrag.action = 'skip';
+          eintrag.grund = 'protected-folder';
+          eintrag.values = {};
+          break;
+        }
+      }
+    }
+  }
+
   // Vorschau: lesen, prüfen, planen — und nichts schreiben.
   handle('exchange:plan', async (event, dateiPfad) => {
     if (typeof dateiPfad !== 'string' || dateiPfad === '') {
@@ -241,6 +404,8 @@ function registerExchangeIpc(handle, deps) {
         eintrag.values = {};
       }
     }
+    behalteGeschuetzte(plan);
+    await pruefeOrdner(plan, 'exchange:plan');
 
     const nurNachNeustart = [];
     for (const eintrag of plan.kinds) {
@@ -278,6 +443,7 @@ function registerExchangeIpc(handle, deps) {
         abgewiesen: k.abgewiesen || [],
         ersetzt: k.ersetzt.length,
         verworfen: k.verworfen,
+        behalten: k.behalten || [],
       })),
     };
   });
@@ -298,6 +464,8 @@ function registerExchangeIpc(handle, deps) {
         eintrag.values = {};
       }
     }
+    behalteGeschuetzte(plan);
+    await pruefeOrdner(plan, 'exchange:apply');
     // Der Bestand hat sich zwischen Vorschau und Klick geändert: Was jetzt
     // geschähe, ist nicht, was bestätigt wurde.
     if (planSignatur(plan) !== gemerkt.signatur) {
@@ -364,8 +532,9 @@ function registerExchangeIpc(handle, deps) {
       abgewiesen: eintrag.abgewiesen || [],
       ersetzt: eintrag.ersetzt.length,
       verworfen: eintrag.verworfen,
+      behalten: eintrag.behalten || [],
     };
   }
 }
 
-module.exports = { registerExchangeIpc };
+module.exports = { registerExchangeIpc, BEIM_EINLESEN, bleibendeUnter, ordnerIm };

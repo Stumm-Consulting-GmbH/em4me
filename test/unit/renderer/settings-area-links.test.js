@@ -5,7 +5,7 @@
 // Geprüft wird der Teil, der eine eigene Regel trägt: was als Änderung gilt,
 // was das Anwenden anhält und was still entfällt. Das Zeichnen selbst prüft
 // der E2E-Fall BV-04 an der laufenden Anwendung.
-import { describe, it, expect, vi } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 import './api-stub.js';
 
 const modul = await import('../../../src/renderer/modules/settings/settings-area-links.js');
@@ -173,4 +173,56 @@ describe('Schalter «Workflows» des Verknuepfungs-Eintrags (4T-002426)', () => 
     expect(gesendet).toEqual([[{ prefix: 'zt', path: ORT, templates: false, workflows: true }]]);
     await vi.waitFor(() => expect(window.api.workflowFolderList).toHaveBeenCalledTimes(1));
   });
+});
+
+// 4T-002440 (Epic 3E-000445): Bei ausgeschalteter Erweiterung ist der
+// zugehörige Schalter ausgeblendet; die gespeicherte Wahl bleibt erhalten und
+// erscheint nach dem Wiedereinschalten wieder.
+const lebenszyklus =
+  await import('../../../src/renderer/modules/extensions/extension-lifecycle.js');
+
+describe('Schalter bei ausgeschalteter Erweiterung (4T-002440)', () => {
+  async function zeichneMit(abgeschaltet, d) {
+    await lebenszyklus.applyExtensionsState(abgeschaltet, { persist: false });
+    const container = document.createElement('div');
+    renderAreaLinksSection(container, d);
+    return {
+      vorlagen: container.querySelector('#settings-area-links-templates-0'),
+      workflows: container.querySelector('#settings-area-links-workflows-0'),
+    };
+  }
+
+  afterEach(async () => {
+    await lebenszyklus.applyExtensionsState([], { persist: false });
+  });
+
+  for (const [kennung, feld, anderes] of [
+    ['templates', 'vorlagen', 'workflows'],
+    ['workflows', 'workflows', 'vorlagen'],
+  ]) {
+    it(`blendet bei ausgeschalteter Erweiterung «${kennung}» nur ihren Schalter aus und behält die Wahl`, async () => {
+      const stand = [{ prefix: 'zt', path: ORT, templates: true, workflows: true }];
+      const d = entwurf([{ ...stand[0] }], stand);
+
+      const aus = await zeichneMit([kennung], d);
+      expect(aus[feld]).toBeNull();
+      expect(aus[anderes]).not.toBeNull();
+      // Die Wahl bleibt im Entwurf, gilt nicht als Änderung und wird beim
+      // Speichern unverändert zurückgeschrieben.
+      expect(d.areaLinks.eintraege[0]).toMatchObject({ templates: true, workflows: true });
+      expect(dirtyAreaLinksSection(d)).toBe(false);
+      const gesendet = [];
+      window.api.setAreaLinkConfig = vi.fn(async (links) => {
+        gesendet.push(links);
+        return { ok: true };
+      });
+      d.areaLinks.eintraege[0].path = 'C:\\Anders';
+      await applyAreaLinksSection(d);
+      expect(gesendet[0][0]).toMatchObject({ templates: true, workflows: true });
+
+      const an = await zeichneMit([], d);
+      expect(an[feld]).not.toBeNull();
+      expect(an[feld].checked).toBe(true);
+    });
+  }
 });

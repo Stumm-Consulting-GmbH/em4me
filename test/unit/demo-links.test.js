@@ -32,6 +32,9 @@ import {
 // 4T-001912 (Epic 3E-000360): Code-Blöcke nach der Zaun-Regel aus ihrer einen
 // Heimat, wie im Bereichs-Index; der geteilte Ausdruck `FENCE_RE` ist entfallen.
 import { schliesstZaun, zaunOeffnung } from '../../src/shared/markdown/fence-level.js';
+import { extractFrontmatter } from '../../src/shared/markdown/frontmatter.js';
+// 4T-002631 (Epic 3E-000395): Angaben des Titelbilds aus dem Kern der Anwendung.
+import { titelbildAngaben } from '../../src/shared/markdown/titelbild.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEMO_DIR = path.resolve(HERE, '..', '..', 'src', 'demo');
@@ -186,6 +189,37 @@ describe('Verweis-Ziele der Beispiel-Sammlung', () => {
     // Gegenprobe gegen einen Scan, der nichts findet und deshalb grün ist: Die
     // Sammlung führt seit der Canvas-Stufe 3 beide Karten-Arten vor.
     expect(gefunden).toBeGreaterThanOrEqual(2);
+    expect(tot).toEqual([]);
+  });
+
+  // 4T-002631 (Epic 3E-000395): Das Titelbild steht im Kopf eines Dokuments und
+  // entgeht damit beiden Scans darüber. Gelesen wird es mit dem Kern der
+  // Anwendung (titelbildAngaben), nicht mit einem Nachbau; die Pfad-Form löst
+  // gegen den Ordner des Dokuments auf, die Wiki-Form über den Namen im Bereich.
+  it('löst jedes Titelbild der Sammlung auf eine vorhandene Bilddatei auf', () => {
+    const tot = [];
+    const mitTitelbild = [];
+    for (const datei of DATEIEN) {
+      const fm = extractFrontmatter(fs.readFileSync(datei.voll, 'utf8'));
+      const angaben = titelbildAngaben(fm.parseError ? null : fm.data);
+      if (!angaben) continue;
+      mitTitelbild.push(path.relative(DEMO_DIR, datei.voll).split(path.sep).join('/'));
+      if (angaben.form === 'pfad') {
+        const ziel = path.resolve(path.dirname(datei.voll), angaben.quelle);
+        if (!ziel.startsWith(DEMO_DIR + path.sep) || !fs.existsSync(ziel)) {
+          tot.push(`${datei.basename}: Titelbild "${angaben.quelle}" existiert nicht`);
+        }
+      } else if (angaben.form === 'wiki') {
+        if (!ANLAGEN.get(path.basename(angaben.quelle))) {
+          tot.push(`${datei.basename}: Titelbild "${angaben.quelle}" existiert nicht`);
+        }
+      } else {
+        tot.push(`${datei.basename}: Titelbild in der Form "${angaben.form}" zeigt nichts`);
+      }
+    }
+    // Gegenprobe gegen einen Scan, der nichts findet: Das Kapitel zu den
+    // Eigenschaften führt das Titelbild vor.
+    expect(mitTitelbild).toContain('05 Properties and Profiles.md');
     expect(tot).toEqual([]);
   });
 

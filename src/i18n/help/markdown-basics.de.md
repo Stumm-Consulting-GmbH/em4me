@@ -4,7 +4,7 @@ Die App rendert Markdown auf Grundlage des CommonMark-Standards, erweitert um Ta
 
 ## Überschriften
 
-Sechs Ebenen mit `#` bis `######`; jede Überschrift erhält automatisch einen Anker für Links und Inhaltsverzeichnis.
+Sechs Ebenen mit `#` bis `######`; jede Überschrift erhält automatisch einen Anker für Links und Inhaltsverzeichnis. Ein Inhaltsverzeichnis im Dokument selbst setzt der Inhaltsverzeichnis-Block (siehe [Block-Konstrukte](blocks.md)).
 
 ```markdown
 ## Kapitel
@@ -131,7 +131,7 @@ Das Verhalten gilt in der Quellcode-, der geteilten und der Live-Ansicht. Die Ei
 
 ## Tabellen
 
-Pipe-Tabellen mit Kopfzeile und Trennerzeile; Doppelpunkte in der Trennerzeile steuern die Ausrichtung. Für mehrzeilige Block-Zellen gibt es [Perspective Table](perspective-table.md), für Komfort beim Tippen den Tabellen-Editor (siehe [Werkzeuge](tools.md)). Zum Umbauen bestehender Tabellen (Zeilen und Spalten verschieben, einfügen und löschen, Ausrichtung, Transponieren) dient das Untermenü **Tabelle** im [Editor-Kontextmenü](context-menu.md).
+Pipe-Tabellen mit Kopfzeile und Trennerzeile; Doppelpunkte in der Trennerzeile steuern die Ausrichtung. Für mehrzeilige Block-Zellen gibt es [Perspective Table](perspective-table.md), für Komfort beim Tippen den Tabellen-Editor (siehe [Werkzeuge](tools.md)). Zum Umbauen bestehender Tabellen (Zeilen und Spalten verschieben, einfügen und löschen, Ausrichtung, Transponieren) dient das Untermenü **Tabelle** im [Editor-Kontextmenü](context-menu.md). Ein Zellbereich aus einer Tabellenkalkulation wird beim Einfügen selbst zur Tabelle (siehe [Werkzeuge](tools.md)).
 
 ```markdown
 | Links | Zentriert | Rechts |

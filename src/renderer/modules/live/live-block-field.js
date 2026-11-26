@@ -15,6 +15,7 @@ import { localTodayIso } from '../../../shared/markdown/perspective-events.js';
 // Konstrukt-Pass steht unter der Guard seiner Erweiterung, damit der
 // Live-Modus konsistent zum Render-Pane schaltet.
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
+import { stripBlockComments } from '../../../shared/markdown/plugins/comments-block.js';
 // 4T-000283 (Epic 3E-000050): Schalter-Zustand der Frontmatter-Anzeige als
 // Guard fuer das Frontmatter-Block-Widget (zyklenfrei: importiert nur api).
 import { isFrontmatterDisplayEnabled } from '../frontmatter-display.js';
@@ -45,6 +46,9 @@ import { tabelleOhneAnkerZeilen } from './live-block-anker.js';
 import { dokStelle, ohneZitatPraefixe, zitatPraefixeAb } from './live-table-zell-kern.js';
 // 4T-002342 (Epic 3E-000365): Treffer der Suche in den Zellen der Tabelle.
 import { sucheGeaendert, tabellenTrefferSignatur, trefferImBlock } from './live-table-treffer.js';
+// 4T-002558 (Epic 3E-000390): Inhaltsverzeichnis-Block mit den Überschriften des Dokuments.
+import { TOC_EXTENSION_ID, TOC_FENCE } from '../../../shared/markdown/plugins/toc.js';
+import { tocWidgetKontext } from './live-toc.js';
 
 // 4T-000084 / 4T-000088: StateField fuer Block-Widget-Decorations im Live-
 // Modus. ViewPlugins duerfen keine Replace-Decorations liefern, deren
@@ -259,6 +263,7 @@ export function buildBlockWidgetValue(state) {
       // unverändert bleibt.
       let docPrefix = '';
       let treffer = [];
+      let tocQuelle = null;
       if (name === 'Table') {
         // 4T-002048: Das Widget endet vor den Anker-Zeilen am Tabellenende; sie
         // stehen darunter mit dem Anker-Zeichen statt als Tabellenzeile.
@@ -296,6 +301,11 @@ export function buildBlockWidgetValue(state) {
               break;
             }
             codeTextChild = codeTextChild.nextSibling;
+          }
+          // 4T-002838 (Epic 3E-000447): ohne private Kommentare, mit den
+          // eigenen %%-Zeilen des Diagramms.
+          if (isExtensionActive('comments')) {
+            mermaidSource = stripBlockComments(mermaidSource, { mermaid: true });
           }
           if (!mermaidSource) return;
           const theme = currentMermaidTheme();
@@ -339,6 +349,19 @@ export function buildBlockWidgetValue(state) {
           // Widget nach einer Spalten-Umbenennung weiter die alten Köpfe.
           // Dasselbe Muster wie der Stichtag bei den Ereignissen.
           cacheKey = `perspective-records:${mermaidHash(docPrefix)}:${mermaidHash(source)}`;
+        } else if (lang === TOC_FENCE && isExtensionActive(TOC_EXTENSION_ID)) {
+          // 4T-002558 (Epic 3E-000390, V5): Das Verzeichnis braucht alle
+          // Überschriften des Dokuments; sie reisen als Zusatz-Kontext mit und
+          // stehen im Schlüssel, damit das Widget bei jeder Änderung einer
+          // Überschrift neu rendert und sonst nicht. Der Kopf-Block reist wie
+          // beim Datensatz-Block mit, weil er die Nummerierung des Dokuments trägt.
+          const toc = tocWidgetKontext(state, mermaidHash);
+          tocQuelle = toc.quelle;
+          docPrefix =
+            frontmatterEndLine > 0
+              ? state.doc.sliceString(0, state.doc.line(frontmatterEndLine).to) + '\n'
+              : '';
+          cacheKey = `toc:${toc.schluessel}:${mermaidHash(docPrefix)}:${mermaidHash(source)}`;
         } else if (lang === 'perspective-table') {
           cacheKey = `perspective-table:${mermaidHash(source)}`;
         } else if (lang === 'perspective-events') {
@@ -361,6 +384,7 @@ export function buildBlockWidgetValue(state) {
             '',
             bis - node.from,
             treffer,
+            tocQuelle,
           ),
         }).range(node.from, bis),
       );

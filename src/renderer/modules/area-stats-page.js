@@ -42,6 +42,21 @@ const KURZ_LISTE = 25;
 // zweimal im Code, sonst liefe der Sprung nach einem Tippfehler still ins Leere.
 const WAISEN_BLOCK_ID = 'area-stats-waisen';
 
+// 4T-002783 (Epic 3E-000392): Kennung des Blocks «Verweise ohne Ziel», das
+// Sprung-Ziel seiner Kennzahl (Muster WAISEN_BLOCK_ID).
+const TOTE_BLOCK_ID = 'area-stats-verweise-ohne-ziel';
+
+// 4T-002783 (V10): Die Gründe kommen als Kennung aus dem Hauptprozess
+// (GRUND in src/main/index/verweise-ohne-ziel.js) und werden erst hier zu Text.
+const GRUND_SCHLUESSEL = {
+  'dokument-fehlt': 'stats.deadLinks.reason.documentMissing',
+  'ueberschrift-fehlt': 'stats.deadLinks.reason.headingMissing',
+  'block-anker-fehlt': 'stats.deadLinks.reason.blockAnchorMissing',
+  'ausserhalb-bereich': 'stats.deadLinks.reason.outsideArea',
+  'verknuepft-nicht-gefunden': 'stats.deadLinks.reason.linkedNotFound',
+  'verknuepfung-nicht-nutzbar': 'stats.deadLinks.reason.linkUnusable',
+};
+
 // Seiten-Zustand: erhobene Kennzahlen, Lade-Kennzeichen und die reine
 // Anzeige-Ordnung der beiden Häufigkeits-Tabellen (flüchtig, überlebt das
 // Schließen nicht).
@@ -285,6 +300,87 @@ function topListe(spalte, titelKey, wertSpalteKey, eintraege, wertVon, id) {
   spalte.appendChild(block);
 }
 
+// 4T-002783 (Epic 3E-000392): Zeilen der Liste «Verweise ohne Ziel» aus dem
+// Antwort-Feld `verweiseOhneZiel` des Hauptprozesses. Verweis und Name sind
+// fremder Text aus den Dokumenten des Bereichs, und der Zwischenspeicher des
+// Index liegt im Bereich (Mitgabe des Sicherheits-Reviews zu 4T-002782): Kein
+// Typ wird vorausgesetzt, und beides wird nur als Text gesetzt (el() setzt
+// textContent). Eine Zeile gilt nur als ganze Zahl ab 1; sonst bleibt die
+// Zelle leer, und der Klick öffnet das Dokument ohne Sprung. Ein unbekannter
+// Grund erscheint als seine Kennung, damit kein Eintrag still verschwindet.
+export function verweisZeilen(feld) {
+  const roh = feld && Array.isArray(feld.eintraege) ? feld.eintraege : [];
+  return roh
+    .filter((e) => e && typeof e === 'object')
+    .map((e) => ({
+      pfad: typeof e.pfad === 'string' && e.pfad ? e.pfad : null,
+      name: String(e.name ?? ''),
+      zeile: Number.isInteger(e.zeile) && e.zeile >= 1 ? e.zeile : null,
+      verweis: String(e.verweis ?? ''),
+      grund: Object.prototype.hasOwnProperty.call(GRUND_SCHLUESSEL, e.grund)
+        ? t(GRUND_SCHLUESSEL[e.grund])
+        : String(e.grund ?? ''),
+    }));
+}
+
+// 4T-002783 (V13): Summe der nicht beurteilten Verweise über alle nicht
+// erreichbaren verknüpften Bereiche; die Seite nennt sie in einer Zeile.
+export function nichtGeprueftSumme(feld) {
+  const roh = feld && Array.isArray(feld.nichtErreichbar) ? feld.nichtErreichbar : [];
+  return roh.reduce(
+    (summe, b) => summe + (b && Number.isInteger(b.anzahl) && b.anzahl > 0 ? b.anzahl : 0),
+    0,
+  );
+}
+
+// 4T-002783 (V9): die fünfte Liste, ungekürzt wie die Waisen-Liste, mit vier
+// Spalten und deshalb über die ganze Breite. Ein Klick auf eine Zeile öffnet
+// das Dokument an der Zeile des Verweises. Der Name ist ein <button> wie in den
+// Nachbar-Listen und trägt die Bedienung mit der Tastatur; sein Klick erreicht
+// die Zeile, die den einen Klick-Weg hält.
+function verweiseOhneZielListe(spalte, zeilen, nichtGeprueft) {
+  const block = el('div', 'area-stats-top area-stats-top-wide');
+  block.id = TOTE_BLOCK_ID;
+  block.appendChild(el('h5', 'area-stats-top-title', t('stats.highlights.deadLinks')));
+  if (zeilen.length === 0) {
+    block.appendChild(el('p', 'area-stats-empty', t('stats.deadLinks.none')));
+  } else {
+    const table = el('table', 'area-stats-table area-stats-dead-links');
+    const headRow = table.createTHead().insertRow();
+    for (const key of [
+      'stats.col.document',
+      'stats.col.line',
+      'stats.col.link',
+      'stats.col.reason',
+    ]) {
+      headRow.appendChild(el('th', null, t(key)));
+    }
+    const tbody = table.createTBody();
+    for (const z of zeilen) {
+      const tr = tbody.insertRow();
+      const knopf = el('button', 'area-stats-file', z.name);
+      knopf.type = 'button';
+      tr.insertCell().appendChild(knopf);
+      tr.appendChild(el('td', 'area-stats-value', z.zeile === null ? '' : String(z.zeile)));
+      tr.appendChild(el('td', 'area-stats-link', z.verweis));
+      tr.appendChild(el('td', null, z.grund));
+      if (z.pfad) {
+        knopf.title = z.pfad;
+        tr.addEventListener('click', () => void openOrJumpToPath(z.pfad, z.zeile));
+      } else {
+        knopf.disabled = true;
+      }
+    }
+    block.appendChild(table);
+  }
+  // V13, L3: unter der Liste, nur wenn es nicht beurteilte Verweise gibt.
+  if (nichtGeprueft > 0) {
+    const text = t('stats.deadLinks.unchecked').replace('{count}', zahl(nichtGeprueft));
+    block.appendChild(el('p', 'area-stats-note area-stats-unchecked', text));
+  }
+  spalte.appendChild(block);
+}
+
 // --- Seiten-Aufbau -----------------------------------------------------------
 
 function zeichne() {
@@ -416,6 +512,7 @@ function zeichneAbschnitte(root, daten) {
     ],
   ]);
 
+  const tote = verweisZeilen(daten.verweiseOhneZiel);
   const inhalte = abschnitt(root, 'stats.section.content');
   kennzahlen(inhalte, [
     [t('stats.content.tasks'), zahl(daten.inhalte.aufgaben.gesamt)],
@@ -432,6 +529,13 @@ function zeichneAbschnitte(root, daten) {
       daten.auffaelligkeiten.unverlinkt.length
         ? { id: WAISEN_BLOCK_ID, titel: 'stats.content.orphansJump' }
         : null,
+    ],
+    // 4T-002783 (L4, L6 Punkt 4): gezählt werden Verweise, nicht Dokumente.
+    [
+      t('stats.content.deadLinks'),
+      zahl(tote.length),
+      false,
+      tote.length ? { id: TOTE_BLOCK_ID, titel: 'stats.content.deadLinksJump' } : null,
     ],
   ]);
 
@@ -467,6 +571,8 @@ function zeichneAbschnitte(root, daten) {
     null,
     WAISEN_BLOCK_ID,
   );
+  // 4T-002783: die fünfte Liste, in der Reihenfolge der Antwort (Dokument, Zeile).
+  verweiseOhneZielListe(spalten, tote, nichtGeprueftSumme(daten.verweiseOhneZiel));
   auffaellig.appendChild(spalten);
 }
 

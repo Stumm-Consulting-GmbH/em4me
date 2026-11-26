@@ -26,6 +26,9 @@ import {
 } from './list-fold-track-setting.js';
 import { parseListItemHead } from '../../../shared/markdown/list-outline.js';
 import { createListFoldTrackLine } from './list-fold-track-zeile.js';
+// 4T-002558 (Epic 3E-000390): Erkennung der Überschriften-Knoten, gemeinsam mit
+// Panel und Inhaltsverzeichnis-Block.
+import { ueberschriftEbene } from './ueberschriften.js';
 
 // 4T-000013: Folding-Struktur-Cache. Wird bei jeder Doc-Aenderung aus dem
 // CodeMirror-syntaxTree neu aufgebaut. Enthaelt:
@@ -65,9 +68,8 @@ export function computeFoldStructure(state) {
   const blocks = [];
   syntaxTree(state).iterate({
     enter(node) {
-      const match = /^(?:ATX|Setext)Heading([1-6])$/.exec(node.name);
-      if (match) {
-        const level = parseInt(match[1], 10);
+      const level = ueberschriftEbene(node.name);
+      if (level) {
         const fromLine = state.doc.lineAt(node.from).number;
         headings.push({
           kind: 'heading',

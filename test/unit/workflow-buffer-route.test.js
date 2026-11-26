@@ -20,6 +20,9 @@ const {
 } = require('../../src/main/workflows/workflow-content-steps.js');
 const { createBufferRequests } = require('../../src/main/workflows/workflow-buffer-requests.js');
 const {
+  createWorkflowMaintenanceSteps,
+} = require('../../src/main/workflows/workflow-maintenance-steps.js');
+const {
   pufferBesitzer,
   uebergibAnPufferBesitzer,
 } = require('../../src/main/ipc/puffer-fenster.js');
@@ -54,7 +57,12 @@ function fenster(id) {
   };
 }
 
-function welt({ besitzer = null, frist = 1000, schritt: eigenerSchritt = null } = {}) {
+function welt({
+  besitzer = null,
+  frist = 1000,
+  schritt: eigenerSchritt = null,
+  backlinks = null,
+} = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-wf-weiche-'));
   tmpDirs.push(root);
   const ziel = path.join(root, 'Ziel.md');
@@ -64,7 +72,7 @@ function welt({ besitzer = null, frist = 1000, schritt: eigenerSchritt = null } 
   const bufferRequests = createBufferRequests({ timeoutMs: frist, newId: () => 'k-1' });
   const schritte = createWorkflowContentSteps({
     windows,
-    backlinks: { bufferTextFor: () => null, bufferOwnerFor: () => besitzer },
+    backlinks: backlinks || { bufferTextFor: () => null, bufferOwnerFor: () => besitzer },
     resolveHistoryFor: async () => ({ effective: false }),
     readPreviousTextFor: async () => null,
     recordMddOnSave: async () => {},
@@ -208,6 +216,118 @@ describe('Weg eines Inhalts-Schritts', () => {
       { requestId: 'k-1', ok: false, code: '<script>' },
     );
     expect((await lauf).code).toBe('bufferUnavailable');
+  });
+});
+
+// 4T-002812 (Epic 3E-000444, AK1 und AK2): Die Weiche am echten Index. Ein
+// Fenster meldet seinen Stand mit dem Merkmal «ungespeichert» (tab.dirty); hält
+// es das Dokument unverändert, ist es kein Schreibziel, und der Befehl schreibt
+// die Datei. Vorher galt jedes meldende Fenster als Besitzer: Der Befehl landete
+// im Fenster, und das unveränderte Dokument wurde zu einem ungespeicherten.
+describe('Schreibziel nach dem Merkmal «ungespeichert» (4T-002812)', () => {
+  const index = require('../../src/main/backlinks.js');
+  afterEach(() => index.clearAllBufferOverlays());
+
+  it('AK1: das startende Fenster hält das Dokument unverändert: die Datei wird geschrieben', async () => {
+    const w = welt({ backlinks: index });
+    index.setBufferOverlay(w.ziel, 'Platte\n', 1, false);
+    expect(await w.lauf()).toEqual({
+      ok: true,
+      effect: { kind: 'edited', paths: [w.ziel], via: 'disk' },
+    });
+    expect(platte(w)).toBe('Neu\n');
+    expect(w.andere.post).toEqual([]);
+  });
+
+  it('AK1: ein anderes Fenster hält es unverändert: die Datei wird geschrieben, kein Auftrag dorthin', async () => {
+    const w = welt({ backlinks: index, frist: 80 });
+    index.setBufferOverlay(w.ziel, 'Platte\n', 7, false);
+    expect((await w.lauf()).effect).toEqual({ kind: 'edited', paths: [w.ziel], via: 'disk' });
+    expect(platte(w)).toBe('Neu\n');
+    expect(w.andere.post).toEqual([]);
+  });
+
+  it('AK1: auf den gespeicherten Text zurückgetippt: die letzte Meldung gilt, die Datei wird geschrieben', async () => {
+    const w = welt({ backlinks: index });
+    index.setBufferOverlay(w.ziel, 'Platte und mehr\n', 1, true);
+    index.setBufferOverlay(w.ziel, 'Platte\n', 1, false);
+    expect((await w.lauf()).effect).toEqual({ kind: 'edited', paths: [w.ziel], via: 'disk' });
+    expect(platte(w)).toBe('Neu\n');
+  });
+
+  // Zweitblick des Epics, Runde 1, Befund 1: Der Eintrag des unverändert
+  // haltenden Fensters folgt dem geschriebenen Stand sofort. Vorher las der
+  // nächste Schritt desselben Laufs bis zum Nachladen im Fenster den Stand vor
+  // dem Schreiben, und das Abhaken einer eben eingesetzten Aufgabe endete mit
+  // `taskNotFound`.
+  it('Zweitblick R1 B1: der nächste Schritt desselben Laufs liest den geschriebenen Stand', async () => {
+    const einsetzen = {
+      line: 4,
+      keyword: 'replace',
+      args: ['Ziel.md', 'Platte', '- [ ] Neue Aufgabe'],
+      source: null,
+      position: null,
+    };
+    const w = welt({ backlinks: index, schritt: einsetzen });
+    index.setBufferOverlay(w.ziel, 'Platte\n', 1, false);
+    expect((await w.lauf()).effect).toEqual({ kind: 'edited', paths: [w.ziel], via: 'disk' });
+    expect(index.bufferTextFor(w.ziel)).toBe(platte(w));
+    expect(index.bufferOwnerFor(w.ziel)).toBe(null);
+    const pflege = createWorkflowMaintenanceSteps({ backlinks: index, trashItem: async () => {} });
+    const ctx = {
+      root: path.dirname(w.ziel),
+      owner: null,
+      event: null,
+      workflowAbs: path.join(path.dirname(w.ziel), 'Ablauf.md'),
+      backlinks: index,
+    };
+    const abhaken = await pflege.runMaintenanceStep(ctx, {
+      line: 5,
+      blockLine: 1,
+      keyword: 'complete-task',
+      args: ['Ziel.md', 'Neue Aufgabe'],
+    });
+    expect(abhaken).toEqual({
+      ok: true,
+      window: {
+        action: 'completeTask',
+        path: w.ziel,
+        line: 1,
+        taskText: '- [ ] Neue Aufgabe',
+      },
+    });
+  });
+
+  it('Zweitblick R1 B1: ein ungespeicherter Stand folgt der Platte nicht', () => {
+    const w = welt({ backlinks: index });
+    index.setBufferOverlay(w.ziel, 'Platte und mehr\n', 1, true);
+    const { folgePlattenStand } = require('../../src/main/index/overlay.js');
+    expect(folgePlattenStand(w.ziel, 'Neu\n')).toBe(false);
+    expect(index.bufferTextFor(w.ziel)).toBe('Platte und mehr\n');
+    expect(index.bufferOwnerFor(w.ziel)).toBe(1);
+  });
+
+  it('AK2: das startende Fenster hält einen geänderten Stand: Handgriff an den Puffer, Datei unverändert', async () => {
+    const w = welt({ backlinks: index });
+    index.setBufferOverlay(w.ziel, 'Platte und mehr\n', 1, true);
+    expect(await w.lauf()).toEqual({
+      ok: true,
+      window: { action: 'editOwnBuffer', path: w.ziel, edit: EDIT },
+    });
+    expect(platte(w)).toBe('Platte\n');
+  });
+
+  it('AK2: ein anderes Fenster hält einen geänderten Stand: Auftrag dorthin, Datei unverändert', async () => {
+    const w = welt({ backlinks: index });
+    index.setBufferOverlay(w.ziel, 'Platte und mehr\n', 7, true);
+    const lauf = w.lauf();
+    await new Promise((r) => setTimeout(r, 20));
+    expect(w.andere.post).toEqual([
+      { kanal: 'workflow:bufferEdit', daten: { requestId: 'k-1', path: w.ziel, edit: EDIT } },
+    ]);
+    w.bufferRequests.answer({ sender: { id: 7 } }, { requestId: 'k-1', ok: true });
+    expect((await lauf).effect).toEqual({ kind: 'edited', paths: [w.ziel], via: 'otherBuffer' });
+    expect(platte(w)).toBe('Platte\n');
   });
 });
 
