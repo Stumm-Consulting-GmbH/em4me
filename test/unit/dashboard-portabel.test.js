@@ -241,6 +241,18 @@ describe('Kachel-Arten als statischer Text (AK3)', () => {
     expect(listeMarkdown(rs, L)).toBe('- [ ] Einkaufen \\#heute ([[A]])\n- [x] Fertig ([[A]])');
   });
 
+  // 4T-002863 (Epic 3E-000449): Die Zeile ohne private Kommentare, wo sie abweicht.
+  it('Liste: Aufgaben ohne privaten Kommentar (4T-002863)', () => {
+    const roh = '- [ ] Einkaufen %%Budget 80 Euro%%';
+    const rs = menge({
+      scope: 'tasks',
+      rows: [makeRow([], taskOrigin('/raum/A.md', 'A', 3, roh, '- [ ] Einkaufen '))],
+    });
+    const aus = listeMarkdown(rs, L);
+    expect(aus).toBe('- [ ] Einkaufen ([[A]])');
+    expect(aus).not.toContain('Budget');
+  });
+
   it('Liste mit Gruppen: Gruppe als Punkt, Treffer eingerückt, Gruppe ohne Wert benannt', () => {
     const rs = menge({
       rows: [zeile('a'), zeile('b'), zeile('c')],

@@ -17,6 +17,13 @@ import '../app/kommentar-code-frage.js';
  * und \%% bleiben). Ist die Erweiterung «comments» aus, sind %% gewoehnlicher
  * Text und bleiben stehen — wie in der Render-Pipeline.
  *
+ * 4T-002797 (Epic 3E-000449): Die Entfernung laeuft ueber die Bruecke
+ * `quelltextOhneKommentare`, weil nur der Zerleger der Anzeige im Preload die
+ * Ruempfe von Datentabelle, Canvas-Flaeche und den uebrigen Sonder-Bloecken auf
+ * jeder Ebene findet; die Regel des Fliesstexts allein laesst sie als Code
+ * stehen. Ohne Bruecke oder ohne Zeichenkette als Antwort (Pruefungen ohne
+ * Fenster) gilt die Regel des Fliesstexts wie bisher.
+ *
  * @param {string} text Der Dokument-Text.
  * @param {boolean} kommentareAktiv Zustand der Erweiterung «comments».
  * @returns {string}
@@ -25,5 +32,14 @@ export function quelltextFuerExport(text, kommentareAktiv) {
   const quelle = String(text == null ? '' : text);
   if (!kommentareAktiv) return quelle;
   const fm = extractFrontmatter(quelle);
-  return (fm.raw || '') + stripPercentComments(fm.body);
+  return (fm.raw || '') + rumpfOhneKommentare(fm.body);
+}
+
+function rumpfOhneKommentare(rumpf) {
+  const bruecke = typeof window !== 'undefined' && window ? window.api : null;
+  if (bruecke && typeof bruecke.quelltextOhneKommentare === 'function') {
+    const frei = bruecke.quelltextOhneKommentare(rumpf);
+    if (typeof frei === 'string') return frei;
+  }
+  return stripPercentComments(rumpf);
 }

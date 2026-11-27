@@ -105,6 +105,9 @@ const { hashText } = require('../documents/mdd-store.js');
 const { erfasseDatensaetze } = require('./datensatz-erfassung.js');
 // 4T-001761 (Epic 3E-000253): Der Schalter, mit dem der Datensatz-Bestand ruht.
 const { datensatzErfassungAktiv } = require('./index-schalter.js');
+// 4T-002863 (Epic 3E-000449): Rumpf ohne private Kommentare, Regel eingeschleust.
+const { zeilenOhneKommentare } = require('./index-kommentare.js');
+const { teilKontextAsync, teilKontextSync } = require('./teil-kommentare.js');
 // 4T-002013 (Epic 3E-000332): Lage der Text-Zellen einer Datentabelle, die eine
 // Quelle für Index, Umbenennungs-Nachzug, Schlagwort-Umbenennung und die
 // ausgehenden Verweise der offenen Datei.
@@ -228,7 +231,12 @@ function parseFile(filePath, segmentDefinition) {
   }
   // 4T-000348 (Epic 3E-000062): SHA-256 des Roh-Inhalts als Cache-Absicherung
   // mitfuehren (die Abgleich-Entscheidung bleibt mtime+size).
-  const parsed = parseContent(filePath, content, segmentDefinition);
+  const parsed = parseContent(
+    filePath,
+    content,
+    segmentDefinition,
+    teilKontextSync(filePath, content),
+  );
   parsed.hash = hashText(content);
   return parsed;
 }
@@ -245,19 +253,24 @@ async function parseFileAsync(filePath, segmentDefinition) {
   } catch {
     return null;
   }
-  const parsed = parseContent(filePath, content, segmentDefinition);
+  const teilKontext = await teilKontextAsync(filePath, content);
+  const parsed = parseContent(filePath, content, segmentDefinition, teilKontext);
   parsed.hash = hashText(content);
   return parsed;
 }
 
-function parseContent(filePath, content, segmentDefinition) {
+// 4T-002863 (Epic 3E-000449): `teilKontext` trägt bei einem Teil eines
+// geteilten Dokuments die Bereinigung, die am zusammengesetzten Dokument
+// entstanden ist (teil-kommentare.js); `zeilen` null heißt dort «unverändert».
+// Ohne ihn bereinigt der Parser den Rumpf der Datei selbst.
+function parseContent(filePath, content, segmentDefinition, teilKontext) {
   // M-04 (4T-000173): UTF-8-BOM entfernen — gleicher Fix wie in file:read
   // (main.js). Ohne Strip schluege die Frontmatter-Erkennung in Zeile 1
   // fehl und Aliases/Tags der Datei fehlten im Index. \uFEFF explizit
   // statt literalem BOM-Zeichen im Regex (unsichtbar, Lint-Befund).
   content = content.replace(/^\uFEFF/, '');
   const dir = path.dirname(filePath);
-  const lines = content.split(/\r?\n/);
+  const rohZeilen = content.split(/\r?\n/);
 
   // 4T-000050: Frontmatter erkennen. Heuristik wie in src/shared/markdown/frontmatter.js:
   // Zeile 1 muss genau '---' sein, Schluss-Zeile '---' oder '...' an
@@ -267,7 +280,18 @@ function parseContent(filePath, content, segmentDefinition) {
   // 4T-000344 (Epic 3E-000062): Frontmatter-Grenze aus der gemeinsamen Quelle, damit
   // Backlinks-Parser und Rewrite-Kern dieselbe Body-Grenze sehen. Der YAML-Parse
   // (Aliases/Tags) bleibt Backlinks-spezifisch.
-  const fmBodyStartLine = frontmatterBodyStart(lines);
+  const fmBodyStartLine = frontmatterBodyStart(rohZeilen);
+  // 4T-002863 (Epic 3E-000449): Ab hier liest der Index den Rumpf ohne private
+  // Kommentare (index-kommentare.js), zeilentreu, der Kopf-Block bleibt roh.
+  // `rohZeilen` bleibt für den Text einer Aufgabe, weil jeder Schreibweg ihn
+  // als erwartete Zeile und als Grundlage der neuen Zeile nutzt; ein Kommentar
+  // bleibt so beim Abhaken byte-genau stehen. Die Datensätze lesen weiter den
+  // Rohtext: Deren Zellen mit Kommentar führt die Datentabelle selbst (4T-002797).
+  const lines =
+    teilKontext && !teilKontext.zeilen
+      ? rohZeilen
+      : zeilenOhneKommentare(rohZeilen, fmBodyStartLine, teilKontext && teilKontext.zeilen);
+  const sichtbarerText = lines === rohZeilen ? content : lines.join('\n');
   let aliases = [];
   let properties = {};
   let dbKinds = [];
@@ -607,6 +631,10 @@ function parseContent(filePath, content, segmentDefinition) {
       // zustandsfrei und gilt fuer alle Fenster einer Wurzel; was in der Datei
       // steht, steht darin, unabhaengig davon, ob eine Sitzung die Canvas
       // gerade anzeigt. Der Schalter regelt die Anzeige, nicht den Inhalt.
+      // Die eine benannte Ausnahme ist die Erweiterung «Kommentare» (4T-002863,
+      // Epic 3E-000449): Ein privater Kommentar ist kein Inhalt, den die Anzeige
+      // nur anders darstellt, sondern Text, der nach außen nicht erscheinen
+      // soll. Dort folgt der Index dem Schalter (index-kommentare.js).
       if (inCanvasFence) {
         // Wirksam ist das LETZTE Vorkommen je Name — so entscheidet der
         // Canvas-Kern, dessen `attrs` beim zweiten Vorkommen ueberschreibt.
@@ -662,7 +690,7 @@ function parseContent(filePath, content, segmentDefinition) {
       // **Keine Kopplung an den Schalter der Erweiterung**, aus demselben Grund
       // wie bei der Canvas oben: Der Nachzug beim Umbenennen darf nicht davon
       // abhängen, ob die Anzeige gerade an ist, sonst bräche der Verweis beim
-      // Wiedereinschalten.
+      // Wiedereinschalten. Die Ausnahme «Kommentare» oben gilt auch hier.
       if (zellZustand) {
         const scanZeile = zellScanZeile(zellZustand, line);
         if (scanZeile !== null) {
@@ -697,7 +725,15 @@ function parseContent(filePath, content, segmentDefinition) {
     // angewandt, damit eine Filter-Aenderung keinen Index-Neuaufbau braucht).
     // Schnelle Kandidaten-Vorpruefung vor dem vollen Zeilen-Parse.
     if (TASK_CANDIDATE_RE.test(line) && parseTaskLine(line) !== null) {
-      tasks.push({ zeile: lineNum, text: line, heading: currentHeading });
+      // 4T-002863: `text` ist die rohe Zeile (Schreibwege), `sichtbar` die
+      // Zeile ohne Kommentar für Anzeige, Abfrage und Erinnerung, nur wenn
+      // sie sich unterscheidet.
+      const roh = rohZeilen[i];
+      tasks.push(
+        roh === line
+          ? { zeile: lineNum, text: line, heading: currentHeading }
+          : { zeile: lineNum, text: roh, sichtbar: line, heading: currentHeading },
+      );
     }
 
     scanneVerweiseUndSchlagworte(line, lineNum, line);
@@ -706,7 +742,7 @@ function parseContent(filePath, content, segmentDefinition) {
   // BOM-bereinigten Text — Anker am Zeilenende samt dem Namen aus der
   // Kopf-Angabe `table:` einer Datentabelle, ohne Frontmatter und Code-Blöcke,
   // jede Kennung einmal. Wie die übrigen Kennungen schalter-unabhängig.
-  blockIds.push(...extractBlockAnchors(content).order);
+  blockIds.push(...extractBlockAnchors(sichtbarerText).order);
   // 4T-001610: `recordDefSig` steht nur bei einem Folge-Segment und nennt die
   // Definition, gegen die zugeordnet wurde; der Zwischenspeicher vergleicht sie.
   //
@@ -732,6 +768,10 @@ function parseContent(filePath, content, segmentDefinition) {
     eigenAnkerVerweise,
     verknuepfungsVerweise,
     blockVerweise,
+    // Stand der Teile und die Geschwister, die neu einzulesen sind (build.js).
+    ...(teilKontext
+      ? { teilStand: teilKontext.stand, kommentarGeschwister: teilKontext.geschwister }
+      : {}),
   };
 }
 

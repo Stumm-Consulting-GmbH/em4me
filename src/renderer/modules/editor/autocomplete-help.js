@@ -309,9 +309,14 @@ async function applyTaskIdSuggestion(view, lineNumber, wordFrom, wordTo) {
     try {
       // 4T-002035: Treffer aus der Herkunft der Ergebnismenge.
       const payload = await api.runFrontmatterQuery(activeFile, 'LIST TASKS');
+      // 4T-002863 (Epic 3E-000449): Belegt sind die Kennungen der rohen und
+      // der sichtbaren Zeile; die Erkennung liest eine Kennung nur am
+      // Zeilenende, und ein privater Kommentar verschiebt dieses Ende.
       for (const hit of taskHits(payload && payload.resultSet)) {
-        const m = parseTaskLine(hit.taskText);
-        if (m && m.id) existing.push(m.id);
+        for (const text of [hit.taskText, hit.sichtbar]) {
+          const m = text === undefined ? null : parseTaskLine(text);
+          if (m && m.id) existing.push(m.id);
+        }
       }
     } catch {
       /* Best-Effort: ohne Index-Antwort wird gegen die leere Menge geprueft */

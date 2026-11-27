@@ -13,9 +13,9 @@
 // Ablauf-Fälle ZU-02 ff. in test/e2e/funktionen/zeilenumbruch.spec.js.
 import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import './api-stub.js';
+import { baumVollstaendig } from './syntax-baum-helfer.js';
 
 const { EditorView, runScopeHandlers } = await import('@codemirror/view');
-const { ensureSyntaxTree } = await import('@codemirror/language');
 const { createEditorState, createNotesEditorState } =
   await import('../../../src/renderer/modules/editor/editor.js');
 const { runListLineBreak, runListBreakEnterCleanup } =
@@ -40,7 +40,7 @@ function ansicht(doc, { marke, notiz = false, lesen = false } = {}) {
   if (Array.isArray(marke)) pos = view.state.doc.line(marke[0]).from + marke[1];
   else if (typeof marke === 'number') pos = marke;
   view.dispatch({ selection: { anchor: pos } });
-  ensureSyntaxTree(view.state, view.state.doc.length, 5000);
+  baumVollstaendig(view);
   return view;
 }
 

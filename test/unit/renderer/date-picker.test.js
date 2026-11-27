@@ -9,25 +9,21 @@
 // document.body haengt.
 import { describe, it, expect } from 'vitest';
 import './api-stub.js';
+import { zustandMitVollemBaum } from './syntax-baum-helfer.js';
 import { EditorState } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
 import { Table as LezerTable } from '@lezer/markdown';
-import { ensureSyntaxTree } from '@codemirror/language';
 import { extensionById } from '../../../src/shared/extensions/extensions.js';
 import { COMMANDS } from '../../../src/shared/commands/commands.js';
 
 const dp = await import('../../../src/renderer/modules/calendar/date-picker.js');
 
-// Voll geparster Markdown-State (Muster struktur-und-state.test.js): ohne
-// EditorView parst der Lezer-Kontext nur ueber Zeit-Budgets, deshalb die
-// Schleife bis der Syntaxbaum das ganze Dokument abdeckt.
+// Voll geparster Markdown-State: Der Lezer-Kontext parst nur über
+// Zeit-Budgets, deshalb die Hilfe, die zu Ende zerlegt und einen Zustand mit
+// dem vollständigen Baum liefert (syntax-baum-helfer.js).
 function mdState(doc) {
   const state = EditorState.create({ doc, extensions: [markdown({ extensions: [LezerTable] })] });
-  let guard = 0;
-  while (!ensureSyntaxTree(state, state.doc.length, 50) && guard++ < 400) {
-    /* weiter parsen */
-  }
-  return state;
+  return zustandMitVollemBaum(state);
 }
 
 describe('parseDateTimeValue: Trefferformen (4T-000486)', () => {

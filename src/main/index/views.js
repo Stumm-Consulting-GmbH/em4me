@@ -411,7 +411,12 @@ function areaTaskLines(rootPath) {
   const out = [];
   for (const [absPath, taskLines] of sicht.tasksPerFile) {
     for (const tl of taskLines) {
-      out.push({ path: absPath, zeile: tl.zeile, text: tl.text });
+      // 4T-002863 (Epic 3E-000449): `sichtbar` trägt die Zeile ohne private Kommentare.
+      out.push(
+        tl.sichtbar == null
+          ? { path: absPath, zeile: tl.zeile, text: tl.text }
+          : { path: absPath, zeile: tl.zeile, text: tl.text, sichtbar: tl.sichtbar },
+      );
     }
   }
   return out;

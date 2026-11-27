@@ -13,10 +13,10 @@
 // Ablauf-Fall SD-07 (`test/e2e/funktionen/suche-dokument.spec.js`).
 import { describe, it, expect } from 'vitest';
 import './api-stub.js';
+import { zustandMitVollemBaum } from './syntax-baum-helfer.js';
 import { EditorState } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
 import { Table as LezerTable } from '@lezer/markdown';
-import { ensureSyntaxTree } from '@codemirror/language';
 
 import { TabelleImZitat } from '../../../src/renderer/modules/editor/tabelle-im-zitat.js';
 
@@ -226,10 +226,7 @@ function zustand(doc) {
       liveBlockWidgetsField,
     ],
   });
-  let schutz = 0;
-  while (!ensureSyntaxTree(state, state.doc.length, 50) && schutz++ < 400) {
-    /* weiter */
-  }
+  state = zustandMitVollemBaum(state);
   // Schreibmarke am Textende, außerhalb der Tabelle.
   state = state.update({ selection: { anchor: state.doc.length } }).state;
   return state;

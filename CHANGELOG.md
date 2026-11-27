@@ -14,6 +14,126 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.162.1.6561] - 2026-11-27 — Private Kommentare in Datentabelle, Canvas-Fläche, Abfragen und Erinnerungen
+
+Fehler-Release ohne neue Funktionen, Vorhaben
+3E-000449,
+auf Entscheidung der Steuerung vom 2026-11-25 (Punkt 83) als eigenes Release
+nach dem Funktions-Release. Es schließt die Fälle, die das Fehler-Release
+1.161.3 als offen benannt hatte, soweit sie Datentabelle und Canvas-Fläche
+betreffen, und den Such-Index.
+
+**Datentabelle, Canvas-Fläche und Export als HTML**, Behebung
+4T-002797.
+Zwei Prozentzeichen in einer Zelle einer Datentabelle bilden einen privaten
+Kommentar, der nie über die Zelle hinausreicht (Punkt 21, Option A). Die
+Karten-Vorschau, die Karten-Liste und die Beschriftungen der Canvas-Fläche
+zeigen keinen Kommentar mehr. Der Export als HTML trägt keine Angabe mit rohem
+Block-Text mehr; gleiches Aussehen und gleiche Funktion der Datei sind durch
+Prüffälle belegt.
+
+**Such-Index ohne private Kommentare**, Behebung
+4T-002863.
+Der Index liest Dokumente mit derselben Kommentar-Erkennung wie die Anzeige.
+Abfrage-Treffer, Dashboards, Erinnerungen, Backlinks, Aufgaben-Dialog und das
+Workflow-Ereignis «Aufgabe erledigt» zeigen damit den sichtbaren Text; was in
+einem Kommentar steht, zählt nicht mehr (Punkt 87).
+
+Abschluss-Anteil in
+4T-002861.
+
+Hinweis an Anwender im Wortlaut, freigegeben vom Auftraggeber am 2026-11-26
+(«106 A», Text; «108 A», Titel):
+
+> **Private Kommentare in Datentabelle, Canvas-Fläche, Abfragen und Erinnerungen.** Private Kommentare bleiben jetzt auch in einer Datentabelle (Perspective Datatable), auf der Canvas-Fläche, in Task-Abfragen, Dashboards und Erinnerungen verborgen, und eine als HTML exportierte Datei trägt keinen Quelltext eines Blocks mehr unsichtbar mit. Schlagworte, Verweise und Aufgaben in einem Kommentar zählen nicht mehr mit.
+>
+> **Behoben: Private Kommentare in der Datentabelle (Perspective Datatable).** Ein privater Kommentar in einer Zelle, einer Spalten-Überschrift oder einem Fehler-Hinweis einer Datentabelle (Perspective Datatable) erscheint nicht mehr in der Ansicht, im Druck, im PDF und im portablen Export. Er wirkt nur innerhalb seiner Zelle und endet spätestens an ihrer Grenze; die Nachbar-Zellen bleiben vollständig sichtbar. Eine Zahl mit einem Kommentar bleibt eine Zahl und zählt in Summen und Sortierung mit, und der Filter der Tabelle findet kein Wort, das nur in einem Kommentar steht. Ein Diagramm, das seine Daten aus der Tabelle liest, zeigt den Kommentar ebenfalls nicht. Beim Bearbeiten einer Zelle sehen Sie ihn weiter, wie im Quelltext. Das gilt auch für eine Datentabelle in einem Zitat, einer Callout-Box oder einem Listen-Eintrag und für Druck und Export als PDF oder HTML aus der Ansicht «Quellcode».
+>
+> **Behoben: Private Kommentare auf der Canvas-Fläche.** Auf der Canvas-Fläche bleibt ein privater Kommentar jetzt auch in der Vorschau einer Karte in der Ansicht «Gerendert» und in der Karten-Liste verborgen, ebenso in der Beschriftung einer Form, einer Gruppe oder einer Verbindung, in der Kopfzeile von Verweis- und Bild-Karten und im Namen einer Fläche auf ihrem Reiter in der Ansicht «Canvas».
+>
+> **Behoben: Export als HTML ohne verdeckten Quelltext.** Eine Datei aus «Datei → Weitere Datei-Funktionen → Exportieren → Als HTML exportieren…» trägt den Quelltext von Blöcken wie Perspective Datatable, Ereignis-Block, Diagramm, Datenblock, Dashboard, Abfrage, Skript-Block, Journal-Zeitleiste und Mermaid-Diagramm nicht mehr unsichtbar mit. Wer die Datei als Text öffnet, findet darin keinen privaten Kommentar, den die Ansicht verbirgt. Die Datei sieht aus wie bisher.
+>
+> **Behoben: Private Kommentare in Aufgaben, Abfragen und Erinnerungen.** Steht ein privater Kommentar in einer Aufgaben-Zeile oder Überschrift, zeigen ihn diese Stellen nicht mehr: die Treffer einer Task-Abfrage samt Überschrift, Schlagwörtern und Gruppen-Titeln, die Kacheln eines Dashboards, Druck, PDF und HTML-Export eines Dokuments mit einer solchen Abfrage, die Datei, die der Workflow-Befehl «Abfrage in eine Datei» schreibt, das Fenster «Erinnerungen», die System-Benachrichtigung und die Seitenleiste «Erinnerungen», die Ausschnitte im Panel «Backlinks», die Auswahl von Vorgänger und Nachfolger im Aufgaben-Dialog und ein Workflow, der bei erledigter Aufgabe startet. Nur der Stift-Knopf an einem Treffer der Task-Abfrage zeigt die Beschreibung weiter mit Kommentar, weil er die Zeile so zurückschreibt, wie sie in der Datei steht.
+>
+> **Geändert: Was in einem Kommentar steht, zählt nicht mehr.** Schlagworte, Verweise, Überschriften und Aufgaben in einem privaten Kommentar zählen nicht mehr mit: Ein Verweis darin erzeugt keinen Eintrag im Panel «Backlinks», ein Schlagwort keinen Eintrag im Panel «Tags» und in der Vervollständigung, eine Aufgabe keinen Treffer in einer Task-Abfrage, und eine Erinnerung darin meldet sich nicht. Wer das bisherige Verhalten braucht, schaltet die Erweiterung «Kommentare» aus; dann zählt alles wieder mit.
+>
+> **Noch offen.** Eine extrem breite Tabelle mit vielen zehntausend Zellen blendet den Rest des Dokuments weiter ab einem Kommentar aus, bei dem das Programm nicht sicher entscheiden kann: Es zeigt dann zu wenig, nie zu viel. In sehr ungewöhnlich gebauten Tabellen, in denen eine Zeile erst durch das Entfernen eines Kommentars zur Trennzeile wird, kann Text eines privaten Kommentars sichtbar bleiben. Einige Ansichten neben dem Dokument zeigen einen privaten Kommentar noch an Ihrem eigenen Bildschirm, nie in einer Ausgabe: die Ausschnitte der Bereichs-Suche, die Panels «Outgoing-Links» und «Inhaltsverzeichnis», die Ansicht «Mindmap», die Spalten-Titel der Ansicht «Tafel» und der Hinweis zu einer Fußnote im Live-Modus. Steht in einer Perspective Datatable ein privater Kommentar außerhalb einer Zelle, etwa in der Zeile der Spalten-Angaben, lässt sich die Tabelle nur im Quelltext bearbeiten, damit der Kommentar nicht verloren geht. Den Grund nennt die Statusleiste erst bei «Zeile hinzufügen» und «Zeile löschen», noch nicht beim Klick auf eine Zelle; das Handbuch beschreibt das noch nicht.
+>
+> **Dokumentation: Das Handbuch beschreibt die Perspective Datatable.** Die Handbuch-Seite «Inline-Konstrukte», Abschnitt «Kommentare», beschreibt in allen fünf Sprachen, wie ein privater Kommentar in einer Perspective Datatable und auf den Karten der Canvas-Ansicht wirkt und dass Suche und Auswertungen ihn übergehen.
+
+### Behoben
+
+- **Private Kommentare in Zellen einer Datentabelle** (`4T-002797`). Der
+  Zerleger der Tabelle befreit jede Zelle für sich, nach dem Zerlegen in Zellen
+  und vor dem Lesen des Werts; eine Zahl mit Kommentar bleibt eine Zahl.
+  Anzeige, Druck, portabler Export, Filter, Sortierung, Summen im Gitter und
+  Diagramme aus einer Tabelle lesen den sichtbaren Text, am Schalter der
+  Erweiterung «Kommentare». Das Bearbeiten einer Zelle zeigt den Quelltext samt
+  Kommentar. Eine Zelle mit Fehler in der Quelle schaltet nicht um und meldet
+  den Grund in der Statusleiste.
+- **Private Kommentare auf der Canvas-Fläche** (`4T-002797`): Karten-Vorschau
+  in der Lese-Ansicht, Karten-Liste, Beschriftungen von Form, Gruppe und
+  Verbindung, Kopfzeile von Verweis- und Bild-Karten und der Name einer Fläche
+  auf ihrem Reiter.
+- **Export als HTML ohne rohen Block-Text** (`4T-002797`): Die zehn Angaben mit
+  Block-Text (Datentabelle, Ereignis-Liste, Journal-Zeitleiste, Skript,
+  Diagramm, Datensatz-Block, Dashboard-Kachel, Abfrage, Ereignis-Abfrage,
+  Mermaid-Diagramm) fallen in der exportierten Datei weg.
+- **Such-Index liest den sichtbaren Text** (`4T-002863`). Verweise,
+  Schlagworte, Überschriften, Block-Anker und Aufgaben stammen aus dem Text
+  ohne private Kommentare; eine Aufgabe trägt für jeden Schreibweg weiter die
+  rohe Zeile. Der gespeicherte Index trägt die Kommentar-Regel (Version 13),
+  ein Speicher nach der anderen Regel wird neu aufgebaut. Ein Kommentar über
+  die Grenze zweier Teile eines geteilten Dokuments bleibt verborgen; ab einem
+  fehlenden oder nicht lesbaren Teil gilt die sichere Seite.
+
+### Geändert
+
+- **Was in einem privaten Kommentar steht, zählt nicht mehr** (`4T-002863`,
+  Punkt 87): Ein Verweis in einem Kommentar erscheint nicht mehr im Panel
+  «Backlinks», ein Schlagwort nicht im Panel «Tags» und in der
+  Vervollständigung, eine Aufgabe in keiner Task-Abfrage, und eine Erinnerung
+  darin meldet sich nicht. Die Panels «Outgoing-Links» und
+  «Inhaltsverzeichnis» lesen noch den Quelltext und zeigen solche Einträge
+  weiter (siehe «Noch offen»). Mit ausgeschalteter Erweiterung «Kommentare»
+  zählt alles wieder mit.
+
+### Dokumentation
+
+- **Handbuch und Hilfetext der privaten Kommentare** (`4T-002797`,
+  `4T-002863`, `4T-002861`), fünf Sprachen: Seite «Inline-Konstrukte», Abschnitt
+  «Kommentare», zu Datentabelle, Canvas-Fläche, Suche und Auswertungen;
+  Beschreibung der Funktion im Funktions-Katalog.
+
+### Intern
+
+- **Prüffälle** (`4T-002797`): `test/unit/render/kommentare-datentabelle.test.js`,
+  `test/unit/render/kommentare-datentabelle-runde-3.test.js`,
+  `test/unit/renderer/canvas-beschriftung-kommentare.test.js`,
+  `test/unit/renderer/html-export-quelltext-angaben.test.js`, Fälle in
+  `test/unit/canvas-core.test.js` und
+  `test/unit/renderer/datentabelle-schreibschutz.test.js`, Ablauf-Prüffall
+  PK-07 in `test/e2e/funktionen/prozent-kommentare.spec.js`.
+- **Prüffälle** (`4T-002863`): `test/unit/index-kommentare.test.js`,
+  `test/unit/index-teil-kommentare.test.js`,
+  `test/unit/renderer/aufgaben-treffer-kommentare.test.js`,
+  `test/unit/renderer/erinnerung-kommentare.test.js`, Fälle an Aufgaben-Dialog,
+  Workflow-Ereignis, Lauf-Marke, Erinnerungen, Statistik, portabler Übersicht
+  und Abfrage-Ausgabe; Zuordnung in `scripts/aenderungsklassen.json`.
+- **Architektur**: Zeile «Private Kommentare» des Bedrohungsmodells um
+  Datentabelle, Canvas-Fläche, Export aus der Ansicht «Quellcode», Such-Index,
+  Benachrichtigung, Aufgaben-Dialog und Workflow-Ereignis fortgeschrieben.
+- **Mitgelieferte Stände seit 1.162.0** (Webseite berührt, kein Anwendungs-Code,
+  kein Anwender-Text nötig): Mit den Nachzügen des Integrationsstands kam die
+  berichtigte Kachel «Datenbank-Anwendungen» der öffentlichen Roadmap in fünf
+  Sprachen (`4T-002697`): Titel «Datenbank-Anwendungen: Umbau und Austausch»,
+  die bereits ausgelieferte Kartei-Form steht nicht mehr als geplant darin;
+  Wortlaut nach der Empfehlung der Steuerung, vom Auftraggeber am 2026-11-25
+  pauschal übernommen. Die übrigen fremden Commits ändern allein
+  Prüf-Dokumentation und Prüfdateien (`4T-002766`, `4T-002760`, `4T-002858`,
+  `4T-002411`, `4T-002845`, Bündel `3E-000452` mit `4T-002884`, `4T-002945`,
+  `4T-002941`, `4T-002883` und `4T-002885`).
+
 ## [1.162.0.6322] - 2026-11-26 — Tabellen aus einer Tabellenkalkulation einfügen, Inhaltsverzeichnis als Block im Dokument, Mermaid-Bausteine, Titelbild für Dokumente, Lese-Position je Dokument, Vor und Zurück zwischen besuchten Stellen, offene Aufgaben ins aktuelle Journal übertragen, Verweise ohne Ziel in der Bereichs-Statistik, Grenzprüfung der internen Datei-Funktionen, Workflows schreiben verlässlich
 
 Zug

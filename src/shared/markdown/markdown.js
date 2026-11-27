@@ -645,7 +645,7 @@ function buildPipelines(enabled) {
           `<div class="perspective-datatable" data-dt-index="${dtIndex}" ` +
           `data-dt-line-start="${lineStart}" data-dt-line-end="${lineEnd}" ` +
           `data-source-line="${lineStart}" data-dt-source="${escapeHtml(body)}">` +
-          `${renderPerspectiveDatatableViewer(body, { zellHtml, alleZeilen: !!(env && env.datatableAlleZeilen) })}</div>\n`
+          `${renderPerspectiveDatatableViewer(body, { zellHtml, alleZeilen: !!(env && env.datatableAlleZeilen), ohneKommentare: enabled('comments') })}</div>\n`
         );
       }
       // 4T-002019 (Epic 3E-000192): perspective-chart rendert als Container mit
@@ -747,6 +747,7 @@ function buildPipelines(enabled) {
         return renderCanvasBlock(String(token.content || ''), {
           ...bereich,
           labels: portableLabels((env && env.lang) || 'de'),
+          ohneKommentare: enabled('comments'),
         });
       }
       // 4T-002512 (Epic 3E-000402): perspective-dashboard rendert als Gerüst aus
@@ -1071,16 +1072,18 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', la
   // portable-fences.js), in jeder Form, die die Ansicht als Fläche zeigt; der
   // eigene Ausdruck verlangte einen Backtick-Zaun, das Info-Wort ohne Leerraum
   // davor und einen genau gleichen Schluss-Zaun.
+  // 4T-002797: Beschriftungen ohne Kommentare nach der Regel der Fläche;
+  // den Text der Text-Karten befreit danach die Regel des Fließtexts.
+  const flaechenOpts = { ohneKommentare: !activeEffectiveDisabled.has('comments') };
   const flaeche = activeEffectiveDisabled.has(CANVAS_EXTENSION_ID)
     ? { text: restSource, getroffen: false }
     : ersetzeObersteEbene(
         restSource,
         'perspective-canvas',
-        (content) => canvasPortabel(content, portableLabels(lang, labelCatalog)),
+        (content) => canvasPortabel(content, portableLabels(lang, labelCatalog), flaechenOpts),
         { ausklang: 'zeile' },
       );
-  const restMitFlaeche = flaeche.text;
-  const canvasConverted = flaeche.getroffen;
+  const { text: restMitFlaeche, getroffen: canvasConverted } = flaeche;
   // 4T-000479 (Epic 3E-000089): %%-Kommentare gehoeren nie in den exportierten
   // Datei-Text (Kommentare sind privat; keine Export-Option). Der Strip
   // laeuft code-bewusst VOR der Fence-Konvertierung; bei deaktivierter
@@ -1126,6 +1129,7 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', la
       tableEnabled,
       datatableEnabled: !activeEffectiveDisabled.has('perspective-datatable'),
       zellHtml: zellHtmlPortabel,
+      ohneKommentare: !activeEffectiveDisabled.has('comments'),
       eventsEnabled: !activeEffectiveDisabled.has('events'),
       recordsEnabled: !activeEffectiveDisabled.has('database'),
       tocEnabled: !activeEffectiveDisabled.has(TOC_EXTENSION_ID),
@@ -1143,13 +1147,8 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', la
   // gestrippte Kommentare erzwingen den zusammengesetzten Rueckgabe-Pfad,
   // brauchen aber selbst keinen Marker. 4T-001548: der Datensatz-Block reiht
   // sich ein — seine Tabelle braucht den Marker aus demselben Grund.
-  if (
-    !tableEnabled &&
-    !fences.datatable &&
-    !fences.events &&
-    !fences.records &&
-    !inlineCalcConverted
-  ) {
+  const htmlEingesetzt = fences.datatable || fences.events || fences.records;
+  if (!tableEnabled && !htmlEingesetzt && !inlineCalcConverted) {
     // 4T-001777: Die ersetzte Fläche erzwingt den zusammengesetzten
     // Rückgabe-Pfad, braucht aber keinen Marker — sie ist Markdown, kein
     // Roh-HTML. Dieselbe Stellung wie die gestrippten Kommentare darüber.
@@ -1162,9 +1161,20 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', la
   return `${head}${PERSPECTIVE_PORTABLE_MARKER}${sep}${converted}`;
 }
 
+// 4T-002797 (Epic 3E-000449): der Quelltext ohne private Kommentare für Druck,
+// PDF und HTML-Export aus der Quelltext-Ansicht, nach denselben Regeln wie der
+// portable Export (Fließtext, dann die Rümpfe der Sonder-Blöcke auf jeder
+// Ebene) und mit dem Schalter-Stand dieser Instanz. Erwartet den Text ohne
+// Frontmatter; der Anzeige-Prozess fragt über die Brücke. Was keine
+// Zeichenkette ist, bleibt ohne Antwort (null).
+function quelltextOhneKommentare(text) {
+  return typeof text === 'string' ? textOhneKommentare(text, activeEffectiveDisabled, md) : null;
+}
+
 module.exports = {
   md,
   mdPortable,
+  quelltextOhneKommentare,
   renderMarkdown,
   convertMarkdownPortable,
   configureExtensions,

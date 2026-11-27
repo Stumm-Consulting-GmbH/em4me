@@ -108,6 +108,10 @@ const ZOOM_EMPFINDLICHKEIT = 0.0015;
  *   Rückruf, gilt änderbar — die Einbettung, die den Anzeige-Modus nicht kennt,
  *   verhält sich wie vor diesem Befund, und der Schreibweg bleibt über
  *   `beiAenderung` eigens gesichert.
+ * @param {Function} [options.ohneKommentare] () => boolean (injiziert,
+ *   4T-002797). Ist die Erweiterung «Kommentare» an, zeigen die Beschriftungen
+ *   von Form, Gruppe, Verbindung und die Kopfzeile einer Verweis- oder
+ *   Bild-Karte keinen privaten Kommentar. Fehlt der Rückruf, bleiben sie roh.
  * @param {Function} [options.neuUebergeben] () => void (injiziert, 4T-001747).
  *   Fordert von der Einbettung den **aktuellen** Flächen-Stand des Dokuments
  *   an. Gerufen, sobald eine während einer Bedien-Handlung zurückgestellte
@@ -156,6 +160,8 @@ export function createCanvasView(container, options = {}) {
   // Dokument änderbar ist. Zeichnung und beide Bedienungen lesen sie.
   const aenderbar = () =>
     typeof options.istAenderbar !== 'function' || options.istAenderbar() !== false;
+  // 4T-002797 (Epic 3E-000449): je Zeichnung gefragt wie die Änderbarkeit.
+  const ohneKommentare = () => options.ohneKommentare?.() === true;
   // 4T-001769 (Epic 3E-000290): Meldung an die Karten-Liste, sobald sich der
   // Stand der Fläche ändert — Auswahl, gezeigte Fläche oder Inhalt. Die Auswahl
   // ist dabei der Fall, der nicht über eine Neu-Zeichnung liefe: Ein Klick auf
@@ -267,11 +273,8 @@ export function createCanvasView(container, options = {}) {
   }
 
   function sichtMasse() {
-    const rect = buehne.getBoundingClientRect ? buehne.getBoundingClientRect() : null;
-    return {
-      breite: rect && rect.width ? rect.width : 0,
-      hoehe: rect && rect.height ? rect.height : 0,
-    };
+    const rect = buehne.getBoundingClientRect?.();
+    return { breite: rect?.width || 0, hoehe: rect?.height || 0 };
   }
 
   // --- Zeichnen --------------------------------------------------------------
@@ -288,6 +291,7 @@ export function createCanvasView(container, options = {}) {
       leseEinbettung: options.leseEinbettung,
       leseBild: options.leseBild,
       aenderbar: aend,
+      ohneKommentare: ohneKommentare(),
     };
   }
 
@@ -312,6 +316,7 @@ export function createCanvasView(container, options = {}) {
       linien: linien(),
       karteZu,
       gewaehlt: verbindungen ? verbindungen.gewaehlteKennung() : null,
+      ohneKommentare: ohneKommentare(),
     });
   }
 
@@ -413,11 +418,11 @@ export function createCanvasView(container, options = {}) {
     const anzeige = kartenAnzeige(aend);
     for (const el of stapelElemente()) {
       if (el.art === 'karte') kartenEbene.appendChild(zeichneKarte(el, anzeige));
-      else if (el.art === 'form') kartenEbene.appendChild(zeichneForm(el, aend));
+      else if (el.art === 'form') kartenEbene.appendChild(zeichneForm(el, aend, anzeige));
       // 4T-001702: Die Gruppe ist die dritte Art derselben Ebene. Dass sie im
       // Regelfall ganz hinten liegt, ist keine Aussage dieser Schleife,
       // sondern der Stelle, an die der Kern sie beim Anlegen setzt.
-      else if (el.art === 'gruppe') kartenEbene.appendChild(zeichneGruppe(el, aend));
+      else if (el.art === 'gruppe') kartenEbene.appendChild(zeichneGruppe(el, aend, anzeige));
     }
 
     zeigeHinweis();

@@ -14,6 +14,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { merkeZwischenspeicher, warteAufZwischenspeicher } from './index-abbau-helfer.js';
 
 const require = createRequire(import.meta.url);
 const backlinks = require('../../src/main/backlinks.js');
@@ -43,10 +44,11 @@ const de = {
 const BESITZER = 'db-query-test';
 let wurzeln = [];
 
-afterEach(() => {
+afterEach(async () => {
   _laufLeeren();
   vergissAlleDefinitionen();
   zwischenspeicherLeeren();
+  const gemerkt = merkeZwischenspeicher(wurzeln);
   vi.useFakeTimers();
   for (const w of wurzeln) {
     backlinks.releaseRoot(w, BESITZER);
@@ -54,6 +56,9 @@ afterEach(() => {
   }
   vi.advanceTimersByTime(61_000);
   vi.useRealTimers();
+  // 4T-002885: Der Abbau schreibt den Zwischenspeicher noch einmal; erst
+  // danach darf der Wegwerf-Ordner weg (index-abbau-helfer.js).
+  await warteAufZwischenspeicher(gemerkt);
   for (const w of wurzeln) {
     try {
       fs.rmSync(w, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });

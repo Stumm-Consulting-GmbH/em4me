@@ -12,10 +12,11 @@
 // Tastenkürzel-Verzeichnis der Historie, das der Editor der Anwendung trägt.
 import { describe, it, expect } from 'vitest';
 import './api-stub.js';
+import { zustandMitVollemBaum } from './syntax-baum-helfer.js';
 import { EditorState } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
 import { Table as LezerTable } from '@lezer/markdown';
-import { ensureSyntaxTree, syntaxTree } from '@codemirror/language';
+import { syntaxTree } from '@codemirror/language';
 import { history, historyKeymap } from '@codemirror/commands';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -69,11 +70,7 @@ function zustand(doc, extensions = []) {
     doc,
     extensions: [markdown({ extensions: [LezerTable] }), ...extensions],
   });
-  let schutz = 0;
-  while (!ensureSyntaxTree(state, state.doc.length, 50) && schutz++ < 400) {
-    /* weiter */
-  }
-  return state;
+  return zustandMitVollemBaum(state);
 }
 
 // Sammelt Code-Blöcke und Diagramme so, wie der Aufbau der Widgets sie im
@@ -353,9 +350,12 @@ describe('Rückgängig am Tastendruck (4T-002021, AK6)', () => {
     const vorher = widgets(start)[0].key;
     // Eine Zeile der Tabelle kommt hinzu.
     const einfuegen = start.doc.toString().indexOf('```\n\n^umsatz');
-    let state = start.update({
-      changes: { from: einfuegen, insert: '| März    | 120 | 70 |\n' },
-    }).state;
+    // Nach der Änderung zerlegt der Editor erneut mit Zeitbudget (4T-002941).
+    let state = zustandMitVollemBaum(
+      start.update({
+        changes: { from: einfuegen, insert: '| März    | 120 | 70 |\n' },
+      }).state,
+    );
     const geaendert = widgets(state)[0].key;
     expect(geaendert).not.toBe(vorher);
 
@@ -373,10 +373,7 @@ describe('Rückgängig am Tastendruck (4T-002021, AK6)', () => {
     };
     expect(bindung.run(ansicht)).toBe(true);
     // Neuer Syntax-Baum für den zurückgenommenen Stand.
-    let schutz = 0;
-    while (!ensureSyntaxTree(state, state.doc.length, 50) && schutz++ < 400) {
-      /* weiter */
-    }
+    state = zustandMitVollemBaum(state);
     expect(state.doc.toString()).toBe(start.doc.toString());
     // Gleicher Schlüssel: Das Widget ist wieder das des vorigen Standes, und der
     // Aufbau baut es neu, weil der Schlüssel des geänderten ein anderer war.

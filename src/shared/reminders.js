@@ -111,8 +111,8 @@ function reminderKey(path, taskText) {
 // --- Sammeln ------------------------------------------------------------------------
 // taskLines: Array { path, zeile, text } (Lese-API areaTaskLines des
 // Index). env: { globalFilter, statusTypeOf, defaultTime }. Rueckgabe
-// zeitlich sortierte Eintraege { key, path, line, taskText, description,
-// instant, date, time }.
+// zeitlich sortierte Eintraege { key, path, line, taskText, sichtbarText,
+// description, instant, date, time }.
 function collectReminders(taskLines, env) {
   const globalFilter = env && typeof env.globalFilter === 'string' ? env.globalFilter : '';
   const statusTypeOf =
@@ -122,8 +122,11 @@ function collectReminders(taskLines, env) {
   for (const tl of taskLines || []) {
     if (!tl || typeof tl.text !== 'string') continue;
     // Billige Vorpruefung vor dem vollen Zeilen-Parse (30-Sekunden-Takt).
-    if (!tl.text.includes(REMINDER_SYMBOL)) continue;
-    const model = parseTaskLine(tl.text);
+    // 4T-002863 (Epic 3E-000449): Marker und Text aus der Zeile ohne private Kommentare;
+    // Schlüssel und `taskText` bleiben roh, weil das Erledigen über sie schreibt.
+    const sichtbar = typeof tl.sichtbar === 'string' ? tl.sichtbar : tl.text;
+    if (!sichtbar.includes(REMINDER_SYMBOL)) continue;
+    const model = parseTaskLine(sichtbar);
     if (!model || !model.reminder || model.reminder.invalid) continue;
     if (!modelMatchesGlobalFilter(model, globalFilter)) continue;
     const statusType = statusTypeOf(model.statusChar);
@@ -135,6 +138,9 @@ function collectReminders(taskLines, env) {
       path: tl.path,
       line: tl.zeile,
       taskText: tl.text,
+      // 4T-002863: Rückfall der Anzeige, wenn die Beschreibung leer ist; die rohe
+      // Zeile trüge den privaten Kommentar in Dialog und Benachrichtigung.
+      sichtbarText: sichtbar,
       description: stripGlobalFilter(model.description, globalFilter).trim(),
       instant: reminderInstant(model, defaultTime),
       date: model.reminder.date,

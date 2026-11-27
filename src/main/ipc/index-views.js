@@ -27,6 +27,7 @@ const { setDisabledFunctionExtensions } = require('../../shared/query/query-func
 // Index ruht. Er wird von aussen gesetzt, weil das Index-Subsystem den
 // Einstellungs-Speicher nicht liest (Begruendung im Kopf des Moduls).
 const { setzeDatensatzErfassung } = require('../index/index-schalter.js');
+const { setzeKommentarRegel } = require('../index/index-kommentare.js');
 const { createTaskStatusTypeResolver } = require('../../shared/markdown/plugins.js');
 // 4T-002080 (Epic 3E-000259): die Aufgaben-Umgebung einer Abfrage, geteilt mit
 // den Kanaelen von Wertevorrat und Lookup-Feld (src/main/ipc/profiles.js).
@@ -124,6 +125,9 @@ function registerIndexViewsIpc(handle, deps) {
   setzeDatensatzErfassung(
     isExtensionEnabled('database', store ? store.get('extensions.disabled') : []),
   );
+  // 4T-002863 (Epic 3E-000449): Start-Stand der Kommentar-Regel des Index an
+  // derselben frühesten Stelle, nach dem wirksamen Stand der Erweiterungen.
+  setzeKommentarRegel(effectiveDisabledSet(store ? store.get('extensions.disabled') : []));
   // 4T-002449 (Epic 3E-000378): Start-Stand des Funktions-Katalogs im
   // Haupt-Prozess an derselben frühesten Stelle; das Umschalten fährt über die
   // Verteilung der Einstellungs-Änderung.

@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { renderMarkdown } from '../../../src/shared/markdown/markdown.js';
 import { buildChart } from '../../../src/main/preload-diagramme.js';
 import './api-stub.js';
+import { baumVollstaendig, liveInhalt } from './syntax-baum-helfer.js';
 
 const wurzel = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const DE = JSON.parse(readFileSync(path.join(wurzel, 'src/i18n/de.json'), 'utf8'));
@@ -113,6 +114,9 @@ function baueSpalte(doc, { viewMode = 'live', editMode = true } = {}) {
     }),
     parent: root.querySelector('.pane-source-editor'),
   });
+  // 4T-002883: auf den vollständigen Syntax-Baum warten, bevor ein Fall einen
+  // Live-Block abfragt (syntax-baum-helfer.js).
+  baumVollstaendig(view);
   if (viewMode === 'split') {
     root.querySelector('.pane-rendered .markdown-body').innerHTML = renderMarkdown(doc, 'de');
   }
@@ -135,8 +139,8 @@ function maus(ziel, button = 0) {
     new window.MouseEvent('mousedown', { button, bubbles: true, cancelable: true }),
   );
 }
-const liveZelle = () => spalte.view.contentDOM.querySelector('.perspective-datatable tbody td');
-const liveDiagramme = () => [...spalte.view.contentDOM.querySelectorAll('.perspective-chart')];
+const liveZelle = () => liveInhalt(spalte.view).querySelector('.perspective-datatable tbody td');
+const liveDiagramme = () => [...liveInhalt(spalte.view).querySelectorAll('.perspective-chart')];
 
 const dialog = () => document.querySelector('.chart-dialog-modal');
 async function warteAufDialog() {
@@ -287,12 +291,12 @@ describe('Einfügen (AK4, AK5, AK27, AK18)', () => {
 
   it('eine offene Zell-Eingabe wird zuerst übernommen, danach eingefügt', async () => {
     const { view } = baueSpalte(OHNE_NAME);
-    const zelle = spalte.view.contentDOM.querySelector(
+    const zelle = liveInhalt(spalte.view).querySelector(
       '.perspective-datatable tbody td[data-dt-col="1"]',
     );
     maus(zelle);
     zelle.click();
-    const eingabe = spalte.view.contentDOM.querySelector('.pdt-cell-input');
+    const eingabe = liveInhalt(spalte.view).querySelector('.pdt-cell-input');
     expect(eingabe).not.toBeNull();
     expect(document.activeElement).toBe(eingabe);
     eingabe.value = '111';

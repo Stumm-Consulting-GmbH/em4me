@@ -31,6 +31,7 @@ const {
   effectiveDisabledSet,
 } = require('../../shared/extensions/extensions-core');
 const { setzeDatensatzErfassung } = require('../index/index-schalter.js');
+const { setzeKommentarRegel } = require('../index/index-kommentare.js');
 // 4T-002449 (Epic 3E-000378): Schalter-Stand des Funktions-Katalogs im
 // Haupt-Prozess (Abfragen rechnen hier).
 const { setDisabledFunctionExtensions } = require('../../shared/query/query-functions.js');
@@ -258,7 +259,11 @@ function createSettingsVerteilung(deps) {
       // Datenbank mitnimmt wie ueberall sonst. Nur eine echte Aenderung loest
       // den Neuaufbau aus; er liest die Dateien erneut und schreibt nichts an
       // ihnen (AK6).
-      if (setzeDatensatzErfassung(isExtensionEnabled('database', value))) {
+      // 4T-002863 (Epic 3E-000449): Die Kommentar-Regel des Index folgt dem
+      // wirksamen Stand; ändert sich «Private Kommentare», wird jeder Index nach
+      // der neuen Regel gebaut (ein Neuaufbau für beide Schalter).
+      const kommentarRegelNeu = setzeKommentarRegel(effectiveDisabledSet(value));
+      if (setzeDatensatzErfassung(isExtensionEnabled('database', value)) || kommentarRegelNeu) {
         alleIndizesNeuAufbauen();
       }
     }

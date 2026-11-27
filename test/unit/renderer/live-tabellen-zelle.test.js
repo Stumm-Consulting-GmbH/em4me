@@ -9,12 +9,12 @@
 // die Datei des Anwenders ginge.
 import { describe, it, expect } from 'vitest';
 import { ChangeSet, EditorState, Text } from '@codemirror/state';
-import { ensureSyntaxTree } from '@codemirror/language';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 // live-deco.js haengt am Renderer-Modulgraphen; der Stub stellt den
 // Preload-Namensraum bereit, den dessen Modulkoepfe erwarten (Muster
 // book-panel.test.js). Der rechnende Kern selbst braucht ihn nicht.
 import './api-stub.js';
+import { zustandMitVollemBaum } from './syntax-baum-helfer.js';
 
 import { blockIsActive, blockKlapptAuf } from '../../../src/renderer/modules/live/live-deco.js';
 import {
@@ -397,11 +397,12 @@ describe('neueZeileAmEnde (die angelegte Zeile im Quelltext, 4T-001711)', () => 
 // und eine neue Zeile am Ende käme hinter die Anker-Zeile.
 describe('tabellenQuelleAm mit Anker-Zeile unter der Tabelle (4T-002048)', () => {
   const text = `${QUELLE}\n^x\n\nAbsatz danach.`;
-  const state = EditorState.create({
-    doc: text,
-    extensions: [markdown({ base: markdownLanguage })],
-  });
-  ensureSyntaxTree(state, state.doc.length, 5000);
+  const state = zustandMitVollemBaum(
+    EditorState.create({
+      doc: text,
+      extensions: [markdown({ base: markdownLanguage })],
+    }),
+  );
   const quelle = tabellenQuelleAm(state, 0);
 
   it('die Quelle endet vor der Anker-Zeile', () => {
@@ -431,11 +432,12 @@ describe('tabellenQuelleAm und Zurückschreiben im Zitat (4T-002055)', () => {
   const imZitat = TABELLE.map((z) => '> ' + z).join('\n');
   const text = `Vorspann\n\n${imZitat}\n> ^x\n\nAbsatz danach.`;
   const von = text.indexOf('| A');
-  const state = EditorState.create({
-    doc: text,
-    extensions: [markdown({ base: markdownLanguage })],
-  });
-  ensureSyntaxTree(state, state.doc.length, 5000);
+  const state = zustandMitVollemBaum(
+    EditorState.create({
+      doc: text,
+      extensions: [markdown({ base: markdownLanguage })],
+    }),
+  );
   const quelle = tabellenQuelleAm(state, von);
 
   it('die Quelle ist ohne Präfixe und endet vor der Anker-Zeile', () => {

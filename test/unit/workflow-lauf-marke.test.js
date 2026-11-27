@@ -318,6 +318,24 @@ describe('complete-task (AK2)', () => {
   });
 });
 
+describe('complete-task und private Kommentare (4T-002863)', () => {
+  it('findet nicht über Text im Kommentar; die Marke erkennt die Meldung ohne Kommentar', async () => {
+    const w = welt();
+    w.schreibe('Liste.md', '- [ ] Brot kaufen %%Bäckerei Geheim%%\n- [ ] Milch holen\n');
+    const nichts = await w.pflege('complete-task', ['Liste.md', 'Geheim']);
+    expect(nichts).toMatchObject({ ok: false, code: 'taskNotFound' });
+    const res = await w.pflege('complete-task', ['Liste.md', 'Brot']);
+    expect(res.window).toMatchObject({
+      action: 'completeTask',
+      line: 1,
+      taskText: '- [ ] Brot kaufen %%Bäckerei Geheim%%',
+    });
+    // So meldet das Ereignis die abgehakte Zeile: ohne den Kommentar.
+    const erledigt = meldung('task-done', w.abs('Liste.md'), { task: 'Brot kaufen ' });
+    expect(istLaufSchreibvorgang(erledigt)).toBe(true);
+  });
+});
+
 describe('Erkennung im echten Ereignis-Prüfer (AK1, AK3)', () => {
   const WF_TEXT = [
     '---',

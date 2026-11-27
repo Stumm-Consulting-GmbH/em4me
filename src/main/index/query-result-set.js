@@ -99,7 +99,8 @@ function originOf(ctx, scope) {
   }
   const { absPath, name } = ctx.file;
   if (scope === 'blocks') return blockOrigin(absPath, name, ctx.block.anchor);
-  if (scope === 'tasks') return taskOrigin(absPath, name, ctx.task.line, ctx.task.raw);
+  if (scope === 'tasks')
+    return taskOrigin(absPath, name, ctx.task.line, ctx.task.raw, ctx.task.sichtbar);
   return fileOrigin(absPath, name);
 }
 

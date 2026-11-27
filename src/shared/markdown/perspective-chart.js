@@ -220,8 +220,10 @@ const RESOLVE_REASON = {
 // Löst den Namen im Text des Dokuments auf, das die Tabelle trägt, und bildet
 // daraus das Ergebnis für den Zeichner. Einstieg auch für die Auflösung in
 // einem anderen Dokument, sobald dessen Text vorliegt.
-function buildChartInputInDocument(spec, tableDocumentText, name) {
-  const res = resolveTableInDocument(tableDocumentText, name);
+// 4T-002797 (Epic 3E-000449): `opts.ohneKommentare` hält private Kommentare der
+// Tabelle aus Beschriftungen und Werten des Diagramms.
+function buildChartInputInDocument(spec, tableDocumentText, name, opts) {
+  const res = resolveTableInDocument(tableDocumentText, name, opts);
   if (res.status !== 'found') {
     const detail =
       res.status === 'other-kind' ? res.kind : res.status === 'invalid' ? res.errors[0].code : name;
@@ -234,7 +236,7 @@ function buildChartInputInDocument(spec, tableDocumentText, name) {
 // Grund. Nennt der Block eine Tabelle in einem anderen Dokument, entsteht ein
 // Zwischen-Ergebnis mit `pending: 'other-document'` und dem Ziel; der Aufrufer
 // beschafft dessen Text und ruft buildChartInputInDocument.
-function buildChartInput(documentText, chartBody) {
+function buildChartInput(documentText, chartBody, opts) {
   const spec = parseChartSpec(chartBody);
   const ref = parseTableRef(spec.table);
   if (!ref) return notDrawable('table-missing', spec.table);
@@ -248,7 +250,7 @@ function buildChartInput(documentText, chartBody) {
       target: { file: ref.file, name: ref.name },
     };
   }
-  return buildChartInputInDocument(spec, documentText, ref.name);
+  return buildChartInputInDocument(spec, documentText, ref.name, opts);
 }
 
 // Container der Zaun-Regel nach dem Muster der Datentabelle: Index je

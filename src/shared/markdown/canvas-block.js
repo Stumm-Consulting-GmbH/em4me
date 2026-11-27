@@ -123,6 +123,8 @@ function canvasUmfangText(L, umfang) {
  *   wiedergefunden wird.
  * @param {number} [opts.lineEnd] 1-basierte Zeile der schließenden Zaun-Zeile.
  * @param {object} [opts.labels] aufgelöste Schlüssel-Text-Karte.
+ * @param {boolean} [opts.ohneKommentare] 4T-002797: Die Karten-Vorschau zeigt
+ *   keinen privaten Kommentar aus dem Karten-Text.
  * @returns {string} HTML des Blocks.
  */
 function renderCanvasBlock(rumpf, opts = {}) {
@@ -180,7 +182,7 @@ function renderCanvasBlock(rumpf, opts = {}) {
   const rumpfTeile = ['<div class="canvas-block-rumpf">'];
   const kartenElemente = model.elemente.filter((el) => el.art === 'karte');
   for (const el of kartenElemente.slice(0, VORSCHAU_KARTEN)) {
-    const { titel, zeile } = canvasKartenVorschau(el);
+    const { titel, zeile } = canvasKartenVorschau(el, { ohneKommentare: !!opts.ohneKommentare });
     rumpfTeile.push('<div class="canvas-block-karte">');
     rumpfTeile.push(
       `<span class="canvas-block-karte-titel">${escapeHtml(kuerze(titel, VORSCHAU_ZEICHEN))}</span>`,

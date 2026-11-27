@@ -54,23 +54,37 @@ test.describe('SVS-01: Offene Suchleiste verdeckt die Statusleiste nicht (4T-002
       await expect(page.locator(SEL.searchBar)).toBeVisible();
       await expect(page.locator(SEL.searchInput)).toBeFocused();
 
+      // 4T-002884: Die Sprach-Auswahl ist das zweite Element, das die Faltung
+      // der Statusleiste bei knapper Breite einklappt (statusbar-overflow.js,
+      // `abbauReihenfolge`), und die Faltung läuft erst im Bild nach einer
+      // Breiten-Änderung. Das Fenster startet 1200 breit, die Prüf-Breite von
+      // 1600 setzt `launchApp` danach. Gemessen wird deshalb erst, wenn die
+      // Auswahl dargestellt ist, und die Lage wird abgewartet statt einmal
+      // abgelesen: Eine eingeklappte Auswahl hat kein Rechteck, ihr Mittelpunkt
+      // läge in der Fenster-Ecke, und die Messung fiele als «verdeckt» aus,
+      // obwohl nichts verdeckt ist.
+      await expect(page.locator('#lang-select')).toBeVisible();
+
       // Am Mittelpunkt der Auswahl liegt die Auswahl selbst, nicht die
       // Suchleiste; und die Suchleiste endet oberhalb der Statusleiste.
-      const lage = await page.evaluate(() => {
-        const auswahl = document.getElementById('lang-select');
-        const leiste = document.querySelector('.statusbar');
-        const suche = document.getElementById('search-bar');
-        const r = auswahl.getBoundingClientRect();
-        const oben = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-        const l = leiste.getBoundingClientRect();
-        const s = suche.getBoundingClientRect();
-        return {
-          auswahlOben: oben === auswahl || auswahl.contains(oben),
-          leisteImFenster: l.top >= 0 && l.bottom <= window.innerHeight + 1,
-          sucheUeberLeiste: s.bottom <= l.top + 1,
-        };
-      });
-      expect(lage).toEqual({ auswahlOben: true, leisteImFenster: true, sucheUeberLeiste: true });
+      await expect
+        .poll(() =>
+          page.evaluate(() => {
+            const auswahl = document.getElementById('lang-select');
+            const leiste = document.querySelector('.statusbar');
+            const suche = document.getElementById('search-bar');
+            const r = auswahl.getBoundingClientRect();
+            const oben = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+            const l = leiste.getBoundingClientRect();
+            const s = suche.getBoundingClientRect();
+            return {
+              auswahlOben: oben === auswahl || auswahl.contains(oben),
+              leisteImFenster: l.top >= 0 && l.bottom <= window.innerHeight + 1,
+              sucheUeberLeiste: s.bottom <= l.top + 1,
+            };
+          }),
+        )
+        .toEqual({ auswahlOben: true, leisteImFenster: true, sucheUeberLeiste: true });
 
       // Ein Sprachwechsel bei offener Suche wirkt: Die Statusleiste zeigt die
       // englische Beschriftung, und die Suchleiste bleibt offen.

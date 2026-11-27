@@ -10,6 +10,7 @@ import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import './api-stub.js';
+import { baumVollstaendig } from './syntax-baum-helfer.js';
 
 // Der Schalt-Zustand als Attrappe (Vorbild canvas-pane.test.js): Die Erweiterung
 // `workflows` registriert erst 4T-002352, und der echte Lebenszyklus nimmt eine
@@ -32,6 +33,9 @@ function sicht(text) {
     parent,
   });
   offen.push(view);
+  // 4T-002941: auf den vollständigen Syntax-Baum warten, bevor ein Fall die
+  // Hervorhebung abfragt (syntax-baum-helfer.js).
+  baumVollstaendig(view);
   return view;
 }
 // Die gezeichneten Marken als Liste «Art:Text».
@@ -87,6 +91,8 @@ describe('Hervorhebung im Editor', () => {
     const view = sicht('```workflow\nnotify "x"\n```\n');
     const zeile = view.state.doc.line(2);
     view.dispatch({ changes: { from: zeile.from, to: zeile.from + 6, insert: 'open' } });
+    // Nach der Änderung zerlegt der Editor erneut mit Zeitbudget (4T-002941).
+    baumVollstaendig(view);
     expect(marken(view)).toEqual(['keyword:open', 'string:"x"']);
     expect(view.state.doc.toString()).toBe('```workflow\nopen "x"\n```\n');
   });

@@ -6,10 +6,10 @@
 // und Shortcut-Label-Splitting (autocomplete-help.js).
 import { describe, it, expect } from 'vitest';
 import './api-stub.js';
+import { zustandMitVollemBaum } from './syntax-baum-helfer.js';
 import { EditorState } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
 import { Table as LezerTable } from '@lezer/markdown';
-import { ensureSyntaxTree } from '@codemirror/language';
 
 const folding = await import('../../../src/renderer/modules/editor/folding.js');
 // 4T-002434 (Epic 3E-000375): Spur der Listenpunkte in der Zeile.
@@ -30,13 +30,9 @@ const sitzungsMaske = await import('../../../src/renderer/modules/app/sitzungs-m
 
 function mdState(doc) {
   const state = EditorState.create({ doc, extensions: [markdown({ extensions: [LezerTable] })] });
-  // ensureSyntaxTree arbeitet mit Zeit-Budgets und parst grosse Docs erst
-  // ueber mehrere Aufrufe vollstaendig (gleiches Muster wie der Lint-Pfad).
-  let guard = 0;
-  while (!ensureSyntaxTree(state, state.doc.length, 50) && guard++ < 400) {
-    /* weiter */
-  }
-  return state;
+  // Der Zerleger arbeitet mit Zeit-Budgets; die Hilfe zerlegt zu Ende und
+  // liefert einen Zustand mit dem vollständigen Baum (syntax-baum-helfer.js).
+  return zustandMitVollemBaum(state);
 }
 
 describe('Fold-Struktur (folding.js)', () => {

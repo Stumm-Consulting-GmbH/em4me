@@ -121,9 +121,11 @@ function abrufPfad(ziel) {
  * geschrieben, damit sie dasteht; Zeilenumbrüche werden zu Leerzeichen, weil
  * die Kopfzeile eine Zeile ist, und der Umbruch bei Bedarf ist Sache des
  * Stilblatts.
+ *
+ * 4T-002797 (Epic 3E-000449): `opts.ohneKommentare` geht an die Beschriftung.
  */
-export function kartenBeschriftung(el) {
-  return beschriftungsZeilen(el || {})
+export function kartenBeschriftung(el, opts) {
+  return beschriftungsZeilen(el || {}, opts)
     .join(' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -219,7 +221,7 @@ function baueVerweisKarte(karte, el, ctx) {
     'canvas-karte-inhalt canvas-karte-koerper markdown-body wiki-embed-md-body',
   );
   karte.appendChild(inhalt);
-  setzeKopf(kopf, el, null);
+  setzeKopf(kopf, el, null, ctx);
   const auffrischen = () => hole(kopf, inhalt, el, ctx);
   AUFFRISCHER.set(inhalt, auffrischen);
   void auffrischen();
@@ -287,7 +289,7 @@ function uebernimm(kopf, inhalt, el, ctx, erg, dokumentText) {
   } else {
     inhalt.textContent = text;
   }
-  setzeKopf(kopf, el, erg);
+  setzeKopf(kopf, el, erg, ctx);
 }
 
 // Befund «Ziel nicht gefunden»: Die Karte bleibt stehen und nennt ihr Ziel.
@@ -300,14 +302,14 @@ function zeigeBefund(kopf, inhalt, el, ctx) {
     '{ziel}',
     String(el.doc || ''),
   );
-  setzeKopf(kopf, el, null);
+  setzeKopf(kopf, el, null, ctx);
 }
 
 // Kopfzeile: die Beschriftung, sonst das Ziel (F1). Der aufgelöste Anzeige-Name
 // tritt an die Stelle des geschriebenen Ziels, sobald die Antwort da ist; der
 // Anker erscheint daneben, weil er die Aussage mitträgt.
-function setzeKopf(kopf, el, erg) {
-  const eigen = kartenBeschriftung(el);
+function setzeKopf(kopf, el, erg, ctx) {
+  const eigen = kartenBeschriftung(el, ctx);
   const { ziel, anker } = zerlegeZiel(el.doc);
   kopf.textContent = '';
   const name = document.createElement('span');
@@ -340,7 +342,7 @@ function baueBildKarte(karte, el, ctx) {
   const inhalt = koerper('canvas-karte-inhalt canvas-karte-koerper canvas-karte-bild-koerper');
   karte.appendChild(inhalt);
   const { wert, gueltig } = bildAngabe(el);
-  setzeBildKopf(kopf, el, wert);
+  setzeBildKopf(kopf, el, wert, ctx);
   if (!gueltig) {
     // Der Kern hat die Angabe wegen ihrer Endung verworfen; ein Abruf hätte
     // nichts zu holen, und der Befund steht ohne Umweg da.
@@ -430,8 +432,8 @@ function zeigeBildBefund(inhalt, ctx, schluessel, wert) {
 // Kopfzeile einer Bild-Karte: die Beschriftung, sonst der **Name** der
 // Bild-Datei (F1). Welcher Text das ist, sagt der Kern — sein Ordner ist Ablage
 // und keine Aussage, weil ein Bild im Bereich über seinen Namen gefunden wird.
-function setzeBildKopf(kopf, el, wert) {
-  const eigen = kartenBeschriftung(el);
+function setzeBildKopf(kopf, el, wert, ctx) {
+  const eigen = kartenBeschriftung(el, ctx);
   kopf.textContent = '';
   const name = document.createElement('span');
   name.className = 'canvas-karte-kopf-text';

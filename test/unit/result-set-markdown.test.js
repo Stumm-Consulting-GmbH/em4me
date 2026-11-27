@@ -208,6 +208,28 @@ describe('Ergebnismenge als Markdown-Tabelle (4T-002546, AK2)', () => {
     ]);
   });
 
+  // 4T-002863 (Epic 3E-000449): Der Workflow-Befehl «Abfrage in eine Datei»
+  // schreibt den Text einer Aufgabe ohne privaten Kommentar, auch nicht maskiert.
+  it('Aufgabe mit privatem Kommentar: die Zeile ohne ihn (4T-002863)', () => {
+    const roh = '- [ ] Rückblick %%Preis 500%% schreiben';
+    const aufgaben = menge({
+      scope: 'tasks',
+      type: 'list',
+      columns: [],
+      rows: [
+        makeRow([], taskOrigin('C:/b/P.md', 'P', 3, roh, '- [ ] Rückblick  schreiben'), {
+          urgency: 1,
+          blocked: false,
+          duplicateId: false,
+        }),
+      ],
+    });
+    const zeile = md(aufgaben).split('\n')[2];
+    expect(zeile).toContain('Rückblick');
+    expect(zeile).not.toContain('Preis');
+    expect(zeile).not.toContain('%');
+  });
+
   it('eine Liste trägt ihr Zusatzfeld als zweite Spalte', () => {
     const rs = menge({
       scope: 'files',

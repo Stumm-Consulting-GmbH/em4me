@@ -99,7 +99,10 @@ function nurObjekte(liste) {
 
 // Laedt die Cache-Datei zu Map<relPath, {mtimeMs,size,hash,parsed(in-memory)}>.
 // Fehlend oder defekt -> leere Map (stiller Neuaufbau, nie Absturz).
-async function loadAreaCache(cachePath, wurzel) {
+// 4T-002863 (Epic 3E-000449): `ohneKommentare` ist die Kommentar-Regel des
+// aufzubauenden Index; ein Speicher nach der anderen Regel gilt als fehlend,
+// sonst übernähme der Warmstart unveränderte Dateien nach der alten Regel.
+async function loadAreaCache(cachePath, wurzel, ohneKommentare = true) {
   const map = new Map();
   let raw;
   try {
@@ -109,6 +112,7 @@ async function loadAreaCache(cachePath, wurzel) {
   }
   const res = parseCacheContainer(raw);
   if (!res.ok) return map; // defekt/versionsfremd
+  if ((res.container.ohneKommentare !== false) !== (ohneKommentare !== false)) return map;
   const files = res.container.linkIndex.files;
   for (const relPath of Object.keys(files)) {
     const rec = files[relPath];
@@ -118,6 +122,9 @@ async function loadAreaCache(cachePath, wurzel) {
       mtimeMs: rec.mtimeMs,
       size: rec.size,
       hash: typeof rec.hash === 'string' ? rec.hash : '',
+      // 4T-002863 (Epic 3E-000449): Stand der Teile eines geteilten Dokuments,
+      // nach dem dieser Teil bereinigt wurde (teil-kommentare.js, build.js).
+      ...(Array.isArray(rec.teilStand) ? { teilStand: rec.teilStand } : {}),
       parsed: {
         hits: (Array.isArray(p.hits) ? p.hits : []).map((h) => hitFromCacheForm(h, wurzel)),
         aliases: Array.isArray(p.aliases) ? p.aliases : [],
@@ -159,6 +166,7 @@ async function writeAreaCache(entry) {
   if (!entry.isArea || !entry.cachePath) return;
   const wurzel = entry.wurzel;
   const container = emptyCacheContainer();
+  container.ohneKommentare = entry.ohneKommentare !== false;
   for (const absPath of entry.files.keys()) {
     const meta = entry.cacheFiles.get(absPath);
     if (!meta) continue;
@@ -167,6 +175,7 @@ async function writeAreaCache(entry) {
       mtimeMs: meta.mtimeMs,
       size: meta.size,
       hash: meta.hash,
+      ...(Array.isArray(meta.teilStand) ? { teilStand: meta.teilStand } : {}),
       parsed: {
         hits: parsed.hits.map((h) => hitToCacheForm(h, wurzel)),
         aliases: parsed.aliases,

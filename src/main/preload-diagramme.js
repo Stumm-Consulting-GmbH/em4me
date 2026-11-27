@@ -46,9 +46,11 @@ const { chartDescription } = require('../shared/charts/chart-call-options.js');
  *   geschriebene Stand, auch ungespeichert).
  * @param {string} chartBody Inhalt des Blocks `perspective-chart`.
  * @param {{colors?: object, fontFamily?: string, idPrefix?: string,
- *   descriptionTexts?: object}} [options] Angaben der Ansicht; `colors`,
- *   `fontFamily` und `idPrefix` gehen unverändert an den Zeichner,
- *   `descriptionTexts` sind die übersetzten Texte der Vorlese-Beschreibung.
+ *   descriptionTexts?: object, ohneKommentare?: boolean}} [options] Angaben der
+ *   Ansicht; `colors`, `fontFamily` und `idPrefix` gehen unverändert an den
+ *   Zeichner, `descriptionTexts` sind die übersetzten Texte der
+ *   Vorlese-Beschreibung, `ohneKommentare` lässt private Kommentare der Tabelle
+ *   aus dem Diagramm (4T-002797).
  * @param {{ok: boolean, content?: string}} [tableDocument] Antwort des Kanals
  *   `chart:readTableDocument` für einen Block, der eine Tabelle in einem
  *   anderen Dokument nennt. Ohne sie bleibt es bei `pending`; mit `ok` wird im
@@ -68,7 +70,10 @@ const { chartDescription } = require('../shared/charts/chart-call-options.js');
  */
 function buildChart(documentText, chartBody, options, tableDocument) {
   const body = typeof chartBody === 'string' ? chartBody : '';
-  let input = buildChartInput(typeof documentText === 'string' ? documentText : '', body);
+  // 4T-002797 (Epic 3E-000449): Die Ansicht sagt, ob die Erweiterung «Private
+  // Kommentare» an ist; dann liest die Tabelle ihre Zellen ohne Kommentar.
+  const lesen = { ohneKommentare: !!(options && options.ohneKommentare === true) };
+  let input = buildChartInput(typeof documentText === 'string' ? documentText : '', body, lesen);
   if (input.pending) {
     const { file, name } = input.target;
     if (!tableDocument || typeof tableDocument !== 'object') {
@@ -84,7 +89,7 @@ function buildChart(documentText, chartBody, options, tableDocument) {
         file,
       };
     }
-    input = buildChartInputInDocument(parseChartSpec(body), tableDocument.content, name);
+    input = buildChartInputInDocument(parseChartSpec(body), tableDocument.content, name, lesen);
   }
   if (!input.drawable) {
     const ref = parseTableRef(parseChartSpec(body).table);

@@ -18,6 +18,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { backlinksFor, releaseRoot, rootForActiveFile } from '../../src/main/backlinks.js';
 import { registerDatabaseIpc } from '../../src/main/ipc/database.js';
+import { merkeZwischenspeicher, warteAufZwischenspeicher } from './index-abbau-helfer.js';
 
 const require_ = createRequire(import.meta.url);
 const { indexes } = require_('../../src/main/index/store.js');
@@ -112,14 +113,18 @@ function bereichMitKartei() {
   return { root, tabelle, ada, alan };
 }
 
-afterEach(() => {
+afterEach(async () => {
   clearAllBufferOverlays();
   vergissAlleDefinitionen();
   vergissAlleKarteiTabellen();
+  const gemerkt = merkeZwischenspeicher(openRoots);
   vi.useFakeTimers();
   for (const root of openRoots) releaseRoot(root);
   vi.advanceTimersByTime(61_000);
   vi.useRealTimers();
+  // 4T-002885: Der Abbau schreibt den Zwischenspeicher noch einmal; erst
+  // danach darf der Wegwerf-Ordner weg (index-abbau-helfer.js).
+  await warteAufZwischenspeicher(gemerkt);
   openRoots.clear();
   for (const dir of tmpDirs) {
     try {

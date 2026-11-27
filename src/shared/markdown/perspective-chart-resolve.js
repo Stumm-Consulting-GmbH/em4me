@@ -85,7 +85,10 @@ function istTabellenZeile(line) {
 //                        mindestens einem Eintrag im Feld `errors`
 // openLine und closeLine sind 1-basiert (Zaun-Zeilen der Tabelle); closeLine ist
 // null, wenn der Zaun einer Tabelle mit Kopf-Namen nicht geschlossen ist.
-function resolveTableInDocument(documentText, name) {
+// 4T-002797 (Epic 3E-000449): `opts.ohneKommentare` geht an den Zerleger; das
+// Modell trägt dann keinen privaten Kommentar in Zellen und Überschriften.
+// Ohne die Option bleibt es roh, wie es die Dialoge zum Bearbeiten brauchen.
+function resolveTableInDocument(documentText, name, opts) {
   const text = String(documentText == null ? '' : documentText).replace(/^\uFEFF/, '');
   const lines = text.split(/\r?\n/);
   const anker = extractBlockAnchors(text);
@@ -96,7 +99,7 @@ function resolveTableInDocument(documentText, name) {
   const traeger = anker.traegerById.get(String(name));
   if (traeger.art === 'datentabelle') {
     const bis = traeger.zaunBis == null ? lines.length : traeger.zaunBis - 1;
-    const model = parsePerspectiveDatatable(lines.slice(traeger.zaunVon, bis).join('\n'));
+    const model = parsePerspectiveDatatable(lines.slice(traeger.zaunVon, bis).join('\n'), opts);
     if (model.errors.length > 0) return { status: 'invalid', model, errors: model.errors };
     return { status: 'found', model, openLine: traeger.zaunVon, closeLine: traeger.zaunBis };
   }
@@ -121,7 +124,10 @@ function resolveTableInDocument(documentText, name) {
     return { status: 'other-kind', kind: 'perspective-table' };
   if (fence.sprache !== DATATABLE_FENCE) return { status: 'other-kind', kind: 'code-block' };
 
-  const model = parsePerspectiveDatatable(lines.slice(fence.open + 1, fence.close).join('\n'));
+  const model = parsePerspectiveDatatable(
+    lines.slice(fence.open + 1, fence.close).join('\n'),
+    opts,
+  );
   if (model.errors.length > 0) return { status: 'invalid', model, errors: model.errors };
   return { status: 'found', model, openLine: fence.open + 1, closeLine: fence.close + 1 };
 }

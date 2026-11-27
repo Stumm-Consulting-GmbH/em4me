@@ -43,9 +43,10 @@ export const FORM_HOEHE = 120;
  * @param {boolean} [aenderbar] Ist das Dokument änderbar? Im Anzeige-Modus
  *   entsteht der Größen-Griff gar nicht erst (Entscheidung E3): Ihn nur
  *   unsichtbar zu schalten reichte nicht — er bliebe anfassbar.
+ * @param {{ohneKommentare?: boolean}} [opts] 4T-002797: geht an die Beschriftung.
  * @returns {HTMLElement} die Hülle, noch nicht eingehängt.
  */
-export function zeichneForm(el, aenderbar = true) {
+export function zeichneForm(el, aenderbar = true, opts) {
   const r = kartenRechteck(el);
   const huelle = document.createElement('div');
   huelle.className = 'canvas-form';
@@ -89,7 +90,7 @@ export function zeichneForm(el, aenderbar = true) {
   // Beschriftung als **einfacher Text**, mittig in der Form (Entscheidung F3
   // des Product Owners vom 2026-09-12): kein Markdown und keine Scroll-Fläche
   // — das bleibt der Unterschied zur Karte.
-  const zeilen = beschriftungsZeilen(el);
+  const zeilen = beschriftungsZeilen(el, opts);
   if (zeilen.length > 0) {
     const text = document.createElement('div');
     text.className = 'canvas-form-text';

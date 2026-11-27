@@ -85,6 +85,25 @@ export const BEDIEN_ELEMENTE = [
 // Elemente, die ein Programm tragen oder laden koennten; die Datei enthaelt keins.
 const PROGRAMM_ELEMENTE = ['script', 'iframe', 'object', 'noscript', 'template'];
 
+// 4T-002797 (Epic 3E-000449): Angaben, in denen ein Block seinen Quelltext
+// unsichtbar mitträgt (bei Abfragen deren Text, bei der Ereignis-Liste je
+// Zeile den Pfad der Quell-Datei). Die Anwendung liest sie zum Bearbeiten und
+// Nachzeichnen; die Datei ist fertig gezeichnet und ohne Programm, keine Regel
+// wählt nach ihnen aus. Ein privater Kommentar im Quelltext stünde sonst
+// unsichtbar in der weitergegebenen Datei.
+export const QUELLTEXT_ANGABEN = new Set([
+  'data-dt-source',
+  'data-ev-source',
+  'data-jt-source',
+  'data-script-source',
+  'data-chart-source',
+  'data-rec-source',
+  'data-db-query',
+  'data-fm-query',
+  'data-ev-query',
+  'data-source',
+]);
+
 // Eigene Regeln der Datei: Grund der Seite, der Quelltext-Block (in der
 // Anwendung ausserhalb des Drucks verborgen) und die beiden Ersatz-Formen.
 export const EXPORT_REGELN = [
@@ -332,9 +351,10 @@ export function bereiteInhaltVor(wurzel, opts = {}) {
 
   // Ereignis-Behandler als Attribute (on...) tragen Programm-Text und fallen
   // weg; javascript:-Adressen behandelt die Verweis-Regel unten (kein Ziel).
+  // 4T-002797: ebenso die Quelltext-Angaben der Blöcke.
   for (const el of wurzel.querySelectorAll('*')) {
     for (const attr of Array.from(el.attributes)) {
-      if (/^on/i.test(attr.name)) el.removeAttribute(attr.name);
+      if (/^on/i.test(attr.name) || QUELLTEXT_ANGABEN.has(attr.name)) el.removeAttribute(attr.name);
     }
   }
 

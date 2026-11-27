@@ -8,10 +8,11 @@
 // Programm bereitstellt (`renderMarkdown`, `buildChart`). Geklickt wird mit
 // einem `mousedown` auf das gezeichnete Diagramm; die Bedienung hört an der
 // Spalten-Wurzel (charts/chart-bedienung.js), wie im Programm.
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderMarkdown } from '../../../src/shared/markdown/markdown.js';
 import { buildChart } from '../../../src/main/preload-diagramme.js';
 import './api-stub.js';
+import { baumVollstaendig, liveInhalt } from './syntax-baum-helfer.js';
 
 window.api.renderMarkdown = (text, _pfad, optionen) => renderMarkdown(text, 'de', optionen);
 window.api.buildChart = buildChart;
@@ -65,6 +66,9 @@ const DOK = [
 let spalte = null;
 const schreibschutz = new Compartment();
 
+// 4T-002883: Der Aufbau wartet auf den vollständigen Syntax-Baum, bevor ein
+// Fall klickt, und jede Abfrage nach einem Live-Block geht über `liveInhalt`
+// (Begründung in syntax-baum-helfer.js).
 function baueSpalte(text = DOK, { editMode = true } = {}) {
   const root = document.createElement('section');
   root.className = 'pane-group';
@@ -86,6 +90,7 @@ function baueSpalte(text = DOK, { editMode = true } = {}) {
     }),
     parent: root.querySelector('.pane-source-editor'),
   });
+  baumVollstaendig(view);
   // Ein Neben-Editor in derselben Spalten-Wurzel, wie das Notiz-Feld der
   // Seitenleiste (index.html: `.notes-editor` innerhalb der `.pane-group`).
   const notizFeld = document.createElement('div');
@@ -102,7 +107,7 @@ function baueSpalte(text = DOK, { editMode = true } = {}) {
   return spalte;
 }
 
-const diagramm = () => spalte.view.contentDOM.querySelector('.cm-live-block > .perspective-chart');
+const diagramm = () => liveInhalt(spalte.view).querySelector('.cm-live-block > .perspective-chart');
 
 function maus(ziel, button = 0) {
   const ereignis = new window.MouseEvent('mousedown', { button, bubbles: true, cancelable: true });
@@ -154,8 +159,29 @@ describe('Klick auf ein Diagramm im Live-Modus (AK29)', () => {
     expect(diagramm().dataset.chartState).toBe('drawn');
     expect(diagramm().classList.contains(KLASSE_GEWAEHLT)).toBe(true);
     // Der Quelltext des Blocks steht nicht als Zeile im Editor.
-    const zeilen = [...view.contentDOM.querySelectorAll('.cm-line')].map((z) => z.textContent);
+    const zeilen = [...liveInhalt(view).querySelectorAll('.cm-line')].map((z) => z.textContent);
     expect(zeilen).not.toContain(`${Z}perspective-chart`);
+  });
+
+  // 4T-002883: Der rote Lauf vom 2026-11-21 nachgestellt. Die Uhr läuft
+  // während des Aufbaus je Abfrage eine Sekunde weiter; der erste
+  // Zerlege-Durchlauf bricht damit nach dem ersten Block ab, wie unter Last.
+  // Ohne das Warten auf den vollständigen Baum stünde das Diagramm beim Klick
+  // nicht da, und der Klick scheiterte mit demselben Fehler wie damals.
+  it('ist das Zeitbudget des ersten Zerlege-Durchlaufs erschöpft, steht das Diagramm trotzdem vor dem Klick', () => {
+    let jetzt = Date.now();
+    const uhr = vi.spyOn(Date, 'now').mockImplementation(() => (jetzt += 1000));
+    let view;
+    let tab;
+    try {
+      ({ view, tab } = baueSpalte());
+    } finally {
+      uhr.mockRestore();
+    }
+    expect(diagramm()).not.toBeNull();
+    const ereignis = maus(diagramm());
+    expect(ereignis.defaultPrevented).toBe(true);
+    expect(lageFuer(view, tab)).toMatchObject({ diagrammGewaehlt: true, zeile: 11 });
   });
 
   it('bei ausgeschaltetem Bearbeiten wählt der Klick nicht aus (F5)', async () => {
@@ -165,7 +191,7 @@ describe('Klick auf ein Diagramm im Live-Modus (AK29)', () => {
     expect(ereignis.defaultPrevented).toBe(true);
     expect(klickLage(view.state)).toBeNull();
     expect(lageFuer(view, tab).diagrammGewaehlt).toBe(false);
-    maus(spalte.view.contentDOM.querySelector('.perspective-datatable td'));
+    maus(liveInhalt(spalte.view).querySelector('.perspective-datatable td'));
     expect(klickLage(view.state)).toBeNull();
     await gemessen();
     expect(diagramm().classList.contains(KLASSE_GEWAEHLT)).toBe(false);
@@ -242,7 +268,7 @@ describe('Klick auf ein Diagramm im Live-Modus (AK29)', () => {
   it('ein Klick in den Text daneben hebt die Auswahl auf', () => {
     const { view } = baueSpalte();
     maus(diagramm());
-    maus(view.contentDOM.querySelector('.cm-line'));
+    maus(liveInhalt(view).querySelector('.cm-line'));
     expect(klickLage(view.state)).toBeNull();
   });
 
@@ -254,6 +280,9 @@ describe('Klick auf ein Diagramm im Live-Modus (AK29)', () => {
     // Änderung im Block ohne Auswahl, wie beim Schreiben aus dem Dialog.
     const typ = view.state.doc.line(13);
     view.dispatch({ changes: { from: typ.from, to: typ.to, insert: 'type: line' } });
+    // Nach der Änderung zerlegt der Editor erneut mit Zeitbudget; die
+    // Hervorhebung setzt der Mess-Schritt erst am neu gebauten Widget.
+    baumVollstaendig(view);
     await gemessen();
     expect(diagramm()).not.toBe(vorher);
     expect(diagramm().classList.contains(KLASSE_GEWAEHLT)).toBe(true);
@@ -261,7 +290,7 @@ describe('Klick auf ein Diagramm im Live-Modus (AK29)', () => {
 
   it('ein Klick auf das Gitter vermerkt die Tabelle und lässt den Zell-Editor arbeiten', () => {
     const { view, tab } = baueSpalte();
-    const zelle = view.contentDOM.querySelector('.perspective-datatable td');
+    const zelle = liveInhalt(view).querySelector('.perspective-datatable td');
     const ereignis = maus(zelle);
     expect(ereignis.defaultPrevented).toBe(false);
     expect(lageFuer(view, tab)).toMatchObject({ inDatentabelle: true, zeile: 3, quelle: 'klick' });

@@ -196,7 +196,14 @@ const MDDA_CACHE_FILENAME = 'Area_Cache.mdda';
 // Wert auf den höchsten beider Seiten plus eins zu setzen und hier ein Absatz
 // je Seite zu führen; Git meldet dabei keinen Konflikt, wenn beide Seiten
 // dieselbe Zahl gesetzt haben.
-const MDDA_CACHE_SCHEMA_VERSION = 12;
+// Version 13 (4T-002863, Epic 3E-000449): Der Index liest den Rumpf ohne private
+// Kommentare, und eine Aufgabe trägt neben der rohen Zeile die sichtbare
+// (`sichtbar`). Ein Alt-Cache führt Treffer, Schlagworte, Verweise und
+// Aufgaben samt Kommentar; der Warmstart übernähme sie für unveränderte
+// Dateien, und ein Kommentar erschiene nach dem Update weiter in Abfrage,
+// Erinnerung und Rückverweis. Der Container trägt zusätzlich die Regel
+// `ohneKommentare`, nach der er gebaut wurde (index/cache.js).
+const MDDA_CACHE_SCHEMA_VERSION = 13;
 
 // Format: { schemaVersion, linkIndex: { files: { <relPath>: { mtimeMs, size,
 // hash, parsed } } } }. `parsed` traegt das Datei-Parse-Ergebnis (hits,

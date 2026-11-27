@@ -35,9 +35,11 @@
 
 const {
   FORM_ART_VORGABE,
+  canvasBeschriftung,
   canvasFlaechenTitel,
   canvasKartenVorschau,
   canvasUmfang,
+  istTextKarte,
   linienRichtung,
   parseCanvasFence,
 } = require('./canvas-core.js');
@@ -101,20 +103,32 @@ function leser(labels) {
   return (key) => (typeof karte[key] === 'string' ? karte[key] : key);
 }
 
+// 4T-002797 (Epic 3E-000449): Der Inhalt eines Elements, das keine Text-Karte
+// ist (Form, Gruppe, Verbindung, Kopfzeile einer Verweis- oder Bild-Karte,
+// unbekannter Marker), ist reiner Text. Mit `opts.ohneKommentare` verliert er
+// seine privaten Kommentare hier, nach der Regel der Canvas-Ansicht
+// (`canvasBeschriftung`), und nicht erst in der Regel des Fließtexts, die
+// danach über den erzeugten Text läuft: Dort machten Backticks oder ein Einzug
+// die Beschriftung zu Code, und der Kommentar bliebe stehen (Prüfrunde 3,
+// Befund 1 beider Prüfer). Der Text einer Text-Karte ist Markdown und bleibt
+// roh; ihn befreit die Regel des Fließtexts wie in der Anzeige.
+function inhaltVon(el, opts) {
+  if (opts && opts.ohneKommentare && !istTextKarte(el)) return canvasBeschriftung(el, opts);
+  return String((el && el.inhalt) || '');
+}
+
 // Eine Beschriftung, die eine Zeile sein muss: Zeilenumbrüche werden zu
 // Leerzeichen (Muster `kartenBeschriftung` der Verweis-Anzeige).
-function einzeilig(el) {
-  return String((el && el.inhalt) || '')
-    .replace(/\s+/g, ' ')
-    .trim();
+function einzeilig(el, opts) {
+  return inhaltVon(el, opts).replace(/\s+/g, ' ').trim();
 }
 
 // Der Text einer Karte, wie er dasteht. Abgeschnitten werden allein die
 // **leeren Zeilen am Ende** — den Abstand zum nächsten Element setzt der
 // Trenner zwischen den Blöcken, und zwei Quellen desselben Abstands ergäben
 // eine wachsende Lücke. Der Text selbst bleibt unangetastet (F3).
-function kartenText(el) {
-  return String((el && el.inhalt) || '').replace(/\s+$/, '');
+function kartenText(el, opts) {
+  return inhaltVon(el, opts).replace(/\s+$/, '');
 }
 
 /**
@@ -126,8 +140,8 @@ function kartenText(el) {
  * wo sie gebraucht wird. Das Panel hält es bei einer Verbindung ohne
  * Beschriftung ebenso und zeigt die Gegenstelle.
  */
-function kartenName(el, L) {
-  const titel = canvasKartenVorschau(el).titel;
+function kartenName(el, L, opts) {
+  const titel = canvasKartenVorschau(el, opts).titel;
   if (titel !== '') return titel;
   return (el && el.id) || L('canvas.liste.ohneText');
 }
@@ -175,9 +189,9 @@ function befundText(L, liste) {
 // Die Schreibweise ist die des ganzen Dokuments und keine eigene: ein Verweis
 // als Wikilink, ein Bild als Einbettung — genau so, wie derselbe Verweis und
 // dasselbe Bild im übrigen Text desselben Exports erschienen (G7, G8).
-function karteBloecke(el, L) {
+function karteBloecke(el, L, opts) {
   const bloecke = [];
-  const text = kartenText(el);
+  const text = kartenText(el, opts);
   if (text.trim() !== '') bloecke.push(text);
   if (el.doc) bloecke.push(`[[${el.doc}]]`);
   else if (el.bild) bloecke.push(`![[${el.bild}]]`);
@@ -190,8 +204,8 @@ function karteBloecke(el, L) {
 
 // Eine Form: Aufzählungs-Punkt aus Art und Beschriftung (F1). Ohne
 // Beschriftung entfällt sie.
-function formBlock(el, L) {
-  const text = einzeilig(el);
+function formBlock(el, L, opts) {
+  const text = einzeilig(el, opts);
   if (text === '') return null;
   const art = L(FORM_ART_SCHLUESSEL[el.formArt] || FORM_ART_SCHLUESSEL[FORM_ART_VORGABE]);
   return '- ' + L('canvas.portabel.form').replace('{art}', art).replace('{text}', text);
@@ -199,8 +213,8 @@ function formBlock(el, L) {
 
 // Eine Gruppe: fette Zeile mit ihrem Namen (F1). Ohne Beschriftung steht das
 // Wort der Art da — eine leere fette Zeile wäre ein Kasten ohne Aufschrift.
-function gruppenBlock(el, L) {
-  return '**' + (einzeilig(el) || L('canvas.liste.gruppe')) + '**';
+function gruppenBlock(el, L, opts) {
+  return '**' + (einzeilig(el, opts) || L('canvas.liste.gruppe')) + '**';
 }
 
 /**
@@ -220,7 +234,7 @@ function gruppenBlock(el, L) {
  * Verschachtelung von Absätzen, und eine erfundene wäre Formatierung ohne
  * Aussage.
  */
-function elementBloecke(model, L, befunde) {
+function elementBloecke(model, L, befunde, opts) {
   const stapel = (model.elemente || []).filter((el) => el.art !== 'linie');
   const erledigt = new Set();
   const bloecke = [];
@@ -229,15 +243,15 @@ function elementBloecke(model, L, befunde) {
     if (erledigt.has(el)) return;
     erledigt.add(el);
     const vorher = bloecke.length;
-    if (el.art === 'gruppe') bloecke.push(gruppenBlock(el, L));
-    else if (el.art === 'karte') bloecke.push(...karteBloecke(el, L));
+    if (el.art === 'gruppe') bloecke.push(gruppenBlock(el, L, opts));
+    else if (el.art === 'karte') bloecke.push(...karteBloecke(el, L, opts));
     else if (el.art === 'form') {
-      const zeile = formBlock(el, L);
+      const zeile = formBlock(el, L, opts);
       if (zeile) bloecke.push(zeile);
     } else {
       // Unbekannter Marker (G1): Er gehört einer anderen Programmfassung, und
       // was an ihm lesbar ist, geht auch im Export nicht verloren.
-      const text = kartenText(el);
+      const text = kartenText(el, opts);
       if (text.trim() !== '') bloecke.push(text);
     }
     // Der Hinweis steht unter dem Element — aber nur, wenn das Element
@@ -259,16 +273,16 @@ function elementBloecke(model, L, befunde) {
 
 // Die Verbindungs-Liste am Ende der Fläche (F2). Keine Verbindung, keine Liste
 // und keine Zeile darüber.
-function verbindungsBloecke(model, L) {
+function verbindungsBloecke(model, L, opts) {
   const linien = (model.elemente || []).filter((el) => el.art === 'linie');
   if (linien.length === 0) return [];
   const namen = new Map();
   for (const el of model.elemente || []) {
-    if (el.art === 'karte' && el.id) namen.set(el.id, kartenName(el, L));
+    if (el.art === 'karte' && el.id) namen.set(el.id, kartenName(el, L, opts));
   }
   const name = (id) => namen.get(id) || id || L('canvas.liste.ohneText');
   const zeilen = linien.map((linie) => {
-    const text = einzeilig(linie);
+    const text = einzeilig(linie, opts);
     const schluessel =
       text === '' ? 'canvas.portabel.verbindung' : 'canvas.portabel.verbindungMitText';
     return (
@@ -288,10 +302,15 @@ function verbindungsBloecke(model, L) {
  *
  * @param {string} rumpf Rumpf der Fence ohne die Zaun-Zeilen.
  * @param {object} [labels] aufgelöste Schlüssel-Text-Karte.
+ * @param {{ohneKommentare?: boolean}} [optionen] 4T-002797: Beschriftungen
+ *   ohne private Kommentare; ein maskierter Marker `\%%` bleibt für die Regel
+ *   des Fließtexts stehen, die danach über den erzeugten Text läuft.
  * @returns {string} Markdown-Text; nie HTML, nie mit abschließendem Umbruch.
  */
-function canvasPortabel(rumpf, labels) {
+function canvasPortabel(rumpf, labels, optionen) {
   const L = leser(labels);
+  const opts =
+    optionen && optionen.ohneKommentare ? { ohneKommentare: true, maskeBehalten: true } : null;
   const model = parseCanvasFence(String(rumpf == null ? '' : rumpf));
   const befunde = befundeVerteilen(model);
   const umfang = canvasUmfang(model);
@@ -300,12 +319,12 @@ function canvasPortabel(rumpf, labels) {
   // Auskunft über sie.
   const leerFlaeche = (model.elemente || []).length === 0;
   const kopf = L('canvas.portabel.kopf')
-    .replace('{titel}', canvasFlaechenTitel(model) || L('canvas.block.art'))
+    .replace('{titel}', canvasFlaechenTitel(model, opts) || L('canvas.block.art'))
     .replace('{umfang}', leerFlaeche ? L('canvas.portabel.leer') : canvasUmfangText(L, umfang));
 
   const bloecke = ['**' + kopf + '**'];
-  bloecke.push(...elementBloecke(model, L, befunde));
-  bloecke.push(...verbindungsBloecke(model, L));
+  bloecke.push(...elementBloecke(model, L, befunde, opts));
+  bloecke.push(...verbindungsBloecke(model, L, opts));
   // Was keinem ausgegebenen Element zufiel, steht am Ende der Fläche: Auch
   // dieser Befund geht nicht verloren, nur seine Stelle ist die Fläche.
   const rest = [...befunde.rest, ...[...befunde.jeElement.values()].flat()].sort(

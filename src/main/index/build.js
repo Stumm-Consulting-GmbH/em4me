@@ -47,6 +47,9 @@ const {
 } = require('./datensatz-erfassung.js');
 // 4T-002047: Zuordnung eines Folgeteils zu seiner Kopf-Datei, für jedes geteilte Dokument.
 const { kopfDateiFuer } = require('./part-files.js');
+const { isPartBasename } = require('../../shared/document-parts.js');
+const { kommentareAusblenden } = require('./index-kommentare.js');
+const { geschwisterNachLoeschung, teilStandPasst } = require('./teil-kommentare.js');
 // 4T-002460 (Epic 3E-000367): Sammelstelle des Ereignis-Prüfers der Workflows.
 const { meldeWorkflowEreignis } = require('../checks/workflow-event-check.js');
 // 4T-002462 (Epic 3E-000367): Erkennung des Ereignisses «Aufgabe erledigt».
@@ -126,7 +129,7 @@ async function buildIndexAsync(rootPath, entry) {
   let cache = null;
   if (entry.isArea) {
     entry.cachePath = path.join(rootPath, MDDA_CACHE_FILENAME);
-    cache = await loadAreaCache(entry.cachePath, rootPath);
+    cache = await loadAreaCache(entry.cachePath, rootPath, entry.ohneKommentare);
     if (!stillCurrent()) return;
   }
 
@@ -146,9 +149,15 @@ async function buildIndexAsync(rootPath, entry) {
     const mtimeMs = scan.mtimes.get(f) || 0;
     let parsed = null;
     let hash = '';
+    let teilStand;
     if (cache) {
       const cached = cache.get(cacheRelPath(f, rootPath));
-      if (cached && cached.mtimeMs === mtimeMs && cached.size === size) {
+      if (
+        cached &&
+        cached.mtimeMs === mtimeMs &&
+        cached.size === size &&
+        teilBestandPasst(cached, f, scan)
+      ) {
         // 4T-001610 (Epic 3E-000252): Ein Folge-Segment traegt seinen bereits
         // ZUGEORDNETEN Bestand im Zwischenspeicher. Aendert der Anwender die
         // Schluessel-Spalte, aendert sich die Segment-Datei nicht, und mtime
@@ -157,6 +166,7 @@ async function buildIndexAsync(rootPath, entry) {
         if (segmentStandPasst(cached.parsed, f)) {
           parsed = cached.parsed;
           hash = cached.hash;
+          teilStand = cached.teilStand;
         }
       }
     }
@@ -166,13 +176,14 @@ async function buildIndexAsync(rootPath, entry) {
       if (res) {
         parsed = res;
         hash = res.hash || '';
+        teilStand = res.teilStand;
       }
     }
     entry.fileSizes.set(f, size);
     // 4T-000402 (Epic 3E-000076): Datei-Zeiten fuer file.ctime/file.mtime.
     entry.fileStats.set(f, { ctimeMs: scan.ctimes.get(f) || 0, mtimeMs });
     if (parsed) applyParsedFile(entry, f, parsed);
-    if (entry.isArea) entry.cacheFiles.set(f, { mtimeMs, size, hash });
+    if (entry.isArea) entry.cacheFiles.set(f, cacheMeta(mtimeMs, size, hash, teilStand));
     // 4T-000408 (Epic 3E-000077): Block-Daten der .mdd mitlesen — auch bei Cache-
     // Treffern, denn die blockData-Sektion ist bewusst nicht Teil des Caches
     // (Begruendung am Block-Daten-Abschnitt in parse.js).
@@ -466,6 +477,9 @@ function onWatcherChange(entry, filePath, kind) {
       merkeGeaenderteDatei(entry, filePath, kind);
       scheduleInvalidate(entry);
     }
+    // 4T-002863: Ein Kommentar aus dem gelöschten Teil reichte womöglich in
+    // seine Geschwister hinein.
+    geschwisterNachlesen(entry, geschwisterNachLoeschung(filePath));
     return;
   }
   // add oder change
@@ -537,11 +551,41 @@ function onWatcherChange(entry, filePath, kind) {
   entry.fileCount = entry.files.size;
   // 4T-000348 (Epic 3E-000062): Cache-Metadaten mitpflegen und Schreiben planen.
   if (entry.isArea) {
-    entry.cacheFiles.set(filePath, { mtimeMs, size, hash: parsed.hash || '' });
+    entry.cacheFiles.set(filePath, cacheMeta(mtimeMs, size, parsed.hash || '', parsed.teilStand));
     scheduleCacheWrite(entry);
   }
   merkeGeaenderteDatei(entry, filePath, kind);
   scheduleInvalidate(entry);
+  // 4T-002863 (Epic 3E-000449): Ein Teil eines geteilten Dokuments wird am
+  // zusammengesetzten Dokument bereinigt (teil-kommentare.js). Hat diese
+  // Änderung die Bereinigung eines anderen Teils verschoben, etwa weil ein
+  // Kommentar jetzt über die Grenze reicht, liest der Index ihn nach; seine
+  // Datei selbst hat sich nicht bewegt und meldet sich nie.
+  geschwisterNachlesen(entry, parsed.kommentarGeschwister);
+}
+
+// 4T-002863: Liest die genannten Geschwister-Teile nach, soweit der Index sie
+// führt. Kein Kreislauf: Beim Nachlesen ist das Dokument gemerkt, und ein
+// Teil meldet dann keine Geschwister mehr.
+function geschwisterNachlesen(entry, geschwister) {
+  for (const g of geschwister || []) {
+    const schluessel = indexSchluessel(entry, g);
+    if (entry.files.has(schluessel)) onWatcherChange(entry, schluessel, 'change');
+  }
+}
+
+// 4T-002863: Meta-Satz des Speichers; der Stand der Teile nur, wo es ihn gibt.
+function cacheMeta(mtimeMs, size, hash, teilStand) {
+  return Array.isArray(teilStand) ? { mtimeMs, size, hash, teilStand } : { mtimeMs, size, hash };
+}
+
+// 4T-002863: Ein gemerkter Teil eines geteilten Dokuments gilt beim Warmstart
+// nur, wenn auch seine Geschwister unverändert sind; ein Kommentar kann aus
+// ihnen hineinreichen. Ein Folgeteil ohne gemerkten Stand wird neu gelesen.
+function teilBestandPasst(cached, f, scan) {
+  if (!kommentareAusblenden()) return true;
+  if (!Array.isArray(cached.teilStand)) return !isPartBasename(path.parse(f).name);
+  return teilStandPasst(cached.teilStand, f, scan);
 }
 
 // 4T-002545 (Epic 3E-000368): Der Schlüssel, unter dem der Index eine Datei

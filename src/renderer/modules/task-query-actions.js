@@ -65,6 +65,7 @@ import {
 import { shiftIsoDateByDays, primaryDateField } from '../../shared/tasks/task-recurrence.js';
 import { showDateTimePicker } from './calendar/date-picker.js';
 import { scrollToLineAfterOpen } from './views/anchor-navigation.js';
+import { rohZeileDesTreffers } from './query/display-tasks.js'; // 4T-002863
 import { saveTab } from './views/save-export.js';
 import { renderTabbar } from './views/tabbar.js';
 import { scheduleAutoSave, showStatusbarHint } from './views/views.js';
@@ -424,7 +425,7 @@ export function handleTaskQueryAction(target, paneIdx) {
   const hit = {
     path: li.dataset.taskPath,
     line: parseInt(li.dataset.taskLine || '', 10) || 1,
-    taskText: li.dataset.taskText,
+    taskText: rohZeileDesTreffers(li),
   };
   const kind = actionEl.dataset.taskAction;
   if (kind === 'toggle') {

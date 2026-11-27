@@ -283,7 +283,7 @@ function trefferText(origin, kontext) {
     return zelle(datensatzVerweis(origin.table, origin.id, origin.display));
   }
   if (origin.kind === 'task' && !kontext.tabelle) {
-    const text = taskText(origin.raw, kontext.wishes, kontext.aufgaben);
+    const text = taskText(origin.sichtbar ?? origin.raw, kontext.wishes, kontext.aufgaben);
     return zelle(datenText(text || displayName(origin)));
   }
   const name = displayName(origin);

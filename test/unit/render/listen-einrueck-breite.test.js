@@ -13,9 +13,9 @@
 // nicht als fester Text; Vorbild des Render-Teils ist listen-neustart.test.js.
 import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import '../renderer/api-stub.js';
+import { baumVollstaendig } from '../renderer/syntax-baum-helfer.js';
 
 const { EditorView, runScopeHandlers } = await import('@codemirror/view');
-const { ensureSyntaxTree } = await import('@codemirror/language');
 const { createEditorState } = await import('../../../src/renderer/modules/editor/editor.js');
 const lebenszyklus =
   await import('../../../src/renderer/modules/extensions/extension-lifecycle.js');
@@ -43,7 +43,7 @@ function nachTab(doc, zeile) {
   const view = new EditorView({ state, parent: document.body });
   offen.push(view);
   view.dispatch({ selection: { anchor: view.state.doc.line(zeile).to } });
-  ensureSyntaxTree(view.state, view.state.doc.length, 5000);
+  baumVollstaendig(view);
   const event = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true });
   expect(runScopeHandlers(view, event, 'editor')).toBe(true);
   return view.state.doc.toString();
@@ -135,7 +135,7 @@ describe('Folgezeile nach dem Rückweg auf «11.»: Anzeige wie Quelltext (4T-00
     const view = new EditorView({ state, parent: document.body });
     offen.push(view);
     view.dispatch({ selection: { anchor: view.state.doc.line(11).to } });
-    ensureSyntaxTree(view.state, view.state.doc.length, 5000);
+    baumVollstaendig(view);
     for (const shiftKey of [false, true]) {
       const event = new KeyboardEvent('keydown', { key: 'Tab', shiftKey, bubbles: true });
       expect(runScopeHandlers(view, event, 'editor')).toBe(true);

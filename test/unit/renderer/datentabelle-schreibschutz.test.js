@@ -37,7 +37,10 @@ const { bindPerspectiveDatatableEditor, uebernimmOffeneDatentabellenEingabe } =
   await import('../../../src/renderer/modules/query/perspective-datatable-editor.js');
 const { state } = await import('../../../src/renderer/modules/app/app-state.js');
 const { paneEditors } = await import('../../../src/renderer/modules/editor/editor.js');
-const { renderMarkdown } = await import('../../../src/shared/markdown/markdown.js');
+const { renderMarkdown, configureExtensions } =
+  await import('../../../src/shared/markdown/markdown.js');
+const { applyExtensionsState } =
+  await import('../../../src/renderer/modules/extensions/extension-lifecycle.js');
 
 // Das Prüf-Dokument der manuellen Zeile im Aufgaben-Objekt.
 const QUELLE = [
@@ -52,9 +55,9 @@ const QUELLE = [
 
 let wurzel;
 
-function zustand(nurLesen) {
+function zustand(nurLesen, quelle = QUELLE) {
   return EditorState.create({
-    doc: QUELLE,
+    doc: quelle,
     extensions: nurLesen ? [EditorState.readOnly.of(true)] : [],
   });
 }
@@ -66,14 +69,14 @@ function reiter(viewMode) {
 
 // Geteilte Ansicht: die Anzeige-Fläche mit dem Markup der Pipeline, der Editor
 // als Doppel mit echtem Zustand; `dispatch` hält jede Schreib-Absicht fest.
-function geteilteAnsicht({ nurLesen }) {
+function geteilteAnsicht({ nurLesen, quelle = QUELLE }) {
   reiter('split');
-  const editor = { state: zustand(nurLesen), dispatch: vi.fn() };
+  const editor = { state: zustand(nurLesen, quelle), dispatch: vi.fn() };
   paneEditors[0] = editor;
   wurzel = document.createElement('div');
   wurzel.className = 'pane-group';
   wurzel.dataset.pane = '0';
-  wurzel.innerHTML = `<div class="markdown-body">${renderMarkdown(QUELLE, 'de')}</div>`;
+  wurzel.innerHTML = `<div class="markdown-body">${renderMarkdown(quelle, 'de')}</div>`;
   document.body.appendChild(wurzel);
   bindPerspectiveDatatableEditor(wurzel);
   return { root: wurzel, editor };
@@ -210,5 +213,130 @@ describe('Gegenprobe bei eingeschaltetem Bearbeiten (4T-002053)', () => {
     expect(editor.dispatch.mock.calls[0][0].changes.insert).toContain('| Miete | 900 | x |');
     // Ohne offene Eingabe ist nichts zu übernehmen.
     expect(uebernimmOffeneDatentabellenEingabe()).toBe(true);
+  });
+});
+
+// 4T-002797 (Epic 3E-000449): Die Anzeige liest die Tabelle ohne private
+// Kommentare, das Zurückschreiben roh. Eine Zeile im Rumpf, die nur einen
+// Kommentar trägt, zeigt die Anzeige nicht als Fehler; roh ist sie einer, und
+// die Serialisierung schriebe sie nicht zurück. Das Raster bleibt deshalb
+// gesperrt wie vor der Befreiung der Anzeige. Gegenprobe: Ein Kommentar in
+// einer Zelle ist roh kein Fehler, das Raster bleibt bearbeitbar.
+describe('Privater Kommentar im Rumpf (4T-002797)', () => {
+  const MIT_KOMMENTAR_ZEILE = QUELLE.replace(
+    '| Strom | 60 |  |',
+    '%% Quelle: Umfrage %%\n| Strom | 60 |  |',
+  );
+
+  it('eine Zeile nur mit Kommentar sperrt das Raster, ohne Fehler-Anzeige', () => {
+    const { root, editor } = geteilteAnsicht({ nurLesen: false, quelle: MIT_KOMMENTAR_ZEILE });
+    expect(root.querySelector('.pdt-errors')).toBeNull();
+    expect(root.textContent).not.toContain('Umfrage');
+    klick(zelle(root, 0, 1));
+    expect(eingabe(root)).toBeNull();
+    klick(zelle(root, 1, 2));
+    hinweise.length = 0;
+    klick(root.querySelector('.pdt-add-btn'));
+    expect(editor.dispatch).not.toHaveBeenCalled();
+    // Zweitblick Runde 2 (Z7): Der Hinweis nennt den Kommentar, nicht einen
+    // Struktur-Fehler, den die Anzeige nicht zeigt.
+    expect(hinweise).toEqual(['datatable.hint.blockedComment']);
+  });
+
+  it('ein Kommentar in einer Zelle lässt das Raster bearbeitbar', () => {
+    const quelle = QUELLE.replace('| Miete | 800 | x |', '| Miete %% intern %% | 800 | x |');
+    const { root, editor } = geteilteAnsicht({ nurLesen: false, quelle });
+    expect(zelle(root, 0, 0).textContent).toBe('Miete');
+    klick(zelle(root, 1, 2));
+    expect(editor.dispatch).toHaveBeenCalledTimes(1);
+    // Zurückgeschrieben wird roh: Der Kommentar der anderen Zeile bleibt.
+    const { changes } = editor.dispatch.mock.calls[0][0];
+    expect(JSON.stringify(changes)).toContain('Miete %% intern %%');
+  });
+});
+
+// 4T-002797, Zweitblick Runde 2 (Z5, Z6): Eine Zelle mit privatem Kommentar in
+// einer Spalte mit Typ ist roh eine Fehler-Zelle; die Anzeige zeigt ihren Wert
+// ohne Kommentar und ohne Fehler. Das Umschalten eines Wahrheitswerts kippt den
+// sichtbaren Wert und behält den Kommentar (vorher löschte es ihn still und
+// setzte den Haken). Eine Zahl mit Kommentar lässt sich übernehmen (vorher
+// meldete sie einen ungültigen Betrag); geprüft wird der sichtbare Wert,
+// geschrieben der Rohtext samt Kommentar. Gegenprobe: Bei ausgeschalteter
+// Erweiterung ist die Zelle auch in der Anzeige ein Fehler und schaltet nicht.
+describe('Bearbeiten einer Zelle mit privatem Kommentar (4T-002797, Z5 und Z6)', () => {
+  const geschrieben = (editor) => editor.dispatch.mock.calls[0][0].changes.insert;
+
+  afterEach(async () => {
+    configureExtensions([]);
+    await applyExtensionsState([], { persist: false });
+  });
+
+  it('der Wahrheitswert kippt und der Kommentar bleibt stehen', () => {
+    const quelle = QUELLE.replace('| Miete | 800 | x |', '| Miete | 800 | x %%Notiz%% |');
+    const { root, editor } = geteilteAnsicht({ nurLesen: false, quelle });
+    expect(zelle(root, 0, 2).classList.contains('pdt-cell-error')).toBe(false);
+    klick(zelle(root, 0, 2));
+    expect(editor.dispatch).toHaveBeenCalledTimes(1);
+    expect(geschrieben(editor)).toMatch(/\| Miete\s*\|\s*800\s*\|\s*%%Notiz%%\s*\|/);
+  });
+
+  it('mit der Leertaste wird ein leerer Wahrheitswert mit Kommentar gesetzt', () => {
+    const quelle = QUELLE.replace('| Strom | 60 |  |', '| Strom | 60 | %%offen%% |');
+    const { root, editor } = geteilteAnsicht({ nurLesen: false, quelle });
+    taste(zelle(root, 1, 2), ' ');
+    expect(editor.dispatch).toHaveBeenCalledTimes(1);
+    expect(geschrieben(editor)).toMatch(/\| Strom\s*\|\s*60\s*\|\s*x %%offen%%\s*\|/);
+  });
+
+  it('eine Zahl mit Kommentar wird übernommen, der Kommentar bleibt', () => {
+    const quelle = QUELLE.replace('| Miete | 800 | x |', '| Miete | 800 %%netto%% | x |');
+    const { root, editor } = geteilteAnsicht({ nurLesen: false, quelle });
+    expect(zelle(root, 0, 1).textContent).toBe('800');
+    klick(zelle(root, 0, 1));
+    expect(eingabe(root).value).toBe('800 %%netto%%');
+    // Unverändert übernommen: nichts geschrieben.
+    expect(uebernimmOffeneDatentabellenEingabe()).toBe(true);
+    expect(editor.dispatch).not.toHaveBeenCalled();
+
+    klick(zelle(root, 0, 1));
+    eingabe(root).value = 'kein Betrag %%netto%%';
+    expect(uebernimmOffeneDatentabellenEingabe()).toBe(false);
+    expect(editor.dispatch).not.toHaveBeenCalled();
+
+    eingabe(root).value = '900 %%netto%%';
+    expect(uebernimmOffeneDatentabellenEingabe()).toBe(true);
+    expect(editor.dispatch).toHaveBeenCalledTimes(1);
+    expect(geschrieben(editor)).toMatch(/\| Miete\s*\|\s*900 %%netto%%\s*\|\s*x\s*\|/);
+  });
+
+  it('bei ausgeschalteter Erweiterung schaltet die Zelle nicht und bleibt ein Fehler', async () => {
+    configureExtensions(['comments']);
+    await applyExtensionsState(['comments'], { persist: false });
+    const quelle = QUELLE.replace('| Miete | 800 | x |', '| Miete | 800 | x %%Notiz%% |');
+    const { root, editor } = geteilteAnsicht({ nurLesen: false, quelle });
+    expect(zelle(root, 0, 2).classList.contains('pdt-cell-error')).toBe(true);
+    klick(zelle(root, 0, 2));
+    taste(zelle(root, 0, 2), ' ');
+    expect(editor.dispatch).not.toHaveBeenCalled();
+  });
+
+  // Prüfrunde 3, Befund 5 des Zweitblicks: Zeigt die Anzeige die Zelle noch
+  // als gültig (gezeichnet bei eingeschalteter Erweiterung), trägt sie in der
+  // Quelle nach dem Ausschalten aber einen Fehler, schaltet sie nicht um und
+  // die Statusleiste nennt den Grund, statt still nichts zu tun.
+  it('eine in der Quelle fehlerhafte Zelle schaltet nicht und meldet den Grund', async () => {
+    const quelle = QUELLE.replace('| Miete | 800 | x |', '| Miete | 800 | x %%Notiz%% |');
+    const { root, editor } = geteilteAnsicht({ nurLesen: false, quelle });
+    expect(zelle(root, 0, 2).classList.contains('pdt-cell-error')).toBe(false);
+    configureExtensions(['comments']);
+    await applyExtensionsState(['comments'], { persist: false });
+    hinweise.length = 0;
+    klick(zelle(root, 0, 2));
+    taste(zelle(root, 0, 2), ' ');
+    expect(editor.dispatch).not.toHaveBeenCalled();
+    expect(hinweise).toEqual([
+      'datatable.cellError.invalidBoolean',
+      'datatable.cellError.invalidBoolean',
+    ]);
   });
 });

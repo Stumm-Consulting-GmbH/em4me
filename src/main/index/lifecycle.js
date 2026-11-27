@@ -13,6 +13,8 @@ const { buildIndexAsync } = require('./build.js');
 // 4T-002023 (Epic 3E-000192): geschriebene Stände eines geschlossenen Fensters.
 const { clearBufferOverlaysOfOwner, meldeOverlayAenderung } = require('./overlay.js');
 const { writeAreaCache } = require('./cache.js');
+// 4T-002863 (Epic 3E-000449): Kommentar-Regel, nach der ein Index gebaut wird.
+const { kommentareAusblenden } = require('./index-kommentare.js');
 // 4T-002462 (Epic 3E-000367): Vergleichs-Stände «Aufgabe erledigt» der Wurzel.
 const { vergissAufgaben } = require('./aufgaben-erledigt.js');
 const { normalizeBlockEntries } = require('./block-data.js');
@@ -184,6 +186,11 @@ function ensureIndex(rootPath, ownerKey, isArea) {
     // Schreiben von Area_Cache.mdda.
     cacheFiles: new Map(),
     cachePath: null,
+    // 4T-002863 (Epic 3E-000449): Die Kommentar-Regel, nach der dieser Index
+    // gebaut wird. Sie geht mit in den Zwischenspeicher; ein Speicher nach der
+    // anderen Regel wird beim Laden verworfen, auch wenn ihn der Abbau nach
+    // dem Umschalten noch schreibt.
+    ohneKommentare: kommentareAusblenden(),
     cacheWriteTimer: null,
     fileCount: 0,
     byteSize: 0,

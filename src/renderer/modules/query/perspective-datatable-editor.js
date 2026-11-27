@@ -41,12 +41,18 @@ import { getDocText } from '../app/api.js';
 import { renderPaneContent } from '../views/pane-render.js';
 import { showStatusbarHint } from '../views/views.js';
 import { activeTabOfPane, renderedPaneIndex } from '../views/pane-lookup.js';
+// 4T-002797 (Epic 3E-000449): Filter und Sortierung sehen den Zelltext ohne
+// privaten Kommentar; das Bearbeiten einer Zelle bleibt roh.
+import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 // 4T-000986: die Datatable-Familie ist geschnitten; die Namen kommen direkt
 // aus dem jeweiligen Modul (Kern, berechnete Spalten, Ansicht).
 import {
   parsePerspectiveDatatable,
   serializePerspectiveDatatable,
   parseCellValue,
+  eingegebeneZelle,
+  umgeschalteteWahrheitsZelle,
+  zelleGeaendert,
   computeAggregates,
 } from '../../../shared/markdown/perspective-datatable.js';
 import {
@@ -99,7 +105,7 @@ function resolveContext(el) {
   const view = paneEditors[paneIdx];
   if (!tab || !view) return null;
   const modeOk = live ? tab.viewMode === 'live' : tab.viewMode === 'split';
-  const blocked = !!container.querySelector('.pdt-errors');
+  const blocked = !!container.querySelector('.pdt-errors') || rohMitFehlern(container);
   return {
     container,
     paneIdx,
@@ -113,6 +119,17 @@ function resolveContext(el) {
     editable: modeOk && !tab.manualPage && !blocked && !view.state.readOnly,
     dtIndex: parseInt(container.dataset.dtIndex, 10),
   };
+}
+
+// 4T-002797 (Epic 3E-000449): Die Anzeige liest die Tabelle ohne private
+// Kommentare, das Zurückschreiben roh. Eine Zeile, die nur einen Kommentar
+// trägt, ist roh ein Struktur-Fehler, in der Anzeige aber keiner; die
+// Serialisierung schriebe sie nicht zurück. Gesperrt ist das Gitter deshalb
+// auch, wenn erst der Rohtext Fehler hat, wie vor der Befreiung der Anzeige.
+function rohMitFehlern(container) {
+  const quelle = container.dataset.dtSource;
+  if (typeof quelle !== 'string') return false;
+  return parsePerspectiveDatatable(normalizeBody(quelle)).errors.length > 0;
 }
 
 // Fence-Body-Vergleich tolerant gegen CRLF und das abschließende Newline
@@ -287,9 +304,10 @@ function commitActiveEdit(move) {
   cellSuggestions.close();
   const edit = activeEdit;
   const raw = String(edit.input.value || '').trim();
-  const { value, error } = parseCellValue(edit.colType, raw);
-  if (error) {
-    showStatusbarHint(`datatable.cellError.${error}`, { error: true, duration: 2500 });
+  // 4T-002797 (Z6): Mit privatem Kommentar zählt der sichtbare Wert.
+  const zelle = eingegebeneZelle(edit.colType, raw, isExtensionActive('comments'));
+  if (zelle.error) {
+    showStatusbarHint(`datatable.cellError.${zelle.error}`, { error: true, duration: 2500 });
     edit.input.classList.add('pdt-input-invalid');
     return false;
   }
@@ -308,15 +326,13 @@ function commitActiveEdit(move) {
     return true;
   }
   const before = model.rows[edit.rowIdx][di];
-  const changed =
-    !before || before.error != null || String(before.value ?? '') !== String(value ?? '');
-  if (!changed) {
+  if (!zelleGeaendert(before, zelle)) {
     if (edit.td.isConnected) {
       edit.td.classList.remove('pdt-editing');
       edit.td.innerHTML = edit.originalHtml;
     }
   } else {
-    model.rows[edit.rowIdx][di] = { text: raw, value, error: null };
+    model.rows[edit.rowIdx][di] = zelle;
     // 4T-002053: Nicht geschrieben (etwa schreibgeschützt): Zelle zurückstellen.
     if (!writeBody(edit.ctx, fence, model) && edit.td.isConnected) {
       edit.td.classList.remove('pdt-editing');
@@ -393,10 +409,15 @@ function toggleBooleanCell(ctx, td) {
   const model = parsePerspectiveDatatable(fence.body);
   const di = dataIndexFor(model, colIdx);
   if (di == null || !model.rows[rowIdx]) return;
-  const cell = model.rows[rowIdx][di];
-  const next = !(cell && cell.value === true);
-  model.rows[rowIdx][di] = { text: next ? 'x' : '', value: next, error: null };
-  writeBody(ctx, fence, model);
+  // 4T-002797 (Z5): Eine Zelle mit privatem Kommentar behält ihn. Eine Zelle
+  // mit Fehler in der Quelle schaltet nicht um, damit ihr Inhalt nicht
+  // überschrieben wird; die Statusleiste nennt den Grund wie beim Übernehmen
+  // einer Eingabe (Zweitblick Runde 3, Befund Z14).
+  const zeile = model.rows[rowIdx];
+  const zelle = zeile[di];
+  zeile[di] = umgeschalteteWahrheitsZelle(zelle, isExtensionActive('comments')) || zelle;
+  if (zeile[di] !== zelle) return writeBody(ctx, fence, model);
+  showStatusbarHint(`datatable.cellError.${zelle.error}`, { error: true, duration: 2500 });
 }
 
 function addRow(ctx) {
@@ -533,7 +554,9 @@ function ensureViewUi(ctx) {
   }
   if (existing) return;
 
-  const model = parsePerspectiveDatatable(normalizeBody(ctx.container.dataset.dtSource));
+  const model = parsePerspectiveDatatable(normalizeBody(ctx.container.dataset.dtSource), {
+    ohneKommentare: isExtensionActive('comments'),
+  });
   const row = document.createElement('tr');
   row.className = 'pdt-filter-row';
   if (headRow.querySelector('.pdt-row-del')) {
@@ -602,7 +625,9 @@ function applyViewState(ctx) {
   const tbody = table ? table.tBodies[0] : null;
   if (!table || !tbody) return;
   const st = viewStateFor(ctx, false);
-  const model = parsePerspectiveDatatable(normalizeBody(ctx.container.dataset.dtSource));
+  const model = parsePerspectiveDatatable(normalizeBody(ctx.container.dataset.dtSource), {
+    ohneKommentare: isExtensionActive('comments'),
+  });
   // 4T-000421: berechnete Werte fließen in Sortierung, Filter und Aggregate ein.
   const computed = computeComputedCells(model);
 
@@ -728,7 +753,12 @@ function onRootClick(e) {
     // Read-only-Kontexte (Reading, Handbuch) bleiben stumm; blockierte
     // Tabellen melden den Grund auf expliziten Aktions-Klick.
     if (ctx.blocked && (delBtn || addBtn)) {
-      showStatusbarHint('datatable.hint.blocked', { error: true, duration: 2500 });
+      // 4T-002797, Zweitblick Runde 2 (Z7): Zeigt die Anzeige keinen Fehler,
+      // sperrt allein ein privater Kommentar außerhalb einer Zelle das Gitter.
+      const grund = ctx.container.querySelector('.pdt-errors')
+        ? 'datatable.hint.blocked'
+        : 'datatable.hint.blockedComment';
+      showStatusbarHint(grund, { error: true, duration: 2500 });
     }
     return;
   }

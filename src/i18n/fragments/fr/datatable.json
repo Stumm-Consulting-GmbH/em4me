@@ -34,6 +34,7 @@
   "datatable.deleteRow": "Supprimer la ligne",
   "datatable.hint.notFound": "Table de données introuvable sans ambiguïté dans la source, modification annulée",
   "datatable.hint.blocked": "Table de données avec des erreurs de structure, modification uniquement dans la source",
+  "datatable.hint.blockedComment": "Table de données avec un commentaire privé en dehors d'une cellule, modification uniquement dans la source",
   "datatable.filter.show": "Afficher ou masquer la ligne de filtre",
   "datatable.filter.placeholder": "Filtrer…",
   "datatable.filter.all": "tous",

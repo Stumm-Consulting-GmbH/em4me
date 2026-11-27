@@ -74,7 +74,7 @@ function statsFor(areaRoot, env) {
   const aufgaben = { gesamt: 0, offen: 0, erledigt: 0, abgebrochen: 0 };
   for (const taskLines of entry.tasksPerFile.values()) {
     for (const tl of taskLines) {
-      const model = parseTaskLine(tl.text);
+      const model = parseTaskLine(tl.sichtbar ?? tl.text); // 4T-002863 (Epic 3E-000449)
       if (!model) continue;
       const typ = statusTypeOf(model.statusChar);
       if (typ === 'NON_TASK') continue;

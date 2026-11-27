@@ -34,6 +34,7 @@
   "datatable.deleteRow": "Elimina riga",
   "datatable.hint.notFound": "Tabella dati non trovata in modo univoco nel sorgente, modifica annullata",
   "datatable.hint.blocked": "Tabella dati con errori di struttura, modifica solo nel sorgente",
+  "datatable.hint.blockedComment": "Tabella dati con un commento privato fuori da una cella, modifica solo nel sorgente",
   "datatable.filter.show": "Mostra o nascondi la riga dei filtri",
   "datatable.filter.placeholder": "Filtra…",
   "datatable.filter.all": "tutti",

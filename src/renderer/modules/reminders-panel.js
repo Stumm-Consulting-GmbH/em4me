@@ -51,7 +51,7 @@ function buildEntry(paneIdx, item) {
   main.className = 'reminders-entry-main';
   const desc = document.createElement('span');
   desc.className = 'reminders-item-desc';
-  desc.textContent = item.description || item.taskText;
+  desc.textContent = item.description || item.sichtbarText || item.taskText; // 4T-002863
   main.appendChild(desc);
   const meta = document.createElement('span');
   meta.className = 'reminders-item-meta';

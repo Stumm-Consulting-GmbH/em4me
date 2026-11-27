@@ -222,7 +222,9 @@ function textOhneKommentare(text, deaktiviert, zerleger) {
 // dann schreibt der Konverter sie nicht ein zweites Mal. Der Text ist der
 // Körper ohne Frontmatter (markdown.js schneidet es vorher ab). `zellHtml` ist
 // der Zell-Renderer der Text-Zellen (4T-002014), unverändert durchgereicht.
-function datentabellenKonverter(text, zellHtml) {
+// 4T-002797 (Epic 3E-000449): `ohneKommentare` lässt private Kommentare der
+// Zellen nicht in die Ausgabe.
+function datentabellenKonverter(text, zellHtml, ohneKommentare) {
   let anker = null;
   return (content, offset) => {
     if (!anker) anker = extractBlockAnchors(text, { frontmatter: false });
@@ -231,6 +233,7 @@ function datentabellenKonverter(text, zellHtml) {
     return convertPerspectiveDatatableBlockToHtml(content, {
       zellHtml,
       ankerZeileFolgt: !!(tabelle && tabelle.ankerZeile),
+      ohneKommentare,
     });
   };
 }
@@ -281,7 +284,7 @@ function convertPortableFences(text, opts) {
     const r = ersetzeObersteEbene(
       aktuell,
       'perspective-datatable',
-      datentabellenKonverter(aktuell, o.zellHtml),
+      datentabellenKonverter(aktuell, o.zellHtml, !!o.ohneKommentare),
     );
     aktuell = r.text;
     stand.datatable = r.getroffen;

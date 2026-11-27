@@ -14,10 +14,10 @@
 // Aufgabe.
 import { describe, it, expect } from 'vitest';
 import './api-stub.js';
+import { zustandMitVollemBaum } from './syntax-baum-helfer.js';
 import { EditorState } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
 import { Table as LezerTable } from '@lezer/markdown';
-import { ensureSyntaxTree } from '@codemirror/language';
 
 import { TabelleImZitat } from '../../../src/renderer/modules/editor/tabelle-im-zitat.js';
 
@@ -45,11 +45,7 @@ function zustand(doc) {
     doc,
     extensions: [markdown({ extensions: [LezerTable, TabelleImZitat] })],
   });
-  let schutz = 0;
-  while (!ensureSyntaxTree(state, state.doc.length, 50) && schutz++ < 400) {
-    /* weiter */
-  }
-  return state;
+  return zustandMitVollemBaum(state);
 }
 
 // Die Block-Widgets eines Dokuments: ersetzter Bereich, Text, Schlüssel und

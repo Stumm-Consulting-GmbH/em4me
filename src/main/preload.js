@@ -405,6 +405,12 @@ contextBridge.exposeInMainWorld('api', {
   // nur Zeichenketten in Tafeln ohne Prototyp, alles ausser Zeichenketten als
   // Text bleibt ohne Antwort, die Laenge begrenzt der Kern.
   kommentarImCode: require('../shared/markdown/plugins/comments.js').kommentarImCode,
+  // 4T-002797 (Epic 3E-000449): der Quelltext ohne private Kommentare für Druck,
+  // PDF und HTML-Export aus der Quelltext-Ansicht, auch in den Rümpfen von
+  // Datentabelle, Canvas-Fläche und den übrigen Sonder-Blöcken; die braucht den
+  // Zerleger der Anzeige, der hier lebt. Rein lesend: Zeichenkette hinein,
+  // Zeichenkette heraus, alles andere bleibt ohne Antwort (prüft der Kern).
+  quelltextOhneKommentare: markdownModul.quelltextOhneKommentare,
   // 4T-001045 (Epic 3E-000151): Knoten-Baum fuer die Mindmap-Ansicht, derselbe
   // Weg wie renderMarkdown. Die Anordnung rechnet bewusst der Renderer, weil
   // sie eine echte Textmessung braucht. 4T-002068: Bilder der Notizen über die

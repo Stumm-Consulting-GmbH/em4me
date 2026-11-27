@@ -218,6 +218,8 @@ export async function replaceChartFencesForExport(text, kontext = {}) {
         colors: farben,
         idPrefix: `${KENNUNGS_PRAEFIX}-${i}`,
         descriptionTexts: texte,
+        // 4T-002797 (Epic 3E-000449): Beschriftungen ohne privaten Kommentar.
+        ohneKommentare: isExtensionActive('comments'),
       };
       try {
         auftrag.ersatz = await ersatzFuer(

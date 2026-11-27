@@ -30,6 +30,7 @@ import {
   releaseRoot,
   statsFor,
 } from '../../src/main/backlinks.js';
+import { merkeZwischenspeicher, warteAufZwischenspeicher } from './index-abbau-helfer.js';
 
 // --- Teil 1: Container (rein) -----------------------------------------------
 
@@ -193,11 +194,15 @@ function sourceBasenames(result) {
   return (result.results || []).map((r) => path.basename(r.quelldatei));
 }
 
-afterEach(() => {
+afterEach(async () => {
+  const gemerkt = merkeZwischenspeicher(openRoots);
   vi.useFakeTimers();
   for (const root of openRoots) releaseRoot(root);
   vi.advanceTimersByTime(61_000);
   vi.useRealTimers();
+  // 4T-002885: Der Abbau schreibt den Zwischenspeicher noch einmal; erst
+  // danach darf der Wegwerf-Ordner weg (index-abbau-helfer.js).
+  await warteAufZwischenspeicher(gemerkt);
   openRoots.clear();
   for (const dir of tmpDirs) {
     try {

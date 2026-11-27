@@ -20,10 +20,10 @@
 // test/e2e/funktionen/bearbeitung-und-ansicht.spec.js (FB-18).
 import { describe, it, expect } from 'vitest';
 import './api-stub.js';
+import { zustandMitVollemBaum } from './syntax-baum-helfer.js';
 import { EditorState } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
 import { Table as LezerTable } from '@lezer/markdown';
-import { ensureSyntaxTree } from '@codemirror/language';
 
 // Die reine Spalten-Rechnung liegt in einem eigenen Modul ohne
 // Renderer-Importe; Handler und Schalter-Naht in der Tastenbelegung.
@@ -41,11 +41,7 @@ function stateFor(doc) {
     doc,
     extensions: [markdown({ extensions: [LezerTable] })],
   });
-  let guard = 0;
-  while (!ensureSyntaxTree(state, state.doc.length, 50) && guard++ < 400) {
-    /* weiter */
-  }
-  return state;
+  return zustandMitVollemBaum(state);
 }
 
 // Attrappe der EditorView: der Handler liest `state` und ruft `dispatch`.

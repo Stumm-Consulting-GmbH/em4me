@@ -180,7 +180,7 @@ function wirksameSchrift(stil) {
  *   Farbschema (Entscheidung vom 2026-09-29); Text und gedämpfte Farbe liest
  *   die Grafik an ihrem Ort, auf der Folie also aus deren Theme.
  * @returns {{colors: object, fontFamily: (string|undefined), idPrefix: string,
- *   descriptionTexts: object}}
+ *   descriptionTexts: object, ohneKommentare: boolean}}
  */
 export function zeichenAngabenDerAnsicht(element, idPrefix, hellDunkel = null) {
   const fest = hellDunkel === 'light' || hellDunkel === 'dark' ? hellDunkel : null;
@@ -200,6 +200,8 @@ export function zeichenAngabenDerAnsicht(element, idPrefix, hellDunkel = null) {
     fontFamily: wirksameSchrift(stil),
     idPrefix,
     descriptionTexts: chartDescriptionTexts(t),
+    // 4T-002797 (Epic 3E-000449): Beschriftungen ohne privaten Kommentar.
+    ohneKommentare: isExtensionActive('comments'),
   };
 }
 

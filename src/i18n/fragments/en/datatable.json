@@ -34,6 +34,7 @@
   "datatable.deleteRow": "Delete row",
   "datatable.hint.notFound": "Data table not unambiguously found in the source, change discarded",
   "datatable.hint.blocked": "Data table has structural errors, editing only in the source",
+  "datatable.hint.blockedComment": "Data table has a private comment outside a cell, editing only in the source",
   "datatable.filter.show": "Show or hide the filter row",
   "datatable.filter.placeholder": "Filter…",
   "datatable.filter.all": "all",

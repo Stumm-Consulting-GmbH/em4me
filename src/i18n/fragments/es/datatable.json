@@ -34,6 +34,7 @@
   "datatable.deleteRow": "Eliminar fila",
   "datatable.hint.notFound": "No se encontró la tabla de datos de forma inequívoca en el código fuente, cambio descartado",
   "datatable.hint.blocked": "La tabla de datos tiene errores de estructura, edición solo en el código fuente",
+  "datatable.hint.blockedComment": "La tabla de datos tiene un comentario privado fuera de una celda, edición solo en el código fuente",
   "datatable.filter.show": "Mostrar u ocultar la fila de filtros",
   "datatable.filter.placeholder": "Filtrar…",
   "datatable.filter.all": "todos",

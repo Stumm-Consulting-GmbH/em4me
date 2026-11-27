@@ -16,6 +16,7 @@ import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import './api-stub.js';
+import { baumVollstaendig } from './syntax-baum-helfer.js';
 import de from '../../../src/i18n/de.json';
 
 global.fetch = vi.fn(async () => ({ ok: true, json: async () => de }));
@@ -112,6 +113,9 @@ function sicht() {
     parent,
   });
   offen.push(view);
+  // 4T-002941: auf den vollständigen Syntax-Baum warten, bevor ein Fall die
+  // Hervorhebung abfragt (syntax-baum-helfer.js).
+  baumVollstaendig(view);
   return view;
 }
 const marken = (view) => view.dom.querySelectorAll('.cm-wf-keyword, .cm-wf-string').length;

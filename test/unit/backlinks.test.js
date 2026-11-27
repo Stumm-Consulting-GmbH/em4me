@@ -35,6 +35,7 @@ import { BESTAND_ZEITLIMIT, SCHWER_ZEITLIMIT } from '../zeitlimits.js';
 // 4T-002035 (Epic 3E-000260): Anzeige-Name eines Abfrage-Treffers aus der
 // Herkunft seiner Zeile in der Ergebnismenge.
 import { displayName } from '../../src/shared/query/result-display.js';
+import { merkeZwischenspeicher, warteAufZwischenspeicher } from './index-abbau-helfer.js';
 
 // --- Setup/Teardown ---------------------------------------------------------
 
@@ -68,14 +69,18 @@ async function indexFor(activeFile, ownerKey) {
   return result;
 }
 
-afterEach(() => {
+afterEach(async () => {
   // Soft-Timer sofort feuern, damit teardownIndex den Watcher schliesst.
+  const gemerkt = merkeZwischenspeicher(openRoots);
   vi.useFakeTimers();
   for (const root of openRoots) {
     releaseRoot(root);
   }
   vi.advanceTimersByTime(61_000);
   vi.useRealTimers();
+  // 4T-002885: Der Abbau schreibt den Zwischenspeicher noch einmal; erst
+  // danach darf der Wegwerf-Ordner weg (index-abbau-helfer.js).
+  await warteAufZwischenspeicher(gemerkt);
   openRoots.clear();
 
   for (const dir of tmpDirs) {
@@ -928,11 +933,16 @@ describe('4T-001742: zwei Bereichs-Halter derselben Wurzel', () => {
     }
     return lage.status;
   }
-  function nachlaufAbwarten(wurzel, halter) {
+  // 4T-002885: Baut dieser Aufruf den Index ab, schreibt das Programm den
+  // Zwischenspeicher noch einmal; der Fall wartet darauf, damit der Abbau der
+  // Prüfdatei den Ordner nicht unter dem Schreibvorgang löscht.
+  async function nachlaufAbwarten(wurzel, halter) {
+    const gemerkt = merkeZwischenspeicher([wurzel]);
     vi.useFakeTimers();
     releaseRoot(wurzel, halter);
     vi.advanceTimersByTime(61_000);
     vi.useRealTimers();
+    await warteAufZwischenspeicher(gemerkt);
   }
 
   it('ein Eintrag trägt beide Halter; der Abbau der einen lässt den Index stehen', async () => {
@@ -943,10 +953,10 @@ describe('4T-001742: zwei Bereichs-Halter derselben Wurzel', () => {
     ensureAreaIndex(root, 'area:2');
     expect(await bereit(datei, root)).toBe('ready');
 
-    nachlaufAbwarten(root, 'area:1');
+    await nachlaufAbwarten(root, 'area:1');
     expect(tagsFor(datei, undefined, root).status).toBe('ready');
 
-    nachlaufAbwarten(root, 'area:2');
+    await nachlaufAbwarten(root, 'area:2');
     expect(tagsFor(datei, undefined, root).status).toBe('unavailable');
   });
 
@@ -966,11 +976,11 @@ describe('4T-001742: zwei Bereichs-Halter derselben Wurzel', () => {
       }
       const ausgang = fs.statSync(cache).mtimeMs;
 
-      nachlaufAbwarten(root, 'area:1');
+      await nachlaufAbwarten(root, 'area:1');
       await new Promise((resolve) => setTimeout(resolve, 200));
       expect(fs.statSync(cache).mtimeMs).toBe(ausgang);
 
-      nachlaufAbwarten(root, 'area:2');
+      await nachlaufAbwarten(root, 'area:2');
       let nachher = ausgang;
       for (let i = 0; i < 100 && nachher === ausgang; i++) {
         await new Promise((resolve) => setTimeout(resolve, 20));

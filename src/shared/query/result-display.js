@@ -116,9 +116,11 @@ function walkGroups(resultSet, visit, rootContext) {
  * der Menge. Leer, wenn die Menge fehlt, nicht bereit ist oder einen
  * Abfrage-Fehler trägt. Die Hintergrund-Nutzer der Anzeige (Kennungs-Vorschlag,
  * Vorgänger-Suche im Aufgaben-Dialog) lesen so die Treffer von `LIST TASKS`,
- * ohne die Form der Menge zu kennen.
+ * ohne die Form der Menge zu kennen. 4T-002863 (Epic 3E-000449): Weicht die
+ * Zeile ohne private Kommentare ab, steht sie zusätzlich als `sichtbar`; die
+ * Anzeige liest sie, Schreibwege und die Eindeutigkeit der Kennungen die rohe.
  * @param {import('./result-set.js').ResultSet|null|undefined} resultSet
- * @returns {Array<{ path: string, line: number, taskText: string }>}
+ * @returns {Array<{ path: string, line: number, taskText: string, sichtbar?: string }>}
  */
 function taskHits(resultSet) {
   const state = resultSet && resultSet.state;
@@ -128,7 +130,9 @@ function taskHits(resultSet) {
   for (const row of rows) {
     const origin = row && row.origin;
     if (!origin || origin.kind !== 'task' || typeof origin.raw !== 'string') continue;
-    hits.push({ path: origin.path, line: origin.line, taskText: origin.raw });
+    const hit = { path: origin.path, line: origin.line, taskText: origin.raw };
+    if (typeof origin.sichtbar === 'string') hit.sichtbar = origin.sichtbar;
+    hits.push(hit);
   }
   return hits;
 }

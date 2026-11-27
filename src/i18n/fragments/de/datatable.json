@@ -34,6 +34,7 @@
   "datatable.deleteRow": "Zeile löschen",
   "datatable.hint.notFound": "Datentabelle im Quelltext nicht eindeutig gefunden, Änderung verworfen",
   "datatable.hint.blocked": "Datentabelle mit Struktur-Fehlern, Bearbeitung nur im Quelltext",
+  "datatable.hint.blockedComment": "Datentabelle mit privatem Kommentar außerhalb einer Zelle, Bearbeitung nur im Quelltext",
   "datatable.filter.show": "Filter-Zeile ein- oder ausblenden",
   "datatable.filter.placeholder": "Filtern…",
   "datatable.filter.all": "alle",

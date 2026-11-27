@@ -84,6 +84,9 @@
 // Kern selbst; ein Renderer-Modul lädt er ausdrücklich nicht, und eine vierte
 // Kopie des Satzes hätte er sonst selbst eröffnet.
 const { istBildDatei } = require('../bild-endungen.js');
+// 4T-002797 (Epic 3E-000449): private Kommentare im Karten-Text. Die Erkennung
+// hat keine Abhängigkeit; der Kern bleibt prozessneutral.
+const { stripPercentComments } = require('../markdown/plugins/comments.js');
 
 // 4T-002509 (Epic 3E-000402): Die lexikalische Hülle — Zeilen-Trennung,
 // Marker-Zeile, Rückstrich-Schutz, Tokenisierung, Werte packen und entpacken —
@@ -630,11 +633,14 @@ function istCanvasDokument(text) {
 // Der Rückfall ist bewusst leer statt erfunden: Wer keinen Text hat, bekommt
 // keinen ausgedachten. Die Zählung («Fläche 2») ist Sache der Anzeige, weil
 // sie lokalisiert werden muss und der Kern keine Sprache kennt.
-function canvasFlaechenTitel(model) {
+//
+// 4T-002797 (Epic 3E-000449): `opts.ohneKommentare` geht an die erste
+// Inhalts-Zeile; der Name der Fläche trägt dann keinen privaten Kommentar.
+function canvasFlaechenTitel(model, opts) {
   const elemente = model && Array.isArray(model.elemente) ? model.elemente : [];
   const erste = elemente.find((el) => el.art === 'karte');
   if (!erste) return '';
-  const zeile = ersteInhaltsZeile(erste);
+  const zeile = ersteInhaltsZeile(erste, opts);
   if (zeile !== '') return zeile;
   // 4T-001746: Eine Verweis- oder Bild-Karte ohne Beschriftung hat trotzdem
   // etwas zu sagen — ihr Ziel. Der Rückfall bleibt darunter leer, weil eine
@@ -651,15 +657,66 @@ function canvasFlaechenTitel(model) {
  * Die Flächen-Beschriftung stellte sie zuvor als eigene Schleife; eine zweite
  * Kopie derselben Regel liefe bei der nächsten Ergänzung auseinander.
  *
+ * 4T-002797 (Epic 3E-000449): Mit `opts.ohneKommentare` zählt der Inhalt ohne
+ * private Kommentare; eine Zeile, die nur einen Kommentar trägt, ist dann leer
+ * und wird übersprungen, wie bei der Karten-Vorschau. Der Text einer
+ * Text-Karte ist Markdown und folgt der Regel des Fließtexts; jede andere
+ * Beschriftung ist reiner Text und folgt `canvasBeschriftung` (Zweitblick
+ * Runde 2 zu 4T-002797, Befund Z9).
+ *
  * @param {object} el beliebiges Element des Modells.
+ * @param {{ohneKommentare?: boolean}} [opts]
  * @returns {string} leer, wenn das Element keine sinnvolle Zeile trägt.
  */
-function ersteInhaltsZeile(el) {
-  for (const zeile of String((el && el.inhalt) || '').split('\n')) {
+function ersteInhaltsZeile(el, opts) {
+  const inhalt = String((el && el.inhalt) || '');
+  let quelle = inhalt;
+  if (opts && opts.ohneKommentare) {
+    quelle = istTextKarte(el) ? stripPercentComments(inhalt) : canvasBeschriftung(el, opts);
+  }
+  for (const zeile of quelle.split('\n')) {
     const text = bereinigeZeile(zeile);
     if (text !== '') return text;
   }
   return '';
+}
+
+/**
+ * Der Inhalt eines Elements als Beschriftung der Zeichnung (4T-002797, Epic
+ * 3E-000449): bei Form, Gruppe, Verbindung und in der Kopfzeile einer Verweis-
+ * oder Bild-Karte.
+ *
+ * Steht im Kern, weil die Zeichen-Module der Fläche nur ihn und ihre Nachbarn
+ * laden (Injektions-Bauweise E4); ob die Erweiterung «Kommentare» an ist,
+ * reicht die Ansicht als `opts.ohneKommentare` herein. Eine Zeile, die nur
+ * einen Kommentar trug, fällt weg; eine schon vorher leere Zeile bleibt. Die
+ * Eingabe beim Bearbeiten liest weiter den Rohtext aus `el.inhalt`.
+ *
+ * Die Beschriftung ist reiner Text und kein Markdown: Einzug und Backticks
+ * machen sie nicht zu Code. Entfernt wird deshalb nach der Block-Regel der
+ * Sonder-Blöcke (`stripBlockComments`), nicht nach der Regel des Fließtexts;
+ * ein maskierter Marker `\%%` steht danach als zwei Prozentzeichen da
+ * (Zweitblick Runde 2 zu 4T-002797, Befund Z9). Lazy geladen, weil die
+ * Block-Regel ihrerseits diesen Kern für die Canvas-Fläche lädt.
+ *
+ * Mit `opts.maskeBehalten` bleibt ein maskierter Marker `\%%` stehen: Der
+ * portable Export schreibt die Beschriftung in Markdown-Text, über den danach
+ * noch die Regel des Fließtexts läuft, und dort muss die Maske gelten
+ * (Prüfrunde 3 zu 4T-002797, Befund 1 beider Prüfer).
+ *
+ * @param {object} el beliebiges Element des Modells.
+ * @param {{ohneKommentare?: boolean, maskeBehalten?: boolean}} [opts]
+ * @returns {string}
+ */
+function canvasBeschriftung(el, opts) {
+  const inhalt = String((el && el.inhalt) || '');
+  if (!(opts && opts.ohneKommentare)) return inhalt;
+  const roh = inhalt.split('\n');
+  return require('../markdown/plugins/comments-block-regel.js')
+    .stripBlockComments(inhalt, opts.maskeBehalten ? { maskeBehalten: true } : undefined)
+    .split('\n')
+    .filter((zeile, i) => zeile.trim() !== '' || (roh[i] || '').trim() === '')
+    .join('\n');
 }
 
 /**
@@ -726,10 +783,23 @@ function bereinigeZeile(zeile) {
 // wird hier nichts: Wie lang eine Zeile in der Anzeige sein darf, weiß die
 // Anzeige und nicht der Kern.
 //
+// 4T-002797 (Epic 3E-000449): Mit `opts.ohneKommentare` zählt der Karten-Text
+// ohne private Kommentare; eine Zeile, die nur einen Kommentar trägt, ist dann
+// leer und wird übersprungen. Der Text einer Text-Karte ist Markdown und folgt
+// der Regel des Fließtexts; die Kopfzeile einer Verweis- oder Bild-Karte ist
+// reiner Text und folgt `canvasBeschriftung`, wie in der Canvas-Ansicht
+// (Zweitblick Runde 3 zu 4T-002797, Befund 2).
+//
 // @param {object} el Element der Art `karte`.
+// @param {{ohneKommentare?: boolean, maskeBehalten?: boolean}} [opts]
 // @returns {{titel: string, zeile: string}}
-function canvasKartenVorschau(el) {
-  const zeilen = String((el && el.inhalt) || '').split('\n');
+function canvasKartenVorschau(el, opts) {
+  const inhalt = String((el && el.inhalt) || '');
+  let quelle = inhalt;
+  if (opts && opts.ohneKommentare) {
+    quelle = istTextKarte(el) ? stripPercentComments(inhalt) : canvasBeschriftung(el, opts);
+  }
+  const zeilen = quelle.split('\n');
   let titelIndex = -1;
   let titel = '';
   for (let i = 0; i < zeilen.length; i++) {
@@ -800,9 +870,10 @@ function canvasUmfang(model) {
  *
  * @param {object} karte Element der Art `karte`.
  * @param {Array<object>} linien die Linien-Elemente der Fläche.
+ * @param {{ohneKommentare?: boolean}} [opts] 4T-002797: geht an die Beschriftung.
  * @returns {Array<object>} je Verbindung `{id, richtung, ausgehend, gegenstelle, text}`.
  */
-function verbindungenAn(karte, linien) {
+function verbindungenAn(karte, linien, opts) {
   const treffer = [];
   for (const linie of linien) {
     const ausgehend = !!karte.id && linie.von === karte.id;
@@ -813,7 +884,7 @@ function verbindungenAn(karte, linien) {
       richtung: linienRichtung(linie),
       ausgehend,
       gegenstelle: (ausgehend ? linie.nach : linie.von) || '',
-      text: ersteInhaltsZeile(linie),
+      text: ersteInhaltsZeile(linie, opts),
     });
   }
   return treffer;
@@ -838,9 +909,12 @@ function verbindungenAn(karte, linien) {
  * Textes, Übersetzung eines Richtungs-Namens —, bleibt ihre Sache.
  *
  * @param {object} model Modell einer Fläche aus `parseCanvasFence`.
+ * @param {{ohneKommentare?: boolean}} [opts] 4T-002797: geht an die
+ *   Karten-Vorschau, an die Beschriftung von Form und Gruppe und an die der
+ *   Verbindungen; keiner dieser Texte trägt dann einen privaten Kommentar.
  * @returns {Array<object>} je Element `{art, id, text, ziel, formArt, verbindungen}`.
  */
-function canvasListe(model) {
+function canvasListe(model, opts) {
   const elemente = model && Array.isArray(model.elemente) ? model.elemente : [];
   const linien = elemente.filter((el) => el.art === 'linie');
   return elemente
@@ -851,14 +925,14 @@ function canvasListe(model) {
       // Die Karte hat ihre eigene Titel-Regel (Überschrift vor Fließzeile), und
       // sie steht bereits in der Vorschau des Blocks; Form und Gruppe tragen
       // ihre Beschriftung als Inhalts-Zeilen.
-      text: el.art === 'karte' ? canvasKartenVorschau(el).titel : ersteInhaltsZeile(el),
+      text: el.art === 'karte' ? canvasKartenVorschau(el, opts).titel : ersteInhaltsZeile(el, opts),
       // 4T-001746: Worauf eine Karte zeigt, gehört in ihre Zeile — auch dann,
       // wenn sie zusätzlich eine eigene Beschriftung trägt.
       ziel: el.art === 'karte' ? kartenVerweisText(el) : '',
       // Eine Form ohne Beschriftung ist sonst eine leere Zeile; ihre Art ist
       // das, was sie benennbar macht.
       formArt: el.art === 'form' ? el.formArt || FORM_ART_VORGABE : '',
-      verbindungen: el.art === 'karte' ? verbindungenAn(el, linien) : [],
+      verbindungen: el.art === 'karte' ? verbindungenAn(el, linien, opts) : [],
     }));
 }
 
@@ -895,6 +969,7 @@ module.exports = {
   istCanvasDokument,
   canvasFenceBlock,
   canvasFlaechenTitel,
+  canvasBeschriftung,
   canvasKartenVorschau,
   kartenVerweisText,
   istTextKarte,

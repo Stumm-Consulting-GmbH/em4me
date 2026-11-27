@@ -93,6 +93,15 @@ function indexZeile(datei, text, nr = 0) {
   return parseFile(datei).tasks.filter((t) => t.text === text)[nr].zeile;
 }
 
+// Die Zeile eines Texts in der Datei selbst (1-basiert, wie der Index zählt).
+// Für einen Teil hinter einem fehlenden Teil: Den führt der Index seit
+// 4T-002863 nicht mehr (sichere Seite für private Kommentare über die
+// Teil-Grenze, src/main/index/teil-kommentare.js), eine Abfrage kann ihn also
+// nicht liefern; der Schreib-Weg muss ihn trotzdem abweisen.
+function dateiZeile(datei, text) {
+  return lies(datei).split('\n').indexOf(text) + 1;
+}
+
 const OWNER = { id: 'fenster' };
 
 // Der Kanal mit Attrappen für Historie und Fenster; Wurzel ist der Bereich.
@@ -246,7 +255,7 @@ describe('task:applyLineEdit an einem geteilten Dokument (4T-002813)', () => {
     const k = kanal(root);
     const res = await k.schreibe({
       filePath: teil3,
-      line: indexZeile(teil3, BROT),
+      line: dateiZeile(teil3, BROT),
       expectedText: BROT,
       newText: abgehakt(BROT),
     });

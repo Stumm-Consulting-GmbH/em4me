@@ -24,9 +24,9 @@
 // in Haupt-Editor und Notiz-Feld ohne Erweiterung.
 import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import './api-stub.js';
+import { baumVollstaendig } from './syntax-baum-helfer.js';
 
 const { EditorView, runScopeHandlers } = await import('@codemirror/view');
-const { ensureSyntaxTree } = await import('@codemirror/language');
 const { undo, insertNewlineAndIndent } = await import('@codemirror/commands');
 const { insertNewlineContinueMarkup } = await import('@codemirror/lang-markdown');
 const { createEditorState, createNotesEditorState } =
@@ -49,7 +49,7 @@ function ansicht(doc, { marke, notiz = false, lesen = false } = {}) {
   let pos = doc.length;
   if (Array.isArray(marke)) pos = view.state.doc.line(marke[0]).from + marke[1];
   view.dispatch({ selection: { anchor: pos } });
-  ensureSyntaxTree(view.state, view.state.doc.length, 5000);
+  baumVollstaendig(view);
   return view;
 }
 

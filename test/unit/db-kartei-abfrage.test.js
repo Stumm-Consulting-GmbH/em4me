@@ -29,6 +29,7 @@ import { validateResultSet } from '../../src/shared/query/result-set.js';
 // stehen (Auswahl des Prüf-Ausschnitts).
 import { recordsQueryFor } from '../../src/main/index/query-records.js';
 import { datensatzTreffer } from '../../src/main/area/area-search-records.js';
+import { merkeZwischenspeicher, warteAufZwischenspeicher } from './index-abbau-helfer.js';
 
 const require_ = createRequire(import.meta.url);
 const { indexes } = require_('../../src/main/index/store.js');
@@ -179,15 +180,19 @@ async function bereich({ tabelle = autorenTabelle(), mitKarten = true } = {}) {
   return b;
 }
 
-afterEach(() => {
+afterEach(async () => {
   clearAllBufferOverlays();
   vergissAlleDefinitionen();
   vergissAlleKarteiTabellen();
   clearCaches();
+  const gemerkt = merkeZwischenspeicher(openRoots);
   vi.useFakeTimers();
   for (const root of openRoots) releaseRoot(root);
   vi.advanceTimersByTime(61_000);
   vi.useRealTimers();
+  // 4T-002885: Der Abbau schreibt den Zwischenspeicher noch einmal; erst
+  // danach darf der Wegwerf-Ordner weg (index-abbau-helfer.js).
+  await warteAufZwischenspeicher(gemerkt);
   openRoots.clear();
   for (const dir of tmpDirs) {
     try {

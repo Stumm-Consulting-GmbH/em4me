@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { BEOBACHTUNG_ZEITLIMIT } from '../zeitlimits.js';
+import { merkeZwischenspeicher, warteAufZwischenspeicher } from './index-abbau-helfer.js';
 
 // Je Meldung des Betriebssystems ein Drittel des Fall-Limits (test/zeitlimits.js).
 const WARTEN = { timeout: BEOBACHTUNG_ZEITLIMIT / 3, interval: 25 };
@@ -47,12 +48,15 @@ describe('(b) Bereichs-Index an der gemeinsamen Beobachtung', () => {
   });
 
   afterEach(async () => {
+    const gemerkt = merkeZwischenspeicher([path.resolve(wurzel)]);
     vi.useFakeTimers();
     backlinks.releaseRoot(path.resolve(wurzel), BESITZER);
     vi.advanceTimersByTime(61_000);
     vi.useRealTimers();
-    await new Promise((r) => setTimeout(r, 50));
-    fs.rmSync(wurzel, { recursive: true, force: true });
+    // 4T-002885: auf den letzten Schreibvorgang des Zwischenspeichers warten
+    // statt eine feste Zeit (index-abbau-helfer.js).
+    await warteAufZwischenspeicher(gemerkt);
+    fs.rmSync(wurzel, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
     fs.rmSync(draussen, { recursive: true, force: true });
   });
 

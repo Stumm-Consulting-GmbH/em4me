@@ -6,10 +6,10 @@
 // test/e2e/funktionen/bearbeitung-und-ansicht.spec.js ab.
 import { describe, it, expect, afterEach } from 'vitest';
 import './api-stub.js';
+import { baumVollstaendig, zustandMitVollemBaum } from './syntax-baum-helfer.js';
 import { EditorState } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
 import { Table as LezerTable } from '@lezer/markdown';
-import { ensureSyntaxTree } from '@codemirror/language';
 
 const listTools = await import('../../../src/renderer/modules/editor/editor-list-tools.js');
 // 4T-002343: Haupt-Editor mit den Belegungen der Anwendung, Erweiterungs-Schalter
@@ -29,12 +29,9 @@ function stateFor(doc, { readOnly = false } = {}) {
       EditorState.transactionFilter.of(listTools.listRenumberFilter),
     ],
   });
-  // Budgetiertes Parsen wie im Lint-Pfad (Muster struktur-und-state.test.js).
-  let guard = 0;
-  while (!ensureSyntaxTree(state, state.doc.length, 50) && guard++ < 400) {
-    /* weiter */
-  }
-  return state;
+  // Der Zerleger arbeitet mit Zeit-Budgets; die Hilfe liefert einen Zustand
+  // mit dem vollständigen Baum (syntax-baum-helfer.js).
+  return zustandMitVollemBaum(state);
 }
 
 // Entfernt den Zeilenumbruch vor der Leerzeile mit der Nummer `line`, führt
@@ -164,7 +161,7 @@ describe('Code-Block mit Leerzeile in einer nummerierten Liste (4T-002343)', () 
     });
     offen.push(view);
     view.dispatch({ selection: { anchor: view.state.doc.line(marke[0]).from + marke[1] } });
-    ensureSyntaxTree(view.state, view.state.doc.length, 5000);
+    baumVollstaendig(view);
     return view;
   }
 

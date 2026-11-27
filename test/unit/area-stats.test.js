@@ -23,6 +23,12 @@ import { createTaskStatusTypeResolver } from '../../src/shared/markdown/plugins/
 import { readAssembledDocument } from '../../src/main/documents/document-parts-io.js';
 import { writePartLine } from '../../src/shared/document-parts.js';
 import { emptyContainer, serializeContainer } from '../../src/main/documents/mdd-store.js';
+import { createRequire } from 'node:module';
+
+// 4T-002863: über `require` wie im Index, damit der Schalter dasselbe Exemplar trifft.
+const { setzeKommentarRegel } = createRequire(import.meta.url)(
+  '../../src/main/index/index-kommentare.js',
+);
 
 const openRoots = new Set();
 let tmpDirs = [];
@@ -813,6 +819,11 @@ describe('collectAreaStats — Verweise ohne Ziel in Folgeteilen (4T-002783)', (
   // Zweitblick zu 4T-002783, Befund 4: Der aus dem Namen abgeleitete Kopf-Pfad
   // muss nicht bestehen. Fehlt die Kopf-Datei, bleibt der Eintrag unter der
   // Teil-Datei ohne Zeile, statt auf eine Datei zu zeigen, die es nicht gibt.
+  //
+  // 4T-002863 (Epic 3E-000449): Mit eingeschalteten privaten Kommentaren fällt ein
+  // Folgeteil ohne Kopf ganz aus dem Index, weil ein Kommentar im fehlenden Kopf
+  // ihn verdecken könnte (sichere Seite, teil-kommentare.js). Der Fall prüft den
+  // Pfad deshalb bei abgeschalteter Erweiterung und belegt die Grenze daneben.
   it('lässt den Eintrag bei fehlender Kopf-Datei unter der Teil-Datei ohne Zeile', async () => {
     const root = makeRoot();
     const kopf = geteiltesDokument(root);
@@ -821,11 +832,30 @@ describe('collectAreaStats — Verweise ohne Ziel in Folgeteilen (4T-002783)', (
       'Weg•part-00002.md',
       writePartLine('## Rest\n[[Fehlt-Waise]]\n', { index: 2, base: 'Weg' }).text,
     );
-    await indexFor(kopf, 'test:stats-folgeteile-ohne-kopf', root);
+    setzeKommentarRegel(['comments']);
+    try {
+      await indexFor(kopf, 'test:stats-folgeteile-ohne-kopf', root);
+      const { verweiseOhneZiel } = await collectAreaStats(root, { statusTypeOf }, { statsFor });
+      const eintrag = verweiseOhneZiel.eintraege.find((e) => e.verweis === '[[Fehlt-Waise]]');
+      expect(eintrag).toMatchObject({ pfad: waise, zeile: null });
+      expect(fs.existsSync(path.join(root, 'Weg.md'))).toBe(false);
+    } finally {
+      setzeKommentarRegel([]);
+    }
+  });
+
+  it('nimmt einen Folgeteil ohne Kopf bei eingeschalteten privaten Kommentaren nicht auf', async () => {
+    const root = makeRoot();
+    const kopf = geteiltesDokument(root);
+    write(
+      root,
+      'Weg•part-00002.md',
+      writePartLine('## Rest\n[[Fehlt-Waise]]\n', { index: 2, base: 'Weg' }).text,
+    );
+    await indexFor(kopf, 'test:stats-folgeteile-ohne-kopf-regel', root);
     const { verweiseOhneZiel } = await collectAreaStats(root, { statusTypeOf }, { statsFor });
-    const eintrag = verweiseOhneZiel.eintraege.find((e) => e.verweis === '[[Fehlt-Waise]]');
-    expect(eintrag).toMatchObject({ pfad: waise, zeile: null });
-    expect(fs.existsSync(path.join(root, 'Weg.md'))).toBe(false);
+    expect(verweiseOhneZiel.eintraege.map((e) => e.verweis)).not.toContain('[[Fehlt-Waise]]');
+    expect(verweiseOhneZiel.eintraege.map((e) => e.verweis)).toContain('[[Fehlt-Teil]]');
   });
 
   // Sicherheits-Review zu 4T-002783, Befund 1, zweite Linie: Liefert der Lese-Weg

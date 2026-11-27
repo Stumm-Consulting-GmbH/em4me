@@ -19,6 +19,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderMarkdown } from '../../../src/shared/markdown/markdown.js';
 import { buildChart } from '../../../src/main/preload-diagramme.js';
 import './api-stub.js';
+import { baumVollstaendig, liveInhalt } from './syntax-baum-helfer.js';
 
 window.api.renderMarkdown = (text, _pfad, optionen) => renderMarkdown(text, 'de', optionen);
 window.api.buildChart = buildChart;
@@ -91,6 +92,9 @@ function baueSpalte({ viewMode = 'live', editMode = true, doc = DOK, echteVerfue
     }),
     parent: root.querySelector('.pane-source-editor'),
   });
+  // 4T-002883: auf den vollständigen Syntax-Baum warten, bevor ein Fall einen
+  // Live-Block abfragt (syntax-baum-helfer.js).
+  baumVollstaendig(view);
   if (viewMode !== 'live') {
     root.querySelector('.pane-rendered .markdown-body').innerHTML = renderMarkdown(doc, 'de');
   }
@@ -132,11 +136,11 @@ const menueEintraege = () =>
 
 // Ziele im Live-Modus und in der gerenderten Hälfte.
 const live = {
-  zelle: () => spalte.view.contentDOM.querySelector('.perspective-datatable tbody td'),
-  kopf: () => spalte.view.contentDOM.querySelector('.perspective-datatable th'),
+  zelle: () => liveInhalt(spalte.view).querySelector('.perspective-datatable tbody td'),
+  kopf: () => liveInhalt(spalte.view).querySelector('.perspective-datatable th'),
   rand: () =>
-    spalte.view.contentDOM.querySelector('.perspective-datatable').closest('.cm-live-block'),
-  diagramm: () => spalte.view.contentDOM.querySelector('.perspective-chart'),
+    liveInhalt(spalte.view).querySelector('.perspective-datatable').closest('.cm-live-block'),
+  diagramm: () => liveInhalt(spalte.view).querySelector('.perspective-chart'),
 };
 const gerendert = {
   zelle: () => spalte.root.querySelector('.pane-rendered .perspective-datatable tbody td'),

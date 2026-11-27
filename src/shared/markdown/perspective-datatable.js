@@ -107,6 +107,9 @@ const { splitTopLevel, splitPipeRow } = require('./perspective-datatable-cells.j
 // 4T-002072 (Epic 3E-000192): die Regel der Block-Kennungen für den Namen der
 // Tabelle. Ein Zyklus entsteht nicht: Die Heimat lädt keinen Teil der Familie.
 const { isValidBlockAnchorId } = require('../block-anchors.js');
+// 4T-002797 (Epic 3E-000449): private Kommentare in Zellen. Die Erkennung lädt
+// keinen Teil der Familie; ein Zyklus entsteht nicht.
+const { stripPercentComments, findPercentCommentRanges } = require('./plugins/comments.js');
 
 // --- Werte-Parsing pro Typ ----------------------------------------------------
 
@@ -135,6 +138,64 @@ function parseCellValue(type, text) {
   return { value: null, error: 'invalidBoolean' };
 }
 
+// 4T-002797 (Epic 3E-000449), Zweitblick Runde 2 (Z5, Z6): Bearbeiten einer
+// Zelle mit privatem Kommentar im Gitter. Roh ist sie in einer Spalte mit Typ
+// eine Fehler-Zelle; die Anzeige zeigt ihren Wert ohne Kommentar und keinen
+// Fehler. Geprüft wird deshalb der sichtbare Text, zurückgeschrieben der
+// Rohtext samt Kommentar (`roh`, siehe serializeCell). Was ein Kommentar ist,
+// entscheidet dieselbe Erkennung wie in der Anzeige.
+//
+// null: Der Text trägt keinen Kommentar, es gilt parseCellValue.
+function zelleMitKommentar(type, text) {
+  const roh = String(text == null ? '' : text).trim();
+  const sichtbar = stripPercentComments(roh).trim();
+  if (sichtbar === roh) return null;
+  const { value, error } = parseCellValue(type, sichtbar);
+  if (error) return { text: roh, value: null, error };
+  return { text: roh, value, error: null, roh: true };
+}
+
+// Umschalten einer Wahrheitswert-Zelle mit privatem Kommentar: Der sichtbare
+// Wert kippt, jeder Kommentar bleibt wörtlich in der Zelle stehen und folgt
+// dem Haken. null: Die Zelle trägt keinen Kommentar, oder ihr sichtbarer Text
+// ist kein Wahrheitswert; dann schaltet das Gitter nicht um.
+function umgeschalteteZelleMitKommentar(text) {
+  const roh = String(text == null ? '' : text).trim();
+  const zelle = zelleMitKommentar('boolean', roh);
+  if (!zelle || zelle.error) return null;
+  const kommentare = findPercentCommentRanges(roh).map((b) => roh.slice(b.from, b.to));
+  const next = zelle.value !== true;
+  const neu = [next ? 'x' : '', ...kommentare].filter(Boolean).join(' ');
+  return { text: neu, value: next, error: null, roh: true };
+}
+
+// Zelle aus der Eingabe des Gitters. Bei eingeschalteter Erweiterung trägt
+// eine Zelle mit Kommentar in einer Spalte mit Typ ihren Rohtext (`roh`).
+function eingegebeneZelle(type, text, ohneKommentare) {
+  const mitKommentar = ohneKommentare && type !== 'text' ? zelleMitKommentar(type, text) : null;
+  if (mitKommentar) return mitKommentar;
+  const { value, error } = parseCellValue(type, text);
+  return { text, value, error };
+}
+
+// Ob eine Eingabe die Zelle ändert: Eine Zelle mit Rohtext vergleicht den
+// Text samt Kommentar, jede andere den Wert; eine Fehler-Zelle ändert sich immer.
+function zelleGeaendert(before, zelle) {
+  if (!before) return true;
+  if (zelle.roh) return before.text !== zelle.text;
+  return before.error != null || String(before.value ?? '') !== String(zelle.value ?? '');
+}
+
+// Umschalten einer Wahrheitswert-Zelle im Gitter; null, wenn sie nicht
+// umschaltet. Eine Fehler-Zelle schaltet nur, wenn ihr Fehler allein aus einem
+// privaten Kommentar kommt und die Erweiterung eingeschaltet ist; ohne die
+// Erweiterung ist sie auch in der Anzeige ein Fehler.
+function umgeschalteteWahrheitsZelle(cell, ohneKommentare) {
+  if (cell && cell.error) return ohneKommentare ? umgeschalteteZelleMitKommentar(cell.text) : null;
+  const next = !(cell && cell.value === true);
+  return { text: next ? 'x' : '', value: next, error: null };
+}
+
 // --- Zeilen-Zerlegung ----------------------------------------------------------
 //
 // 4T-002013 (Epic 3E-000332): `splitTopLevel` und `splitPipeRow` stehen seither
@@ -155,7 +216,17 @@ function escapePipes(text) {
 
 // Fence-Body -> Datenmodell (Struktur siehe Kopf-Kommentar). Wirft nie;
 // alle Probleme landen strukturiert in errors bzw. als Fehler-Zellen.
-function parsePerspectiveDatatable(content) {
+//
+// 4T-002797 (Epic 3E-000449): `opts.ohneKommentare` entfernt private
+// Kommentare aus allem, was eine Ansicht oder Ausgabe der Tabelle zeigt. Eine
+// Datenzeile wird zuerst in Zellen zerlegt und erst dann je Zelle befreit; ein
+// Kommentar sieht damit nie über seine Zelle hinaus, und eine Zahl mit
+// Kommentar dahinter bleibt eine Zahl. Eine Kopfzeile wird als Ganzes befreit,
+// ein Kommentar dort reicht höchstens bis zu ihrem Ende. Ob eine Zeile eine
+// Datenzeile ist, entscheidet der Rohtext. Ohne die Option bleibt alles roh:
+// Der Gitter-Editor schreibt über dieses Modell zurück und braucht den Quelltext.
+function parsePerspectiveDatatable(content, opts) {
+  const ohne = opts && opts.ohneKommentare ? (s) => stripPercentComments(s).trim() : null;
   const lines = String(content || '').split(/\r?\n/);
   const errors = [];
   let columns = null;
@@ -176,10 +247,12 @@ function parsePerspectiveDatatable(content) {
 
   for (let i = 0; i < lines.length; i++) {
     const lineNo = i + 1;
-    const trimmed = lines[i].trim();
+    const roh = lines[i].trim();
+    if (roh === '') continue;
+    const trimmed = ohne && !roh.startsWith('|') ? ohne(roh) : roh;
     if (trimmed === '') continue;
 
-    if (!inRows && !trimmed.startsWith('|')) {
+    if (!inRows && !roh.startsWith('|')) {
       // Kopf-Direktive `name: wert`
       const m = /^([A-Za-z][A-Za-z-]*)\s*:\s*(.*)$/.exec(trimmed);
       const directive = m ? m[1].toLowerCase() : null;
@@ -249,11 +322,11 @@ function parsePerspectiveDatatable(content) {
       inRows = true;
       dataColumns = (columns || []).filter((c) => c.expr === null);
     }
-    if (!trimmed.startsWith('|')) {
+    if (!roh.startsWith('|')) {
       errors.push({ code: 'invalidLine', line: lineNo, detail: trimmed });
       continue;
     }
-    const cellTexts = splitPipeRow(trimmed);
+    const cellTexts = ohne ? splitPipeRow(trimmed).map(ohne) : splitPipeRow(trimmed);
     if (cellTexts.length !== dataColumns.length) {
       errors.push({
         code: 'rowCellCount',
@@ -315,7 +388,8 @@ function serializeColumnDef(col) {
 // (kein Datenverlust); gültige Werte werden kanonisch geschrieben.
 function serializeCell(cell, type) {
   if (!cell) return '';
-  if (cell.error) return escapePipes(cell.text);
+  // 4T-002797: Eine Zelle mit privatem Kommentar schreibt ihren Rohtext.
+  if (cell.error || cell.roh) return escapePipes(cell.text);
   if (type === 'text') return escapePipes(cell.value == null ? '' : cell.value);
   if (cell.value == null) return '';
   if (type === 'boolean') return cell.value ? 'x' : '';
@@ -456,7 +530,7 @@ function computeRenderData(model) {
 // Pipeline für die Text-Zellen; beide Einstiege reichen `opts` unverändert an
 // den HTML-Bauer weiter. Ohne ihn bleibt die Anzeige maskierter Reintext.
 function renderPerspectiveDatatableViewer(content, opts) {
-  const model = parsePerspectiveDatatable(content);
+  const model = parsePerspectiveDatatable(content, opts);
   const out = [];
   if (model.errors.length > 0) out.push(buildErrorsHtml(model.errors));
   if (model.columns.length > 0) {
@@ -485,7 +559,7 @@ function renderPerspectiveDatatableViewer(content, opts) {
 // vom HTML-Block trennt, sichert die Fence-Ersetzung. Der Aufrufer weiß es,
 // weil nur er den Text um den Zaun sieht.
 function convertPerspectiveDatatableBlockToHtml(content, opts) {
-  const model = parsePerspectiveDatatable(content);
+  const model = parsePerspectiveDatatable(content, opts);
   if (model.errors.length > 0 || model.columns.length === 0) return null;
   const { computed, aggs } = computeRenderData(model);
   const html = buildPortableDatatableHtml(model, computed, aggs, opts);
@@ -493,10 +567,39 @@ function convertPerspectiveDatatableBlockToHtml(content, opts) {
   return opts && opts.ankerZeileFolgt ? html : html + '\n\n^' + model.name;
 }
 
+// 4T-002797 (Epic 3E-000449): der Rumpf einer Tabelle, die der portable Export
+// wegen eines Struktur-Fehlers als Quelltext stehen lässt, ohne private
+// Kommentare. Dieselbe Grenze wie im Zerleger: Eine Datenzeile wird je Zelle
+// befreit und mit maskierten Pipes neu gesetzt, jede andere Zeile als Ganzes.
+// Eine Zeile ohne Kommentar bleibt Zeichen für Zeichen, wie sie war.
+function befreieDatentabellenRumpf(content) {
+  return String(content || '')
+    .split('\n')
+    .map((zeile) => {
+      const einzug = zeile.slice(0, zeile.length - zeile.trimStart().length);
+      const kern = zeile.trim();
+      // Befreit wird allein der Inhalt hinter dem Einzug: Die Code-Erkennung
+      // läse eine Zeile ab vier Leerzeichen Einzug als Code und ließe den
+      // Kommentar stehen, den die Anzeige verbirgt.
+      if (!kern.startsWith('|')) return einzug + stripPercentComments(zeile.slice(einzug.length));
+      const roh = splitPipeRow(kern);
+      const frei = roh.map((z) => stripPercentComments(z).trim());
+      if (frei.every((z, i) => z === roh[i])) return zeile;
+      const ende = zeile.endsWith('\r') ? '\r' : '';
+      return `${einzug}| ${frei.map(escapePipes).join(' | ')} |${ende}`;
+    })
+    .join('\n');
+}
+
 module.exports = {
+  befreieDatentabellenRumpf,
   parsePerspectiveDatatable,
   serializePerspectiveDatatable,
   parseCellValue,
+  zelleMitKommentar,
+  eingegebeneZelle,
+  umgeschalteteWahrheitsZelle,
+  zelleGeaendert,
   computeAggregates,
   renderPerspectiveDatatableViewer,
   convertPerspectiveDatatableBlockToHtml,

@@ -109,7 +109,8 @@ function umgebung() {
 /**
  * Die Aufgaben-Zeilen eines Index-Stands mit Beschreibung und Erledigt-Zustand.
  *
- * @param {{zeile: number, text: string}[]|null|undefined} tasks Roh-Zeilen des Index.
+ * @param {{zeile: number, text: string, sichtbar?: string}[]|null|undefined} tasks
+ *   Zeilen des Index (`text` roh, `sichtbar` ohne private Kommentare).
  * @param {{enabled: boolean, globalFilter: string, statusTypeOf: Function}} env
  * @returns {{beschreibung: string, erledigt: boolean, zeile: number}[]}
  */
@@ -117,7 +118,9 @@ function aufgabenZustaende(tasks, env) {
   const aus = [];
   for (const t of Array.isArray(tasks) ? tasks : []) {
     if (!t || typeof t.text !== 'string') continue;
-    const model = parseTaskLine(t.text);
+    // 4T-002863 (Epic 3E-000449): Beschreibung und Global Filter aus der Zeile ohne
+    // private Kommentare; sonst trüge `{{task}}` den Kommentar in Workflow-Läufe.
+    const model = parseTaskLine(typeof t.sichtbar === 'string' ? t.sichtbar : t.text);
     if (!model) continue;
     if (env.enabled && !modelMatchesGlobalFilter(model, env.globalFilter)) continue;
     aus.push({

@@ -227,3 +227,53 @@ test.describe('PK-06: Speichern als portables Markdown schreibt den Kommentar ni
     }
   });
 });
+
+// 4T-002797 (Epic 3E-000449): PK-07 prueft die Datentabelle an der gestarteten
+// Anwendung. Die Zellen tragen je einen privaten Kommentar, einer davon in
+// einer Zahl-Zelle. Lese-Ansicht, Summe und Text-Filter lesen dieselbe
+// zerlegte Tabelle; keiner der drei Wege darf den Kommentar zeigen oder auf
+// ihn reagieren.
+const FIXTURE_DATENTABELLE = path.resolve(
+  __dirname,
+  '..',
+  '..',
+  'fixtures',
+  'funktionen',
+  'prozent-kommentare-datentabelle.md',
+);
+
+test.describe('PK-07: Datentabelle verbirgt den Kommentar in Anzeige, Summe und Filter', () => {
+  test('Zellen ohne Kommentar, Zahl bleibt Zahl, der Filter findet das Kommentar-Wort nicht', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE_DATENTABELLE] });
+    try {
+      await waitForTab(page);
+      const body = page.locator(SEL.markdownBody0);
+      await expect(body).toContainText('Sichtbares Ende');
+      const grid = body.locator('.perspective-datatable[data-dt-index="0"]');
+      await expect(grid.locator('.pdt-grid')).toBeVisible();
+      await expect(grid).not.toContainText('GEHEIM');
+      const ersteZeile = grid.locator('tr[data-dt-row="0"]');
+      await expect(ersteZeile.locator('td[data-dt-col="0"]')).toHaveText('Anna');
+      // Die Zahl-Zelle mit Kommentar bleibt eine Zahl: Spalten-Format ohne
+      // Fehler-Kennzeichen, und die Summe rechnet sie ein (10 + 5).
+      const zahl = ersteZeile.locator('td[data-dt-col="1"]');
+      await expect(zahl).toHaveText('10.00');
+      await expect(zahl).not.toHaveClass(/pdt-cell-error/);
+      await expect(grid.locator('tfoot .pdt-agg-value').first()).toHaveText('15.00');
+      // Der Filter liest denselben Text wie die Anzeige: das Kommentar-Wort
+      // trifft keine Zeile, der sichtbare Name genau eine.
+      await grid.locator('.pdt-filter-toggle').click();
+      const filter = grid.locator('.pdt-filter-row td[data-dt-col="0"] input');
+      await filter.fill('GEHEIM');
+      await expect(grid.locator('.pdt-filter-count')).toHaveText('0 von 2 Zeilen');
+      await expect(grid.locator('tbody tr:not(.pdt-row-hidden)')).toHaveCount(0);
+      await filter.fill('Anna');
+      await expect(grid.locator('.pdt-filter-count')).toHaveText('1 von 2 Zeilen');
+      await expect(grid.locator('tbody tr:not(.pdt-row-hidden)')).toHaveCount(1);
+      // Reine Ansicht: nichts geschrieben.
+      await expect(page.locator(SEL.dirtyTab0)).toHaveCount(0);
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});

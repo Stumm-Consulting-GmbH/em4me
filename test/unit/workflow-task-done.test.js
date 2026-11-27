@@ -18,6 +18,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import os from 'node:os';
+import { merkeZwischenspeicher, warteAufZwischenspeicher } from './index-abbau-helfer.js';
 
 const require = createRequire(import.meta.url);
 const path = require('node:path');
@@ -195,12 +196,17 @@ function tippe(name, text) {
 
 const ruhe = () => new Promise((r) => setTimeout(r, 30));
 
-// Bereich schließen: Freigabe und Ablauf der Nachlauf-Zeit des Index.
-function baueAb() {
+// Bereich schließen: Freigabe und Ablauf der Nachlauf-Zeit des Index. Der
+// Abbau schreibt den Zwischenspeicher des Bereichs noch einmal, ohne darauf
+// zu warten; die Hilfe wartet auf diesen Zustand statt eine feste Zeit
+// (4T-002885, index-abbau-helfer.js).
+async function baueAb() {
+  const gemerkt = merkeZwischenspeicher([path.resolve(wurzel)]);
   vi.useFakeTimers();
   backlinks.releaseRoot(path.resolve(wurzel), BESITZER);
   vi.advanceTimersByTime(61_000);
   vi.useRealTimers();
+  await warteAufZwischenspeicher(gemerkt);
 }
 
 describe('am echten Bereichs-Index', () => {
@@ -218,10 +224,8 @@ describe('am echten Bereichs-Index', () => {
   afterEach(async () => {
     abmelden();
     backlinks.clearAllBufferOverlays();
-    baueAb();
-    // Der Abbau schreibt den Zwischenspeicher des Bereichs asynchron.
-    await new Promise((r) => setTimeout(r, 50));
-    fs.rmSync(wurzel, { recursive: true, force: true });
+    await baueAb();
+    fs.rmSync(wurzel, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   });
 
   describe('Wege, die erledigen (AK2)', () => {
@@ -233,6 +237,15 @@ describe('am echten Bereichs-Index', () => {
       // Dieselbe Datei erneut gemeldet, ohne Änderung: nichts mehr.
       onWatcherChange(eintrag, abs, 'change');
       expect(meldungen).toHaveLength(1);
+    });
+
+    it('privater Kommentar: Die Meldung trägt die Beschreibung ohne ihn (4T-002863)', () => {
+      schreibeVonAussen('Wochenplan.md', '# Woche\n\n- [ ] Rechnung zahlen %%PIN 1234%%\n');
+      expect(meldungen).toHaveLength(0);
+      schreibeVonAussen('Wochenplan.md', '# Woche\n\n- [x] Rechnung zahlen %%PIN 1234%%\n');
+      expect(meldungen).toHaveLength(1);
+      expect(meldungen[0].task).toContain('Rechnung zahlen');
+      expect(meldungen[0].task).not.toContain('PIN');
     });
 
     it('Klick auf das Kästchen: Meldung aus dem Puffer, das Speichern danach meldet nicht noch einmal', async () => {
@@ -288,7 +301,7 @@ describe('am echten Bereichs-Index', () => {
       const abs = tippe('Wochenplan.md', '# Woche\n\n- [ ] Probe-Aufgabe\n');
       backlinks.clearBufferOverlay(abs);
       await meldePufferEnde(abs);
-      baueAb();
+      await baueAb();
       fs.writeFileSync(abs, '# Woche\n\n- [x] Probe-Aufgabe\n', 'utf8');
       backlinks.ensureAreaIndex(wurzel, BESITZER);
       for (let i = 0; i < 500 && store.indexes.get(path.resolve(wurzel))?.status !== 'ready'; i++) {

@@ -9,6 +9,8 @@
 // Karten-Inhalt.
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   parseCanvasFence,
   serializeCanvasFence,
@@ -391,7 +393,42 @@ describe('canvas-core — Prozess-Neutralität (AK6)', () => {
     const importe = [...quelle.matchAll(/require\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => m[1]);
     // 4T-002509: dazu die lexikalische Hülle aus ihrem eigenen Blatt, selbst
     // abhängigkeitsfrei und prozessneutral.
-    expect(importe).toEqual(['../bild-endungen.js', './marker-grammatik.js']);
+    // 4T-002797: dazu die Erkennung privater Kommentare für die
+    // Karten-Vorschau; seit dem Funktions-Release lädt sie die Code-Frage.
+    // 4T-002797 (Zweitblick Runde 2, Befund Z9): dazu, lazy in
+    // canvasBeschriftung, die Block-Regel der Sonder-Blöcke für Beschriftungen
+    // aus reinem Text. Sie lädt ihrerseits nur geteilte Module; die Hülle
+    // prüft die Schleife unten, die keinen Bezug außerhalb von src/shared
+    // zulässt, also weder Electron noch Datei-Zugriff noch ein Renderer-Modul.
+    // Seit dem Schnitt gegen den Import-Kreis (4T-002797) aus dem eigenen
+    // Modul der Block-Regel, das die Canvas-Zerlegung nicht kennt.
+    expect(importe).toEqual([
+      '../bild-endungen.js',
+      '../markdown/plugins/comments.js',
+      './marker-grammatik.js',
+      '../markdown/plugins/comments-block-regel.js',
+    ]);
+    const geteilt = fileURLToPath(new URL('../../src/shared/', import.meta.url));
+    const offen = [
+      fileURLToPath(new URL('../../src/shared/canvas/canvas-core.js', import.meta.url)),
+    ];
+    const gesehen = new Set();
+    while (offen.length) {
+      const datei = offen.pop();
+      if (gesehen.has(datei)) continue;
+      gesehen.add(datei);
+      expect(datei.startsWith(geteilt)).toBe(true);
+      const text = readFileSync(datei, 'utf8');
+      // Prüfrunde 3 zu 4T-002797, Befund 4: Eine import-Anweisung oder ein
+      // require mit berechnetem Pfad entginge der Pfad-Liste unten.
+      expect(text, datei).not.toMatch(/^\s*import\s/m);
+      expect(text, datei).not.toMatch(/require\(\s*[^'"\s)]/);
+      for (const m of text.matchAll(/require\(\s*['"]([^'"]+)['"]\s*\)/g)) {
+        expect(m[1].startsWith('.'), `${m[1]} in ${datei}`).toBe(true);
+        const ziel = resolve(dirname(datei), m[1]);
+        offen.push(ziel.endsWith('.js') ? ziel : `${ziel}.js`);
+      }
+    }
   });
 });
 

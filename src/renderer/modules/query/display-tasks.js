@@ -84,6 +84,24 @@ function segmentElement(seg) {
  * @param {(key: string) => string} tFn
  * @returns {DocumentFragment}
  */
+// 4T-002863 (Epic 3E-000449): Die rohe Zeile eines Treffers mit privatem
+// Kommentar steht nicht im DOM, sonst trügen HTML-Export, Druck und Kopie den
+// Kommentar im Attribut `data-task-text` hinaus. Das Attribut trägt dann die
+// sichtbare Zeile, die rohe liegt hier. Geht die Zuordnung verloren (geklonter
+// Knoten), schreibt eine Aktion nichts: Die sichtbare Zeile passt zu keiner
+// Zeile der Datei, und der Schreibweg meldet den Konflikt.
+const rohZeilen = new WeakMap();
+
+/**
+ * Die rohe Zeile eines gezeichneten Aufgaben-Treffers, für die Schreibwege.
+ *
+ * @param {HTMLElement} li Listeneintrag eines Aufgaben-Treffers.
+ * @returns {string|undefined}
+ */
+export function rohZeileDesTreffers(li) {
+  return rohZeilen.get(li) ?? li.dataset.taskText;
+}
+
 export function buildTaskListDom(resultSet, tFn) {
   const frag = document.createDocumentFragment();
   const layout = taskLayout(resultSet.wishes);
@@ -143,10 +161,13 @@ function buildRowItem(row, layout, withExtra, cfg) {
   const origin = row.origin;
   const name = displayName(origin);
   const raw = origin.raw;
+  // 4T-002863 (Epic 3E-000449): angezeigt wird die Zeile ohne private
+  // Kommentare; `raw` bleibt die Treffer-Identität der Rückschreib-Aktionen.
+  const sichtbar = typeof origin.sichtbar === 'string' ? origin.sichtbar : raw;
   const info = row.taskInfo || {};
   const li = document.createElement('li');
   li.className = 'perspective-query-task';
-  const model = typeof raw === 'string' ? parseTaskLine(raw) : null;
+  const model = typeof sichtbar === 'string' ? parseTaskLine(sichtbar) : null;
   if (!model) {
     // Defensiv (Menge über die Prozess-Grenze): ohne parsebares Modell bleibt
     // der Treffer ein einfacher Datei-Link wie in der Datei-Liste.
@@ -157,7 +178,8 @@ function buildRowItem(row, layout, withExtra, cfg) {
   // (task-query-actions.js liest sie im Klick-Dispatch); aus der Herkunft.
   li.dataset.taskPath = origin.path;
   if (typeof origin.line === 'number') li.dataset.taskLine = String(origin.line);
-  li.dataset.taskText = raw;
+  li.dataset.taskText = sichtbar;
+  if (sichtbar !== raw) rohZeilen.set(li, raw);
   const status = document.createElement('span');
   status.className = 'perspective-query-task-status';
   status.dataset.statusChar = model.statusChar;
@@ -170,7 +192,7 @@ function buildRowItem(row, layout, withExtra, cfg) {
   li.appendChild(status);
   // 4T-002822: der Anzeige-Text aus dem Darstellungs-Kern, dieselbe Stelle wie
   // beim Schreiben eines Abfrage-Ergebnisses in eine Notiz.
-  const description = taskText(raw, layout.wishes, cfg);
+  const description = taskText(sichtbar, layout.wishes, cfg);
   li.appendChild(taskItemLink(origin, description || name));
   appendMarkerBadges(li, model, layout, cfg);
   // 4T-000505 (Epic 3E-000096): einblendbarer Dringlichkeits-Score (SHOW

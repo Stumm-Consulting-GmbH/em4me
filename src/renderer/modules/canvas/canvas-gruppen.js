@@ -61,9 +61,10 @@ const LEISTEN_ABSTAND = 6;
  * @param {boolean} [aenderbar] Ist das Dokument änderbar? Im Anzeige-Modus
  *   entsteht der Größen-Griff gar nicht erst (Entscheidung E3): Ihn nur
  *   unsichtbar zu schalten reichte nicht — er bliebe anfassbar.
+ * @param {{ohneKommentare?: boolean}} [opts] 4T-002797: geht an die Beschriftung.
  * @returns {HTMLElement} die Hülle, noch nicht eingehängt.
  */
-export function zeichneGruppe(el, aenderbar = true) {
+export function zeichneGruppe(el, aenderbar = true, opts) {
   const r = kartenRechteck(el);
   const huelle = document.createElement('div');
   huelle.className = 'canvas-gruppe';
@@ -123,7 +124,7 @@ export function zeichneGruppe(el, aenderbar = true) {
   // 4S-000931): kein Markdown und keine Scroll-Fläche. Sie ist anfassbar, denn
   // sie ist neben dem Rand der zweite Griff der Gruppe — bei einer großen
   // Gruppe liegt der Rand weit draußen.
-  const zeilen = beschriftungsZeilen(el);
+  const zeilen = beschriftungsZeilen(el, opts);
   if (zeilen.length > 0) {
     const text = document.createElement('div');
     text.className = 'canvas-gruppe-text';

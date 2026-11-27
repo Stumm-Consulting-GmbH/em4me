@@ -33,6 +33,8 @@ import {
   parseCanvasFence,
 } from '../../../shared/canvas/canvas-core.js';
 import { istCanvasModusVerfuegbar } from './canvas-modus.js';
+// 4T-002797 (Epic 3E-000449): Die Listen-Ansicht zeigt keinen privaten Kommentar.
+import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { createCanvasView } from './canvas-view.js';
 // 4T-001747 (Epic 3E-000289): Die Zerlegung einer Verweis-Angabe in Ziel, Anker
 // und Abruf-Pfad steht an **einer** Stelle — dieselbe, aus der die Anzeige
@@ -458,6 +460,8 @@ function ansichtFuer(paneIdx) {
     neuUebergeben: () => renderCanvas(paneIdx),
     // Befund 1 vom 2026-09-10: Im Anzeige-Modus ist die Fläche nur ansehbar.
     istAenderbar: () => istAenderbar(paneIdx),
+    // 4T-002797 (Epic 3E-000449): Beschriftungen ohne privaten Kommentar.
+    ohneKommentare: () => isExtensionActive('comments'),
     // 4T-001654: Rückgängig und Wiederholen auf der Historie dieser Spalte.
     // Sie gehören dem Editor; die Fläche reicht nur die Taste weiter.
     rueckgaengig: () => rufeZugang('rueckgaengig', paneIdx),
@@ -521,7 +525,7 @@ export function canvasZustandAus(inhalt) {
     const model = parseCanvasFence(fence.rumpf);
     return {
       model,
-      titel: canvasFlaechenTitel(model),
+      titel: canvasFlaechenTitel(model, { ohneKommentare: isExtensionActive('comments') }),
       // Die Stelle im Dokument ist die stabile Kennung einer Fläche: Sie
       // überlebt eine Live-Aktualisierung, solange die Fence dort steht, und
       // unterscheidet zwei Flächen mit gleichem Titel.
@@ -620,7 +624,7 @@ export function canvasListenStand(paneIdx) {
   if (flaechen.length === 0) return stand;
   const zeiger = inAnsicht ? ansichten[paneIdx].getStats() : null;
   const gezeigt = flaechen[zeiger ? zeiger.gewaehlt : 0] || flaechen[0];
-  stand.liste = canvasListe(gezeigt.model);
+  stand.liste = canvasListe(gezeigt.model, { ohneKommentare: isExtensionActive('comments') });
   stand.gewaehlt = zeiger
     ? zeiger.gewaehlteKarte ||
       zeiger.gewaehlteForm ||

@@ -307,8 +307,13 @@ function blockOrigin(path, name, anchor) {
   return { kind: 'block', path, name, anchor };
 }
 /** @returns {Origin} */
-function taskOrigin(path, name, line, raw) {
-  return { kind: 'task', path, name, line, raw };
+// 4T-002863 (Epic 3E-000449): `sichtbar` ist die Zeile ohne private Kommentare, nur gesetzt,
+// wenn sie sich von `raw` unterscheidet. Angezeigt und ausgegeben wird sie;
+// `raw` bleibt die erwartete Zeile der Schreibwege.
+function taskOrigin(path, name, line, raw, sichtbar) {
+  return sichtbar == null
+    ? { kind: 'task', path, name, line, raw }
+    : { kind: 'task', path, name, line, raw, sichtbar };
 }
 /** @returns {Origin} */
 function recordOrigin(table, id) {

@@ -436,7 +436,7 @@ function renderList() {
     main.className = 'reminders-item-main';
     const desc = document.createElement('span');
     desc.className = 'reminders-item-desc';
-    desc.textContent = item.description || item.taskText;
+    desc.textContent = item.description || item.sichtbarText || item.taskText; // 4T-002863
     main.appendChild(desc);
     const meta = document.createElement('span');
     meta.className = 'reminders-item-meta';
@@ -510,7 +510,7 @@ async function showDialog() {
     const items = [...pending.values()];
     const body =
       items.length === 1
-        ? items[0].description || items[0].taskText
+        ? items[0].description || items[0].sichtbarText || items[0].taskText // 4T-002863
         : t('reminders.notification.count').replace('{n}', String(items.length));
     try {
       // 4T-001727 (E12): Die Schlüssel lassen den Hauptprozess die

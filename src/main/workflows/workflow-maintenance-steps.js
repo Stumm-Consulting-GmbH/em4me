@@ -122,17 +122,20 @@ async function liegtDa(pfad) {
  * @param {string} text aktueller Stand der Datei.
  * @param {string} suche Suchtext.
  * @param {{enabled: boolean, globalFilter: string, statusTypeOf: Function}} env
- * @returns {{line: number, taskText: string}|null}
+ * @returns {{line: number, taskText: string, beschreibung: string}|null}
  */
 function findOpenTask(abs, text, suche, env) {
   const { tasks } = parseContent(abs, String(text));
   for (const aufgabe of tasks || []) {
-    const model = parseTaskLine(aufgabe.text);
+    // 4T-002863 (Epic 3E-000449): Gesucht wird in der Zeile ohne private
+    // Kommentare, geschrieben über die rohe (`taskText`).
+    const sichtbar = typeof aufgabe.sichtbar === 'string' ? aufgabe.sichtbar : aufgabe.text;
+    const model = parseTaskLine(sichtbar);
     if (!model) continue;
     if (!OFFENE_TYPEN.includes(env.statusTypeOf(model.statusChar))) continue;
     if (env.enabled && !modelMatchesGlobalFilter(model, env.globalFilter)) continue;
     if (!model.description.includes(suche)) continue;
-    return { line: aufgabe.zeile, taskText: aufgabe.text };
+    return { line: aufgabe.zeile, taskText: aufgabe.text, beschreibung: model.description };
   }
   return null;
 }
@@ -224,12 +227,14 @@ function createWorkflowMaintenanceSteps(deps) {
   // 4T-002813: die Einmal-Marke der Folgeteile, in denen die Beschreibung
   // steht (Abschnitt «Lauf-Marke» oben). Ein ungeteiltes Dokument oder ein
   // nicht lesbarer Stand merkt nichts zusätzlich.
-  async function merkeFolgeteile(kopf, beschreibung) {
-    if (!beschreibung) return;
+  // 4T-002863: Den Folgeteil findet die rohe Beschreibung (so steht sie in der
+  // Datei), die Marke trägt die sichtbare (so meldet sie das Ereignis).
+  async function merkeFolgeteile(kopf, rohBeschreibung, beschreibung) {
+    if (!rohBeschreibung || !beschreibung) return;
     const stand = await readStateForSave(kopf);
     if (!stand.ok || !stand.geteilt) return;
     for (const teil of stand.teile.slice(1)) {
-      if (teil.content.includes(beschreibung)) await merkeLaufAufgabe(teil.pfad, beschreibung);
+      if (teil.content.includes(rohBeschreibung)) await merkeLaufAufgabe(teil.pfad, beschreibung);
     }
   }
 
@@ -249,9 +254,10 @@ function createWorkflowMaintenanceSteps(deps) {
     const treffer = findOpenTask(gelesen.kopf, gelesen.text, suche, aufgabenUmgebung());
     if (!treffer) return fehlschlag('taskNotFound', { path: relPfad, text: suche });
     const model = parseTaskLine(treffer.taskText);
-    const beschreibung = model ? model.description : suche;
+    const rohBeschreibung = model ? model.description : suche;
+    const beschreibung = treffer.beschreibung || rohBeschreibung;
     await merkeLaufAufgabe(gelesen.kopf, beschreibung);
-    await merkeFolgeteile(gelesen.kopf, beschreibung);
+    await merkeFolgeteile(gelesen.kopf, rohBeschreibung, beschreibung);
     return {
       ok: true,
       window: {

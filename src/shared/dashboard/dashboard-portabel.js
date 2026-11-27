@@ -143,7 +143,8 @@ function gruppenWert(value, L) {
 // Eine Aufgabe als Aufgaben-Zeile mit ihrem Zustand und Text aus der Roh-Zeile,
 // dahinter der Verweis auf ihre Datei.
 function aufgabenZeile(origin) {
-  const roh = String((origin && origin.raw) || '').trim();
+  // 4T-002863 (Epic 3E-000449): die Zeile ohne private Kommentare, wo sie abweicht.
+  const roh = String((origin && (origin.sichtbar ?? origin.raw)) || '').trim();
   const m = /^(?:[-*+]|\d+[.)])\s+\[(.)\]\s*(.*)$/.exec(roh);
   const zustand = m ? m[1] : ' ';
   const text = m ? m[2] : roh;

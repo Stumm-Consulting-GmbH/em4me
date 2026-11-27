@@ -142,10 +142,10 @@ describe('taskMarkerCompletionSource: Trigger-Logik (4T-000507)', () => {
 // die Anwendung an einer echten Editor-Ansicht durch.
 describe('taskMarkerCompletionSource: Kennung erzeugen (4T-002035)', () => {
   it('gibt der Erzeugung die Kennungen der Bereichs-Aufgaben aus der Ergebnismenge', async () => {
-    const zeile = (line, raw) =>
+    const zeile = (line, raw, sichtbar) =>
       makeRow(
         [],
-        taskOrigin('/raum/Aufgaben.md', 'Aufgaben', line, raw),
+        taskOrigin('/raum/Aufgaben.md', 'Aufgaben', line, raw, sichtbar),
         makeTaskInfo({ urgency: 1.95, blocked: false, duplicateId: false }),
       );
     const vorher = window.api.runFrontmatterQuery;
@@ -156,7 +156,14 @@ describe('taskMarkerCompletionSource: Kennung erzeugen (4T-002035)', () => {
         resultSet: makeResultSet({
           scope: 'tasks',
           type: 'list',
-          rows: [zeile(3, '- [ ] Dach decken 🆔 dach01'), zeile(4, '- [ ] Ohne Kennung')],
+          // 4T-002863: Belegt ist die Kennung der rohen und der sichtbaren
+          // Zeile (vor einem Kommentar am Zeilenende, im offenen Kommentar).
+          rows: [
+            zeile(3, '- [ ] Dach decken 🆔 dach01'),
+            zeile(4, '- [ ] Ohne Kennung'),
+            zeile(5, '- [ ] Keller 🆔 kell01 %%alt%%', '- [ ] Keller 🆔 kell01 '),
+            zeile(6, '- [ ] Alt %% 🆔 alt001', '- [ ] Alt '),
+          ],
           state: makeState('ready'),
         }),
       };
@@ -183,7 +190,7 @@ describe('taskMarkerCompletionSource: Kennung erzeugen (4T-002035)', () => {
       option.apply(view);
       await new Promise((r) => setTimeout(r, 0));
       expect(abfragen).toEqual([['/raum/Aufgaben.md', 'LIST TASKS']]);
-      expect(vergebeneListen).toEqual([['dach01']]);
+      expect(vergebeneListen).toEqual([['dach01', 'kell01', 'alt001']]);
       expect(view.state.doc.toString()).toContain('🆔 neu001');
     } finally {
       window.api.runFrontmatterQuery = vorher;

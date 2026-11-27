@@ -14,9 +14,9 @@
 // Attrappe mit echtem `EditorState` und aufgefangenem `dispatch`.
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import './api-stub.js';
+import { zustandMitVollemBaum } from './syntax-baum-helfer.js';
 import { EditorState } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
-import { ensureSyntaxTree } from '@codemirror/language';
 
 const paneEls = [];
 vi.mock('../../../src/renderer/modules/app/app-state.js', async (importOriginal) => ({
@@ -93,8 +93,7 @@ const ZEILEN_HTML =
 // Überschriften-Suche liest ihn), aufgefangene Aufträge statt einer Anzeige.
 let auftraege = [];
 function editor(doc) {
-  const es = EditorState.create({ doc, extensions: [markdown()] });
-  ensureSyntaxTree(es, es.doc.length, 5000);
+  const es = zustandMitVollemBaum(EditorState.create({ doc, extensions: [markdown()] }));
   paneEditors[0] = { state: es, dispatch: (tr) => auftraege.push(tr) };
 }
 

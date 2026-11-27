@@ -76,7 +76,7 @@ function statusOptions(currentChar) {
 
 // Bereichs-Tasks fuer die Vorgaenger-/Nachfolger-Suche: laeuft ueber die
 // bestehende Task-Abfrage (LIST TASKS gegen den Index; kein eigener IPC).
-// Rueckgabe [{ path, line, taskText, id, description }] oder [].
+// Rueckgabe [{ path, line, taskText, sichtbar?, id, belegteId, description }] oder [].
 async function loadAreaTasks(contextPath) {
   if (!contextPath) return [];
   let payload;
@@ -86,14 +86,29 @@ async function loadAreaTasks(contextPath) {
     return [];
   }
   // 4T-002035 (Epic 3E-000260): Treffer aus der Herkunft der Ergebnismenge.
+  // 4T-002863 (Epic 3E-000449): Beschreibung und referenzierbare Kennung aus der
+  // Zeile ohne private Kommentare; `belegteId` aus der rohen Zeile, damit eine
+  // neue Kennung auch keiner im Kommentar gleicht (`belegteKennungen`).
+  // Geschrieben wird über `taskText`.
   return taskHits(payload && payload.resultSet).map((hit) => {
-    const m = parseTaskLine(hit.taskText);
+    const sichtbar = hit.sichtbar ?? hit.taskText;
+    const m = parseTaskLine(sichtbar);
+    const roh = hit.sichtbar === undefined ? m : parseTaskLine(hit.taskText);
     return {
       ...hit,
       id: m && m.id ? m.id : null,
-      description: m ? m.description.trim() : hit.taskText,
+      belegteId: roh && roh.id ? roh.id : null,
+      description: m ? m.description.trim() : sichtbar,
     };
   });
+}
+
+// 4T-002863: Kennungen, denen eine neue nicht gleichen darf. Die Erkennung
+// liest eine Kennung nur am Zeilenende; die sichtbare Zeile findet eine
+// Kennung vor einem Kommentar am Zeilenende, die rohe eine in einem Kommentar,
+// der über die Zeile hinaus offen bleibt. Belegt ist deshalb beides.
+function belegteKennungen(tasks) {
+  return (tasks || []).flatMap((task) => [task.id, task.belegteId]).filter(Boolean);
 }
 
 // Nachfolger-Bezuege schreiben: die Ziel-Zeile erhaelt die eigene ID als
@@ -301,7 +316,7 @@ export function showTaskDialog(model, mode, opts) {
         genBtn.textContent = t('taskDialog.generateId');
         genBtn.addEventListener('click', async () => {
           const tasks = await ensureAreaTasks();
-          setTaskId(draft, generateTaskId(tasks.map((task) => task.id).filter(Boolean)));
+          setTaskId(draft, generateTaskId(belegteKennungen(tasks)));
           renderDeps();
         });
         idRow.appendChild(genBtn);
@@ -393,8 +408,7 @@ export function showTaskDialog(model, mode, opts) {
       // 4T-000508: Nachfolger-Bezuege brauchen die eigene ID — ohne ID wird
       // beim OK automatisch eine eindeutige erzeugt (Bereichs-IDs geprueft).
       if (pendingSuccessors.length > 0 && !draft.id) {
-        const known = (areaTasks || []).map((task) => task.id).filter(Boolean);
-        setTaskId(draft, generateTaskId(known));
+        setTaskId(draft, generateTaskId(belegteKennungen(areaTasks)));
       }
       const successors = pendingSuccessors.slice();
       const ownId = draft.id;

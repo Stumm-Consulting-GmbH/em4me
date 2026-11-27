@@ -261,7 +261,9 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale, templat
       const taskLines = sicht.tasksPerFile.get(absPath);
       if (!taskLines || taskLines.length === 0) continue;
       for (const tl of taskLines) {
-        const model = parseTaskLine(tl.text);
+        // 4T-002863 (Epic 3E-000449): Modell aus der sichtbaren Zeile; Status, Daten,
+        // Schlagworte und Text in einem privaten Kommentar zählen nicht.
+        const model = parseTaskLine(tl.sichtbar ?? tl.text);
         if (!model) continue;
         if (!modelMatchesGlobalFilter(model, globalFilter)) continue;
         candidates.push({
@@ -302,6 +304,9 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale, templat
           description: c.model.description.trim(),
           tags: taskLineTags(c.model.description),
           raw: c.tl.text,
+          // 4T-002863 (Epic 3E-000449): die Zeile ohne private Kommentare, nur wenn
+          // sie sich von der rohen unterscheidet; `raw` bleibt für die Schreibwege.
+          sichtbar: c.tl.sichtbar,
           // 4T-000505: Dringlichkeits-Score mit injiziertem Bezugstag.
           urgency: computeUrgency(c.model, { todayIso }),
           // 4T-000508: Blockierungs- und Duplikat-Flags.

@@ -18,7 +18,11 @@
 // nirgends.
 'use strict';
 
-import { LINIEN_FARBEN, linienRichtung } from '../../../shared/canvas/canvas-core.js';
+import {
+  LINIEN_FARBEN,
+  canvasBeschriftung,
+  linienRichtung,
+} from '../../../shared/canvas/canvas-core.js';
 import {
   pfeilSpitzePfad,
   verbindungsMitte,
@@ -101,9 +105,17 @@ function svgKnoten(art, klasse) {
  * Beschriftung einer Form ist derselbe Rohtext wie die einer Verbindung, und
  * eine zweite Funktion mit demselben Rumpf wäre ein zweiter Ort für dieselbe
  * Regel — dasselbe Muster wie `setzeElementInhalt` in der Karten-Bedienung.
+ *
+ * 4T-002797 (Epic 3E-000449): Mit `opts.ohneKommentare`, hereingereicht von
+ * der Ansicht, zeigt die Beschriftung keinen privaten Kommentar, wie der
+ * Karten-Text, den die Anzeige über `renderMarkdown` befreit. Die Regel steht
+ * im Kern (`canvasBeschriftung`).
+ *
+ * @param {object} el Element des Modells.
+ * @param {{ohneKommentare?: boolean}} [opts]
  */
-export function beschriftungsZeilen(el) {
-  const zeilen = String(el.inhalt || '').split('\n');
+export function beschriftungsZeilen(el, opts) {
+  const zeilen = canvasBeschriftung(el, opts).split('\n');
   while (zeilen.length > 0 && zeilen[zeilen.length - 1].trim() === '') zeilen.pop();
   return zeilen;
 }
@@ -145,11 +157,12 @@ function zeichneBeschriftung(gruppe, zeilen, mitte, farbe) {
  * @param {object} el Linien-Element des Modells.
  * @param {Function} karteZu (id) => Karten-Element oder `null`.
  * @param {boolean} [gewaehlt]
+ * @param {{ohneKommentare?: boolean}} [opts] 4T-002797: geht an die Beschriftung.
  * @returns {SVGElement|null} die Gruppe, oder `null` für eine Verbindung ins
  *   Leere: Der Kern meldet sie als Befund und behält sie, gezeichnet wird sie
  *   nicht, weil ihr ein Ende fehlt (AK7).
  */
-export function zeichneVerbindung(el, karteZu, gewaehlt = false) {
+export function zeichneVerbindung(el, karteZu, gewaehlt = false, opts) {
   const von = karteZu(el.von);
   const nach = karteZu(el.nach);
   if (!von || !nach) return null;
@@ -190,7 +203,7 @@ export function zeichneVerbindung(el, karteZu, gewaehlt = false) {
     gruppe.appendChild(spitze);
   }
 
-  const zeilen = beschriftungsZeilen(el);
+  const zeilen = beschriftungsZeilen(el, opts);
   if (zeilen.length > 0)
     zeichneBeschriftung(gruppe, zeilen, verbindungsMitte(von, nach, seiten), farbe);
   return gruppe;
@@ -208,11 +221,15 @@ export function zeichneVerbindung(el, karteZu, gewaehlt = false) {
  * @param {Array<object>} ctx.linien Linien-Elemente des Modells.
  * @param {Function} ctx.karteZu (id) => Karten-Element oder `null`.
  * @param {string} [ctx.gewaehlt] Kennung der gewählten Verbindung.
+ * @param {boolean} [ctx.ohneKommentare] 4T-002797: Beschriftungen ohne
+ *   privaten Kommentar.
  */
-export function zeichneLinienEbene(ebene, { linien, karteZu, gewaehlt }) {
+export function zeichneLinienEbene(ebene, { linien, karteZu, gewaehlt, ohneKommentare }) {
   ebene.textContent = '';
   for (const el of linien || []) {
-    const gruppe = zeichneVerbindung(el, karteZu, !!gewaehlt && el.id === gewaehlt);
+    const gruppe = zeichneVerbindung(el, karteZu, !!gewaehlt && el.id === gewaehlt, {
+      ohneKommentare,
+    });
     if (gruppe) ebene.appendChild(gruppe);
   }
 }

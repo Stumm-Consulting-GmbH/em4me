@@ -270,6 +270,100 @@ describe('showTaskDialog — Abhaengigkeiten (4T-000508)', () => {
     }
   });
 
+  it('Vorgänger- und Nachfolger-Suche zeigen keinen privaten Kommentar (4T-002863)', async () => {
+    // Die sichtbare Zeile setzt der Index; eine Kennung nur im Kommentar zählt nicht.
+    const zeile = (line, raw, sichtbar) =>
+      makeRow(
+        [],
+        taskOrigin('/raum/Aufgaben.md', 'Aufgaben', line, raw, sichtbar),
+        makeTaskInfo({ urgency: 1, blocked: false, duplicateId: false }),
+      );
+    stubAntwort = aufgabenAntwort([
+      zeile(3, '- [ ] Dach decken 🆔 dach01 %%Preis geheim%%', '- [ ] Dach decken 🆔 dach01 '),
+      zeile(4, '- [ ] Keller %%🆔 kel001%%', '- [ ] Keller '),
+    ]);
+    try {
+      const p = showTaskDialog(parseTaskLine('- [ ] Selbst'), 'edit', {
+        contextPath: '/raum/Aufgaben.md',
+      });
+      const [vorgaenger, nachfolger] = depsEl().querySelectorAll('.task-dialog-dep-search');
+      vorgaenger.dispatchEvent(new Event('focus'));
+      await flush();
+      const texte = () =>
+        [...depsEl().querySelectorAll('.task-dialog-suggest-entry')].map((e) => e.textContent);
+      expect(texte()).toEqual(['Dach decken [dach01]']);
+      nachfolger.dispatchEvent(new Event('focus'));
+      await flush();
+      expect(texte().join(' ')).not.toContain('geheim');
+      expect(texte()).toContain('Keller');
+      btnCancel().click();
+      await p;
+    } finally {
+      stubAntwort = aufgabenAntwort();
+    }
+  });
+
+  // 4T-002863, Zweitblick Runde 2: Eine neue Kennung darf keiner in der Datei
+  // gleichen, weder über den Erzeugen-Knopf noch beim OK mit Nachfolger. Die
+  // Erkennung liest eine Kennung nur am Zeilenende: In einem Kommentar, der über
+  // die Zeile hinaus offen bleibt, findet sie nur die rohe Zeile, vor einem
+  // Kommentar am Zeilenende nur die sichtbare. Der Zufall liefert zuerst genau
+  // diese Kennung, danach eine freie.
+  describe.each([
+    ['im offenen Kommentar', '- [ ] Keller %% 🆔 aaaaaa', '- [ ] Keller '],
+    ['vor einem Kommentar', '- [ ] Keller 🆔 aaaaaa %%alt%%', '- [ ] Keller 🆔 aaaaaa '],
+  ])('neue Kennung meidet eine belegte Kennung %s (4T-002863)', (_fall, roh, sichtbar) => {
+    const zeile = (line, raw, sichtbar) =>
+      makeRow(
+        [],
+        taskOrigin('/raum/Aufgaben.md', 'Aufgaben', line, raw, sichtbar),
+        makeTaskInfo({ urgency: 1, blocked: false, duplicateId: false }),
+      );
+    const zufallMitBelegterKennung = () => {
+      let aufrufe = 0;
+      return vi.spyOn(Math, 'random').mockImplementation(() => (aufrufe++ < 6 ? 0 : 0.999));
+    };
+    beforeEach(() => {
+      stubAntwort = aufgabenAntwort([
+        zeile(3, '- [ ] Dach decken 🆔 dach01', undefined),
+        zeile(4, roh, sichtbar),
+      ]);
+    });
+    afterEach(() => {
+      vi.restoreAllMocks();
+      stubAntwort = aufgabenAntwort();
+    });
+
+    it('Erzeugen-Knopf', async () => {
+      const p = showTaskDialog(parseTaskLine('- [ ] Neu'), 'edit', {
+        contextPath: '/raum/Aufgaben.md',
+      });
+      const genBtn = depsEl().querySelector('.task-dialog-date-row button');
+      zufallMitBelegterKennung();
+      genBtn.click();
+      await flush();
+      expect(depsEl().querySelector('.task-dialog-date-value').textContent).toBe('999999');
+      btnCancel().click();
+      await p;
+    });
+
+    it('OK mit Nachfolger ohne eigene Kennung', async () => {
+      const p = showTaskDialog(parseTaskLine('- [ ] Neu'), 'edit', {
+        contextPath: '/raum/Aufgaben.md',
+      });
+      const nachfolger = depsEl().querySelectorAll('.task-dialog-dep-search')[1];
+      nachfolger.dispatchEvent(new Event('focus'));
+      await flush();
+      const dach = [...depsEl().querySelectorAll('.task-dialog-suggest-entry')].find((e) =>
+        e.textContent.includes('Dach decken'),
+      );
+      dach.click();
+      zufallMitBelegterKennung();
+      btnOk().click();
+      expect(await p).toBe('- [ ] Neu 🆔 999999');
+    });
+  });
+
   it('Vorgaenger-Chip entfernen loescht den Marker aus der Rueckgabe-Zeile', async () => {
     const model = parseTaskLine('- [ ] Task ⛔ abc123');
     const p = showTaskDialog(model, 'edit');

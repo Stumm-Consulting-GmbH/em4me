@@ -30,9 +30,8 @@ window.api.reportPanes = () => {};
 // Die Spalten zeichnen beim Aktivieren neu; der Inhalt ist nicht Gegenstand.
 window.api.renderMarkdown = () => '';
 // jsdom misst keine Text-Bereiche; der Editor fragt beim Neuzeichnen danach.
-const leer = { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 };
-Range.prototype.getClientRects = () => [];
-Range.prototype.getBoundingClientRect = () => leer;
+// Die Antwort gibt seit 4T-002945 die Vorbereitung der Unit-Suite für alle
+// Prüfdateien (test/browser-nachbildung.js).
 
 const { state, createTab } = await import('../../../src/renderer/modules/app/app-state.js');
 const { activateTab, closeTab } = await import('../../../src/renderer/modules/tabs/tabs.js');

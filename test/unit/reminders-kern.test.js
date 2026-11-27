@@ -212,6 +212,7 @@ describe('collectReminders (4T-000525)', () => {
       path: 'a.md',
       line: 2,
       taskText: '- [ ] #task Alpha ⏰ 2099-01-01 08:00',
+      sichtbarText: '- [ ] #task Alpha ⏰ 2099-01-01 08:00', // 4T-002863: ohne Kommentar gleich
       description: 'Alpha',
       instant: '2099-01-01T08:00',
       date: '2099-01-01',
